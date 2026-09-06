@@ -21,7 +21,7 @@ export default async function DebtorsPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-6">
         <div>
           <div className="flex items-center gap-2">
-            <UserCircle className="text-chaan-accent" size={24} />
+            <UserCircle className="text-chaan-brand" size={24} />
             <h1 className="text-2xl font-bold text-white tracking-tight">Debtors & Counterparty Portfolio</h1>
           </div>
           <p className="mt-1 text-sm text-slate-400">
@@ -33,19 +33,19 @@ export default async function DebtorsPage() {
       </div>
 
       {/* Debtors Table */}
-      <div className="overflow-x-auto rounded-xl border border-chaan-border bg-chaan-card">
+      <div className="overflow-x-auto rounded-2xl border border-chaan-border bg-chaan-card shadow-sm">
         <table className="min-w-full text-xs">
           <thead className="bg-slate-900/80 uppercase text-slate-400 font-mono tracking-wider border-b border-chaan-border">
             <tr>
-              <th className="px-4 py-3 text-left">Buyer / Counterparty</th>
-              <th className="px-4 py-3 text-left">GSTIN / PAN</th>
-              <th className="px-4 py-3 text-left">Preferred Language</th>
-              <th className="px-4 py-3 text-left">Risk Flag & Score</th>
-              <th className="px-4 py-3 text-left">Outstanding</th>
-              <th className="px-4 py-3 text-left">Credit Limit</th>
-              <th className="px-4 py-3 text-left">Recommended Tenor</th>
-              <th className="px-4 py-3 text-left">Overdue Status</th>
-              <th className="px-4 py-3 text-right">Action</th>
+              <th className="px-4 py-3.5 text-left">Buyer / Counterparty</th>
+              <th className="px-4 py-3.5 text-left">GSTIN / PAN</th>
+              <th className="px-4 py-3.5 text-left">Language</th>
+              <th className="px-4 py-3.5 text-left">Risk Flag & Score</th>
+              <th className="px-4 py-3.5 text-left">Outstanding</th>
+              <th className="px-4 py-3.5 text-left">Credit Limit</th>
+              <th className="px-4 py-3.5 text-left">Recommended Tenor</th>
+              <th className="px-4 py-3.5 text-left">Overdue Status</th>
+              <th className="px-4 py-3.5 text-right">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60">
@@ -55,11 +55,11 @@ export default async function DebtorsPage() {
               const flagColor = (flag?.flag || "amber") as "green" | "amber" | "red";
 
               return (
-                <tr key={b.id} className="hover:bg-slate-800/40 transition">
-                  <td className="px-4 py-3">
+                <tr key={b.id} className="hover:bg-slate-800/30 transition">
+                  <td className="px-4 py-3.5">
                     <Link
                       href={`/buyers/${b.id}`}
-                      className="font-semibold text-slate-200 hover:text-chaan-accent transition text-sm"
+                      className="font-semibold text-slate-200 hover:text-chaan-brand transition text-sm"
                     >
                       {b.name}
                     </Link>
@@ -108,7 +108,7 @@ export default async function DebtorsPage() {
                   <td className="px-4 py-3 text-right">
                     <Link
                       href={`/buyers/${b.id}`}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-chaan-accent hover:underline"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-chaan-brand hover:underline"
                     >
                       Dossier <ArrowRight size={12} />
                     </Link>

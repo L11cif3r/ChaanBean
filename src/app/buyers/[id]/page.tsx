@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { RiskFlagBadge, SignalBreakdownTable } from "@/components/ui";
 import { RefreshRiskButton } from "@/components/RefreshRiskButton";
+import { ReportResultView } from "@/components/verification/ReportResultView";
 import Link from "next/link";
 import type { SignalBreakdown } from "@/lib/risk-scoring/engine";
 import { ArrowLeft, ShieldAlert, CheckCircle2, Clock, FileText, Database } from "lucide-react";
@@ -90,32 +91,36 @@ export default async function BuyerProfilePage({ params }: { params: Promise<{ i
         </div>
       </header>
 
-      {/* Credit Account Terms */}
+      {/* Credit Account Terms - Self-Explained Metrics */}
       {account && (
         <section className="grid gap-4 sm:grid-cols-4">
-          <div className="rounded-xl border border-chaan-border bg-chaan-card p-5">
-            <p className="text-xs uppercase text-slate-400 font-mono">Outstanding Balance</p>
-            <p className="mt-2 text-2xl font-bold font-mono text-white">
+          <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1">
+            <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">Outstanding Balance</p>
+            <p className="text-2xl font-bold font-mono text-white">
               ₹{account.outstandingAmount.toLocaleString("en-IN")}
             </p>
+            <p className="text-[10px] text-slate-400">Current unpaid trade invoices</p>
           </div>
-          <div className="rounded-xl border border-chaan-border bg-chaan-card p-5">
-            <p className="text-xs uppercase text-slate-400 font-mono">Approved Credit Limit</p>
-            <p className="mt-2 text-2xl font-bold font-mono text-emerald-400">
+          <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1">
+            <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">Approved Credit Limit</p>
+            <p className="text-2xl font-bold font-mono text-emerald-400">
               ₹{account.creditLimit.toLocaleString("en-IN")}
             </p>
+            <p className="text-[10px] text-slate-400">Risk-adjusted exposure ceiling</p>
           </div>
-          <div className="rounded-xl border border-chaan-border bg-chaan-card p-5">
-            <p className="text-xs uppercase text-slate-400 font-mono">Due Date</p>
-            <p className="mt-2 text-xl font-bold font-mono text-slate-200">
+          <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1">
+            <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">Invoice Due Date</p>
+            <p className="text-2xl font-bold font-mono text-slate-200">
               {new Date(account.dueDate).toLocaleDateString("en-IN")}
             </p>
+            <p className="text-[10px] text-slate-400">Contractual settlement due date</p>
           </div>
-          <div className="rounded-xl border border-chaan-border bg-chaan-card p-5">
-            <p className="text-xs uppercase text-slate-400 font-mono">Statutory Overdue Status</p>
-            <p className="mt-2 text-xl font-bold font-mono uppercase text-amber-400">
+          <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1">
+            <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">Statutory Overdue Status</p>
+            <p className={`text-2xl font-bold font-mono uppercase ${account.overdueStatus === "defaulted" ? "text-rose-400" : account.overdueStatus === "overdue" ? "text-amber-400" : "text-emerald-400"}`}>
               {account.overdueStatus}
             </p>
+            <p className="text-[10px] text-slate-400">MSMED §16 interest accrual status</p>
           </div>
         </section>
       )}
@@ -135,15 +140,15 @@ export default async function BuyerProfilePage({ params }: { params: Promise<{ i
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-white">Underlying Verification Reports</h2>
+            <h2 className="text-base font-semibold text-white">Underlying Statutory Verification Dossiers</h2>
             <p className="text-xs text-slate-400">
-              Cached verification artifacts with provider attribution and expiry dates.
+              Formatted regulatory artifacts with provider attribution and 30-day cache validity.
             </p>
           </div>
           <span className="text-xs font-mono text-slate-400">{reports.length} Reports Cached</span>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-4">
           {reports.map((r) => {
             let dataObj: any = {};
             try {
@@ -152,43 +157,27 @@ export default async function BuyerProfilePage({ params }: { params: Promise<{ i
               // ignore
             }
 
+            const normalizedReport = {
+              reportType: r.reportType as any,
+              subjectType: r.subjectType as any,
+              subjectId: r.subjectId,
+              provider: r.provider,
+              status: r.status as any,
+              fetchedAt: r.createdAt.toISOString(),
+              expiresAt: r.cachedUntil.toISOString(),
+              data: dataObj,
+            };
+
             return (
-              <div
-                key={r.id}
-                className="rounded-xl border border-chaan-border bg-chaan-card p-4 text-xs space-y-2 hover:border-slate-600 transition"
-              >
-                <div className="flex items-start justify-between">
-                  <span className="font-semibold text-slate-200 capitalize">
-                    {r.reportType.replace(/_/g, " ")}
-                  </span>
-                  <span
-                    className={`rounded px-2 py-0.5 text-[10px] font-mono uppercase font-bold border ${
-                      r.status === "completed"
-                        ? "bg-emerald-950/80 text-emerald-400 border-emerald-800"
-                        : r.status === "pending"
-                          ? "bg-amber-950/80 text-amber-400 border-amber-800"
-                          : "bg-rose-950/80 text-rose-400 border-rose-800"
-                    }`}
-                  >
-                    {r.status}
-                  </span>
-                </div>
-
-                <div className="text-[11px] text-slate-400 space-y-0.5 font-mono">
-                  <p>Provider: <span className="text-slate-300">{r.provider}</span></p>
-                  <p>Cached Until: <span className="text-slate-300">{new Date(r.cachedUntil).toLocaleDateString("en-IN")}</span></p>
-                </div>
-
-                <div className="rounded bg-slate-900 p-2 text-[10px] font-mono text-slate-400 max-h-24 overflow-y-auto">
-                  <pre>{JSON.stringify(dataObj, null, 2)}</pre>
-                </div>
+              <div key={r.id} className="space-y-1">
+                <ReportResultView report={normalizedReport} />
               </div>
             );
           })}
           {reports.length === 0 && (
-            <p className="text-xs text-slate-500">
-              No cached reports for this subject yet. Click "Re-compute Risk Flag" to run the bundle.
-            </p>
+            <div className="rounded-2xl border border-chaan-border bg-chaan-card p-6 text-center text-xs text-slate-400">
+              No cached verification reports for this counterparty yet. Run the Verification Gateway to pull live dossiers.
+            </div>
           )}
         </div>
       </section>

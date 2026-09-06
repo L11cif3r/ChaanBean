@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import Link from "next/link";
 
 type Flag = "green" | "amber" | "red";
 
@@ -66,7 +67,7 @@ export function SignalBreakdownTable({
   }[];
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-chaan-border bg-chaan-card">
+    <div className="overflow-x-auto rounded-2xl border border-chaan-border bg-chaan-card shadow-sm">
       <table className="min-w-full text-xs">
         <thead className="bg-slate-900/80 text-left uppercase text-slate-400 font-mono tracking-wider border-b border-chaan-border">
           <tr>
@@ -112,20 +113,51 @@ export function SignalBreakdownTable({
   );
 }
 
-export function EscalationBadge({ level }: { level: string }) {
-  const colors: Record<string, string> = {
-    L1: "bg-blue-950/70 text-blue-400 border-blue-800/60",
-    L2: "bg-amber-950/70 text-amber-400 border-amber-800/60",
-    L3: "bg-rose-950/70 text-rose-400 border-rose-800/60 font-bold",
+export function EscalationBadge({
+  level,
+  showDetail = false,
+}: {
+  level: string;
+  showDetail?: boolean;
+}) {
+  const meta: Record<string, { label: string; style: string; detail: string }> = {
+    L1: {
+      label: "L1",
+      style: "bg-sky-950/80 text-sky-400 border-sky-800/60 shadow-[0_0_8px_rgba(56,189,248,0.1)]",
+      detail: "WhatsApp & Email Reminder",
+    },
+    L2: {
+      label: "L2",
+      style: "bg-amber-950/80 text-amber-400 border-amber-800/60 shadow-[0_0_8px_rgba(245,158,11,0.1)]",
+      detail: "Voice Bot Engagement",
+    },
+    L3: {
+      label: "L3",
+      style: "bg-rose-950/80 text-rose-400 border-rose-800/60 font-bold shadow-[0_0_8px_rgba(244,63,94,0.15)]",
+      detail: "Statutory Legal Demand",
+    },
   };
+
+  const item = meta[level] ?? {
+    label: level,
+    style: "bg-slate-800 text-slate-300 border-slate-700",
+    detail: "Standard Monitored",
+  };
+
   return (
     <span
+      title={item.detail}
       className={clsx(
-        "rounded px-2.5 py-0.5 text-xs font-mono border",
-        colors[level] ?? "bg-slate-800 text-slate-300 border-slate-700"
+        "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-mono border transition-all",
+        item.style
       )}
     >
-      {level}
+      <span className="font-bold">{item.label}</span>
+      {showDetail ? (
+        <span className="text-[10px] opacity-85">· {item.detail}</span>
+      ) : (
+        <span className="text-[10px] opacity-75 hidden sm:inline">({item.detail.split(" ")[0]})</span>
+      )}
     </span>
   );
 }
@@ -142,18 +174,18 @@ export function SummaryCard({
   href?: string;
 }) {
   const inner = (
-    <div className="rounded-xl border border-chaan-border bg-chaan-card p-5 transition hover:border-slate-600 hover:bg-chaan-cardHover shadow-sm">
-      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">{title}</p>
+    <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 transition-all duration-200 hover:border-[#F44851]/40 hover:bg-chaan-cardHover shadow-sm hover:shadow-[0_0_20px_rgba(244,72,81,0.06)]">
+      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">{title}</p>
       <p className="mt-2 text-2xl font-bold tracking-tight text-white font-mono">{value}</p>
-      {subtitle && <p className="mt-1 text-xs text-slate-500">{subtitle}</p>}
+      {subtitle && <p className="mt-1 text-[11px] text-slate-400 leading-snug">{subtitle}</p>}
     </div>
   );
 
   if (href) {
     return (
-      <a href={href} className="block group">
+      <Link href={href} className="block group">
         {inner}
-      </a>
+      </Link>
     );
   }
   return inner;

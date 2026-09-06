@@ -37,7 +37,7 @@ export function RecoveryActions({ creditAccountId }: { creditAccountId: string }
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setCallModalOpen(true)}
-          className="inline-flex items-center gap-1 rounded bg-amber-500 px-2.5 py-1 text-xs font-semibold text-slate-950 hover:bg-amber-400 transition shadow-sm"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500/90 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-amber-400 transition shadow-sm"
         >
           <Volume2 size={12} />
           Launch One-Way Call
@@ -46,7 +46,7 @@ export function RecoveryActions({ creditAccountId }: { creditAccountId: string }
         <button
           disabled={loading}
           onClick={() => runTick("tick")}
-          className="inline-flex items-center gap-1 rounded bg-sky-500 px-2.5 py-1 text-xs font-semibold text-slate-950 hover:bg-sky-400 transition disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-chaan-brand hover:bg-[#D9303A] text-white px-3 py-1.5 text-xs font-semibold transition shadow-sm shadow-[#F44851]/20 disabled:opacity-50"
         >
           <PhoneCall size={12} />
           Execute Policy Tick
@@ -55,7 +55,7 @@ export function RecoveryActions({ creditAccountId }: { creditAccountId: string }
         <button
           disabled={loading}
           onClick={() => runTick("legal_notice")}
-          className="inline-flex items-center gap-1 rounded bg-rose-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-rose-500 transition disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600/90 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-500 transition shadow-sm disabled:opacity-50"
         >
           <FileText size={12} />
           Legal Notice

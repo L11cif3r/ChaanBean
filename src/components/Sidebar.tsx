@@ -88,18 +88,23 @@ export function Sidebar() {
                   key={href}
                   href={href}
                   className={clsx(
-                    "flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                    "flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-all duration-150",
                     isActive
-                      ? "bg-slate-800/80 text-chaan-accent border border-slate-700/60 shadow-sm"
-                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
+                      ? "bg-[#F44851]/10 text-[#F44851] border border-[#F44851]/25 font-semibold shadow-[0_0_15px_rgba(244,72,81,0.10)]"
+                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white font-medium"
                   )}
                 >
                   <div className="flex items-center gap-2.5 truncate">
-                    <Icon size={16} />
+                    <Icon size={16} className={isActive ? "text-[#F44851]" : "text-slate-400"} />
                     <span className="truncate">{label}</span>
                   </div>
                   {badge && (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">
+                    <span className={clsx(
+                      "text-[9px] font-mono px-2 py-0.5 rounded-md border",
+                      isActive
+                        ? "bg-[#F44851]/15 border-[#F44851]/30 text-[#F44851] font-bold"
+                        : "bg-slate-800 border-slate-700 text-slate-400"
+                    )}>
                       {badge}
                     </span>
                   )}
@@ -122,18 +127,18 @@ export function Sidebar() {
                   key={href}
                   href={href}
                   className={clsx(
-                    "flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                    "flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-all duration-150",
                     isActive
-                      ? "bg-slate-800/80 text-chaan-accent border border-slate-700/60 shadow-sm"
-                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
+                      ? "bg-[#F44851]/10 text-[#F44851] border border-[#F44851]/25 font-semibold shadow-[0_0_15px_rgba(244,72,81,0.10)]"
+                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white font-medium"
                   )}
                 >
                   <div className="flex items-center gap-2.5 truncate">
-                    <Icon size={16} />
+                    <Icon size={16} className={isActive ? "text-[#F44851]" : "text-slate-400"} />
                     <span className="truncate">{label}</span>
                   </div>
                   {badge && (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 border border-emerald-800 text-emerald-400 font-bold">
+                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-[#F44851]/15 border border-[#F44851]/30 text-[#F44851] font-bold">
                       {badge}
                     </span>
                   )}
@@ -156,18 +161,23 @@ export function Sidebar() {
                   key={href}
                   href={href}
                   className={clsx(
-                    "flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                    "flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-all duration-150",
                     isActive
-                      ? "bg-slate-800/80 text-chaan-accent border border-slate-700/60 shadow-sm"
-                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
+                      ? "bg-[#F44851]/10 text-[#F44851] border border-[#F44851]/25 font-semibold shadow-[0_0_15px_rgba(244,72,81,0.10)]"
+                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white font-medium"
                   )}
                 >
                   <div className="flex items-center gap-2.5 truncate">
-                    <Icon size={16} />
+                    <Icon size={16} className={isActive ? "text-[#F44851]" : "text-slate-400"} />
                     <span className="truncate">{label}</span>
                   </div>
                   {badge && (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">
+                    <span className={clsx(
+                      "text-[9px] font-mono px-2 py-0.5 rounded-md border",
+                      isActive
+                        ? "bg-[#F44851]/15 border-[#F44851]/30 text-[#F44851] font-bold"
+                        : "bg-slate-800 border-slate-700 text-slate-400"
+                    )}>
                       {badge}
                     </span>
                   )}
@@ -185,7 +195,7 @@ export function Sidebar() {
           <div className="space-y-1">
             <Link
               href="/admin"
-              className="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold text-amber-400 bg-amber-950/20 border border-amber-800/40 hover:bg-amber-900/30 transition-colors"
+              className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold text-amber-400 bg-amber-950/20 border border-amber-800/40 hover:bg-amber-900/30 transition-colors"
             >
               <span className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
@@ -201,13 +211,13 @@ export function Sidebar() {
                   key={href}
                   href={href}
                   className={clsx(
-                    "flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                    "flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs transition-all duration-150",
                     isActive
-                      ? "bg-slate-800/80 text-chaan-accent border border-slate-700/60 shadow-sm"
-                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
+                      ? "bg-[#F44851]/10 text-[#F44851] border border-[#F44851]/25 font-semibold shadow-[0_0_15px_rgba(244,72,81,0.10)]"
+                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white font-medium"
                   )}
                 >
-                  <Icon size={16} />
+                  <Icon size={16} className={isActive ? "text-[#F44851]" : "text-slate-400"} />
                   <span>{label}</span>
                 </Link>
               );
@@ -247,7 +257,7 @@ export function Sidebar() {
           </p>
           <Link
             href="/trust-hub"
-            className="block text-center rounded-lg bg-rose-600 hover:bg-rose-500 py-1.5 text-xs font-bold text-white transition shadow-sm"
+            className="block text-center rounded-xl bg-[#F44851] hover:bg-[#D9303A] py-2 text-xs font-bold text-white transition shadow-sm shadow-[#F44851]/20"
           >
             Report Default →
           </Link>
