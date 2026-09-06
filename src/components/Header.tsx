@@ -86,6 +86,11 @@ export function Header() {
         {/* Portal Login / Switch */}
         <Link
           href="/login"
+          onClick={() => {
+            sessionStorage.removeItem("chaanbean_session_active");
+            localStorage.removeItem("chaanbean_auth");
+            document.cookie = "chaanbean_session=; path=/; max-age=0";
+          }}
           className="flex items-center gap-1.5 rounded-lg border border-[#F44851]/40 bg-[#F44851]/10 px-3 py-1.5 text-xs font-semibold text-[#F44851] hover:bg-[#F44851]/20 transition"
           title="Switch User or Admin Account"
         >

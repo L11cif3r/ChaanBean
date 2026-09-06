@@ -179,6 +179,11 @@ export function Sidebar() {
 
             <Link
               href="/login"
+              onClick={() => {
+                sessionStorage.removeItem("chaanbean_session_active");
+                localStorage.removeItem("chaanbean_auth");
+                document.cookie = "chaanbean_session=; path=/; max-age=0";
+              }}
               className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-400 hover:bg-slate-800/50 hover:text-white transition-colors"
             >
               <LogOut size={15} />

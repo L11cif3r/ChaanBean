@@ -15,26 +15,26 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" className="light" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `
               try {
                 const t = localStorage.getItem("chaanbean_theme");
-                if (t === "light") {
-                  document.documentElement.classList.remove("dark");
-                  document.documentElement.classList.add("light");
-                } else {
+                if (t === "dark") {
                   document.documentElement.classList.remove("light");
                   document.documentElement.classList.add("dark");
+                } else {
+                  document.documentElement.classList.remove("dark");
+                  document.documentElement.classList.add("light");
                 }
               } catch (e) {}
             `,
           }}
         />
       </head>
-      <body className="min-h-screen bg-[#0B0F17] text-slate-100 antialiased font-sans">
+      <body className="min-h-screen bg-[#F8FAFC] text-slate-900 dark:bg-[#0B0F17] dark:text-slate-100 antialiased font-sans transition-colors duration-200">
         <LanguageProvider>
           <AppShell>{children}</AppShell>
         </LanguageProvider>

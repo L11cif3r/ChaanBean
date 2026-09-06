@@ -18,6 +18,7 @@ import {
   KeyRound,
   Briefcase,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -83,7 +84,10 @@ export default function LoginPage() {
           if (!res.ok) throw new Error(data.error || "Login failed");
 
           setSuccessMsg(`Welcome back, ${data.user?.name || "Client"}! Redirecting...`);
-          setTimeout(() => router.push("/"), 800);
+          sessionStorage.setItem("chaanbean_session_active", "true");
+          localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "client", user: data.user }));
+          document.cookie = "chaanbean_session=client; path=/; max-age=86400";
+          setTimeout(() => router.push("/"), 700);
         } else {
           // Register client
           const res = await fetch("/api/auth", {
@@ -104,7 +108,10 @@ export default function LoginPage() {
           if (!res.ok) throw new Error(data.error || "Registration failed");
 
           setSuccessMsg("Enterprise account registered successfully! Entering console...");
-          setTimeout(() => router.push("/"), 800);
+          sessionStorage.setItem("chaanbean_session_active", "true");
+          localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "client", user: data.user }));
+          document.cookie = "chaanbean_session=client; path=/; max-age=86400";
+          setTimeout(() => router.push("/"), 700);
         }
       } else {
         // Admin portal
@@ -122,7 +129,11 @@ export default function LoginPage() {
           if (!res.ok) throw new Error(data.error || "Admin login failed");
 
           setSuccessMsg(`Authorized as Administrator (${data.user?.role}). Redirecting to Admin OS...`);
-          setTimeout(() => router.push("/admin"), 800);
+          sessionStorage.setItem("chaanbean_session_active", "true");
+          localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "admin", user: data.user }));
+          localStorage.setItem("chaanbean_admin_role", data.user?.role || "owner");
+          document.cookie = "chaanbean_session=admin; path=/; max-age=86400";
+          setTimeout(() => router.push("/admin"), 700);
         } else {
           // Register admin
           const res = await fetch("/api/auth", {
@@ -140,7 +151,11 @@ export default function LoginPage() {
           if (!res.ok) throw new Error(data.error || "Admin registration failed");
 
           setSuccessMsg("Administrator registered successfully! Entering Admin OS...");
-          setTimeout(() => router.push("/admin"), 800);
+          sessionStorage.setItem("chaanbean_session_active", "true");
+          localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "admin", user: data.user }));
+          localStorage.setItem("chaanbean_admin_role", data.user?.role || "owner");
+          document.cookie = "chaanbean_session=admin; path=/; max-age=86400";
+          setTimeout(() => router.push("/admin"), 700);
         }
       }
     } catch (err: any) {
@@ -151,10 +166,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 bg-[#0B0F17] text-white">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 bg-slate-50 text-slate-900 dark:bg-[#0B0F17] dark:text-white transition-colors duration-200">
+      {/* Top Right Header: Theme Switcher & Watch Intro */}
+      <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
+        <ThemeToggle />
+        <Link
+          href="/intro"
+          className="flex items-center gap-1.5 rounded-full border border-slate-300 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 px-3.5 py-1.5 text-xs text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-white transition shadow-sm"
+          title="Watch Animated Intro"
+        >
+          <RotateCcw size={13} />
+          <span>Watch Intro</span>
+        </Link>
+      </div>
+
       {/* Ambient Crimson Glow */}
       <div
-        className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[500px] -translate-x-1/2 rounded-full blur-[140px] opacity-25"
+        className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[500px] -translate-x-1/2 rounded-full blur-[140px] opacity-15 dark:opacity-25"
         style={{ background: "radial-gradient(circle, #F44851 0%, rgba(244,72,81,0) 70%)" }}
       />
 
@@ -172,9 +200,10 @@ export default function LoginPage() {
           </div>
           <div className="text-left">
             <span className="text-2xl font-extrabold tracking-tight">
-              Chaan<span className="text-[#F44851]">Bean</span>
+              <span className="text-slate-900 dark:text-white">Chaan</span>
+              <span className="text-[#F44851]">Bean</span>
             </span>
-            <span className="block text-[10px] text-slate-400 font-mono tracking-wider uppercase">
+            <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-mono tracking-wider uppercase">
               B2B Credit Recovery & Verification
             </span>
           </div>
@@ -182,9 +211,9 @@ export default function LoginPage() {
       </div>
 
       {/* Auth Card Container */}
-      <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/90 p-6 lg:p-8 shadow-2xl backdrop-blur-md">
+      <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-6 lg:p-8 shadow-2xl backdrop-blur-md">
         {/* Portal Switcher Tabs */}
-        <div className="grid grid-cols-2 gap-1.5 rounded-xl bg-slate-950 p-1 mb-6 border border-slate-800">
+        <div className="grid grid-cols-2 gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-950 p-1 mb-6 border border-slate-200 dark:border-slate-800">
           <button
             type="button"
             onClick={() => {
@@ -194,7 +223,7 @@ export default function LoginPage() {
             className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold transition ${
               portal === "client"
                 ? "bg-[#F44851] text-white shadow-md shadow-[#F44851]/20"
-                : "text-slate-400 hover:text-white"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <Building2 size={15} />
@@ -210,7 +239,7 @@ export default function LoginPage() {
             className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold transition ${
               portal === "admin"
                 ? "bg-[#F44851] text-white shadow-md shadow-[#F44851]/20"
-                : "text-slate-400 hover:text-white"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <ShieldCheck size={15} />
@@ -219,7 +248,7 @@ export default function LoginPage() {
         </div>
 
         {/* Sub-Mode Toggle: Sign In vs Register */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-5">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-5">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -229,8 +258,8 @@ export default function LoginPage() {
               }}
               className={`text-sm font-bold transition pb-1 border-b-2 ${
                 mode === "login"
-                  ? "text-white border-[#F44851]"
-                  : "text-slate-500 border-transparent hover:text-slate-300"
+                  ? "text-slate-900 dark:text-white border-[#F44851]"
+                  : "text-slate-500 border-transparent hover:text-slate-800 dark:hover:text-slate-300"
               }`}
             >
               Sign In
@@ -243,15 +272,15 @@ export default function LoginPage() {
               }}
               className={`text-sm font-bold transition pb-1 border-b-2 ${
                 mode === "register"
-                  ? "text-white border-[#F44851]"
-                  : "text-slate-500 border-transparent hover:text-slate-300"
+                  ? "text-slate-900 dark:text-white border-[#F44851]"
+                  : "text-slate-500 border-transparent hover:text-slate-800 dark:hover:text-slate-300"
               }`}
             >
               Create Account
             </button>
           </div>
 
-          <span className="text-[11px] font-mono text-slate-400">
+          <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
             {portal === "client" ? "Enterprise Client" : "Admin Operations"}
           </span>
         </div>
@@ -277,35 +306,35 @@ export default function LoginPage() {
           {portal === "client" && mode === "login" && (
             <>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Business Email / Account Identifier
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] focus-within:ring-1 focus-within:ring-[#F44851] transition">
-                  <Mail size={16} className="text-slate-500 mr-2 shrink-0" />
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] focus-within:ring-1 focus-within:ring-[#F44851] transition">
+                  <Mail size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="email"
                     required
                     placeholder="operations@acmetraders.in"
                     value={clientEmail}
                     onChange={(e) => setClientEmail(e.target.value)}
-                    className="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none"
+                    className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Password
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] focus-within:ring-1 focus-within:ring-[#F44851] transition">
-                  <Lock size={16} className="text-slate-500 mr-2 shrink-0" />
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] focus-within:ring-1 focus-within:ring-[#F44851] transition">
+                  <Lock size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="password"
                     required
                     placeholder="••••••••••••"
                     value={clientPassword}
                     onChange={(e) => setClientPassword(e.target.value)}
-                    className="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none"
+                    className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
                   />
                 </div>
               </div>
@@ -314,7 +343,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={fillSampleClient}
-                  className="text-[11px] font-medium text-[#F44851] hover:underline"
+                  className="text-[11px] font-semibold text-[#F44851] hover:text-[#D9303A] hover:underline transition"
                 >
                   Fill Sample Client Credentials (Acme Traders)
                 </button>
@@ -326,76 +355,76 @@ export default function LoginPage() {
           {portal === "client" && mode === "register" && (
             <>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Enterprise Company Name *
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
-                  <Building2 size={16} className="text-slate-500 mr-2 shrink-0" />
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                  <Building2 size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="text"
                     required
                     placeholder="e.g. Zenith Precision Logistics Ltd"
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
-                    className="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none"
+                    className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Contact Person Name
                   </label>
-                  <div className="flex items-center rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
-                    <User size={16} className="text-slate-500 mr-2 shrink-0" />
+                  <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                    <User size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                     <input
                       type="text"
                       placeholder="Vikram Shah"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none"
+                      className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Mobile Phone (+91)
                   </label>
-                  <div className="flex items-center rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
-                    <Phone size={16} className="text-slate-500 mr-2 shrink-0" />
+                  <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                    <Phone size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                     <input
                       type="tel"
                       placeholder="9876543210"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none"
+                      className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
                     />
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Official Business Email *
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
-                  <Mail size={16} className="text-slate-500 mr-2 shrink-0" />
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                  <Mail size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="email"
                     required
                     placeholder="trade@zenithlogistics.in"
                     value={clientEmail}
                     onChange={(e) => setClientEmail(e.target.value)}
-                    className="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none"
+                    className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Entity PAN
                   </label>
                   <input
@@ -404,12 +433,12 @@ export default function LoginPage() {
                     placeholder="AABCZ1234F"
                     value={pan}
                     onChange={(e) => setPan(e.target.value.toUpperCase())}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs font-mono text-white placeholder-slate-500 outline-none focus:border-[#F44851]"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-[#F44851]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     GSTIN
                   </label>
                   <input
@@ -418,22 +447,22 @@ export default function LoginPage() {
                     placeholder="27AABCZ1234F1Z5"
                     value={gstin}
                     onChange={(e) => setGstin(e.target.value.toUpperCase())}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs font-mono text-white placeholder-slate-500 outline-none focus:border-[#F44851]"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-[#F44851]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Subscription Tier
                 </label>
                 <select
                   value={plan}
                   onChange={(e) => setPlan(e.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white outline-none focus:border-[#F44851]"
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-[#F44851]"
                 >
-                  <option value="growth">Growth Enterprise (₹2,50,000 initial credits)</option>
-                  <option value="enterprise">Custom Enterprise (Multi-seat + Priority Telephony)</option>
+                  <option value="growth" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Growth Enterprise (₹2,50,000 initial credits)</option>
+                  <option value="enterprise" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Custom Enterprise (Multi-seat + Priority Telephony)</option>
                 </select>
               </div>
             </>
@@ -443,35 +472,35 @@ export default function LoginPage() {
           {portal === "admin" && mode === "login" && (
             <>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Administrator Email
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
-                  <Mail size={16} className="text-slate-500 mr-2 shrink-0" />
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                  <Mail size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="email"
                     required
                     placeholder="owner@chaanbean.in"
                     value={adminEmail}
                     onChange={(e) => setAdminEmail(e.target.value)}
-                    className="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none"
+                    className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Admin Passkey / Security Key
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
-                  <KeyRound size={16} className="text-slate-500 mr-2 shrink-0" />
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                  <KeyRound size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="password"
                     required
                     placeholder="••••••••••••"
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}
-                    className="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none"
+                    className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
                   />
                 </div>
               </div>
@@ -480,7 +509,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={fillSampleAdmin}
-                  className="text-[11px] font-medium text-[#F44851] hover:underline"
+                  className="text-[11px] font-semibold text-[#F44851] hover:text-[#D9303A] hover:underline transition"
                 >
                   Fill Sample Admin Credentials (Owner)
                 </button>
@@ -492,67 +521,67 @@ export default function LoginPage() {
           {portal === "admin" && mode === "register" && (
             <>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Administrator Full Name *
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
-                  <User size={16} className="text-slate-500 mr-2 shrink-0" />
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                  <User size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="text"
                     required
                     placeholder="e.g. Siddharth Verma"
                     value={adminName}
                     onChange={(e) => setAdminName(e.target.value)}
-                    className="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none"
+                    className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Official Admin Email *
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
-                  <Mail size={16} className="text-slate-500 mr-2 shrink-0" />
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                  <Mail size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="email"
                     required
                     placeholder="officer@chaanbean.in"
                     value={adminEmail}
                     onChange={(e) => setAdminEmail(e.target.value)}
-                    className="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none"
+                    className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Master Security Key *
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
-                  <KeyRound size={16} className="text-slate-500 mr-2 shrink-0" />
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                  <KeyRound size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="text"
                     required
                     placeholder="CHAANBEAN-ROOT-2026"
                     value={securityKey}
                     onChange={(e) => setSecurityKey(e.target.value)}
-                    className="w-full bg-transparent text-xs font-mono text-white placeholder-slate-500 outline-none"
+                    className="w-full bg-transparent text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Role Assignment
                 </label>
                 <select
                   value={adminRole}
                   onChange={(e) => setAdminRole(e.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white outline-none focus:border-[#F44851]"
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-[#F44851]"
                 >
-                  <option value="owner">System Owner (Full MRR & Pipeline Access)</option>
-                  <option value="team_member">Team Member (CRM & Pipeline Operator)</option>
+                  <option value="owner" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">System Owner (Full MRR & Pipeline Access)</option>
+                  <option value="team_member" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Team Member (CRM & Pipeline Operator)</option>
                 </select>
               </div>
             </>

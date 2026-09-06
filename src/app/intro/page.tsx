@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowRight, RotateCcw } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function IntroPage() {
   const router = useRouter();
@@ -42,22 +43,23 @@ export default function IntroPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-[#0B0F17] text-white">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-slate-50 text-slate-900 dark:bg-[#0B0F17] dark:text-white transition-colors duration-200">
       {/* Ambient Crimson Halo Glow */}
       <div
-        className="pointer-events-none absolute -top-40 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full blur-[140px] opacity-30"
+        className="pointer-events-none absolute -top-40 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full blur-[140px] opacity-15 dark:opacity-30"
         style={{ background: "radial-gradient(circle, #F44851 0%, rgba(244,72,81,0) 70%)" }}
       />
       <div
-        className="pointer-events-none absolute bottom-0 left-1/2 h-[450px] w-[700px] -translate-x-1/2 rounded-full blur-[160px] opacity-20"
+        className="pointer-events-none absolute bottom-0 left-1/2 h-[450px] w-[700px] -translate-x-1/2 rounded-full blur-[160px] opacity-10 dark:opacity-20"
         style={{ background: "radial-gradient(circle, #D9303A 0%, rgba(11,15,23,0) 80%)" }}
       />
 
-      {/* Top Header Bar with Skip Trigger */}
+      {/* Top Header Bar with Theme Switcher and Skip Trigger */}
       <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
+        <ThemeToggle />
         <button
           onClick={handleReplay}
-          className="flex items-center gap-1.5 rounded-full border border-slate-800 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-400 hover:border-slate-700 hover:text-white transition"
+          className="flex items-center gap-1.5 rounded-full border border-slate-300 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 text-xs text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-white transition shadow-sm"
           title="Replay intro animation"
         >
           <RotateCcw size={13} />
@@ -135,25 +137,25 @@ export default function IntroPage() {
         {/* Wordmark & Brand Mission fading in after assembly */}
         <div className="mt-8 space-y-2 animate-fadeIn" style={{ animationDelay: "1.2s", animationFillMode: "both" }}>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-            <span className="text-white">Chaan</span>
+            <span className="text-slate-900 dark:text-white">Chaan</span>
             <span className="bg-gradient-to-r from-[#F44851] to-[#FF6B72] bg-clip-text text-transparent">
               Bean
             </span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 font-medium tracking-wide">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium tracking-wide">
             B2B Credit Recovery & Verification Engine
           </p>
         </div>
 
         {/* Dynamic Transition Progress Bar */}
         <div className="mt-8 w-48 sm:w-64 space-y-2">
-          <div className="h-1 w-full overflow-hidden rounded-full bg-slate-800/80">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800/80">
             <div
               className="h-full rounded-full bg-gradient-to-r from-[#F44851] to-[#FF6B72] transition-all duration-100 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+          <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 font-mono font-medium">
             <span>Loading Portal...</span>
             <span>{Math.min(100, Math.round(progress))}%</span>
           </div>
@@ -161,7 +163,7 @@ export default function IntroPage() {
       </div>
 
       {/* Footer Legal Subtext */}
-      <div className="absolute bottom-6 text-center text-[11px] text-slate-600 font-mono">
+      <div className="absolute bottom-6 text-center text-[11px] text-slate-500 dark:text-slate-600 font-mono">
         Statutory MSMED Act 2006 & TRAI Compliant · Section 65B Certified
       </div>
     </div>
