@@ -1,0 +1,538 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0b0f17;
+  --foreground: #f8fafc;
+  --card-bg: #131b2a;
+  --border-color: #243247;
+}
+
+html.light {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card-bg: #ffffff;
+  --border-color: #e2e8f0;
+}
+
+/* =========================================================
+   LIGHT / BRIGHT MODE SYSTEM OVERRIDES
+   Ensures 100% element visibility, enterprise contrast, and
+   harmonious secondary brand color matching.
+   ========================================================= */
+
+html.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* 1. Surfaces & Canvas Backgrounds */
+html.light .bg-\[\#070A10\],
+html.light .bg-chaan-bg,
+html.light main.bg-\[\#070A10\],
+html.light main {
+  background-color: #f8fafc !important;
+}
+
+/* 2. Cards, Sections, Modals & Elevated Surfaces */
+html.light section,
+html.light header,
+html.light .bg-chaan-card,
+html.light .bg-chaan-card\/60,
+html.light .bg-\[\#131B2A\],
+html.light .rounded-xl.bg-\[\#0B0F17\],
+html.light .rounded-2xl.bg-\[\#0E1523\],
+html.light .rounded-xl.bg-\[\#080C14\],
+html.light .bg-slate-900,
+html.light .bg-slate-900\/40,
+html.light .bg-slate-900\/50,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/70,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/90,
+html.light .bg-slate-950,
+html.light .bg-slate-950\/40,
+html.light .bg-slate-950\/60,
+html.light .bg-slate-950\/80 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 3. Modal Dialog Containers & Backdrops */
+html.light .fixed.bg-black\/70,
+html.light .fixed.bg-black\/80 {
+  background-color: rgba(15, 23, 42, 0.5) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+html.light .fixed .rounded-xl,
+html.light .fixed .rounded-2xl {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+}
+
+/* 4. Secondary Containers, Pill Chips, Table Insets */
+html.light .bg-slate-800,
+html.light .bg-slate-800\/40,
+html.light .bg-slate-800\/50,
+html.light .bg-slate-800\/60,
+html.light .bg-slate-800\/70,
+html.light .bg-slate-800\/80,
+html.light .bg-slate-800\/90,
+html.light .bg-slate-700,
+html.light .bg-slate-700\/40,
+html.light .bg-slate-700\/60,
+html.light .bg-chaan-navy,
+html.light .bg-\[\#0B0F17\] {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* 5. Borders */
+html.light .border-chaan-border,
+html.light .border-slate-800,
+html.light .border-slate-800\/40,
+html.light .border-slate-800\/60,
+html.light .border-slate-800\/80,
+html.light .border-slate-800\/90,
+html.light .border-slate-700,
+html.light .border-slate-700\/60,
+html.light .border-slate-700\/80,
+html.light .border-slate-600 {
+  border-color: #e2e8f0 !important;
+}
+
+/* 6. Typography */
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-100,
+html.light .text-slate-200,
+html.light .text-slate-300 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-500,
+html.light .text-slate-600 {
+  color: #64748b !important;
+}
+
+/* Brand Accent & Secondary Typography */
+html.light .text-chaan-accent,
+html.light .text-sky-400,
+html.light .text-sky-500 {
+  color: #0284c7 !important;
+}
+html.light .text-amber-400,
+html.light .text-amber-500 {
+  color: #b45309 !important;
+}
+html.light .text-amber-300 {
+  color: #92400e !important;
+}
+html.light .text-emerald-400,
+html.light .text-emerald-500,
+html.light .text-emerald-300 {
+  color: #059669 !important;
+}
+html.light .text-rose-400,
+html.light .text-rose-500,
+html.light .text-rose-300 {
+  color: #e11d48 !important;
+}
+html.light .text-blue-400,
+html.light .text-blue-500 {
+  color: #1d4ed8 !important;
+}
+html.light .text-indigo-400,
+html.light .text-indigo-500 {
+  color: #4338ca !important;
+}
+
+/* 7. Hover Contrast Inversion Fixes (Prevent White-on-White Invisibility) */
+html.light .hover\:text-white:hover,
+html.light .hover\:text-slate-200:hover,
+html.light .hover\:text-slate-100:hover {
+  color: #0f172a !important;
+}
+html.light button.text-slate-400:hover,
+html.light a.text-slate-400:hover {
+  color: #0f172a !important;
+}
+html.light .hover\:text-chaan-accent:hover,
+html.light .hover\:text-sky-400:hover {
+  color: #0284c7 !important;
+}
+
+/* 8. Buttons & High-Contrast Overrides */
+/* Solid buttons that MUST maintain white text */
+html.light .bg-rose-600,
+html.light .bg-rose-600 *,
+html.light .bg-rose-500,
+html.light .bg-rose-500 *,
+html.light .bg-emerald-600,
+html.light .bg-emerald-600 *,
+html.light .bg-sky-600,
+html.light .bg-sky-600 *,
+html.light .bg-blue-600,
+html.light .bg-blue-600 *,
+html.light .bg-indigo-600,
+html.light .bg-indigo-600 *,
+html.light .bg-chaan-accent,
+html.light .bg-chaan-accent * {
+  color: #ffffff !important;
+}
+
+/* Hover on solid buttons maintains white text */
+html.light .bg-rose-600:hover,
+html.light .bg-rose-600:hover *,
+html.light .bg-emerald-600:hover,
+html.light .bg-emerald-600:hover *,
+html.light .bg-sky-600:hover,
+html.light .bg-sky-600:hover *,
+html.light .bg-blue-600:hover,
+html.light .bg-blue-600:hover *,
+html.light .bg-indigo-600:hover,
+html.light .bg-indigo-600:hover *,
+html.light .bg-chaan-accent:hover,
+html.light .bg-chaan-accent:hover * {
+  color: #ffffff !important;
+}
+
+html.light .bg-chaan-accent {
+  background-color: #0284c7 !important;
+}
+html.light .hover\:bg-sky-400:hover {
+  background-color: #0369a1 !important;
+}
+
+/* Amber & Light Emerald buttons maintain crisp dark text */
+html.light .bg-amber-500,
+html.light .bg-amber-500 *,
+html.light .bg-amber-400,
+html.light .bg-amber-400 *,
+html.light .bg-emerald-500,
+html.light .bg-emerald-500 * {
+  color: #0f172a !important;
+}
+html.light .bg-amber-500:hover,
+html.light .bg-amber-500:hover *,
+html.light .bg-emerald-500:hover,
+html.light .bg-emerald-500:hover * {
+  color: #0f172a !important;
+}
+
+/* 9. Status Badges & Alert Pills (All Opacity Variants) */
+/* Emerald / Green (Verified / Safe / Clear) */
+html.light .bg-emerald-950,
+html.light .bg-emerald-950\/20,
+html.light .bg-emerald-950\/30,
+html.light .bg-emerald-950\/40,
+html.light .bg-emerald-950\/60,
+html.light .bg-emerald-950\/70,
+html.light .bg-emerald-950\/80,
+html.light .bg-emerald-900\/60,
+html.light .bg-emerald-500\/10,
+html.light .bg-emerald-500\/20 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #065f46 !important;
+}
+html.light .bg-emerald-950 *,
+html.light .bg-emerald-950\/20 *,
+html.light .bg-emerald-950\/30 *,
+html.light .bg-emerald-950\/40 *,
+html.light .bg-emerald-950\/60 *,
+html.light .bg-emerald-950\/70 *,
+html.light .bg-emerald-950\/80 *,
+html.light .bg-emerald-900\/60 *,
+html.light .bg-emerald-500\/10 *,
+html.light .bg-emerald-500\/20 * {
+  color: #065f46 !important;
+}
+
+/* Amber / Warning (Caution / Overdue / L2) */
+html.light .bg-amber-950,
+html.light .bg-amber-950\/20,
+html.light .bg-amber-950\/30,
+html.light .bg-amber-950\/40,
+html.light .bg-amber-950\/60,
+html.light .bg-amber-950\/70,
+html.light .bg-amber-950\/80,
+html.light .bg-amber-900\/60,
+html.light .bg-amber-500\/10,
+html.light .bg-amber-500\/20 {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
+}
+html.light .bg-amber-950 *,
+html.light .bg-amber-950\/20 *,
+html.light .bg-amber-950\/30 *,
+html.light .bg-amber-950\/40 *,
+html.light .bg-amber-950\/60 *,
+html.light .bg-amber-950\/70 *,
+html.light .bg-amber-950\/80 *,
+html.light .bg-amber-900\/60 *,
+html.light .bg-amber-500\/10 *,
+html.light .bg-amber-500\/20 * {
+  color: #92400e !important;
+}
+
+/* Rose / Red (High Risk / Defaulted / L3 / Legal) */
+html.light .bg-rose-950,
+html.light .bg-rose-950\/20,
+html.light .bg-rose-950\/30,
+html.light .bg-rose-950\/40,
+html.light .bg-rose-950\/60,
+html.light .bg-rose-950\/70,
+html.light .bg-rose-950\/80,
+html.light .bg-rose-900\/60,
+html.light .bg-rose-500\/10,
+html.light .bg-rose-500\/20,
+html.light .bg-red-950,
+html.light .bg-red-950\/60,
+html.light .bg-red-950\/80 {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #9f1239 !important;
+}
+html.light .bg-rose-950 *,
+html.light .bg-rose-950\/20 *,
+html.light .bg-rose-950\/30 *,
+html.light .bg-rose-950\/40 *,
+html.light .bg-rose-950\/60 *,
+html.light .bg-rose-950\/70 *,
+html.light .bg-rose-950\/80 *,
+html.light .bg-rose-900\/60 *,
+html.light .bg-rose-500\/10 *,
+html.light .bg-rose-500\/20 *,
+html.light .bg-red-950 *,
+html.light .bg-red-950\/60 *,
+html.light .bg-red-950\/80 * {
+  color: #9f1239 !important;
+}
+
+/* Sky / Blue (Information / KYC / L1) */
+html.light .bg-sky-950,
+html.light .bg-sky-950\/20,
+html.light .bg-sky-950\/40,
+html.light .bg-sky-950\/60,
+html.light .bg-sky-500\/10,
+html.light .bg-sky-500\/20,
+html.light .bg-blue-950,
+html.light .bg-blue-950\/40,
+html.light .bg-blue-950\/60,
+html.light .bg-blue-950\/70 {
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+  color: #0369a1 !important;
+}
+html.light .bg-sky-950 *,
+html.light .bg-sky-950\/20 *,
+html.light .bg-sky-950\/40 *,
+html.light .bg-sky-950\/60 *,
+html.light .bg-sky-500\/10 *,
+html.light .bg-sky-500\/20 *,
+html.light .bg-blue-950 *,
+html.light .bg-blue-950\/40 *,
+html.light .bg-blue-950\/60 *,
+html.light .bg-blue-950\/70 * {
+  color: #0369a1 !important;
+}
+
+/* Badge dot indicators in light mode */
+html.light .bg-emerald-400 {
+  background-color: #059669 !important;
+}
+html.light .bg-amber-400 {
+  background-color: #d97706 !important;
+}
+html.light .bg-rose-400 {
+  background-color: #e11d48 !important;
+}
+html.light .bg-sky-400 {
+  background-color: #0284c7 !important;
+}
+
+/* Gradients in light mode */
+html.light .from-emerald-950\/30 {
+  --tw-gradient-from: #ecfdf5 !important;
+}
+html.light .from-amber-950\/20 {
+  --tw-gradient-from: #fffbeb !important;
+}
+html.light .to-slate-900\/60 {
+  --tw-gradient-to: #ffffff !important;
+}
+
+/* 10. Table Elements */
+html.light thead,
+html.light th {
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light tbody tr {
+  border-color: #e2e8f0 !important;
+}
+
+html.light tbody tr:hover,
+html.light .hover\:bg-slate-800\/40:hover,
+html.light .hover\:bg-slate-800\/50:hover,
+html.light .hover\:bg-slate-800\/60:hover,
+html.light .hover\:bg-slate-800:hover,
+html.light .hover\:bg-slate-700:hover,
+html.light .hover\:bg-chaan-cardHover:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* 11. Sidebar and Navigation */
+html.light aside {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light aside a.bg-slate-800\/80 {
+  background-color: #f0f9ff !important;
+  color: #0284c7 !important;
+  border-color: #bae6fd !important;
+}
+
+html.light aside a.bg-amber-500\/10 {
+  background-color: #fffbeb !important;
+  color: #b45309 !important;
+  border-color: #fde68a !important;
+}
+
+/* 12. Form Controls & Dropdowns */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #0284c7 !important;
+  outline: none;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* -------------------------------------------------------------
+   CHAANBEAN CINEMATIC INTRO LOGO ANIMATIONS
+------------------------------------------------------------- */
+@keyframes flyInLeft {
+  0% {
+    transform: translateX(-180px) scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(8px) scale(1.02);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes flyInRight {
+  0% {
+    transform: translateX(180px) scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-8px) scale(1.02);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes dropInTop {
+  0% {
+    transform: translateY(-130px) scale(0.85);
+    opacity: 0;
+  }
+  65% {
+    transform: translateY(6px) scale(1.02);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes logoBloom {
+  0% {
+    filter: drop-shadow(0 0 0px rgba(244, 72, 81, 0));
+  }
+  50% {
+    filter: drop-shadow(0 0 35px rgba(244, 72, 81, 0.75)) drop-shadow(0 0 70px rgba(244, 72, 81, 0.35));
+    transform: scale(1.03);
+  }
+  100% {
+    filter: drop-shadow(0 0 20px rgba(244, 72, 81, 0.45));
+    transform: scale(1);
+  }
+}
+
+.animate-fly-in-left {
+  animation: flyInLeft 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fly-in-right {
+  animation: flyInRight 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-drop-in-top-1 {
+  opacity: 0;
+  animation: dropInTop 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+}
+
+.animate-drop-in-top-2 {
+  opacity: 0;
+  animation: dropInTop 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.55s forwards;
+}
+
+.animate-drop-in-top-3 {
+  opacity: 0;
+  animation: dropInTop 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.75s forwards;
+}
+
+.animate-logo-bloom {
+  animation: logoBloom 1.2s ease-in-out 1.25s forwards;
+}
+

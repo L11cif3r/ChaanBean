@@ -1,0 +1,423 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id               String   @id @default(cuid())
+  name             String
+  plan             String   @default("growth") // starter | growth | enterprise
+  walletBalance    Float    @default(100000)
+  kycStatus        String   @default("verified")
+  roles            String   @default("admin,operator")
+  industry         String?  @default("Manufacturing & Trading")
+  healthScore      String   @default("Healthy") // Healthy | At-Risk | Churned
+  signupDate       DateTime @default(now())
+  lastActiveAt     DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  buyers           BuyerDebtor[]
+  trustProfiles    TrustProfile[]
+  vendors          Vendor[]
+  campaigns        Campaign[]
+  walletLedger     WalletUsageLedger[]
+  deals            Deal[]
+  reportedDefaults CommunityDefault[]
+}
+
+model BuyerDebtor {
+  id            String   @id @default(cuid())
+  companyId     String
+  name          String
+  contactPerson String?
+  email         String?
+  mobileNumbers String   // JSON array stored as string
+  pan           String?
+  gstin         String?
+  address       String?
+  language      String   @default("en") // en | hi | ml | ta | te | kn | tu
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company        Company        @relation(fields: [companyId], references: [id])
+  creditAccounts CreditAccount[]
+  riskFlags      RiskFlag[]
+  calls          Call[]
+
+  @@index([companyId])
+}
+
+model CreditAccount {
+  id                String   @id @default(cuid())
+  buyerId           String
+  outstandingAmount Float
+  creditLimit       Float    @default(0)
+  tenorDays         Int      @default(30)
+  dueDate           DateTime
+  overdueStatus     String   @default("current") // current | due | overdue | defaulted
+  penalInterestRate Float    @default(18.0) // default commercial 18% or MSME 3x RBI rate
+  disputeStatus     String   @default("none") // none | disputed | under_arbitration
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  buyer             BuyerDebtor       @relation(fields: [buyerId], references: [id])
+  escalationStates  EscalationState[]
+  legalNotices      LegalNotice[]
+  arbitrationCases  ArbitrationCase[]
+
+  @@index([buyerId])
+}
+
+model VerificationReport {
+  id                String   @id @default(cuid())
+  subjectType       String   // business | individual
+  subjectId         String
+  reportType        String
+  provider          String
+  status            String   @default("completed") // completed | pending | failed
+  rawPayload        String   // JSON
+  normalizedPayload String   // JSON
+  requestedBy       String?
+  cachedUntil       DateTime
+  createdAt         DateTime @default(now())
+
+  @@index([subjectType, subjectId, reportType])
+  @@index([cachedUntil])
+}
+
+model RiskFlag {
+  id               String   @id @default(cuid())
+  buyerId          String
+  flag             String   // green | amber | red
+  compositeScore   Float
+  signalBreakdown  String   // JSON
+  recommendedLimit Float
+  recommendedTenor Int      @default(30) // recommended days
+  computedAt       DateTime @default(now())
+
+  buyer            BuyerDebtor @relation(fields: [buyerId], references: [id])
+
+  @@index([buyerId])
+}
+
+model TrustProfile {
+  id               String   @id @default(cuid())
+  companyId        String
+  trustId          String   @unique
+  visibility       String   @default("network") // network | public | private
+  linkedReports    String   // JSON array
+  complianceBadges String?  // JSON array e.g. ["GST Verified", "MSME Registered", "Zero Default Network"]
+  createdAt        DateTime @default(now())
+
+  company          Company  @relation(fields: [companyId], references: [id])
+}
+
+model CommunityDefault {
+  id                 String   @id @default(cuid())
+  reportingCompanyId String
+  debtorGstin        String?
+  debtorPan          String?
+  debtorName         String
+  amountDefaulted    Float
+  defaultDate        DateTime
+  evidenceDocUrl     String?
+  notes              String?
+  verified           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+
+  reportingCompany   Company  @relation(fields: [reportingCompanyId], references: [id])
+
+  @@index([debtorGstin])
+  @@index([debtorPan])
+}
+
+model Vendor {
+  id              String   @id @default(cuid())
+  companyId       String
+  name            String
+  vendorTrustId   String   @unique
+  category        String   @default("Raw Materials") // Raw Materials | Logistics | IT Services | Packaging | Consulting
+  pan             String?
+  gstin           String?
+  cin             String?
+  turnoverRange   String?  @default("₹1.5Cr–5Cr")
+  trustScore      Int      @default(85)
+  kycStatus       String   @default("verified") // verified | pending | rejected
+  onboardingDate  DateTime @default(now())
+  status          String   @default("active")
+  directorDetails String?  // JSON
+
+  company         Company  @relation(fields: [companyId], references: [id])
+}
+
+model Campaign {
+  id            String   @id @default(cuid())
+  companyId     String
+  name          String
+  targetBuyers  String   // JSON array of buyer IDs
+  callingWindow String   @default("09:00-18:00")
+  frequency     String   @default("daily")
+  status        String   @default("active")
+  createdAt     DateTime @default(now())
+
+  company       Company  @relation(fields: [companyId], references: [id])
+  calls         Call[]
+}
+
+model EscalationState {
+  id              String   @id @default(cuid())
+  creditAccountId String
+  currentLevel    String   @default("L1") // L1 | L2 | L3
+  history         String   // JSON array of actions and rules
+  nextActionAt    DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  creditAccount   CreditAccount @relation(fields: [creditAccountId], references: [id])
+
+  @@index([creditAccountId])
+}
+
+model Call {
+  id           String   @id @default(cuid())
+  campaignId   String?
+  buyerId      String
+  attemptNo    Int      @default(1)
+  scheduledAt  DateTime
+  calledAt     DateTime?
+  status       String   @default("scheduled") // scheduled | in_progress | answered | busy | failed | no_answer
+  audioRef     String?
+  durationSec  Int      @default(0)
+  outcomeNotes String?
+  createdAt    DateTime @default(now())
+
+  campaign     Campaign?   @relation(fields: [campaignId], references: [id])
+  buyer        BuyerDebtor @relation(fields: [buyerId], references: [id])
+}
+
+model MessageAudioAsset {
+  id           String   @id @default(cuid())
+  messageHash  String   @unique
+  templateId   String
+  languageCode String   @default("en")
+  voiceConfig  String   // JSON
+  s3Url        String
+  createdAt    DateTime @default(now())
+}
+
+model TemplateTranslation {
+  id           String   @id @default(cuid())
+  templateId   String
+  languageCode String   // en | hi | ml | ta | te | kn | tu
+  channel      String   // voice | whatsapp | email | sms | legal_notice
+  level        String   // L1 | L2 | L3
+  subject      String?
+  bodyTemplate String
+  isApproved   Boolean  @default(true)
+  approvedBy   String?  @default("Legal Review Desk")
+  createdAt    DateTime @default(now())
+
+  @@unique([templateId, languageCode])
+}
+
+model LegalNotice {
+  id              String   @id @default(cuid())
+  creditAccountId String
+  templateId      String
+  sentAt          DateTime @default(now())
+  channel         String   @default("registered_post_email")
+  govReferenceId  String?  // IT & GST portal acknowledgment reference
+  contentHash     String
+  status          String   @default("served") // draft | served | acknowledged | dispute_raised
+
+  creditAccount   CreditAccount @relation(fields: [creditAccountId], references: [id])
+}
+
+model LegalEvidenceLog {
+  id                String   @id @default(cuid())
+  relatedEntityType String   // credit_account | call | legal_notice | arbitration
+  relatedEntityId   String
+  channel           String
+  contentHash       String
+  deliveredAt       DateTime @default(now())
+  metadata          String?  // JSON
+
+  @@index([relatedEntityType, relatedEntityId])
+}
+
+model ArbitrationCase {
+  id                 String   @id @default(cuid())
+  creditAccountId    String
+  caseNumber         String   @unique @default(cuid())
+  status             String   @default("open") // open | hearing_scheduled | settlement_pending | award_passed | closed
+  assignedLegalOwner String?
+  claimantName       String?
+  respondentName     String?
+  principalAmount    Float    @default(0)
+  penalInterestRate  Float    @default(21.75) // statutory e.g. 3x RBI Bank Rate
+  accruedInterest    Float    @default(0)
+  totalClaimAmount   Float    @default(0)
+  statutoryBasis     String   @default("Micro, Small and Medium Enterprises Development (MSMED) Act, 2006 (Section 16)")
+  settlementTerms    String?
+  settlementDocUrl   String?
+  eSignStatus        String   @default("pending") // pending | initiator_signed | fully_signed
+  eSignSignatures    String?  // JSON
+  hearings           String?  // JSON
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  creditAccount      CreditAccount @relation(fields: [creditAccountId], references: [id])
+}
+
+model WalletUsageLedger {
+  id         String @id @default(cuid())
+  companyId  String
+  reportType String
+  timesUsed  Int    @default(0)
+  available  Int    @default(100)
+  cost       Float  @default(50)
+
+  company    Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, reportType])
+}
+
+// -------------------------------------------------------------
+// OWNER / ADMIN PORTAL & CRM PIPELINE TABLES
+// -------------------------------------------------------------
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      String   @default("team_member") // owner | team_member
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deals      Deal[]
+  activities SalesActivity[]
+}
+
+model PipelineStage {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  order     Int
+  color     String   @default("#64748b")
+  deals     Deal[]
+}
+
+model Lead {
+  id          String   @id @default(cuid())
+  name        String
+  companyName String
+  email       String
+  phone       String
+  source      String   @default("organic") // organic | referral | paid | whatsapp | direct | partner | trust_hub_referral
+  status      String   @default("new") // new | qualified | contacted | converted | lost
+  notes       String?
+  assignedTo  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  deals        Deal[]
+  activities   SalesActivity[]
+  attributions LeadAttribution[]
+}
+
+model Deal {
+  id              String    @id @default(cuid())
+  leadId          String?
+  companyId       String?   // linked customer company if converted
+  title           String
+  value           Float     @default(0) // Deal annual / contract value in INR
+  probability     Int       @default(50) // 0-100%
+  stageId         String
+  ownerId         String?
+  winLossReason   String?
+  closedAt        DateTime?
+  stageUpdatedAt  DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  lead            Lead?          @relation(fields: [leadId], references: [id])
+  company         Company?       @relation(fields: [companyId], references: [id])
+  stage           PipelineStage  @relation(fields: [stageId], references: [id])
+  owner           AdminUser?     @relation(fields: [ownerId], references: [id])
+  activities      SalesActivity[]
+}
+
+model SalesActivity {
+  id          String   @id @default(cuid())
+  dealId      String?
+  leadId      String?
+  type        String   @default("note") // call | email | meeting | demo | note | stage_change
+  description String
+  performedBy String?
+  createdAt   DateTime @default(now())
+
+  deal        Deal?      @relation(fields: [dealId], references: [id])
+  lead        Lead?      @relation(fields: [leadId], references: [id])
+  adminUser   AdminUser? @relation(fields: [performedBy], references: [id])
+}
+
+model MarketingChannel {
+  id        String   @id @default(cuid())
+  name      String   @unique // organic, referral, paid_search, paid_social, whatsapp_inbound, direct, partner, trust_hub_referral
+  type      String   @default("inbound") // inbound | outbound | partner | paid
+  budget    Float    @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  sources      CampaignSource[]
+  attributions LeadAttribution[]
+}
+
+model CampaignSource {
+  id          String   @id @default(cuid())
+  channelId   String
+  name        String
+  utmCampaign String?
+  cost        Float    @default(0)
+  leadsCount  Int      @default(0)
+  dealsCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  channel      MarketingChannel  @relation(fields: [channelId], references: [id])
+  attributions LeadAttribution[]
+}
+
+model LeadAttribution {
+  id               String   @id @default(cuid())
+  leadId           String
+  channelId        String
+  campaignSourceId String?
+  touchpointType   String   @default("first_touch") // first_touch | last_touch
+  createdAt        DateTime @default(now())
+
+  lead             Lead              @relation(fields: [leadId], references: [id])
+  channel          MarketingChannel  @relation(fields: [channelId], references: [id])
+  campaignSource   CampaignSource?   @relation(fields: [campaignSourceId], references: [id])
+}
+
+model MonthlyFinancial {
+  id              String   @id @default(cuid())
+  month           Int      // 1-12
+  year            Int      // e.g. 2024
+  newMRR          Float    @default(0)
+  expansionMRR    Float    @default(0)
+  churnedMRR      Float    @default(0)
+  totalMRR        Float    @default(0)
+  activeCustomers Int      @default(0)
+  reportsPulled   Int      @default(0)
+  dealsWon        Int      @default(0)
+  dealsLost       Int      @default(0)
+  grossRevenue    Float    @default(0)
+  createdAt       DateTime @default(now())
+
+  @@unique([year, month])
+}
