@@ -84,7 +84,7 @@ export function VendorWizard({ companyId, onAdded }: { companyId: string; onAdde
           onClick={() => setTab("wizard")}
           className={`pb-3 text-xs font-semibold px-4 transition border-b-2 ${
             tab === "wizard"
-              ? "border-chaan-accent text-chaan-accent"
+              ? "border-chaan-brand text-chaan-brand"
               : "border-transparent text-slate-400 hover:text-slate-200"
           }`}
         >
@@ -94,7 +94,7 @@ export function VendorWizard({ companyId, onAdded }: { companyId: string; onAdde
           onClick={() => setTab("bulk")}
           className={`pb-3 text-xs font-semibold px-4 transition border-b-2 flex items-center gap-1.5 ${
             tab === "bulk"
-              ? "border-chaan-accent text-chaan-accent"
+              ? "border-chaan-brand text-chaan-brand"
               : "border-transparent text-slate-400 hover:text-slate-200"
           }`}
         >
@@ -112,18 +112,18 @@ export function VendorWizard({ companyId, onAdded }: { companyId: string; onAdde
             rows={5}
             value={bulkCsv}
             onChange={(e) => setBulkCsv(e.target.value)}
-            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-xs text-slate-200 outline-none"
+            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-xs text-slate-200 outline-none focus:border-chaan-brand"
           />
           {bulkMessage && (
-            <div className="rounded bg-emerald-950/60 border border-emerald-800/60 p-3 text-emerald-400 flex items-center gap-2">
-              <CheckCircle2 size={16} />
+            <div className="rounded bg-rose-950/60 border border-rose-800/60 p-3 text-rose-300 flex items-center gap-2">
+              <CheckCircle2 size={16} className="text-chaan-brand" />
               {bulkMessage}
             </div>
           )}
           <button
             onClick={submitBulk}
             disabled={loading}
-            className="rounded-lg bg-chaan-accent px-4 py-2 font-semibold text-slate-950 hover:bg-sky-400 transition disabled:opacity-50 flex items-center gap-1.5"
+            className="rounded-lg bg-chaan-brand px-4 py-2 font-semibold text-white hover:bg-chaan-brandDark transition disabled:opacity-50 flex items-center gap-1.5"
           >
             <Upload size={14} />
             {loading ? "Processing KYC & Assigning IDs..." : "Process Bulk Onboarding & Assign Trust IDs"}
@@ -137,7 +137,7 @@ export function VendorWizard({ companyId, onAdded }: { companyId: string; onAdde
               <div key={s} className="flex items-center gap-2">
                 <div
                   className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold font-mono ${
-                    step >= s ? "bg-sky-500 text-slate-950" : "bg-slate-800 text-slate-500"
+                    step >= s ? "bg-chaan-brand text-white shadow-sm shadow-chaan-brand/30" : "bg-slate-800 text-slate-500"
                   }`}
                 >
                   {s}
@@ -212,7 +212,7 @@ export function VendorWizard({ companyId, onAdded }: { companyId: string; onAdde
               <button
                 onClick={() => setStep(2)}
                 disabled={!form.name}
-                className="flex items-center gap-1.5 rounded-lg bg-chaan-accent px-4 py-2 font-semibold text-slate-950 hover:bg-sky-400 transition disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg bg-chaan-brand px-4 py-2 font-semibold text-white hover:bg-chaan-brandDark transition disabled:opacity-50"
               >
                 Continue to Step 2 <ArrowRight size={14} />
               </button>
@@ -225,7 +225,7 @@ export function VendorWizard({ companyId, onAdded }: { companyId: string; onAdde
                 <div>
                   <label className="block text-slate-300 mb-1">Managing Director / Partner Name</label>
                   <input
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-200 outline-none"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-200 outline-none focus:border-chaan-brand"
                     placeholder="e.g. Ramesh Chandra Sharma"
                     value={form.directorName}
                     onChange={(e) => setForm({ ...form, directorName: e.target.value })}
@@ -234,7 +234,7 @@ export function VendorWizard({ companyId, onAdded }: { companyId: string; onAdde
                 <div>
                   <label className="block text-slate-300 mb-1">Registered Phone (+91)</label>
                   <input
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-200 outline-none font-mono"
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-200 outline-none font-mono focus:border-chaan-brand"
                     placeholder="9820112233"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -251,13 +251,13 @@ export function VendorWizard({ companyId, onAdded }: { companyId: string; onAdde
                   <button
                     type="button"
                     onClick={() => setOtpSent(true)}
-                    className="rounded border border-sky-500/50 bg-sky-950/40 px-3 py-1 text-sky-400 hover:bg-sky-900/50 transition"
+                    className="rounded border border-rose-500/50 bg-rose-950/40 px-3 py-1 text-rose-300 hover:bg-rose-900/50 transition"
                   >
                     Verify Signatory via Mobile OTP
                   </button>
                 ) : (
-                  <div className="text-emerald-400 flex items-center gap-2">
-                    <ShieldCheck size={16} />
+                  <div className="text-rose-300 flex items-center gap-2">
+                    <ShieldCheck size={16} className="text-chaan-brand" />
                     <span>Mobile & Registry Check Verified (Score: 92/100)</span>
                   </div>
                 )}
@@ -272,7 +272,7 @@ export function VendorWizard({ companyId, onAdded }: { companyId: string; onAdde
                 </button>
                 <button
                   onClick={() => setStep(3)}
-                  className="rounded-lg bg-chaan-accent px-4 py-2 font-semibold text-slate-950 hover:bg-sky-400 transition"
+                  className="rounded-lg bg-chaan-brand px-4 py-2 font-semibold text-white hover:bg-chaan-brandDark transition"
                 >
                   Review & Assign Trust ID
                 </button>
@@ -293,9 +293,9 @@ export function VendorWizard({ companyId, onAdded }: { companyId: string; onAdde
               </div>
 
               {result ? (
-                <div className="rounded-xl border border-emerald-800/60 bg-emerald-950/40 p-4 text-emerald-300">
-                  <div className="flex items-center gap-2 font-bold text-sm">
-                    <CheckCircle2 size={18} className="text-emerald-400" />
+                <div className="rounded-xl border border-rose-800/60 bg-rose-950/40 p-4 text-rose-300">
+                  <div className="flex items-center gap-2 font-bold text-sm text-white">
+                    <CheckCircle2 size={18} className="text-chaan-brand" />
                     Vendor Registered Successfully!
                   </div>
                   <p className="mt-1">
@@ -307,7 +307,7 @@ export function VendorWizard({ companyId, onAdded }: { companyId: string; onAdde
                       setResult(null);
                       window.location.reload();
                     }}
-                    className="mt-3 rounded border border-emerald-700 px-3 py-1 text-emerald-300 hover:bg-emerald-900/50"
+                    className="mt-3 rounded border border-rose-700 px-3 py-1 text-rose-300 hover:bg-rose-900/50"
                   >
                     Register Another Vendor
                   </button>
@@ -323,7 +323,7 @@ export function VendorWizard({ companyId, onAdded }: { companyId: string; onAdde
                   <button
                     onClick={submitSingle}
                     disabled={loading}
-                    className="rounded-lg bg-emerald-500 px-4 py-2 font-semibold text-slate-950 hover:bg-emerald-400 transition disabled:opacity-50"
+                    className="rounded-lg bg-chaan-brand px-4 py-2 font-semibold text-white hover:bg-chaan-brandDark transition disabled:opacity-50"
                   >
                     {loading ? "Registering & Assigning..." : "Assign Trust ID & Finish"}
                   </button>

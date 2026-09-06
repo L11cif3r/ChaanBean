@@ -118,7 +118,7 @@ export function TrustIdRegistrationModal({
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 border border-rose-500/30 text-[#F44851]">
             <ShieldCheck size={22} />
           </div>
           <div>
@@ -135,13 +135,13 @@ export function TrustIdRegistrationModal({
             <div
               className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
                 step >= 1
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-[#F44851] text-white"
                   : "bg-slate-800 text-slate-400"
               }`}
             >
               1
             </div>
-            <span className={`text-xs font-medium ${step >= 1 ? "text-emerald-400" : "text-slate-400"}`}>
+            <span className={`text-xs font-medium ${step >= 1 ? "text-[#FF6B72]" : "text-slate-400"}`}>
               Structure & Tier
             </span>
           </div>
@@ -150,13 +150,13 @@ export function TrustIdRegistrationModal({
             <div
               className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
                 step >= 2
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-[#F44851] text-white"
                   : "bg-slate-800 text-slate-400"
               }`}
             >
               2
             </div>
-            <span className={`text-xs font-medium ${step >= 2 ? "text-emerald-400" : "text-slate-400"}`}>
+            <span className={`text-xs font-medium ${step >= 2 ? "text-[#FF6B72]" : "text-slate-400"}`}>
               Entity Details
             </span>
           </div>
@@ -165,13 +165,13 @@ export function TrustIdRegistrationModal({
             <div
               className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
                 step === 3
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-[#F44851] text-white"
                   : "bg-slate-800 text-slate-400"
               }`}
             >
               3
             </div>
-            <span className={`text-xs font-medium ${step === 3 ? "text-emerald-400" : "text-slate-400"}`}>
+            <span className={`text-xs font-medium ${step === 3 ? "text-[#FF6B72]" : "text-slate-400"}`}>
               Trust ID Minted
             </span>
           </div>
@@ -195,14 +195,14 @@ export function TrustIdRegistrationModal({
                 onClick={() => setBusinessType("proprietorship")}
                 className={`flex flex-col justify-between rounded-xl border p-4 text-left transition ${
                   businessType === "proprietorship"
-                    ? "border-emerald-500 bg-emerald-950/20 shadow-md ring-1 ring-emerald-500"
+                    ? "border-[#F44851] bg-rose-950/20 shadow-md ring-1 ring-[#F44851]"
                     : "border-slate-700/80 bg-slate-800/40 hover:border-slate-600"
                 }`}
               >
                 <div>
                   <UserCheck
                     className={
-                      businessType === "proprietorship" ? "text-emerald-400" : "text-slate-400"
+                      businessType === "proprietorship" ? "text-[#F44851]" : "text-slate-400"
                     }
                     size={20}
                   />
@@ -211,7 +211,7 @@ export function TrustIdRegistrationModal({
                     Individual business owner verification
                   </p>
                 </div>
-                <div className="mt-3 border-t border-slate-700/60 pt-2 text-xs font-mono font-bold text-emerald-400">
+                <div className="mt-3 border-t border-slate-700/60 pt-2 text-xs font-mono font-bold text-[#F44851]">
                   ₹ 1,000
                 </div>
               </button>
@@ -222,14 +222,14 @@ export function TrustIdRegistrationModal({
                 onClick={() => setBusinessType("partnership")}
                 className={`flex flex-col justify-between rounded-xl border p-4 text-left transition ${
                   businessType === "partnership"
-                    ? "border-emerald-500 bg-emerald-950/20 shadow-md ring-1 ring-emerald-500"
+                    ? "border-[#F44851] bg-rose-950/20 shadow-md ring-1 ring-[#F44851]"
                     : "border-slate-700/80 bg-slate-800/40 hover:border-slate-600"
                 }`}
               >
                 <div>
                   <Briefcase
                     className={
-                      businessType === "partnership" ? "text-emerald-400" : "text-slate-400"
+                      businessType === "partnership" ? "text-[#F44851]" : "text-slate-400"
                     }
                     size={20}
                   />
@@ -238,7 +238,7 @@ export function TrustIdRegistrationModal({
                     All active partners verification included
                   </p>
                 </div>
-                <div className="mt-3 border-t border-slate-700/60 pt-2 text-xs font-mono font-bold text-emerald-400">
+                <div className="mt-3 border-t border-slate-700/60 pt-2 text-xs font-mono font-bold text-[#F44851]">
                   ₹ 1,500
                 </div>
               </button>
@@ -249,14 +249,14 @@ export function TrustIdRegistrationModal({
                 onClick={() => setBusinessType("company")}
                 className={`flex flex-col justify-between rounded-xl border p-4 text-left transition ${
                   businessType === "company"
-                    ? "border-emerald-500 bg-emerald-950/20 shadow-md ring-1 ring-emerald-500"
+                    ? "border-[#F44851] bg-rose-950/20 shadow-md ring-1 ring-[#F44851]"
                     : "border-slate-700/80 bg-slate-800/40 hover:border-slate-600"
                 }`}
               >
                 <div>
                   <Building2
                     className={
-                      businessType === "company" ? "text-emerald-400" : "text-slate-400"
+                      businessType === "company" ? "text-[#F44851]" : "text-slate-400"
                     }
                     size={20}
                   />
@@ -265,7 +265,7 @@ export function TrustIdRegistrationModal({
                     Corporate entity verification with MCA21
                   </p>
                 </div>
-                <div className="mt-3 border-t border-slate-700/60 pt-2 text-xs font-mono font-bold text-emerald-400">
+                <div className="mt-3 border-t border-slate-700/60 pt-2 text-xs font-mono font-bold text-[#F44851]">
                   ₹ 2,000
                 </div>
               </button>
@@ -274,7 +274,7 @@ export function TrustIdRegistrationModal({
             <div className="flex items-center justify-between pt-4 border-t border-slate-800">
               <span className="text-xs text-slate-400">
                 Statutory verification fee:{" "}
-                <strong className="text-emerald-400 font-mono">
+                <strong className="text-[#F44851] font-mono">
                   ₹ {feeMap[businessType].toLocaleString("en-IN")}
                 </strong>{" "}
                 (deducted from wallet)
@@ -282,7 +282,7 @@ export function TrustIdRegistrationModal({
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white hover:bg-emerald-500 transition"
+                className="flex items-center gap-2 rounded-xl bg-[#F44851] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#D9303A] transition"
               >
                 <span>Continue to Entity Details</span>
                 <ArrowRight size={14} />
@@ -305,7 +305,7 @@ export function TrustIdRegistrationModal({
                   placeholder="e.g. Acme Precision Components Ltd"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-[#F44851]"
                 />
               </div>
 
@@ -320,7 +320,7 @@ export function TrustIdRegistrationModal({
                   placeholder="e.g. AABCA1234F"
                   value={pan}
                   onChange={(e) => setPan(e.target.value.toUpperCase())}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono text-white placeholder-slate-500 outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono text-white placeholder-slate-500 outline-none focus:border-[#F44851]"
                 />
               </div>
 
@@ -334,7 +334,7 @@ export function TrustIdRegistrationModal({
                   placeholder="e.g. 27AABCA1234F1Z5"
                   value={gstin}
                   onChange={(e) => setGstin(e.target.value.toUpperCase())}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono text-white placeholder-slate-500 outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono text-white placeholder-slate-500 outline-none focus:border-[#F44851]"
                 />
               </div>
 
@@ -349,7 +349,7 @@ export function TrustIdRegistrationModal({
                     placeholder="e.g. U72900MH2024PTC123456"
                     value={cin}
                     onChange={(e) => setCin(e.target.value.toUpperCase())}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono text-white placeholder-slate-500 outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono text-white placeholder-slate-500 outline-none focus:border-[#F44851]"
                   />
                 </div>
               )}
@@ -363,7 +363,7 @@ export function TrustIdRegistrationModal({
                   placeholder="e.g. Rajesh Sharma (Managing Director)"
                   value={signatory}
                   onChange={(e) => setSignatory(e.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-[#F44851]"
                 />
               </div>
 
@@ -377,7 +377,7 @@ export function TrustIdRegistrationModal({
                   placeholder="+91 98765 43210"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono text-white placeholder-slate-500 outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono text-white placeholder-slate-500 outline-none focus:border-[#F44851]"
                 />
               </div>
             </div>
@@ -388,7 +388,7 @@ export function TrustIdRegistrationModal({
                 type="checkbox"
                 checked={consent}
                 onChange={(e) => setConsent(e.target.checked)}
-                className="mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500"
+                className="mt-0.5 rounded border-slate-700 text-[#F44851] focus:ring-[#F44851]"
               />
               <span>
                 I hereby declare that I am authorized to represent this entity and authorize ChaanBean
@@ -407,7 +407,7 @@ export function TrustIdRegistrationModal({
               <button
                 type="submit"
                 disabled={loading}
-                className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 transition"
+                className="flex items-center gap-2 rounded-xl bg-[#F44851] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#D9303A] disabled:opacity-50 transition"
               >
                 {loading ? (
                   <>
@@ -440,12 +440,12 @@ export function TrustIdRegistrationModal({
             </div>
 
             {/* Credential Box */}
-            <div className="rounded-xl border border-emerald-800/60 bg-gradient-to-b from-emerald-950/30 to-slate-900/80 p-4 text-left">
-              <div className="flex items-center justify-between border-b border-emerald-900/50 pb-2">
-                <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">
+            <div className="rounded-xl border border-rose-900/60 bg-gradient-to-b from-rose-950/30 to-slate-900/80 p-4 text-left">
+              <div className="flex items-center justify-between border-b border-rose-900/50 pb-2">
+                <span className="text-[11px] font-semibold text-rose-400 uppercase tracking-wider">
                   Official ChaanBean Trust ID
                 </span>
-                <span className="rounded bg-emerald-950 px-2 py-0.5 text-[10px] font-bold text-emerald-300 border border-emerald-800/60">
+                <span className="rounded bg-rose-950 px-2 py-0.5 text-[10px] font-bold text-rose-300 border border-rose-800/60">
                   Active & Verifiable
                 </span>
               </div>
@@ -477,7 +477,7 @@ export function TrustIdRegistrationModal({
                   onClose();
                   window.location.reload();
                 }}
-                className="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-semibold text-white hover:bg-emerald-500 transition"
+                className="rounded-xl bg-[#F44851] px-6 py-2.5 text-xs font-semibold text-white hover:bg-[#D9303A] transition"
               >
                 View in Trust Hub
               </button>

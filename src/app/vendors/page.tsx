@@ -19,7 +19,7 @@ export default async function VendorsPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-6">
         <div>
           <div className="flex items-center gap-2">
-            <Users className="text-chaan-accent" size={24} />
+            <Users className="text-chaan-brand" size={24} />
             <h1 className="text-2xl font-bold text-white tracking-tight">Vendor Registration & Onboarding</h1>
           </div>
           <p className="mt-1 text-sm text-slate-400">
@@ -55,7 +55,7 @@ export default async function VendorsPage() {
               {vendors.map((v) => (
                 <tr key={v.id} className="hover:bg-slate-800/40 transition">
                   <td className="px-4 py-3 font-medium text-slate-200">{v.name}</td>
-                  <td className="px-4 py-3 font-mono text-sky-400 font-semibold">{v.vendorTrustId}</td>
+                  <td className="px-4 py-3 font-mono text-chaan-brand font-semibold">{v.vendorTrustId}</td>
                   <td className="px-4 py-3 text-slate-300">{v.category}</td>
                   <td className="px-4 py-3 font-mono text-slate-400">{v.gstin || v.pan || "—"}</td>
                   <td className="px-4 py-3 text-slate-300">{v.turnoverRange || "—"}</td>

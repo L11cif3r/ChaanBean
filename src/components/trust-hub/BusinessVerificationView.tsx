@@ -45,7 +45,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-emerald-950/40 hover:bg-emerald-500 transition"
+          className="flex items-center gap-2 rounded-xl bg-[#F44851] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-rose-950/40 hover:bg-[#D9303A] transition"
         >
           <Zap size={14} />
           <span>Start Verification Process</span>
@@ -57,7 +57,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
       <div className="rounded-2xl border border-chaan-border bg-chaan-card p-6 lg:p-8 space-y-8 shadow-xl">
         {/* Title Header */}
         <div className="text-center max-w-2xl mx-auto space-y-2">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-3 py-1 text-[11px] font-semibold text-emerald-400">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-950/40 px-3 py-1 text-[11px] font-semibold text-rose-400">
             <ShieldCheck size={14} />
             <span>TrustHub — Centralised Business Verification</span>
           </div>
@@ -70,17 +70,17 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
         </div>
 
         {/* Quick Start Action Card */}
-        <div className="rounded-xl border border-emerald-800/50 bg-gradient-to-r from-emerald-950/60 via-slate-900 to-slate-900 p-5 flex flex-wrap items-center justify-between gap-4">
+        <div className="rounded-xl border border-rose-900/40 bg-gradient-to-r from-rose-950/40 via-slate-900 to-slate-900 p-5 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30">
               <Zap size={20} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs uppercase tracking-wider text-emerald-400 font-bold font-mono">
+                <span className="text-xs uppercase tracking-wider text-rose-400 font-bold font-mono">
                   Quick Start
                 </span>
-                <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300">
+                <span className="rounded bg-rose-950/60 px-1.5 py-0.5 text-[10px] font-medium text-rose-300 border border-rose-800/60">
                   Instant 3-Min Process
                 </span>
               </div>
@@ -92,7 +92,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
 
           <button
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white hover:bg-emerald-500 shadow-md transition"
+            className="flex items-center gap-2 rounded-xl bg-[#F44851] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#D9303A] shadow-md transition"
           >
             <span>Start Verification Process</span>
             <ArrowRight size={14} />
@@ -112,7 +112,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Building2 size={16} className="text-emerald-400" />
+              <Building2 size={16} className="text-[#F44851]" />
               <span>Supported Business Types</span>
             </h3>
             <span className="text-xs text-slate-400">Select structure to initiate</span>
@@ -122,18 +122,18 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
             {/* Proprietorship */}
             <div
               onClick={() => openWizardWithTier("proprietorship")}
-              className="cursor-pointer group rounded-xl border border-slate-800 bg-slate-900/60 p-5 hover:border-emerald-500 hover:bg-emerald-950/10 transition flex flex-col justify-between"
+              className="cursor-pointer group rounded-xl border border-slate-800 bg-slate-900/60 p-5 hover:border-[#F44851] hover:bg-rose-950/10 transition flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800 text-emerald-400 group-hover:bg-emerald-500/20 transition">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800 text-[#F44851] group-hover:bg-rose-500/20 transition">
                     <UserCheck size={18} />
                   </div>
                   <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300 font-medium">
                     Individual
                   </span>
                 </div>
-                <h4 className="mt-3 text-sm font-bold text-white group-hover:text-emerald-300 transition">
+                <h4 className="mt-3 text-sm font-bold text-white group-hover:text-[#FF6B72] transition">
                   Proprietorship
                 </h4>
                 <p className="mt-1 text-xs text-slate-400">
@@ -143,25 +143,25 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
 
               <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
                 <span className="text-xs text-slate-400">Price:</span>
-                <span className="text-sm font-mono font-bold text-emerald-400">₹ 1,000</span>
+                <span className="text-sm font-mono font-bold text-[#F44851]">₹ 1,000</span>
               </div>
             </div>
 
             {/* Partnership Firm */}
             <div
               onClick={() => openWizardWithTier("partnership")}
-              className="cursor-pointer group rounded-xl border border-slate-800 bg-slate-900/60 p-5 hover:border-emerald-500 hover:bg-emerald-950/10 transition flex flex-col justify-between"
+              className="cursor-pointer group rounded-xl border border-slate-800 bg-slate-900/60 p-5 hover:border-[#F44851] hover:bg-rose-950/10 transition flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800 text-emerald-400 group-hover:bg-emerald-500/20 transition">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800 text-[#F44851] group-hover:bg-rose-500/20 transition">
                     <Briefcase size={18} />
                   </div>
                   <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300 font-medium">
                     Partners
                   </span>
                 </div>
-                <h4 className="mt-3 text-sm font-bold text-white group-hover:text-emerald-300 transition">
+                <h4 className="mt-3 text-sm font-bold text-white group-hover:text-[#FF6B72] transition">
                   Partnership Firm
                 </h4>
                 <p className="mt-1 text-xs text-slate-400">
@@ -171,25 +171,25 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
 
               <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
                 <span className="text-xs text-slate-400">Price:</span>
-                <span className="text-sm font-mono font-bold text-emerald-400">₹ 1,500</span>
+                <span className="text-sm font-mono font-bold text-[#F44851]">₹ 1,500</span>
               </div>
             </div>
 
             {/* Company / LLP */}
             <div
               onClick={() => openWizardWithTier("company")}
-              className="cursor-pointer group rounded-xl border border-emerald-800/60 bg-emerald-950/20 p-5 hover:border-emerald-400 hover:bg-emerald-950/30 transition flex flex-col justify-between ring-1 ring-emerald-500/40"
+              className="cursor-pointer group rounded-xl border border-rose-900/60 bg-rose-950/20 p-5 hover:border-[#F44851] hover:bg-rose-950/30 transition flex flex-col justify-between ring-1 ring-rose-500/40"
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-500/20 text-rose-400">
                     <Building2 size={18} />
                   </div>
-                  <span className="rounded bg-emerald-950 px-2 py-0.5 text-[10px] text-emerald-300 font-bold border border-emerald-800">
+                  <span className="rounded bg-rose-950 px-2 py-0.5 text-[10px] text-rose-300 font-bold border border-rose-800">
                     Recommended
                   </span>
                 </div>
-                <h4 className="mt-3 text-sm font-bold text-white group-hover:text-emerald-300 transition">
+                <h4 className="mt-3 text-sm font-bold text-white group-hover:text-[#FF6B72] transition">
                   Company / LLP
                 </h4>
                 <p className="mt-1 text-xs text-slate-400">
@@ -199,7 +199,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
 
               <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
                 <span className="text-xs text-slate-400">Price:</span>
-                <span className="text-sm font-mono font-bold text-emerald-400">₹ 2,000</span>
+                <span className="text-sm font-mono font-bold text-[#F44851]">₹ 2,000</span>
               </div>
             </div>
           </div>
@@ -288,7 +288,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
         {/* Section: What You'll Need */}
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5 space-y-4">
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <PhoneCall size={16} className="text-emerald-400" />
+            <PhoneCall size={16} className="text-[#F44851]" />
             <span>What You&apos;ll Need</span>
           </h3>
 
@@ -319,7 +319,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-center space-y-2">
-              <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
+              <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#F44851] text-xs font-bold text-white">
                 1
               </div>
               <h4 className="text-xs font-bold text-white">Select Business Type</h4>
@@ -327,7 +327,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-center space-y-2">
-              <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
+              <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#F44851] text-xs font-bold text-white">
                 2
               </div>
               <h4 className="text-xs font-bold text-white">Provide Details</h4>
@@ -335,7 +335,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-center space-y-2">
-              <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
+              <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#F44851] text-xs font-bold text-white">
                 3
               </div>
               <h4 className="text-xs font-bold text-white">Get Verified</h4>
@@ -345,15 +345,15 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
         </div>
 
         {/* Bottom Banner & Action */}
-        <div className="rounded-xl border border-emerald-800/40 bg-emerald-950/20 p-5 text-center space-y-3">
-          <div className="flex items-center justify-center gap-2 text-xs text-emerald-300 font-medium">
-            <Lock size={14} className="text-emerald-400" />
+        <div className="rounded-xl border border-rose-900/40 bg-rose-950/20 p-5 text-center space-y-3">
+          <div className="flex items-center justify-center gap-2 text-xs text-rose-300 font-medium">
+            <Lock size={14} className="text-rose-400" />
             <span>Secure & Compliant — Bank-grade encryption with data protection compliance</span>
           </div>
 
           <button
             onClick={() => setModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-8 py-3 text-sm font-bold text-white shadow-xl shadow-emerald-950/50 hover:bg-emerald-500 transition"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#F44851] px-8 py-3 text-sm font-bold text-white shadow-xl shadow-rose-950/50 hover:bg-[#D9303A] transition"
           >
             <span>Start Verification Process</span>
             <ArrowRight size={16} />

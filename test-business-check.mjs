@@ -106,15 +106,16 @@ async function runTests() {
   // 5. Test Creation of a New Business (POST /api/businesses)
   let createdNewId = null;
   try {
-    const newBizName = `Test Industrial Ltd ${Date.now()}`;
+    const rand = String(Date.now()).slice(-4);
+    const newBizName = `Test Industrial Ltd ${rand}`;
     const res = await fetch(`${BASE_URL}/api/businesses`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         companyName: newBizName,
-        gstin: "27AABCT9999P1Z3",
-        cin: "U74999MH2022PTC998877",
-        pan: "AABCT9999P",
+        gstin: `27AABC${rand}P1Z3`,
+        cin: `U74999MH2022PTC${rand}77`,
+        pan: `AABC${rand}P`,
         phone: "+91 98200 11223"
       }),
     });

@@ -67,7 +67,7 @@ export function TrustHubClient({
           onClick={() => switchTab("overview")}
           className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition ${
             activeTab === "overview"
-              ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/40"
+              ? "bg-[#F44851] text-white shadow-md shadow-rose-950/40"
               : "border border-slate-700/60 bg-slate-800/40 text-slate-300 hover:bg-slate-800 hover:text-white"
           }`}
         >
@@ -79,13 +79,13 @@ export function TrustHubClient({
           onClick={() => switchTab("business-verification")}
           className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition ${
             activeTab === "business-verification"
-              ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/40"
+              ? "bg-[#F44851] text-white shadow-md shadow-rose-950/40"
               : "border border-slate-700/60 bg-slate-800/40 text-slate-300 hover:bg-slate-800 hover:text-white"
           }`}
         >
           <Shield size={15} />
           <span>Business Verification (Trust ID)</span>
-          <span className="rounded bg-emerald-950 px-1.5 py-0.5 text-[9px] font-bold text-emerald-300 border border-emerald-700">
+          <span className="rounded bg-rose-950/60 px-1.5 py-0.5 text-[9px] font-bold text-rose-300 border border-rose-800/60">
             NEW
           </span>
         </button>
@@ -94,13 +94,13 @@ export function TrustHubClient({
           onClick={() => switchTab("verify-id")}
           className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition ${
             activeTab === "verify-id"
-              ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/40"
+              ? "bg-[#F44851] text-white shadow-md shadow-rose-950/40"
               : "border border-slate-700/60 bg-slate-800/40 text-slate-300 hover:bg-slate-800 hover:text-white"
           }`}
         >
           <Search size={15} />
           <span>Check Verified Businesses</span>
-          <span className="rounded bg-emerald-950 px-1.5 py-0.5 text-[9px] font-bold text-emerald-300 border border-emerald-700">
+          <span className="rounded bg-rose-950/60 px-1.5 py-0.5 text-[9px] font-bold text-rose-300 border border-rose-800/60">
             NEW
           </span>
         </button>

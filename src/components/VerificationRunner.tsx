@@ -9,476 +9,425 @@ import {
   type SubjectType,
   type NormalizedReport,
 } from "@/lib/verification-gateway/types";
+import { AdapterCard } from "./verification/AdapterCard";
+import { ReportResultView } from "./verification/ReportResultView";
 import {
   Search,
   Zap,
   ShieldCheck,
-  Clock,
-  KeyRound,
+  Building2,
   FileText,
-  AlertCircle,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
-  MapPin,
+  CreditCard,
+  Scale,
+  Award,
   Phone,
-  Building,
+  Layers,
+  Sparkles,
+  CheckCircle2,
+  Filter,
 } from "lucide-react";
+
+interface VerificationRunnerProps {
+  companyId: string;
+  ledgerMap: Record<string, { timesUsed: number; available: number; cost: number }>;
+  sampleEntities?: Array<{ name: string; id: string; type: "debtor" | "vendor" }>;
+}
+
+type TabKey =
+  | "all"
+  | "tax"
+  | "bureau"
+  | "judicial"
+  | "corporate"
+  | "identity"
+  | "bundle";
+
+const CATEGORY_ADAPTERS: Record<Exclude<TabKey, "all" | "bundle">, ReportType[]> = {
+  tax: ["gst_exact_turnover", "gst_slab_check", "gst_supreme_report"],
+  bureau: ["bureau_report", "payment_behaviour"],
+  judicial: ["court_case_history", "fir_check"],
+  corporate: ["company_supreme_report", "director_details", "msme_report", "import_export_report"],
+  identity: [
+    "mobile_to_pan",
+    "mobile_identity",
+    "mobile_to_address",
+    "pan_to_mobile_email",
+    "address_enrichment",
+    "find_someone",
+  ],
+};
+
+const ALL_REPORT_TYPES: ReportType[] = [
+  "gst_exact_turnover",
+  "gst_slab_check",
+  "gst_supreme_report",
+  "bureau_report",
+  "payment_behaviour",
+  "court_case_history",
+  "fir_check",
+  "company_supreme_report",
+  "director_details",
+  "msme_report",
+  "import_export_report",
+  "mobile_to_pan",
+  "mobile_identity",
+  "mobile_to_address",
+  "pan_to_mobile_email",
+  "address_enrichment",
+  "find_someone",
+];
 
 export function VerificationRunner({
   companyId,
   ledgerMap,
   sampleEntities = [],
-}: {
-  companyId: string;
-  ledgerMap: Record<string, { timesUsed: number; available: number; cost: number }>;
-  sampleEntities?: Array<{ name: string; id: string; type: "debtor" | "vendor" }>;
-}) {
-  const [subjectType, setSubjectType] = useState<SubjectType>("business");
-  const [subjectId, setSubjectId] = useState("27AAECG1234H1Z5");
-  const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"catalog" | "bundle" | "otp" | "skip_tracing">("catalog");
-  const [reportsResult, setReportsResult] = useState<NormalizedReport[]>([]);
-  const [selectedReport, setSelectedReport] = useState<NormalizedReport | null>(null);
-  const [expandedReportType, setExpandedReportType] = useState<string | null>(null);
+}: VerificationRunnerProps) {
+  const [activeTab, setActiveTab] = useState<TabKey>("all");
+  const [searchFilter, setSearchFilter] = useState("");
+  const [reportsMap, setReportsMap] = useState<Partial<Record<ReportType, NormalizedReport>>>({});
 
-  // OTP State for GST Supreme Report
-  const [otpSessionId, setOtpSessionId] = useState<string | null>(null);
-  const [otpInput, setOtpInput] = useState("482910");
-  const [otpStatusMsg, setOtpStatusMsg] = useState<string | null>(null);
-  const [otpLoading, setOtpLoading] = useState(false);
+  // Bundle Fan-Out Tab State
+  const [bundleSubjectId, setBundleSubjectId] = useState("27AAECG1234H1Z5");
+  const [bundleSubjectType, setBundleSubjectType] = useState<SubjectType>("business");
+  const [bundleLoading, setBundleLoading] = useState(false);
+  const [bundleProgress, setBundleProgress] = useState<string | null>(null);
 
-  // Run single report
-  const handleRunSingle = async (reportType: ReportType) => {
-    if (!subjectId.trim()) return;
-    setLoading(true);
-    try {
-      const res = await fetch("/api/verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subjectType,
-          subjectId: subjectId.trim(),
-          reportTypes: [reportType],
-          companyId,
-          forceRefresh: true,
-        }),
-      });
-      const data = await res.json();
-      if (data.reports?.length) {
-        setReportsResult((prev) => {
-          const filtered = prev.filter((r) => r.reportType !== reportType);
-          return [data.reports[0], ...filtered];
-        });
-        setSelectedReport(data.reports[0]);
-        setExpandedReportType(reportType);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false);
-    }
+  const handleReportGenerated = (report: NormalizedReport) => {
+    setReportsMap((prev) => ({
+      ...prev,
+      [report.reportType]: report,
+    }));
   };
 
   // Run full parallel bundle
   const handleRunBundle = async () => {
-    if (!subjectId.trim()) return;
-    setLoading(true);
+    if (!bundleSubjectId.trim()) return;
+    setBundleLoading(true);
+    setBundleProgress("Dispatching parallel queries across 11 statutory gateways...");
     try {
       const res = await fetch("/api/verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          subjectType,
-          subjectId: subjectId.trim(),
+          subjectType: bundleSubjectType,
+          subjectId: bundleSubjectId.trim(),
           reportTypes: BUNDLE_REPORT_TYPES,
           companyId,
           forceRefresh: true,
         }),
       });
       const data = await res.json();
-      if (data.reports) {
-        setReportsResult(data.reports);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Initiate OTP for GST Supreme Report
-  const handleInitiateOtp = async () => {
-    setOtpLoading(true);
-    setOtpStatusMsg(null);
-    try {
-      const res = await fetch("/api/verification/otp-initiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gstin: subjectId, mobile: "9876543210" }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setOtpSessionId(data.sessionId);
-        setOtpStatusMsg(data.message);
+      if (data.reports?.length) {
+        const nextMap: Partial<Record<ReportType, NormalizedReport>> = { ...reportsMap };
+        for (const rep of data.reports as NormalizedReport[]) {
+          nextMap[rep.reportType] = rep;
+        }
+        setReportsMap(nextMap);
+        setBundleProgress(`Successfully completed fan-out! ${data.reports.length} reports compiled.`);
       } else {
-        setOtpStatusMsg(data.error || "Failed to initiate OTP session");
+        setBundleProgress(data.error || "Fan-out encountered an error");
       }
     } catch {
-      setOtpStatusMsg("Network error initiating OTP");
+      setBundleProgress("Network error during bundle execution");
     } finally {
-      setOtpLoading(false);
+      setBundleLoading(false);
     }
   };
 
-  // Verify OTP for GST Supreme Report
-  const handleVerifyOtp = async () => {
-    if (!otpSessionId) return;
-    setOtpLoading(true);
-    setOtpStatusMsg(null);
-    try {
-      const res = await fetch("/api/verification/otp-verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: otpSessionId,
-          otp: otpInput,
-          subjectId,
-          subjectType,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setOtpStatusMsg("OTP Verified! GST Supreme Report unlocked with counterparty PANs.");
-        handleRunSingle("gst_supreme_report");
-      } else {
-        setOtpStatusMsg(data.error || "Invalid OTP code");
-      }
-    } catch {
-      setOtpStatusMsg("Network error verifying OTP");
-    } finally {
-      setOtpLoading(false);
+  // Filter adapters by active tab and search query
+  const getVisibleAdapters = (): ReportType[] => {
+    let list: ReportType[] = ALL_REPORT_TYPES;
+    if (activeTab !== "all" && activeTab !== "bundle") {
+      list = CATEGORY_ADAPTERS[activeTab] || ALL_REPORT_TYPES;
     }
+
+    if (!searchFilter.trim()) return list;
+
+    const q = searchFilter.toLowerCase();
+    return list.filter((rt) => {
+      const label = REPORT_LABELS[rt]?.toLowerCase() || "";
+      const code = rt.toLowerCase();
+      return label.includes(q) || code.includes(q);
+    });
   };
 
-  const reportCategories: Record<string, ReportType[]> = {
-    "Tax & Financial Health": ["gst_exact_turnover", "gst_slab_check", "gst_supreme_report"],
-    "Credit Bureau & Scoring": ["bureau_report", "payment_behaviour"],
-    "Judicial, FIR & Compliance": ["court_case_history", "fir_check"],
-    "Corporate Standing & MSME": ["company_supreme_report", "director_details", "msme_report", "import_export_report"],
-    "Identity & Delivery Graph": ["mobile_to_pan", "mobile_identity", "mobile_to_address", "pan_to_mobile_email", "address_enrichment", "find_someone"],
-  };
+  const visibleAdapters = getVisibleAdapters();
+  const generatedCount = Object.keys(reportsMap).length;
 
   return (
     <div className="space-y-6">
-      {/* Control Bar: Subject Type, Subject ID Input, and Fast Actions */}
-      <div className="rounded-xl border border-chaan-border bg-chaan-card p-5">
-        <div className="grid gap-4 md:grid-cols-12 items-end">
-          {/* Subject Type Toggle */}
-          <div className="md:col-span-3">
-            <label className="block text-xs text-slate-400 mb-1.5 uppercase font-medium">Subject Type</label>
-            <div className="grid grid-cols-2 rounded-lg border border-slate-700 bg-slate-900 p-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setSubjectType("business");
-                  setSubjectId("27AAECG1234H1Z5");
-                }}
-                className={`rounded py-1 text-xs font-semibold transition ${
-                  subjectType === "business"
-                    ? "bg-chaan-accent text-slate-950 shadow"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Business
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSubjectType("individual");
-                  setSubjectId("AAECB1000H");
-                }}
-                className={`rounded py-1 text-xs font-semibold transition ${
-                  subjectType === "individual"
-                    ? "bg-chaan-accent text-slate-950 shadow"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Individual
-              </button>
-            </div>
-          </div>
-
-          {/* Subject ID input */}
-          <div className="md:col-span-6">
-            <label className="block text-xs text-slate-400 mb-1.5 uppercase font-medium">
-              {subjectType === "business" ? "GSTIN / PAN / CIN / Subject Identifier" : "PAN / Mobile (+91) / Subject ID"}
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={subjectId}
-                onChange={(e) => setSubjectId(e.target.value)}
-                placeholder={subjectType === "business" ? "Enter GSTIN e.g. 27AAECG1234H1Z5" : "Enter PAN e.g. AAECB1000H"}
-                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-mono text-slate-100 uppercase tracking-wider outline-none focus:border-sky-500"
-              />
-              <span className="absolute right-3 top-2 text-[10px] text-slate-500 uppercase font-mono">
-                {subjectType}
-              </span>
-            </div>
-          </div>
-
-          {/* Parallel Fan-out Bundle Button */}
-          <div className="md:col-span-3">
-            <button
-              onClick={handleRunBundle}
-              disabled={loading || !subjectId.trim()}
-              className="w-full flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition disabled:opacity-50 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
-            >
-              <Zap size={14} />
-              {loading ? "Fan-Out Executing..." : "Run Full Parallel Bundle"}
-            </button>
-          </div>
-
-          {sampleEntities && sampleEntities.length > 0 && (
-            <div className="md:col-span-12 pt-3 border-t border-chaan-border flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-medium text-slate-400">Live Database Subjects:</span>
-              {sampleEntities.map((ent) => (
-                <button
-                  key={ent.id}
-                  type="button"
-                  onClick={() => {
-                    setSubjectId(ent.id);
-                    setSubjectType("business");
-                  }}
-                  className={`text-[11px] px-2.5 py-1 rounded-lg border transition font-mono ${
-                    subjectId === ent.id
-                      ? "bg-sky-500/20 text-sky-400 border-sky-500/50 font-bold"
-                      : "bg-slate-800/60 text-slate-300 border-slate-700 hover:bg-slate-700/60 hover:text-white"
-                  }`}
-                >
-                  <span className="font-sans font-medium">{ent.name}</span>{" "}
-                  <span className="opacity-70 text-[10px]">({ent.id})</span>
-                </button>
-              ))}
-            </div>
-          )}
+      {/* Category Navigation Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-3">
+        <div className="flex flex-wrap gap-1 text-xs font-semibold">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`px-3.5 py-2 rounded-lg transition ${
+              activeTab === "all"
+                ? "bg-chaan-brand text-white shadow-sm shadow-chaan-brand/30"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+            }`}
+          >
+            All 17 Verification Adapters
+          </button>
+          <button
+            onClick={() => setActiveTab("tax")}
+            className={`px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 ${
+              activeTab === "tax"
+                ? "bg-chaan-brand text-white shadow-sm shadow-chaan-brand/30"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+            }`}
+          >
+            <FileText size={14} />
+            Tax & GST Intelligence
+          </button>
+          <button
+            onClick={() => setActiveTab("bureau")}
+            className={`px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 ${
+              activeTab === "bureau"
+                ? "bg-chaan-brand text-white shadow-sm shadow-chaan-brand/30"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+            }`}
+          >
+            <CreditCard size={14} />
+            Credit Bureau & Scoring
+          </button>
+          <button
+            onClick={() => setActiveTab("judicial")}
+            className={`px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 ${
+              activeTab === "judicial"
+                ? "bg-chaan-brand text-white shadow-sm shadow-chaan-brand/30"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+            }`}
+          >
+            <Scale size={14} />
+            Judicial & FIR
+          </button>
+          <button
+            onClick={() => setActiveTab("corporate")}
+            className={`px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 ${
+              activeTab === "corporate"
+                ? "bg-chaan-brand text-white shadow-sm shadow-chaan-brand/30"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+            }`}
+          >
+            <Building2 size={14} />
+            Corporate & MSME
+          </button>
+          <button
+            onClick={() => setActiveTab("identity")}
+            className={`px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 ${
+              activeTab === "identity"
+                ? "bg-chaan-brand text-white shadow-sm shadow-chaan-brand/30"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+            }`}
+          >
+            <Phone size={14} />
+            Identity & Delivery Graph
+          </button>
+          <button
+            onClick={() => setActiveTab("bundle")}
+            className={`px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 border border-chaan-brand/50 ${
+              activeTab === "bundle"
+                ? "bg-chaan-brand text-white shadow-sm shadow-chaan-brand/30"
+                : "text-chaan-brand hover:bg-chaan-brand/10"
+            }`}
+          >
+            <Zap size={14} />
+            Multi-Adapter Fan-Out
+          </button>
         </div>
-      </div>
 
-      {/* Tabs: Catalog vs OTP Flow vs Skip Tracing */}
-      <div className="flex border-b border-chaan-border text-xs font-semibold">
-        <button
-          onClick={() => setActiveTab("catalog")}
-          className={`pb-3 px-4 border-b-2 transition ${
-            activeTab === "catalog"
-              ? "border-chaan-accent text-chaan-accent"
-              : "border-transparent text-slate-400 hover:text-slate-200"
-          }`}
-        >
-          All 17 Verification Adapters
-        </button>
-        <button
-          onClick={() => setActiveTab("otp")}
-          className={`pb-3 px-4 border-b-2 transition flex items-center gap-1.5 ${
-            activeTab === "otp"
-              ? "border-chaan-accent text-chaan-accent"
-              : "border-transparent text-slate-400 hover:text-slate-200"
-          }`}
-        >
-          <KeyRound size={14} />
-          GST Supreme OTP Gateway
-        </button>
-        <button
-          onClick={() => setActiveTab("skip_tracing")}
-          className={`pb-3 px-4 border-b-2 transition flex items-center gap-1.5 ${
-            activeTab === "skip_tracing"
-              ? "border-chaan-accent text-chaan-accent"
-              : "border-transparent text-slate-400 hover:text-slate-200"
-          }`}
-        >
-          <MapPin size={14} />
-          Find Someone / Skip Tracing
-        </button>
-      </div>
-
-      {/* TAB 1: 17 Adapters Catalog */}
-      {activeTab === "catalog" && (
-        <div className="space-y-6">
-          {Object.entries(reportCategories).map(([catName, reports]) => (
-            <div key={catName} className="space-y-3">
-              <h3 className="text-xs uppercase tracking-wider text-slate-400 font-mono font-semibold">
-                {catName}
-              </h3>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {reports.map((rt) => {
-                  const entry = ledgerMap[rt];
-                  const hasRun = reportsResult.find((r) => r.reportType === rt);
-                  const isExpanded = expandedReportType === rt;
-
-                  return (
-                    <div
-                      key={rt}
-                      className="rounded-xl border border-chaan-border bg-chaan-card p-4 text-xs transition hover:border-slate-600 flex flex-col justify-between"
-                    >
-                      <div>
-                        <div className="flex items-start justify-between gap-2">
-                          <h4 className="font-semibold text-slate-200">{REPORT_LABELS[rt]}</h4>
-                          {hasRun && (
-                            <span className="rounded bg-emerald-950/80 border border-emerald-800/60 px-2 py-0.5 text-[10px] text-emerald-400 font-mono">
-                              Cached
-                            </span>
-                          )}
-                        </div>
-                        <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                          <span>Used: {entry?.timesUsed ?? 0}</span>
-                          <span>TTL: {REPORT_CACHE_TTL_HOURS[rt]}h</span>
-                          <span className="text-amber-400">₹{entry?.cost ?? 50}</span>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 pt-3 border-t border-slate-800 flex items-center gap-2">
-                        <button
-                          onClick={() => handleRunSingle(rt)}
-                          disabled={loading}
-                          className="flex-1 rounded-lg bg-slate-800 hover:bg-slate-700 px-3 py-1.5 text-center font-medium text-slate-200 transition disabled:opacity-50"
-                        >
-                          Pull Report
-                        </button>
-                        {hasRun && (
-                          <button
-                            onClick={() => setExpandedReportType(isExpanded ? null : rt)}
-                            className="p-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-white"
-                          >
-                            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Expandable Report Payload Viewer */}
-                      {isExpanded && hasRun && (
-                        <div className="mt-3 rounded-lg bg-slate-950 p-3 text-[11px] font-mono border border-slate-800 overflow-x-auto">
-                          <div className="text-emerald-400 mb-1 font-semibold">
-                            Provider: {hasRun.provider}
-                          </div>
-                          <pre className="text-slate-300 whitespace-pre-wrap">
-                            {JSON.stringify(hasRun.data, null, 2)}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* TAB 2: GST Supreme OTP Gateway */}
-      {activeTab === "otp" && (
-        <div className="rounded-xl border border-chaan-border bg-chaan-card p-6 max-w-2xl space-y-4 text-xs">
-          <div className="flex items-center gap-2 text-white font-semibold text-sm">
-            <KeyRound className="text-amber-400" size={18} />
-            <span>GST Supreme Report — 2-Step OTP Authentication Flow</span>
-          </div>
-          <p className="text-slate-400">
-            Per GSTN regulations, detailed filing history and counterparties' PAN numbers require authorized OTP consent from the registered mobile.
-          </p>
-
-          <div className="p-4 rounded-lg border border-slate-800 bg-slate-900 space-y-3">
-            <div>
-              <label className="block text-slate-300 mb-1">Target GSTIN</label>
-              <input
-                type="text"
-                value={subjectId}
-                onChange={(e) => setSubjectId(e.target.value)}
-                className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-slate-200 font-mono uppercase"
-              />
-            </div>
-
-            {!otpSessionId ? (
-              <button
-                onClick={handleInitiateOtp}
-                disabled={otpLoading}
-                className="rounded-lg bg-amber-500 px-4 py-2 font-bold text-slate-950 hover:bg-amber-400 transition disabled:opacity-50"
-              >
-                {otpLoading ? "Initiating..." : "Step 1: Request OTP on Registered Mobile"}
-              </button>
-            ) : (
-              <div className="space-y-3 border-t border-slate-800 pt-3">
-                <div className="text-emerald-400 flex items-center gap-2">
-                  <CheckCircle2 size={16} />
-                  <span>Session Active: {otpSessionId}</span>
-                </div>
-                <div>
-                  <label className="block text-slate-300 mb-1">Enter 6-Digit GSTN OTP</label>
-                  <input
-                    type="text"
-                    value={otpInput}
-                    onChange={(e) => setOtpInput(e.target.value)}
-                    className="w-48 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-slate-200 font-mono tracking-widest text-center font-bold"
-                  />
-                </div>
-                <button
-                  onClick={handleVerifyOtp}
-                  disabled={otpLoading}
-                  className="rounded-lg bg-emerald-500 px-4 py-2 font-bold text-slate-950 hover:bg-emerald-400 transition disabled:opacity-50"
-                >
-                  {otpLoading ? "Verifying..." : "Step 2: Submit OTP & Unlock Supreme Report"}
-                </button>
-              </div>
-            )}
-
-            {otpStatusMsg && (
-              <div className="rounded bg-slate-800 p-2.5 text-slate-200 font-mono text-[11px]">
-                {otpStatusMsg}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 3: Skip Tracing / Find Someone */}
-      {activeTab === "skip_tracing" && (
-        <div className="rounded-xl border border-chaan-border bg-chaan-card p-6 max-w-2xl space-y-4 text-xs">
-          <div className="flex items-center gap-2 text-white font-semibold text-sm">
-            <MapPin className="text-chaan-accent" size={18} />
-            <span>Skip Tracing / "Find Someone" Engine</span>
-          </div>
-          <p className="text-slate-400">
-            Locate absconding debtors and untraceable directors using multi-source telecom KYC, delivery graph clusters, and MCA registered records.
-          </p>
-
-          <div className="flex gap-2">
+        {/* Search filter input */}
+        {activeTab !== "bundle" && (
+          <div className="relative w-64">
+            <Search className="absolute left-3 top-2.5 text-slate-400" size={14} />
             <input
               type="text"
-              value={subjectId}
-              onChange={(e) => setSubjectId(e.target.value)}
-              placeholder="Enter Mobile or PAN to trace"
-              className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-slate-200 outline-none"
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              placeholder="Search adapter..."
+              className="w-full rounded-lg border border-slate-700 bg-slate-900 pl-9 pr-3 py-1.5 text-xs text-slate-200 outline-none focus:border-chaan-brand"
             />
-            <button
-              onClick={() => handleRunSingle("find_someone")}
-              disabled={loading}
-              className="rounded-lg bg-chaan-accent px-4 py-2 font-semibold text-slate-950 hover:bg-sky-400 transition disabled:opacity-50 flex items-center gap-1.5"
-            >
-              <Search size={14} />
-              Trace Now
-            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Overview Status Banner */}
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 px-1">
+        <div className="flex items-center gap-2">
+          <span>Displaying <strong>{visibleAdapters.length}</strong> active statutory adapter blocks</span>
+          {generatedCount > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/80 border border-emerald-800/60 px-2.5 py-0.5 text-[11px] font-mono text-emerald-300">
+              <CheckCircle2 size={12} />
+              {generatedCount} Report{generatedCount === 1 ? "" : "s"} In Active Cache
+            </span>
+          )}
+        </div>
+        <span className="text-[11px] font-mono text-slate-500">
+          Click any block to expand its dedicated parameters & formatted dossier
+        </span>
+      </div>
+
+      {/* TAB: Multi-Adapter Fan-Out Bundle */}
+      {activeTab === "bundle" ? (
+        <div className="rounded-xl border border-chaan-border bg-chaan-card p-6 space-y-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <Zap className="text-chaan-brand" size={22} />
+                <h2 className="text-lg font-bold text-white tracking-tight">
+                  Parallel Multi-Adapter Fan-Out Execution
+                </h2>
+              </div>
+              <p className="mt-1 text-xs text-slate-400 max-w-2xl">
+                Executes all 11 foundational verification adapters (GST turnover, Supreme filing audit, Commercial Bureau score, e-Courts litigation history, MSME Udyam, MCA21 directorships, Telecom KYC, and address delivery graphs) in parallel under a single unified call.
+              </p>
+            </div>
+
+            <span className="px-3 py-1 rounded-lg bg-rose-950/60 border border-rose-800/60 text-rose-300 font-mono text-xs font-bold shrink-0">
+              11 Simultaneous Queries
+            </span>
           </div>
 
-          {reportsResult.find((r) => r.reportType === "find_someone") && (
-            <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 space-y-3 font-mono">
-              <div className="text-emerald-400 font-bold">Skip Tracing Dossier Resolved</div>
-              <div className="text-slate-300">
-                <p>Alternate Contacts: +91 98201 44521, +91 97690 12899</p>
-                <p>Associated Emails: finance@acmetraders.in, director.accounts@gmail.com</p>
-                <p>Active Locations: Lower Parel West, Mumbai · Whitefield, Bengaluru</p>
-                <p>Linked Corporate Entities: Acme Logistics LLP, Apex Infra Solutions Pvt Ltd</p>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-12 items-end">
+              <div className="sm:col-span-3">
+                <label className="block text-xs font-medium text-slate-300 mb-1.5 uppercase font-mono">
+                  Subject Type
+                </label>
+                <div className="grid grid-cols-2 rounded-lg border border-slate-700 bg-slate-950 p-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBundleSubjectType("business");
+                      setBundleSubjectId("27AAECG1234H1Z5");
+                    }}
+                    className={`rounded py-1 text-xs font-semibold transition ${
+                      bundleSubjectType === "business"
+                        ? "bg-chaan-brand text-white shadow"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Business
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBundleSubjectType("individual");
+                      setBundleSubjectId("AAECB1000H");
+                    }}
+                    className={`rounded py-1 text-xs font-semibold transition ${
+                      bundleSubjectType === "individual"
+                        ? "bg-chaan-brand text-white shadow"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    Individual
+                  </button>
+                </div>
+              </div>
+
+              <div className="sm:col-span-6">
+                <label className="block text-xs font-medium text-slate-300 mb-1.5 uppercase font-mono">
+                  Target Identifier (GSTIN / PAN / CIN)
+                </label>
+                <input
+                  type="text"
+                  value={bundleSubjectId}
+                  onChange={(e) => setBundleSubjectId(e.target.value)}
+                  placeholder="Enter GSTIN e.g. 27AAECG1234H1Z5"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-xs font-mono text-slate-100 uppercase tracking-wider outline-none focus:border-chaan-brand"
+                />
+              </div>
+
+              <div className="sm:col-span-3">
+                <button
+                  type="button"
+                  onClick={handleRunBundle}
+                  disabled={bundleLoading || !bundleSubjectId.trim()}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-chaan-brand px-4 py-2 text-xs font-bold text-white hover:bg-chaan-brandDark transition disabled:opacity-50 shadow-md shadow-chaan-brand/20"
+                >
+                  <Zap size={15} />
+                  {bundleLoading ? "Fan-Out Executing..." : "Execute 11x Parallel Bundle"}
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Autofill Chips */}
+            {sampleEntities.length > 0 && (
+              <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-slate-800">
+                <span className="text-[11px] text-slate-400 font-medium">Autofill from Live Database:</span>
+                {sampleEntities.map((ent) => (
+                  <button
+                    key={ent.id}
+                    type="button"
+                    onClick={() => {
+                      setBundleSubjectId(ent.id);
+                      setBundleSubjectType("business");
+                    }}
+                    className={`text-[11px] px-2.5 py-1 rounded-lg border transition font-mono ${
+                      bundleSubjectId === ent.id
+                        ? "bg-chaan-brand/20 text-chaan-brand border-chaan-brand/50 font-bold"
+                        : "bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white"
+                    }`}
+                  >
+                    <span className="font-sans font-medium">{ent.name}</span>{" "}
+                    <span className="opacity-70 text-[10px]">({ent.id})</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {bundleProgress && (
+              <div className="rounded-lg bg-slate-950 p-3 text-xs font-mono border border-slate-800 text-rose-300 flex items-center gap-2">
+                <Sparkles size={14} className="text-chaan-brand" />
+                <span>{bundleProgress}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Compiled Bundle Reports Preview */}
+          {generatedCount > 0 && (
+            <div className="space-y-4 pt-4 border-t border-chaan-border">
+              <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+                <CheckCircle2 className="text-emerald-400" size={16} />
+                Compiled Parallel Dossier Reports ({generatedCount} Available)
+              </h3>
+              <div className="grid gap-4">
+                {Object.values(reportsMap)
+                  .filter((r): r is NormalizedReport => Boolean(r))
+                  .map((rep) => (
+                    <div key={rep.reportType} className="space-y-1">
+                      <h4 className="text-xs font-bold text-slate-300 uppercase font-mono pl-1">
+                        {REPORT_LABELS[rep.reportType]}
+                      </h4>
+                      <ReportResultView report={rep} />
+                    </div>
+                  ))}
               </div>
             </div>
           )}
+        </div>
+      ) : (
+        /* ADAPTERS GRID: Each adapter in its own specific area of respectiveness */
+        <div className="grid gap-4 sm:grid-cols-1">
+          {visibleAdapters.map((rt) => {
+            const entry = ledgerMap[rt];
+            const cached = reportsMap[rt] || null;
+
+            return (
+              <AdapterCard
+                key={rt}
+                reportType={rt}
+                companyId={companyId}
+                ledger={entry}
+                sampleEntities={sampleEntities}
+                cachedReport={cached}
+                onReportGenerated={handleReportGenerated}
+                isExpandedDefault={false}
+              />
+            );
+          })}
         </div>
       )}
     </div>

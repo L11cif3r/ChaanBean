@@ -40,7 +40,7 @@ export default async function BackgroundCheckPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-6">
         <div>
           <div className="flex items-center gap-2">
-            <Search className="text-chaan-accent" size={24} />
+            <Search className="text-chaan-brand" size={24} />
             <h1 className="text-2xl font-bold text-white tracking-tight">Business Background Check & Verification Gateway</h1>
           </div>
           <p className="mt-1 text-sm text-slate-400">

@@ -43,7 +43,7 @@ export function TrustHubOverview({
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-5">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/10 border border-rose-500/30 text-[#F44851]">
               <Shield size={20} />
             </div>
             <h1 className="text-2xl font-bold text-white tracking-tight">Trust Hub</h1>
@@ -63,25 +63,25 @@ export function TrustHubOverview({
         {/* Product 1: Business Verification (Trust ID) */}
         <div
           onClick={() => onSelectTab("business-verification")}
-          className="group relative cursor-pointer overflow-hidden rounded-2xl border border-chaan-border bg-chaan-card p-6 lg:p-7 shadow-lg hover:border-emerald-500/70 hover:shadow-2xl hover:shadow-emerald-950/20 transition-all duration-300"
+          className="group relative cursor-pointer overflow-hidden rounded-2xl border border-chaan-border bg-chaan-card p-6 lg:p-7 shadow-lg hover:border-[#F44851]/70 hover:shadow-2xl hover:shadow-rose-950/20 transition-all duration-300"
         >
           {/* Subtle Shield Watermark Background */}
-          <div className="pointer-events-none absolute -right-6 -bottom-6 text-slate-800/20 group-hover:text-emerald-500/10 transition-all duration-500">
+          <div className="pointer-events-none absolute -right-6 -bottom-6 text-slate-800/20 group-hover:text-rose-500/10 transition-all duration-500">
             <Shield size={160} strokeWidth={1} />
           </div>
 
           <div className="relative z-10 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center rounded-md bg-emerald-600 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+              <span className="inline-flex items-center rounded-md bg-[#F44851] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
                 NEW
               </span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-300 group-hover:bg-emerald-600 group-hover:text-white transition">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-300 group-hover:bg-[#F44851] group-hover:text-white transition">
                 <ArrowRight size={16} />
               </div>
             </div>
 
             <div>
-              <h2 className="text-lg font-bold text-white group-hover:text-emerald-300 transition">
+              <h2 className="text-lg font-bold text-white group-hover:text-[#FF6B72] transition">
                 Business Verification (Trust ID)
               </h2>
               <p className="mt-2 text-xs text-slate-400 leading-relaxed max-w-sm">
@@ -89,7 +89,7 @@ export function TrustHubOverview({
               </p>
             </div>
 
-            <div className="pt-2 flex items-center gap-2 text-xs font-semibold text-emerald-400">
+            <div className="pt-2 flex items-center gap-2 text-xs font-semibold text-[#F44851]">
               <span>Explore Centralised Verification</span>
               <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
             </div>
@@ -99,25 +99,25 @@ export function TrustHubOverview({
         {/* Product 2: Check Verified Businesses */}
         <div
           onClick={() => onSelectTab("verify-id")}
-          className="group relative cursor-pointer overflow-hidden rounded-2xl border border-chaan-border bg-chaan-card p-6 lg:p-7 shadow-lg hover:border-emerald-500/70 hover:shadow-2xl hover:shadow-emerald-950/20 transition-all duration-300"
+          className="group relative cursor-pointer overflow-hidden rounded-2xl border border-chaan-border bg-chaan-card p-6 lg:p-7 shadow-lg hover:border-[#F44851]/70 hover:shadow-2xl hover:shadow-rose-950/20 transition-all duration-300"
         >
           {/* Subtle Shield Watermark Background */}
-          <div className="pointer-events-none absolute -right-6 -bottom-6 text-slate-800/20 group-hover:text-emerald-500/10 transition-all duration-500">
+          <div className="pointer-events-none absolute -right-6 -bottom-6 text-slate-800/20 group-hover:text-rose-500/10 transition-all duration-500">
             <ShieldCheck size={160} strokeWidth={1} />
           </div>
 
           <div className="relative z-10 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center rounded-md bg-emerald-600 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+              <span className="inline-flex items-center rounded-md bg-[#F44851] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
                 NEW
               </span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-300 group-hover:bg-emerald-600 group-hover:text-white transition">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-300 group-hover:bg-[#F44851] group-hover:text-white transition">
                 <ArrowRight size={16} />
               </div>
             </div>
 
             <div>
-              <h2 className="text-lg font-bold text-white group-hover:text-emerald-300 transition">
+              <h2 className="text-lg font-bold text-white group-hover:text-[#FF6B72] transition">
                 Check Verified Businesses
               </h2>
               <p className="mt-2 text-xs text-slate-400 leading-relaxed max-w-sm">
@@ -125,7 +125,7 @@ export function TrustHubOverview({
               </p>
             </div>
 
-            <div className="pt-2 flex items-center gap-2 text-xs font-semibold text-emerald-400">
+            <div className="pt-2 flex items-center gap-2 text-xs font-semibold text-[#F44851]">
               <span>Verify by Trust ID (TH-...)</span>
               <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
             </div>
@@ -135,21 +135,21 @@ export function TrustHubOverview({
 
       {/* Active Organization Trust ID Banner */}
       {profile && (
-        <div className="rounded-2xl border border-emerald-800/50 bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-900 p-6 shadow-md">
+        <div className="rounded-2xl border border-rose-900/40 bg-gradient-to-r from-rose-950/30 via-slate-900 to-slate-900 p-6 shadow-md">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] uppercase tracking-wider text-emerald-400 font-bold font-mono">
+                <span className="text-[11px] uppercase tracking-wider text-rose-400 font-bold font-mono">
                   Active Organization Trust ID
                 </span>
-                <span className="rounded bg-emerald-950 px-2 py-0.5 text-[10px] font-bold text-emerald-300 border border-emerald-800/60">
+                <span className="rounded bg-rose-950/60 px-2 py-0.5 text-[10px] font-bold text-rose-300 border border-rose-800/60">
                   Certified
                 </span>
               </div>
               <h2 className="text-2xl font-mono font-bold text-white mt-1.5">{profile.trustId}</h2>
               <p className="text-xs text-slate-400 mt-1">
                 Company: <strong className="text-slate-200">{profile.company.name}</strong> · Visibility:{" "}
-                <span className="capitalize text-emerald-400 font-medium">{profile.visibility}</span>
+                <span className="capitalize text-rose-400 font-medium">{profile.visibility}</span>
               </p>
             </div>
 
@@ -157,9 +157,9 @@ export function TrustHubOverview({
               {badges.map((badge: string, idx: number) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-1.5 rounded-lg border border-emerald-700/50 bg-emerald-950/60 px-3 py-1.5 text-xs text-emerald-300 font-medium"
+                  className="flex items-center gap-1.5 rounded-lg border border-rose-800/40 bg-rose-950/40 px-3 py-1.5 text-xs text-rose-200 font-medium"
                 >
-                  <Award size={14} className="text-emerald-400" />
+                  <Award size={14} className="text-rose-400" />
                   <span>{badge}</span>
                 </div>
               ))}
@@ -221,10 +221,10 @@ export function TrustHubOverview({
       <section className="rounded-2xl border border-chaan-border bg-chaan-card p-6 shadow-md">
         <div className="flex items-center justify-between pb-4 border-b border-chaan-border">
           <div className="flex items-center gap-2">
-            <Building2 size={18} className="text-chaan-accent" />
+            <Building2 size={18} className="text-[#F44851]" />
             <h2 className="text-base font-semibold text-white">Trust Hub Verified Counterparties</h2>
           </div>
-          <Link href="/vendors" className="text-xs text-chaan-accent hover:underline">
+          <Link href="/vendors" className="text-xs text-[#F44851] hover:underline">
             Register New Vendor →
           </Link>
         </div>
@@ -235,7 +235,7 @@ export function TrustHubOverview({
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-semibold text-slate-200">{v.name}</h3>
-                  <span className="text-[11px] font-mono text-emerald-400">{v.vendorTrustId}</span>
+                  <span className="text-[11px] font-mono text-[#F44851]">{v.vendorTrustId}</span>
                 </div>
                 <span className="rounded bg-emerald-950/60 px-2 py-0.5 text-[10px] text-emerald-400 border border-emerald-800/50">
                   Score: {v.trustScore}/100

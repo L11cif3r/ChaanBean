@@ -91,7 +91,7 @@ export function VerifyBusinessView({ initialTrustId = "" }: VerifyBusinessViewPr
       {/* Center Search Card — Direct LegAn Look & Feel */}
       <div className="max-w-xl mx-auto rounded-2xl border border-chaan-border bg-chaan-card p-6 lg:p-8 shadow-xl text-center space-y-5">
         {/* Circular Shield Icon */}
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-500/10 border border-rose-500/30 text-[#F44851]">
           <ShieldCheck size={32} />
         </div>
 
@@ -114,7 +114,7 @@ export function VerifyBusinessView({ initialTrustId = "" }: VerifyBusinessViewPr
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
               Trust ID
             </label>
-            <div className="flex items-center rounded-xl border border-slate-700 bg-slate-900 overflow-hidden focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500 transition shadow-inner">
+            <div className="flex items-center rounded-xl border border-slate-700 bg-slate-900 overflow-hidden focus-within:border-[#F44851] focus-within:ring-1 focus-within:ring-[#F44851] transition shadow-inner">
               <span className="bg-slate-800/80 px-3.5 py-3 text-xs font-mono font-bold text-slate-300 border-r border-slate-700 select-none">
                 TH-
               </span>
@@ -131,7 +131,7 @@ export function VerifyBusinessView({ initialTrustId = "" }: VerifyBusinessViewPr
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-xs font-bold text-white hover:bg-emerald-500 disabled:opacity-50 transition shadow-md"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#F44851] py-3 text-xs font-bold text-white hover:bg-[#D9303A] disabled:opacity-50 transition shadow-md"
           >
             {loading ? (
               <>
@@ -161,7 +161,7 @@ export function VerifyBusinessView({ initialTrustId = "" }: VerifyBusinessViewPr
                   setTrustIdInput(chip.replace(/^TH-/, ""));
                   handleVerify(chip);
                 }}
-                className="rounded-lg border border-slate-700/70 bg-slate-800/60 px-2 py-1 text-[11px] font-mono text-emerald-400 hover:bg-slate-800 hover:border-emerald-500 transition"
+                className="rounded-lg border border-slate-700/70 bg-slate-800/60 px-2 py-1 text-[11px] font-mono text-[#FF6B72] hover:bg-slate-800 hover:border-[#F44851] transition"
               >
                 {chip}
               </button>
@@ -320,7 +320,7 @@ export function VerifyBusinessView({ initialTrustId = "" }: VerifyBusinessViewPr
 
             <button
               onClick={() => window.print()}
-              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2 text-xs font-semibold text-white hover:bg-emerald-500 transition shadow-md"
+              className="flex items-center gap-2 rounded-xl bg-[#F44851] px-5 py-2 text-xs font-semibold text-white hover:bg-[#D9303A] transition shadow-md"
             >
               <Download size={14} />
               <span>Print Credential Certificate</span>
