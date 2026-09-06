@@ -39,8 +39,14 @@ Trade credit powers Indian B2B commerce, but unverified counterparties and delay
 Business Verification ➔ Credit Underwriting ➔ Payment Monitoring ➔ Tele-Recovery ➔ Legal Escalation
 ```
 
+#### The Financial Intelligence Pipeline:
+```text
+MCA + public GST + Udyam + eCourts + document upload + financial analysis ➔ Deterministic Risk Flag (Green / Amber / Red)
+```
+
 ### Key Highlights
 
+- **MCA + Public GST + Udyam + eCourts + Document Upload + Financial Analysis + Risk Flag**: Complete end-to-end commercial underwriting pipeline operating without paid bureau credentials or private API gatekeepers. Combines authentic statutory public registries with multi-year document extraction (P&L, Balance Sheet, Bank Statements, GSTR-3B) into deterministic **Green / Amber / Red Risk Flags** with explainable credit exposure limits.
 - **Zero Synthetic Mock Values (`0 Math.random()`)**: Every verification score, risk flag, and telephony event is deterministically derived from live database records, government input parsing, and statutory calculations.
 - **11 Unified Verification Adapters**: GSTN turnover consistency, NSDL PAN identity, MCA21 director vetting, Udyam MSME status, e-Courts Section 138 NI Act litigation history, police FIR checks, DGFT IEC compliance, and IMPS bank penny-drop validation.
 - **TRAI Calling Windows & Telecom Compliance**: Built-in adherence to TRAI TCCCPR (09:00 to 18:00 IST calling window enforcement, 2 calls/24h frequency cap, 4-hour spacing, Asia/Kolkata timezone normalization).
@@ -75,12 +81,16 @@ Business Verification ➔ Credit Underwriting ➔ Payment Monitoring ➔ Tele-Re
 - Pre-integrated with simulated Aadhaar OTP electronic signature ceremonies.
 
 ### 5. Public-Data + Document Financial Intelligence (`/business-check`)
-- **Zero Paid API Dependencies**: Operates with authentic Indian public portals (MCA21 master data, GST search, official Udyam verification, eCourts party search) via compliant public lookups and manual verification workflows (strictly **NO** CAPTCHA bypass or unofficial scraping).
-- **Document Processing Pipeline**: Ingests multi-year PDFs (via `pdf-parse`), spreadsheets (via `xlsx`), and scanned statements (via assisted review queue) across 8 statutory categories: P&L, Balance Sheet, Bank Statements, GSTR-3B Returns, IT Returns, Udyam Certificates, MCA Extracts, and Other.
-- **4-Year Financial Intelligence Engine**: Automatic multi-period CAGR (Revenue, Net Profit), operating margin tracking, balance sheet leverage (D/E, Current Ratio), and working capital metrics.
-- **6-Pillar Health Score & Cross-Document Consistency**: Audits GSTR-3B reported turnover vs. P&L declarations and bank inflows against revenue to flag discrepancies (`REVIEW_REQUIRED`) without false fraud accusations.
-- **12 Deterministic Risk Signals & Hard Red Flags**: Evaluates Revenue Stability, Profitability, Cash Flow, Debt Burden, Liquidity, Consistency, Litigation History, Identity Matching, MSME status, GST compliance, Director history, and Industry risk. Hard red flags immediately block credit on active litigation or major reporting variance.
-- **Traceable Credit Limits & Side-by-Side Comparison**: Deterministic exposure limits (Green: ₹20–30L, Amber: ₹8–15L, Red: Blocked) with full "Why?" audit trails and a 3-way side-by-side business comparison matrix at `/business-check/compare`.
+> **The Complete Financial Intelligence Chain**: `MCA + public GST + Udyam + eCourts + document upload + financial analysis + Risk Flag`
+
+- **MCA Master Data**: Connects with MCA21 corporate master records (CIN, incorporation history, authorized/paid-up capital, active directors).
+- **Public GST Verification**: Validates GSTIN status, taxpayer type, and jurisdiction via public GST lookup (`services.gst.gov.in`) without commercial API subscriptions.
+- **Official Udyam/MSME Verification**: Authenticates Udyam registration numbers (`UDYAM-XX-00-0000000`) and MSME category directly with the Ministry of MSME portal.
+- **Public eCourts Search**: Tracks pending commercial suits, Section 138 NI Act cheque dishonor cases, and NCLT proceedings via compliant manual search workflows (**strictly zero** CAPTCHA bypass).
+- **Document Upload & Ingestion**: Multi-year ingestion of balance sheets, P&L statements, bank statements, GSTR-3B filings, and tax returns (supporting PDF, XLSX, CSV, PNG, JPG).
+- **Financial Analysis**: Multi-period CAGR trends, EBITDA/PAT margin analysis, debt-to-equity, current ratio, and cross-document reconciliation (GSTR-3B turnover vs. declared P&L revenue).
+- **Deterministic Risk Flag**: 12 deterministic signals producing an objective **Green / Amber / Red Risk Flag** with explainable credit exposure recommendations and hard red flag overrides.
+- **Traceable Credit Limits & Side-by-Side Comparison**: Recommends exposure limits (Green: ₹20–30L, Amber: ₹8–15L, Red: Blocked) with full "Why?" audit trails and a 3-way comparison matrix at `/business-check/compare`.
 
 
 ---
@@ -331,6 +341,13 @@ Next.js 15 App Router Frontend (Dual-Theme: Dark & Bright Mode)
    │
    ├─► /api/risk-scoring (Deterministic Green / Amber / Red Engine)
    ├─► /api/trust-hub (Trust ID Profiles & Community Default Registry)
+   │
+   ├─► /api/businesses/* (MCA + Public GST + Udyam + eCourts + Document Upload + Financial Analysis + Risk Flag)
+   │     ├─► Public Registry Gateways: MCA21, GST Search, Udyam MSME, eCourts §138 NI Act
+   │     ├─► Document Processor: Multi-Year PDF / Spreadsheet Table Extraction (P&L, Balance Sheet, GSTR-3B)
+   │     ├─► Financial Analysis Engine: 4-Year CAGR, Margin Trends, Debt/Equity & Liquidity Ratios
+   │     ├─► Cross-Document Consistency Engine: GSTR-3B Turnover vs P&L & Bank Statement Inflows
+   │     └─► Deterministic Risk Engine & Credit Limit Underwriting (Green / Amber / Red + Hard Red Flags)
    │
    ├─► /api/recovery (Post-Due-Date Telephony & Notice Engine)
    │     ├─► TRAI Compliance Window Gate (09:00 - 18:00 IST)
