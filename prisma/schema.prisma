@@ -421,3 +421,303 @@ model MonthlyFinancial {
 
   @@unique([year, month])
 }
+
+// -------------------------------------------------------------
+// BUSINESS VERIFICATION & FINANCIAL INTELLIGENCE (V0)
+// -------------------------------------------------------------
+
+// Source status values: LIVE | PUBLIC_LOOKUP | USER_PROVIDED | MANUAL_VERIFICATION | UNAVAILABLE | DEMO
+// Processing status values: PENDING | PROCESSING | COMPLETED | FAILED | MANUAL_REVIEW_REQUIRED
+
+model BusinessProfile {
+  id              String   @id @default(cuid())
+  companyName     String
+  gstin           String?
+  cin             String?
+  pan             String?
+  udyamNo         String?
+  phone           String?
+  registeredAddr  String?
+  incorporatedOn  DateTime?
+  enterpriseType  String?
+  industryCode    String?
+  primaryActivity String?
+  overallStatus   String   @default("PENDING")
+  sourceStatus    String   @default("PENDING")
+  createdBy       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  identifiers        BusinessIdentifier[]
+  sourceRecords      BusinessSourceRecord[]
+  financialDocuments FinancialDocument[]
+  financialMetrics   FinancialMetric[]
+  yearSummaries      FinancialYearSummary[]
+  consistencyChecks  FinancialConsistencyCheck[]
+  riskSignals        BizRiskSignal[]
+  riskFlag           BizRiskFlag?
+  creditRec          CreditRecommendation?
+  courtCases         CourtCase[]
+  verificationTasks  VerificationTask[]
+  manualReviews      ManualReview[]
+  auditLogs          BizAuditLog[]
+
+  @@index([gstin])
+  @@index([cin])
+  @@index([pan])
+  @@index([createdBy])
+}
+
+model BusinessIdentifier {
+  id             String   @id @default(cuid())
+  businessId     String
+  identifierType String
+  value          String
+  verified       Boolean  @default(false)
+  sourceStatus   String   @default("PENDING")
+  verifiedAt     DateTime?
+  createdAt      DateTime @default(now())
+
+  business BusinessProfile @relation(fields: [businessId], references: [id])
+
+  @@index([businessId])
+  @@index([value])
+}
+
+model BusinessSourceRecord {
+  id           String   @id @default(cuid())
+  businessId   String
+  sourceType   String
+  sourceStatus String   @default("UNAVAILABLE")
+  rawPayload   String
+  parsedFields String?
+  fetchedAt    DateTime @default(now())
+  notes        String?
+
+  business BusinessProfile @relation(fields: [businessId], references: [id])
+
+  @@index([businessId, sourceType])
+}
+
+model FinancialDocument {
+  id               String   @id @default(cuid())
+  businessId       String
+  originalName     String
+  storagePath      String
+  mimeType         String
+  fileSizeBytes    Int
+  category         String
+  fiscalYear       String?
+  processingStatus String   @default("PENDING")
+  processingError  String?
+  uploadedAt       DateTime @default(now())
+  processedAt      DateTime?
+
+  business    BusinessProfile      @relation(fields: [businessId], references: [id])
+  extractions FinancialExtraction[]
+
+  @@index([businessId])
+  @@index([businessId, category])
+}
+
+model FinancialExtraction {
+  id               String   @id @default(cuid())
+  documentId       String
+  businessId       String
+  extractionMethod String
+  rawText          String?
+  fields           String
+  confidence       String   @default("HIGH")
+  extractedAt      DateTime @default(now())
+
+  document FinancialDocument @relation(fields: [documentId], references: [id])
+
+  @@index([documentId])
+  @@index([businessId])
+}
+
+model FinancialMetric {
+  id          String   @id @default(cuid())
+  businessId  String
+  fiscalYear  String
+  metricName  String
+  value       Float
+  unit        String   @default("INR")
+  sourceDocId String?
+  confidence  String   @default("HIGH")
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  business BusinessProfile @relation(fields: [businessId], references: [id])
+
+  @@index([businessId, fiscalYear])
+  @@index([businessId, metricName])
+}
+
+model FinancialYearSummary {
+  id               String   @id @default(cuid())
+  businessId       String
+  fiscalYear       String
+  revenue          Float?
+  cogs             Float?
+  grossProfit      Float?
+  grossMarginPct   Float?
+  ebitda           Float?
+  ebitdaMarginPct  Float?
+  netProfit        Float?
+  netMarginPct     Float?
+  totalAssets      Float?
+  totalLiabilities Float?
+  equity           Float?
+  debtToEquity     Float?
+  currentRatio     Float?
+  bankInflows      Float?
+  bankOutflows     Float?
+  gstTurnover      Float?
+  revenueSource    String?
+  dataCompleteness Float    @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  business BusinessProfile @relation(fields: [businessId], references: [id])
+
+  @@unique([businessId, fiscalYear])
+  @@index([businessId])
+}
+
+model FinancialConsistencyCheck {
+  id             String   @id @default(cuid())
+  businessId     String
+  checkName      String
+  fiscalYear     String?
+  valueA         Float?
+  labelA         String?
+  valueB         Float?
+  labelB         String?
+  discrepancyPct Float?
+  result         String   @default("PASS")
+  note           String?
+  checkedAt      DateTime @default(now())
+
+  business BusinessProfile @relation(fields: [businessId], references: [id])
+
+  @@index([businessId])
+}
+
+model BizRiskSignal {
+  id         String   @id @default(cuid())
+  businessId String
+  signalCode String
+  label      String
+  color      String   @default("AMBER")
+  score      Float    @default(0)
+  weight     Float    @default(1)
+  rationale  String
+  sourceRefs String?
+  computedAt DateTime @default(now())
+
+  business BusinessProfile @relation(fields: [businessId], references: [id])
+
+  @@index([businessId])
+}
+
+model BizRiskFlag {
+  id               String   @id @default(cuid())
+  businessId       String   @unique
+  flag             String
+  compositeScore   Float
+  signalBreakdown  String
+  hardRedFlags     String?
+  recommendedLimit Float
+  recommendedTenor Int      @default(30)
+  computedAt       DateTime @default(now())
+  configSnapshot   String?
+
+  business BusinessProfile @relation(fields: [businessId], references: [id])
+}
+
+model CreditRecommendation {
+  id            String   @id @default(cuid())
+  businessId    String   @unique
+  creditLimit   Float
+  tenor         Int      @default(30)
+  flag          String
+  rationale     String
+  signalRefs    String
+  documentTrail String?
+  isBlocked     Boolean  @default(false)
+  blockReason   String?
+  computedAt    DateTime @default(now())
+
+  business BusinessProfile @relation(fields: [businessId], references: [id])
+}
+
+model CourtCase {
+  id           String   @id @default(cuid())
+  businessId   String
+  caseNumber   String?
+  courtName    String?
+  filingDate   DateTime?
+  caseType     String?
+  status       String?
+  partyRole    String?
+  description  String?
+  sourceStatus String   @default("USER_PROVIDED")
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  business BusinessProfile @relation(fields: [businessId], references: [id])
+
+  @@index([businessId])
+}
+
+model VerificationTask {
+  id           String   @id @default(cuid())
+  businessId   String
+  taskType     String
+  status       String   @default("PENDING")
+  result       String?
+  error        String?
+  retriesCount Int      @default(0)
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+
+  business BusinessProfile @relation(fields: [businessId], references: [id])
+
+  @@index([businessId])
+  @@index([businessId, taskType])
+}
+
+model ManualReview {
+  id            String   @id @default(cuid())
+  businessId    String
+  reviewType    String
+  status        String   @default("OPEN")
+  promptText    String
+  portalUrl     String?
+  submittedData String?
+  submittedAt   DateTime?
+  reviewedBy    String?
+  createdAt     DateTime @default(now())
+
+  business BusinessProfile @relation(fields: [businessId], references: [id])
+
+  @@index([businessId])
+}
+
+model BizAuditLog {
+  id          String   @id @default(cuid())
+  businessId  String
+  eventType   String
+  actor       String?
+  description String
+  metadata    String?
+  createdAt   DateTime @default(now())
+
+  business BusinessProfile @relation(fields: [businessId], references: [id])
+
+  @@index([businessId])
+  @@index([businessId, eventType])
+}
+

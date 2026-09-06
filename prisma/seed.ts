@@ -28,6 +28,22 @@ async function main() {
   console.log("Seeding ChaanBean platform data...");
 
   // Clean existing tables in relational order
+  await prisma.bizAuditLog.deleteMany();
+  await prisma.manualReview.deleteMany();
+  await prisma.verificationTask.deleteMany();
+  await prisma.courtCase.deleteMany();
+  await prisma.creditRecommendation.deleteMany();
+  await prisma.bizRiskFlag.deleteMany();
+  await prisma.bizRiskSignal.deleteMany();
+  await prisma.financialConsistencyCheck.deleteMany();
+  await prisma.financialYearSummary.deleteMany();
+  await prisma.financialMetric.deleteMany();
+  await prisma.financialExtraction.deleteMany();
+  await prisma.financialDocument.deleteMany();
+  await prisma.businessSourceRecord.deleteMany();
+  await prisma.businessIdentifier.deleteMany();
+  await prisma.businessProfile.deleteMany();
+
   await prisma.leadAttribution.deleteMany();
   await prisma.campaignSource.deleteMany();
   await prisma.marketingChannel.deleteMany();
@@ -596,10 +612,406 @@ async function main() {
     });
   }
 
+  // 17. Seed Financial Intelligence Demo Businesses (V0 Public-Data + Document Intelligence)
+  await seedFinancialIntelligenceBusinesses(company.id);
+
   console.log("Seeding complete successfully!");
   console.log(`Demo Company ID: ${company.id}`);
   console.log(`Admin Owner: ${owner.email} | Team Member: ${rep.email}`);
 }
+
+async function seedFinancialIntelligenceBusinesses(companyId: string) {
+  console.log("Seeding 5 Financial Intelligence Demo Businesses...");
+
+  const demoBusinesses = [
+    {
+      companyName: "ABC Engineering Pvt Ltd",
+      gstin: "27AABCA1234F1Z5",
+      cin: "U29100MH2010PTC204512",
+      pan: "AABCA1234F",
+      udyamNo: "UDYAM-MH-01-0012345",
+      phone: "+91 98201 55432",
+      registeredAddr: "Plot 42, MIDC Industrial Area, Andheri East, Mumbai, Maharashtra 400093",
+      primaryActivity: "Heavy Machinery & Industrial Transmission Components",
+      enterpriseType: "MEDIUM",
+      flag: "GREEN",
+      compositeScore: 82,
+      recommendedLimit: 2800000,
+      recommendedTenor: 30,
+      hardRedFlags: null,
+      isBlocked: false,
+      blockReason: null,
+      rationale: "Risk assessment: GREEN (composite score 82/100). Recommended credit limit: ₹28.0L for 30 days. Key positive signals: Revenue Stability, Profitability, Debt Burden, Liquidity, MSME Status, GST Compliance. Zero active court cases.",
+      years: [
+        { fiscalYear: "FY2021-22", revenue: 14500000, cogs: 9500000, grossProfit: 5000000, grossMarginPct: 34.5, ebitda: 2400000, ebitdaMarginPct: 16.5, netProfit: 1450000, netMarginPct: 10.0, totalAssets: 18000000, totalLiabilities: 7500000, equity: 10500000, debtToEquity: 0.71, currentRatio: 1.85, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2022-23", revenue: 17200000, cogs: 11000000, grossProfit: 6200000, grossMarginPct: 36.0, ebitda: 3100000, ebitdaMarginPct: 18.0, netProfit: 1820000, netMarginPct: 10.6, totalAssets: 21500000, totalLiabilities: 8200000, equity: 13300000, debtToEquity: 0.62, currentRatio: 1.92, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2023-24", revenue: 21000000, cogs: 13200000, grossProfit: 7800000, grossMarginPct: 37.1, ebitda: 3900000, ebitdaMarginPct: 18.6, netProfit: 2350000, netMarginPct: 11.2, totalAssets: 26000000, totalLiabilities: 9000000, equity: 17000000, debtToEquity: 0.53, currentRatio: 2.10, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2024-25", revenue: 24800000, cogs: 15400000, grossProfit: 9400000, grossMarginPct: 37.9, ebitda: 4800000, ebitdaMarginPct: 19.3, netProfit: 2980000, netMarginPct: 12.0, totalAssets: 31000000, totalLiabilities: 9800000, equity: 21200000, debtToEquity: 0.46, currentRatio: 2.25, dataCompleteness: 1.0 },
+      ],
+      cases: [],
+      checks: [
+        { checkName: "GST_VS_PNL", fiscalYear: "FY2024-25", valueA: 24600000, labelA: "GST Turnover (GSTR-3B)", valueB: 24800000, labelB: "P&L Revenue", discrepancyPct: 0.8, result: "PASS", note: "GST turnover and P&L revenue match within 0.8%." }
+      ]
+    },
+    {
+      companyName: "Kerala Industrial Supplies",
+      gstin: "32AAACK4567M1Z2",
+      cin: "U51909KL2016PTC042890",
+      pan: "AAACK4567M",
+      udyamNo: "UDYAM-KL-02-0045678",
+      phone: "+91 94471 22890",
+      registeredAddr: "Door No. 14/220, Industrial Estate Road, Kalamassery, Kochi, Kerala 682033",
+      primaryActivity: "Wholesale Industrial Hardware & PPE Safety Equipment",
+      enterpriseType: "SMALL",
+      flag: "AMBER",
+      compositeScore: 58,
+      recommendedLimit: 1200000,
+      recommendedTenor: 30,
+      hardRedFlags: null,
+      isBlocked: false,
+      blockReason: null,
+      rationale: "Risk assessment: AMBER (composite score 58/100). Reduced credit limit: ₹12.0L for 30 days. Concerns: Thin net margins (4.4%), rising debt-to-equity ratio (1.55), and mild discrepancy between GSTR-3B turnover and P&L revenue. Close monitoring recommended.",
+      years: [
+        { fiscalYear: "FY2021-22", revenue: 8500000, cogs: 6200000, grossProfit: 2300000, grossMarginPct: 27.0, ebitda: 950000, ebitdaMarginPct: 11.2, netProfit: 520000, netMarginPct: 6.1, totalAssets: 9500000, totalLiabilities: 4800000, equity: 4700000, debtToEquity: 1.02, currentRatio: 1.40, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2022-23", revenue: 9800000, cogs: 7300000, grossProfit: 2500000, grossMarginPct: 25.5, ebitda: 1100000, ebitdaMarginPct: 11.2, netProfit: 650000, netMarginPct: 6.6, totalAssets: 11000000, totalLiabilities: 5800000, equity: 5200000, debtToEquity: 1.12, currentRatio: 1.35, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2023-24", revenue: 10500000, cogs: 8100000, grossProfit: 2400000, grossMarginPct: 22.8, ebitda: 980000, ebitdaMarginPct: 9.3, netProfit: 480000, netMarginPct: 4.6, totalAssets: 12500000, totalLiabilities: 7200000, equity: 5300000, debtToEquity: 1.36, currentRatio: 1.25, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2024-25", revenue: 11500000, cogs: 9000000, grossProfit: 2500000, grossMarginPct: 21.7, ebitda: 1050000, ebitdaMarginPct: 9.1, netProfit: 510000, netMarginPct: 4.4, totalAssets: 14000000, totalLiabilities: 8500000, equity: 5500000, debtToEquity: 1.55, currentRatio: 1.20, dataCompleteness: 1.0 },
+      ],
+      cases: [],
+      checks: [
+        { checkName: "GST_VS_PNL", fiscalYear: "FY2024-25", valueA: 13000000, labelA: "GST Turnover (GSTR-3B)", valueB: 11500000, labelB: "P&L Revenue", discrepancyPct: 11.5, result: "REVIEW_REQUIRED", note: "GST turnover (₹1.30Cr) exceeds P&L revenue (₹1.15Cr) by 11.5%. Verify inter-branch stock transfers or timing variances." }
+      ]
+    },
+    {
+      companyName: "Metro Components",
+      gstin: "29AABCM9012K1Z9",
+      cin: "U31900KA2014PTC075432",
+      pan: "AABCM9012K",
+      udyamNo: "UDYAM-KR-03-0099881",
+      phone: "+91 97412 88765",
+      registeredAddr: "Building 5, Peenya 3rd Phase, Bangalore, Karnataka 560058",
+      primaryActivity: "Electronic Stamped Connectors & Sub-Assemblies",
+      enterpriseType: "SMALL",
+      flag: "AMBER",
+      compositeScore: 48,
+      recommendedLimit: 850000,
+      recommendedTenor: 30,
+      hardRedFlags: null,
+      isBlocked: false,
+      blockReason: null,
+      rationale: "Risk assessment: AMBER (composite score 48/100). Minimum credit limit: ₹8.5L for 30 days. Concerns: Consistent revenue contraction (-26.7% over 4 years), thin profitability (1.5%), high debt-to-equity (2.40), and tight liquidity (current ratio 1.05).",
+      years: [
+        { fiscalYear: "FY2021-22", revenue: 18000000, cogs: 13000000, grossProfit: 5000000, grossMarginPct: 27.8, ebitda: 2800000, ebitdaMarginPct: 15.6, netProfit: 1600000, netMarginPct: 8.9, totalAssets: 19500000, totalLiabilities: 10200000, equity: 9300000, debtToEquity: 1.10, currentRatio: 1.60, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2022-23", revenue: 16500000, cogs: 12500000, grossProfit: 4000000, grossMarginPct: 24.2, ebitda: 2100000, ebitdaMarginPct: 12.7, netProfit: 1100000, netMarginPct: 6.7, totalAssets: 18500000, totalLiabilities: 11400000, equity: 7100000, debtToEquity: 1.61, currentRatio: 1.30, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2023-24", revenue: 14000000, cogs: 11200000, grossProfit: 2800000, grossMarginPct: 20.0, ebitda: 1300000, ebitdaMarginPct: 9.3, netProfit: 400000, netMarginPct: 2.9, totalAssets: 17200000, totalLiabilities: 11600000, equity: 5600000, debtToEquity: 2.07, currentRatio: 1.10, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2024-25", revenue: 13200000, cogs: 10900000, grossProfit: 2300000, grossMarginPct: 17.4, ebitda: 980000, ebitdaMarginPct: 7.4, netProfit: 200000, netMarginPct: 1.5, totalAssets: 16800000, totalLiabilities: 11900000, equity: 4900000, debtToEquity: 2.43, currentRatio: 1.05, dataCompleteness: 1.0 },
+      ],
+      cases: [],
+      checks: [
+        { checkName: "MULTI_YEAR_REVENUE", fiscalYear: "FY2023-24", valueA: 16500000, labelA: "Revenue FY2022-23", valueB: 14000000, labelB: "Revenue FY2023-24", discrepancyPct: 15.2, result: "PASS", note: "Continuous revenue contraction observed over trailing 3 fiscal periods." }
+      ]
+    },
+    {
+      companyName: "Southline Distributors",
+      gstin: "33AABCS3456L1Z4",
+      cin: "U51100TN2012PTC086754",
+      pan: "AABCS3456L",
+      udyamNo: null,
+      phone: "+91 98401 77334",
+      registeredAddr: "No. 88, Anna Salai, Guindy, Chennai, Tamil Nadu 600032",
+      primaryActivity: "FMCG Wholesale & Beverage Distribution",
+      enterpriseType: "MEDIUM",
+      flag: "RED",
+      compositeScore: 24,
+      recommendedLimit: 0,
+      recommendedTenor: 30,
+      hardRedFlags: JSON.stringify(["ACTIVE_LITIGATION", "MAJOR_FINANCIAL_INCONSISTENCY"]),
+      isBlocked: true,
+      blockReason: "ACTIVE_LITIGATION, MAJOR_FINANCIAL_INCONSISTENCY",
+      rationale: "Risk assessment: RED (composite score 24/100). CREDIT BLOCKED. Hard red flags triggered: ACTIVE_LITIGATION (2 active suits including supplier recovery suit O.S. 441/2024 for ₹42L), MAJOR_FINANCIAL_INCONSISTENCY (50% gap between GST turnover and declared P&L revenue). Extreme loss-making (-16.25% margin), severe debt overload (D/E 6.2).",
+      years: [
+        { fiscalYear: "FY2021-22", revenue: 32000000, cogs: 27500000, grossProfit: 4500000, grossMarginPct: 14.1, ebitda: 2100000, ebitdaMarginPct: 6.6, netProfit: 1200000, netMarginPct: 3.75, totalAssets: 34000000, totalLiabilities: 25000000, equity: 9000000, debtToEquity: 2.78, currentRatio: 1.10, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2022-23", revenue: 29000000, cogs: 26000000, grossProfit: 3000000, grossMarginPct: 10.3, ebitda: 800000, ebitdaMarginPct: 2.8, netProfit: -400000, netMarginPct: -1.38, totalAssets: 32000000, totalLiabilities: 24800000, equity: 7200000, debtToEquity: 3.44, currentRatio: 0.95, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2023-24", revenue: 21000000, cogs: 20000000, grossProfit: 1000000, grossMarginPct: 4.8, ebitda: -800000, ebitdaMarginPct: -3.8, netProfit: -1800000, netMarginPct: -8.57, totalAssets: 28000000, totalLiabilities: 23200000, equity: 4800000, debtToEquity: 4.83, currentRatio: 0.82, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2024-25", revenue: 16000000, cogs: 16500000, grossProfit: -500000, grossMarginPct: -3.1, ebitda: -1600000, ebitdaMarginPct: -10.0, netProfit: -2600000, netMarginPct: -16.25, totalAssets: 24000000, totalLiabilities: 20500000, equity: 3500000, debtToEquity: 5.86, currentRatio: 0.71, dataCompleteness: 1.0 },
+      ],
+      cases: [
+        { caseNumber: "O.S. 441/2024", courtName: "City Civil Court, Chennai", caseType: "CIVIL", status: "ACTIVE", partyRole: "DEFENDANT", description: "Commercial recovery suit filed by Sri Meenakshi Agro Ltd for dishonored cheques totaling ₹42,50,000 under Section 138 NI Act." },
+        { caseNumber: "CS/COMM/108/2023", courtName: "High Court of Madras (Commercial Div)", caseType: "ARBITRATION", status: "PENDING", partyRole: "RESPONDENT", description: "Arbitration enforcement proceeding initiated by beverage principal for stock shortage and disputed margin clawbacks." }
+      ],
+      checks: [
+        { checkName: "GST_VS_PNL", fiscalYear: "FY2024-25", valueA: 24000000, labelA: "GST Turnover (GSTR-3B)", valueB: 16000000, labelB: "P&L Revenue", discrepancyPct: 50.0, result: "REVIEW_REQUIRED", note: "CRITICAL: Declared P&L revenue is ₹1.60Cr while GST returns report ₹2.40Cr (50% discrepancy). High risk of unrecorded stock or fraudulent return filings." }
+      ]
+    },
+    {
+      companyName: "Malabar Machinery",
+      gstin: "32AAAFM8899P1Z1",
+      cin: "U29253KL2018PTC051210",
+      pan: "AAAFM8899P",
+      udyamNo: "UDYAM-KL-07-0033221",
+      phone: "+91 94950 11998",
+      registeredAddr: "Building 12, KINFRA Food Processing Park, Kakkancherry, Malappuram, Kerala 673634",
+      primaryActivity: "Food Processing Machinery & Spices Extraction Equipment",
+      enterpriseType: "SMALL",
+      flag: "GREEN",
+      compositeScore: 78,
+      recommendedLimit: 2200000,
+      recommendedTenor: 30,
+      hardRedFlags: null,
+      isBlocked: false,
+      blockReason: null,
+      rationale: "Risk assessment: GREEN (composite score 78/100). Recommended credit limit: ₹22.0L for 30 days. Steady 4-year revenue expansion (+97.8%), healthy operating margin (11.8%), conservative debt structure (D/E 0.45), active Udyam MSME certification, clean litigation record.",
+      years: [
+        { fiscalYear: "FY2021-22", revenue: 9200000, cogs: 6100000, grossProfit: 3100000, grossMarginPct: 33.7, ebitda: 1450000, ebitdaMarginPct: 15.8, netProfit: 850000, netMarginPct: 9.2, totalAssets: 11000000, totalLiabilities: 4200000, equity: 6800000, debtToEquity: 0.62, currentRatio: 1.70, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2022-23", revenue: 11800000, cogs: 7600000, grossProfit: 4200000, grossMarginPct: 35.6, ebitda: 1950000, ebitdaMarginPct: 16.5, netProfit: 1220000, netMarginPct: 10.3, totalAssets: 13500000, totalLiabilities: 4800000, equity: 8700000, debtToEquity: 0.55, currentRatio: 1.82, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2023-24", revenue: 14600000, cogs: 9200000, grossProfit: 5400000, grossMarginPct: 37.0, ebitda: 2450000, ebitdaMarginPct: 16.8, netProfit: 1600000, netMarginPct: 11.0, totalAssets: 16800000, totalLiabilities: 5500000, equity: 11300000, debtToEquity: 0.49, currentRatio: 1.95, dataCompleteness: 1.0 },
+        { fiscalYear: "FY2024-25", revenue: 18200000, cogs: 11200000, grossProfit: 7000000, grossMarginPct: 38.5, ebitda: 3100000, ebitdaMarginPct: 17.0, netProfit: 2150000, netMarginPct: 11.8, totalAssets: 20500000, totalLiabilities: 6300000, equity: 14200000, debtToEquity: 0.44, currentRatio: 2.05, dataCompleteness: 1.0 },
+      ],
+      cases: [],
+      checks: [
+        { checkName: "GST_VS_PNL", fiscalYear: "FY2024-25", valueA: 18050000, labelA: "GST Turnover (GSTR-3B)", valueB: 18200000, labelB: "P&L Revenue", discrepancyPct: 0.8, result: "PASS", note: "GSTR-3B turnover aligns with annual financial statements." }
+      ]
+    }
+  ];
+
+  for (const b of demoBusinesses) {
+    const profile = await prisma.businessProfile.create({
+      data: {
+        companyName: b.companyName,
+        gstin: b.gstin,
+        cin: b.cin,
+        pan: b.pan,
+        udyamNo: b.udyamNo,
+        phone: b.phone,
+        registeredAddr: b.registeredAddr,
+        primaryActivity: b.primaryActivity,
+        enterpriseType: b.enterpriseType,
+        overallStatus: "ACTIVE",
+        sourceStatus: "DEMO",
+        createdBy: companyId,
+      },
+    });
+
+    // Identifiers
+    const idList = [
+      { type: "GSTIN", val: b.gstin },
+      { type: "CIN", val: b.cin },
+      { type: "PAN", val: b.pan },
+      { type: "UDYAM", val: b.udyamNo },
+      { type: "PHONE", val: b.phone },
+    ].filter(x => x.val);
+
+    for (const item of idList) {
+      await prisma.businessIdentifier.create({
+        data: {
+          businessId: profile.id,
+          identifierType: item.type,
+          value: item.val!,
+          verified: true,
+          sourceStatus: "DEMO",
+          verifiedAt: new Date(),
+        },
+      });
+    }
+
+    // Source records
+    await prisma.businessSourceRecord.create({
+      data: {
+        businessId: profile.id,
+        sourceType: "MCA",
+        sourceStatus: "DEMO",
+        rawPayload: JSON.stringify({ cin: b.cin, status: "Active", dateOfIncorporation: "2015-06-15" }),
+        parsedFields: JSON.stringify({ cin: b.cin, companyStatus: "Active", authorizedCapital: "50,00,000", paidUpCapital: "35,00,000" }),
+        notes: "Demo MCA record",
+      },
+    });
+
+    if (b.gstin) {
+      await prisma.businessSourceRecord.create({
+        data: {
+          businessId: profile.id,
+          sourceType: "GST",
+          sourceStatus: "DEMO",
+          rawPayload: JSON.stringify({ gstin: b.gstin, status: "Active", taxpayerType: "Regular" }),
+          parsedFields: JSON.stringify({ gstin: b.gstin, gstStatus: "Active", taxPayerType: "Regular" }),
+          notes: "Demo GST record",
+        },
+      });
+    }
+
+    // Year Summaries & Metrics
+    for (const yr of b.years) {
+      await prisma.financialYearSummary.create({
+        data: {
+          businessId: profile.id,
+          fiscalYear: yr.fiscalYear,
+          revenue: yr.revenue,
+          cogs: yr.cogs,
+          grossProfit: yr.grossProfit,
+          grossMarginPct: yr.grossMarginPct,
+          ebitda: yr.ebitda,
+          ebitdaMarginPct: yr.ebitdaMarginPct,
+          netProfit: yr.netProfit,
+          netMarginPct: yr.netMarginPct,
+          totalAssets: yr.totalAssets,
+          totalLiabilities: yr.totalLiabilities,
+          equity: yr.equity,
+          debtToEquity: yr.debtToEquity,
+          currentRatio: yr.currentRatio,
+          dataCompleteness: yr.dataCompleteness,
+        },
+      });
+
+      // Sample key metrics
+      await prisma.financialMetric.create({
+        data: {
+          businessId: profile.id,
+          fiscalYear: yr.fiscalYear,
+          metricName: "REVENUE",
+          value: yr.revenue,
+          confidence: "HIGH",
+        },
+      });
+      await prisma.financialMetric.create({
+        data: {
+          businessId: profile.id,
+          fiscalYear: yr.fiscalYear,
+          metricName: "NET_PROFIT",
+          value: yr.netProfit,
+          confidence: "HIGH",
+        },
+      });
+    }
+
+    // Consistency Checks
+    for (const chk of b.checks) {
+      await prisma.financialConsistencyCheck.create({
+        data: {
+          businessId: profile.id,
+          checkName: chk.checkName,
+          fiscalYear: chk.fiscalYear,
+          valueA: chk.valueA,
+          labelA: chk.labelA,
+          valueB: chk.valueB,
+          labelB: chk.labelB,
+          discrepancyPct: chk.discrepancyPct,
+          result: chk.result,
+          note: chk.note,
+        },
+      });
+    }
+
+    // Court Cases
+    for (const cc of b.cases) {
+      await prisma.courtCase.create({
+        data: {
+          businessId: profile.id,
+          caseNumber: cc.caseNumber,
+          courtName: cc.courtName,
+          caseType: cc.caseType,
+          status: cc.status,
+          partyRole: cc.partyRole,
+          description: cc.description,
+          sourceStatus: "DEMO",
+        },
+      });
+    }
+
+    // 12 Risk Signals
+    const signalDefs = [
+      { code: "REVENUE_STABILITY", label: "Revenue Stability", score: b.compositeScore >= 70 ? 85 : b.compositeScore >= 40 ? 55 : 20 },
+      { code: "PROFITABILITY", label: "Profitability", score: b.compositeScore >= 70 ? 80 : b.compositeScore >= 40 ? 50 : 15 },
+      { code: "CASH_FLOW", label: "Cash Flow Health", score: b.compositeScore >= 70 ? 82 : b.compositeScore >= 40 ? 52 : 25 },
+      { code: "DEBT_BURDEN", label: "Debt Burden", score: b.compositeScore >= 70 ? 88 : b.compositeScore >= 40 ? 45 : 18 },
+      { code: "LIQUIDITY", label: "Liquidity Position", score: b.compositeScore >= 70 ? 85 : b.compositeScore >= 40 ? 50 : 22 },
+      { code: "FINANCIAL_CONSISTENCY", label: "Financial Consistency", score: b.checks.some(c => c.result === "REVIEW_REQUIRED") ? 35 : 90 },
+      { code: "LITIGATION", label: "Litigation History", score: b.cases.length === 0 ? 95 : 15 },
+      { code: "IDENTITY_MATCH", label: "Identity Verification", score: 90 },
+      { code: "MSME_STATUS", label: "MSME / Udyam Registration", score: b.udyamNo ? 85 : 45 },
+      { code: "GST_COMPLIANCE", label: "GST Compliance", score: b.gstin ? 85 : 30 },
+      { code: "DIRECTOR_HISTORY", label: "Director / Promoter Background", score: 75 },
+      { code: "INDUSTRY_RISK", label: "Industry Risk", score: 65 },
+    ];
+
+    const signalBreakdownMap: Record<string, unknown> = {};
+
+    for (const s of signalDefs) {
+      const color = s.score >= 65 ? "GREEN" : s.score >= 35 ? "AMBER" : "RED";
+      await prisma.bizRiskSignal.create({
+        data: {
+          businessId: profile.id,
+          signalCode: s.code,
+          label: s.label,
+          color,
+          score: s.score,
+          weight: 1.0,
+          rationale: `${s.label} evaluated based on verified 4-year trend and regulatory filings.`,
+        },
+      });
+
+      signalBreakdownMap[s.code] = {
+        label: s.label,
+        color,
+        score: s.score,
+        rationale: `${s.label} evaluated based on verified 4-year trend and regulatory filings.`,
+      };
+    }
+
+    // BizRiskFlag
+    await prisma.bizRiskFlag.create({
+      data: {
+        businessId: profile.id,
+        flag: b.flag,
+        compositeScore: b.compositeScore,
+        signalBreakdown: JSON.stringify(signalBreakdownMap),
+        hardRedFlags: b.hardRedFlags,
+        recommendedLimit: b.recommendedLimit,
+        recommendedTenor: b.recommendedTenor,
+      },
+    });
+
+    // Credit Recommendation
+    await prisma.creditRecommendation.create({
+      data: {
+        businessId: profile.id,
+        creditLimit: b.recommendedLimit,
+        tenor: b.recommendedTenor,
+        flag: b.flag,
+        rationale: b.rationale,
+        signalRefs: JSON.stringify(signalDefs.map(s => s.code)),
+        documentTrail: JSON.stringify({
+          creditLimit: b.recommendedLimit,
+          flag: b.flag,
+          compositeScore: b.compositeScore,
+          sourceType: "DEMO",
+        }),
+        isBlocked: b.isBlocked,
+        blockReason: b.blockReason,
+      },
+    });
+
+    // Audit logs
+    await prisma.bizAuditLog.create({
+      data: {
+        businessId: profile.id,
+        eventType: "PROFILE_CREATED",
+        actor: companyId,
+        description: `Synthetic demo profile created for ${b.companyName}`,
+      },
+    });
+    await prisma.bizAuditLog.create({
+      data: {
+        businessId: profile.id,
+        eventType: "RISK_COMPUTED",
+        actor: "system",
+        description: `Risk engine completed: ${b.flag} flag with composite score ${b.compositeScore}/100`,
+      },
+    });
+  }
+
+  console.log("5 Demo Businesses successfully seeded.");
+}
+
 
 main()
   .catch((e) => {

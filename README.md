@@ -74,6 +74,15 @@ Business Verification ➔ Credit Underwriting ➔ Payment Monitoring ➔ Tele-Re
 - Generates Section 65B digital evidence certificates with cryptographic verification seals.
 - Pre-integrated with simulated Aadhaar OTP electronic signature ceremonies.
 
+### 5. Public-Data + Document Financial Intelligence (`/business-check`)
+- **Zero Paid API Dependencies**: Operates with authentic Indian public portals (MCA21 master data, GST search, official Udyam verification, eCourts party search) via compliant public lookups and manual verification workflows (strictly **NO** CAPTCHA bypass or unofficial scraping).
+- **Document Processing Pipeline**: Ingests multi-year PDFs (via `pdf-parse`), spreadsheets (via `xlsx`), and scanned statements (via assisted review queue) across 8 statutory categories: P&L, Balance Sheet, Bank Statements, GSTR-3B Returns, IT Returns, Udyam Certificates, MCA Extracts, and Other.
+- **4-Year Financial Intelligence Engine**: Automatic multi-period CAGR (Revenue, Net Profit), operating margin tracking, balance sheet leverage (D/E, Current Ratio), and working capital metrics.
+- **6-Pillar Health Score & Cross-Document Consistency**: Audits GSTR-3B reported turnover vs. P&L declarations and bank inflows against revenue to flag discrepancies (`REVIEW_REQUIRED`) without false fraud accusations.
+- **12 Deterministic Risk Signals & Hard Red Flags**: Evaluates Revenue Stability, Profitability, Cash Flow, Debt Burden, Liquidity, Consistency, Litigation History, Identity Matching, MSME status, GST compliance, Director history, and Industry risk. Hard red flags immediately block credit on active litigation or major reporting variance.
+- **Traceable Credit Limits & Side-by-Side Comparison**: Deterministic exposure limits (Green: ₹20–30L, Amber: ₹8–15L, Red: Blocked) with full "Why?" audit trails and a 3-way side-by-side business comparison matrix at `/business-check/compare`.
+
+
 ---
 
 ## System Prerequisites
@@ -288,6 +297,7 @@ node test-trust-hub.mjs
 node test-verification-input.mjs
 node test-call-flow.mjs
 node test-e2e.mjs
+node test-business-check.mjs
 ```
 
 ### What Each Test Suite Covers:
@@ -300,6 +310,8 @@ node test-e2e.mjs
 | `test-verification-input.mjs` | **6 / 6 Passed** | Verifies zero calls to `Math.random()` across the entire codebase, real input data parsing for GSTINs/PANs, and deterministic risk score generation. |
 | `test-call-flow.mjs` | **6 / 6 Passed** | Zero `Math.random()` scan, pre-approved script generation, MSMED Act §16 interest rates, 16kHz PCM WAV audio generation, Asterisk Q.850 release cause code telemetry, and wallet settlement reconciliation. |
 | `test-e2e.mjs` | **15 / 15 Passed** | Complete post-due-date recovery lifecycle: debtor retrieval ➔ pre-due notice ➔ overdue L1 reminder ➔ L2 tele-recovery call ➔ L3 formal demand notice ➔ Section 65B evidence audit seal. |
+| `test-business-check.mjs` | **7 / 7 Passed** | V0 Public-Data & Financial Intelligence: Business Profile creation, 12-section profile inspection, multi-year summaries, 12 deterministic risk signals, side-by-side comparison matrix, manual verification submission, and hard red flag enforcement. |
+
 
 ---
 
@@ -343,6 +355,10 @@ Next.js 15 App Router Frontend (Dual-Theme: Dark & Bright Mode)
 | `/` | Operations Dashboard | Live summary of overdue receivables, portfolio risk mix, and quick action bar. |
 | `/debtors` | Debtors & Portfolio | Buyer list with real-time Green / Amber / Red risk badges, exposure, and age analysis. |
 | `/buyers/[id]` | Buyer Dossier | Deep counterparty profile with radar risk signal breakdown and credit limit recommendations. |
+| `/business-check` | Business Verification | Public-data verification entry form & searchable directory of business profiles. |
+| `/business-check/[id]` | Business Intelligence Dossier | Comprehensive 12-section financial intelligence dossier with 4-year trend charts and risk signals. |
+| `/business-check/[id]/documents` | Document Ingestion | Multi-year document upload (PDF, XLSX, CSV, PNG, JPG) with text/table extraction. |
+| `/business-check/compare` | Side-by-Side Comparison | Compare 2 or 3 businesses across health score, risk signals, and credit exposure limits. |
 | `/background-check`| Background Check | 11 verification adapters with instant validation from user input. |
 | `/trust-hub` | Trust Hub | Centralized business Trust ID verification portal and verified MSME roster. |
 | `/payment-recovery`| Tele-Recovery | One-way call console, simulated call telemetry, audio playback, and settlement logs. |

@@ -18,8 +18,12 @@ import {
   FileCheck2,
   RotateCcw,
   LogOut,
+  Building2,
+  BarChart3,
+  FileSearch,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
+
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -44,6 +48,12 @@ export function Sidebar() {
 
   const settingsNav = [
     { href: "/settings", label: t.settings, icon: Settings },
+  ];
+
+  const financialIntelNav = [
+    { href: "/business-check", label: "Business Check", icon: Building2, badge: "NEW" },
+    { href: "/business-check?filter=risk", label: "Risk Reports", icon: BarChart3 },
+    { href: "/business-check?filter=docs", label: "Documents", icon: FileSearch },
   ];
 
   return (
@@ -90,6 +100,40 @@ export function Sidebar() {
                   </div>
                   {badge && (
                     <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">
+                      {badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section 1.5: Financial Intelligence & Business Checks */}
+        <div>
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 px-3 block mb-1.5">
+            Financial Intelligence
+          </span>
+          <div className="space-y-1">
+            {financialIntelNav.map(({ href, label, icon: Icon, badge }) => {
+              const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={clsx(
+                    "flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                    isActive
+                      ? "bg-slate-800/80 text-chaan-accent border border-slate-700/60 shadow-sm"
+                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
+                  )}
+                >
+                  <div className="flex items-center gap-2.5 truncate">
+                    <Icon size={16} />
+                    <span className="truncate">{label}</span>
+                  </div>
+                  {badge && (
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 border border-emerald-800 text-emerald-400 font-bold">
                       {badge}
                     </span>
                   )}
