@@ -7,6 +7,20 @@ platform — the Next.js app on branch `main` of
 Kotlin · Jetpack Compose · Material 3 · Retrofit · kotlinx.serialization.
 No Hilt, no annotation processing — dependencies are wired by hand through `AppContainer`.
 
+## Screens
+
+| Sign-in | Home | Business Check | Recovery ladder |
+|---|---|---|---|
+| ![](docs/screenshots/01-login-client-signin.png) | ![](docs/screenshots/06-dashboard-home.png) | ![](docs/screenshots/14-business-check-list.png) | ![](docs/screenshots/29-recovery-escalation.png) |
+
+| Arbitration | Trust Hub | Admin console | Language |
+|---|---|---|---|
+| ![](docs/screenshots/20-arbitration-cases.png) | ![](docs/screenshots/22-trusthub-verify.png) | ![](docs/screenshots/38-admin-customers.png) | ![](docs/screenshots/34-language-and-appearance.png) |
+
+**[→ Full walkthrough: every screen and tab](docs/SCREENS.md)** — 49 captures taken from
+the `live` flavor against a running `main` server, so every figure on them is real seeded
+data rather than a mockup.
+
 ---
 
 ## Read this before you deploy anything
