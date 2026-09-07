@@ -51,9 +51,12 @@ that is what `/api/health` actually returns.
 `main` renders its SupportDrawer on every page through `AppShell`; the same content sits
 behind the help icon in the top bar here.
 
-| MSME §16 | TRAI rules | Ask legal |
-|---|---|---|
-| ![](screenshots/11-support-msme16.png) | ![](screenshots/12-support-trai.png) | ![](screenshots/13-support-ask-legal.png) |
+| MSME §16 | TRAI rules | IT Act §3A | Ask legal |
+|---|---|---|---|
+| ![](screenshots/11-support-msme16.png) | ![](screenshots/12-support-trai.png) | ![](screenshots/61-support-itact.png) | ![](screenshots/13-support-ask-legal.png) |
+
+The TRAI tab records a disagreement inside `main` itself: the 09:00–18:00 window and the
+three-per-day cap are enforced on the policy tick, but the direct voice action skips both.
 
 The inquiry form is inert on purpose: `main` has no endpoint behind it, and its handler
 only flips a local flag, so this copy says so instead of implying a ticket was filed.
@@ -75,6 +78,13 @@ The deepest module — verification, financial intelligence and the Green/Amber/
 MCA, GST, Udyam and eCourts records are marked `USER_PROVIDED` and tinted amber, never
 green: in `main` an operator reads the government portal and types in what they saw. The
 provenance is a product feature, not a defect to hide.
+
+Two businesses can be compared side by side. `main` caps the selection and drops the
+oldest choice once a third is added; this client follows the same rule.
+
+| Compare | Selected |
+|---|---|
+| ![](screenshots/62-business-compare.png) | ![](screenshots/63-business-compare-2.png) |
 
 ---
 
@@ -101,6 +111,15 @@ confirmation and no undo. And "Place L2 voice announcement" dials nobody — the
 derives call outcome, duration and SIP session id from a digit sum of the phone number,
 then writes a `Call` row as if it had happened, skipping the TRAI calling-window and
 frequency-cap checks that the policy tick applies.
+
+| Record a settlement | Amount and reference |
+|---|---|
+| ![](screenshots/64-recovery-settlement.png) | ![](screenshots/65-recovery-settlement-2.png) |
+
+`/api/recovery/settle` writes the balance, the escalation state and the evidence log as
+three separate un-wrapped calls, with no idempotency key and no signature check, and
+silently discards overpayment through `Math.max(0, …)`. A replayed webhook applies twice.
+The screen warns before you submit rather than after.
 
 ---
 
@@ -135,12 +154,12 @@ Those are labelled for what they are rather than presented as verified records.
 
 ## 11. Background check
 
-| Run a check | Adapter status |
-|---|---|
-| ![](screenshots/26-background-check.png) | ![](screenshots/27-background-check-adapters.png) |
+| Run a check | Adapter status | GST OTP |
+|---|---|---|
+| ![](screenshots/26-background-check.png) | ![](screenshots/27-background-check-adapters.png) | ![](screenshots/66-background-check-gst-otp.png) |
 
-The OTP endpoint declares an `otp` parameter and never reads it, so any code is accepted.
-The screen does not claim the code was validated.
+`/api/verification/otp-verify` declares an `otp` parameter and never reads it, so any code
+is accepted. The screen does not claim the code was validated.
 
 ---
 
@@ -162,6 +181,36 @@ The screen does not claim the code was validated.
 
 Four languages, ported verbatim from `main`'s `translations.ts`. `main` declares seven
 language codes but ships strings for only four, so the other three are not offered.
+
+---
+
+## 15. Languages
+
+Selecting a language re-renders the whole app immediately and the choice survives a
+restart.
+
+| हिन्दी | മലയാളം | தமிழ் |
+|---|---|---|
+| ![](screenshots/71-lang-hindi-drawer.png) | ![](screenshots/73-lang-malayalam-drawer.png) | ![](screenshots/75-lang-tamil-drawer.png) |
+
+| Hindi settings | Malayalam settings | Tamil settings |
+|---|---|---|
+| ![](screenshots/70-lang-hindi-settings.png) | ![](screenshots/72-lang-malayalam-settings.png) | ![](screenshots/74-lang-tamil-settings.png) |
+
+Entries that keep their English label do so because `main` has no translation key for
+them: its table covers the nine sections it shipped, not every route. Translating the rest
+would mean inventing copy `main` never had.
+
+---
+
+## 16. Dark theme
+
+`main` defaults to bright mode on launch and offers a class-based toggle. The Android
+build has the same three options — bright, dark, follow system — persisted on the device.
+
+| Home | Drawer | Appearance |
+|---|---|---|
+| ![](screenshots/68-theme-dark-home.png) | ![](screenshots/69-theme-dark-drawer.png) | ![](screenshots/67-theme-dark-settings.png) |
 
 ---
 

@@ -9,17 +9,52 @@ No Hilt, no annotation processing — dependencies are wired by hand through `Ap
 
 ## Screens
 
-| Sign-in | Home | Business Check | Recovery ladder |
-|---|---|---|---|
-| ![](docs/screenshots/01-login-client-signin.png) | ![](docs/screenshots/06-dashboard-home.png) | ![](docs/screenshots/14-business-check-list.png) | ![](docs/screenshots/29-recovery-escalation.png) |
+Taken from the `live` flavor against a running `main` server, so every figure below is
+real seeded data rather than a mockup.
 
-| Arbitration | Trust Hub | Admin console | Language |
-|---|---|---|---|
-| ![](docs/screenshots/20-arbitration-cases.png) | ![](docs/screenshots/22-trusthub-verify.png) | ![](docs/screenshots/38-admin-customers.png) | ![](docs/screenshots/34-language-and-appearance.png) |
+**Opening**
 
-**[→ Full walkthrough: every screen and tab](docs/SCREENS.md)** — 49 captures taken from
-the `live` flavor against a running `main` server, so every figure on them is real seeded
-data rather than a mockup.
+| Sign-in | Create account | Admin desk | Navigation |
+|---|---|---|---|
+| ![](docs/screenshots/01-login-client-signin.png) | ![](docs/screenshots/03-login-client-register.png) | ![](docs/screenshots/04-login-admin-signin.png) | ![](docs/screenshots/09-drawer-top.png) |
+
+**Credit and recovery**
+
+| Home | Risk mix | Business Check | Business profile |
+|---|---|---|---|
+| ![](docs/screenshots/06-dashboard-home.png) | ![](docs/screenshots/07-dashboard-risk-mix.png) | ![](docs/screenshots/14-business-check-list.png) | ![](docs/screenshots/47-business-detail.png) |
+
+| Debtors | Debtor profile | Recovery worklist | Escalation ladder |
+|---|---|---|---|
+| ![](docs/screenshots/16-debtors-list.png) | ![](docs/screenshots/51-debtor-detail.png) | ![](docs/screenshots/18-recovery-worklist.png) | ![](docs/screenshots/29-recovery-escalation.png) |
+
+| Statutory interest | Settlement | Arbitration | Compare |
+|---|---|---|---|
+| ![](docs/screenshots/31-recovery-escalation-3.png) | ![](docs/screenshots/64-recovery-settlement.png) | ![](docs/screenshots/20-arbitration-cases.png) | ![](docs/screenshots/62-business-compare.png) |
+
+**Network, verification and admin**
+
+| Trust Hub | Vendors | Background check | GST OTP |
+|---|---|---|---|
+| ![](docs/screenshots/22-trusthub-verify.png) | ![](docs/screenshots/25-vendors-registry.png) | ![](docs/screenshots/26-background-check.png) | ![](docs/screenshots/66-background-check-gst-otp.png) |
+
+| Admin overview | Customers | Financials | Pipeline |
+|---|---|---|---|
+| ![](docs/screenshots/36-admin-overview.png) | ![](docs/screenshots/38-admin-customers.png) | ![](docs/screenshots/40-admin-financials.png) | ![](docs/screenshots/42-admin-pipeline.png) |
+
+**Legal help** — `main` puts this on every page through `AppShell`
+
+| MSME §16 | TRAI rules | IT Act §3A | Ask legal |
+|---|---|---|---|
+| ![](docs/screenshots/11-support-msme16.png) | ![](docs/screenshots/12-support-trai.png) | ![](docs/screenshots/61-support-itact.png) | ![](docs/screenshots/13-support-ask-legal.png) |
+
+**Four languages and a dark theme**
+
+| हिन्दी | മലയാളം | தமிழ் | Dark |
+|---|---|---|---|
+| ![](docs/screenshots/71-lang-hindi-drawer.png) | ![](docs/screenshots/73-lang-malayalam-drawer.png) | ![](docs/screenshots/75-lang-tamil-drawer.png) | ![](docs/screenshots/68-theme-dark-home.png) |
+
+**[→ Full walkthrough: all 64 captures, every screen and tab](docs/SCREENS.md)**
 
 ---
 
