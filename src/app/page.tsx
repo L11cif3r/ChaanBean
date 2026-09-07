@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/db";
 import { RiskFlagBadge } from "@/components/ui";
+import { RiskRadarExpandable } from "@/components/RiskRadarExpandable";
+import { RiskRadarModal } from "@/components/RiskRadarModal";
 import Link from "next/link";
 import {
   Shield,
@@ -240,6 +242,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
+          <RiskRadarModal triggerVariant="button" flagCounts={flagCounts} />
           <Link
             href="/background-check"
             className="flex items-center gap-2 rounded-xl bg-[#F44851] px-4 py-2 text-xs font-bold text-white hover:bg-[#D9303A] transition shadow-md shadow-[#F44851]/20"
@@ -284,9 +287,12 @@ export default async function DashboardPage() {
         </div>
 
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1.5 transition-all hover:border-slate-600">
-          <span className="text-[11px] font-mono uppercase text-slate-400 font-semibold tracking-wider">
-            Portfolio Health
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-mono uppercase text-slate-400 font-semibold tracking-wider">
+              Portfolio Health
+            </span>
+            <RiskRadarModal triggerVariant="badge" flagCounts={flagCounts} />
+          </div>
           <div className="text-2xl font-black text-[#F44851] font-mono">
             {flagCounts.green} Safe · {flagCounts.amber} Caution · {flagCounts.red} Alert
           </div>
@@ -308,82 +314,8 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Credit Risk Flag Distribution - Self-Explained View of Data */}
-      <section className="rounded-2xl border border-chaan-border bg-chaan-card p-6 space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <Sparkles size={18} className="text-[#F44851]" />
-              <h2 className="text-base font-bold text-white tracking-tight">Deterministic Credit Risk Flag Radar</h2>
-            </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Synthesizes 17 statutory verification signals into instant, explainable credit recommendations with zero black-box scoring.
-            </p>
-          </div>
-          <Link href="/debtors" className="text-xs font-semibold text-[#F44851] hover:underline flex items-center gap-1">
-            Inspect Full Portfolio →
-          </Link>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-3">
-          {/* GREEN CARD */}
-          <div className="rounded-2xl border border-emerald-800/50 bg-gradient-to-b from-emerald-950/30 to-slate-900/60 p-5 space-y-3.5 transition-all hover:border-emerald-500/50">
-            <div className="flex items-center justify-between">
-              <RiskFlagBadge flag="green" />
-              <span className="text-3xl font-black font-mono text-emerald-400">{flagCounts.green}</span>
-            </div>
-            <div>
-              <span className="text-xs font-bold text-emerald-400 uppercase font-mono tracking-wider block">
-                Low Default Risk ({"<"} 2.4% Probability)
-              </span>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Clean profile: 100% GSTR-3B filing regularity, zero adverse litigation records in e-Courts, valid Udyam registration, active GSTIN.
-              </p>
-            </div>
-            <div className="pt-2.5 border-t border-emerald-900/50 text-[11px] font-mono text-emerald-300">
-              ✓ <strong>Policy:</strong> Standard 45-day commercial credit approved up to sanctioned exposure limit.
-            </div>
-          </div>
-
-          {/* AMBER CARD */}
-          <div className="rounded-2xl border border-amber-800/50 bg-gradient-to-b from-amber-950/30 to-slate-900/60 p-5 space-y-3.5 transition-all hover:border-amber-500/50">
-            <div className="flex items-center justify-between">
-              <RiskFlagBadge flag="amber" />
-              <span className="text-3xl font-black font-mono text-amber-400">{flagCounts.amber}</span>
-            </div>
-            <div>
-              <span className="text-xs font-bold text-amber-400 uppercase font-mono tracking-wider block">
-                Moderate Friction / Enhanced Monitoring
-              </span>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Filing inconsistencies detected: occasional GSTR-3B filing lapses, fluctuating bank revenue, or payment delays beyond 30 days.
-              </p>
-            </div>
-            <div className="pt-2.5 border-t border-amber-900/50 text-[11px] font-mono text-amber-300">
-              ⚠ <strong>Policy:</strong> Capped at 30-day tenor and 45% standard limit with proactive payment reminders.
-            </div>
-          </div>
-
-          {/* RED CARD */}
-          <div className="rounded-2xl border border-rose-800/50 bg-gradient-to-b from-rose-950/30 to-slate-900/60 p-5 space-y-3.5 transition-all hover:border-rose-500/50">
-            <div className="flex items-center justify-between">
-              <RiskFlagBadge flag="red" />
-              <span className="text-3xl font-black font-mono text-rose-400">{flagCounts.red}</span>
-            </div>
-            <div>
-              <span className="text-xs font-bold text-rose-400 uppercase font-mono tracking-wider block">
-                Hard Stop / Credit Blocked Immediately
-              </span>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Critical triggers: peer-reported commercial default in Trust Hub, Section 138 NI Act cheque bounce FIR, or active NCLT litigation.
-              </p>
-            </div>
-            <div className="pt-2.5 border-t border-rose-900/50 text-[11px] font-mono text-rose-300">
-              ⛔ <strong>Policy:</strong> Credit blocked. Enforce 100% advance payment or trigger statutory MSMED recovery.
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Expandable Credit Risk Flag Radar - Definitions & Instructions */}
+      <RiskRadarExpandable flagCounts={flagCounts} defaultExpanded={false} />
 
       {/* Interactive Command Center Grid: Futuristic, Minimalist, Simple */}
       <div>
@@ -554,6 +486,8 @@ export default async function DashboardPage() {
           </div>
         </section>
       </div>
+      {/* Floating Corner Expandable Risk Flag Instruction Button */}
+      <RiskRadarModal triggerVariant="floating" flagCounts={flagCounts} />
     </div>
   );
 }

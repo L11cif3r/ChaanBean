@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { RiskFlagBadge } from "@/components/ui";
 import { CreateBuyerModal } from "@/components/CreateBuyerModal";
+import { RiskRadarModal } from "@/components/RiskRadarModal";
 import { UserCircle, Shield, ArrowRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +30,10 @@ export default async function DebtorsPage() {
           </p>
         </div>
 
-        <CreateBuyerModal />
+        <div className="flex items-center gap-2.5">
+          <RiskRadarModal triggerVariant="button" />
+          <CreateBuyerModal />
+        </div>
       </div>
 
       {/* Debtors Table */}
