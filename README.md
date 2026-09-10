@@ -57,6 +57,8 @@ real seeded data rather than a mockup.
 **[→ Full walkthrough: all 64 captures, every screen and tab](docs/SCREENS.md)**
 **[→ API reference: all 42 endpoints, how to run against them, and their source](docs/API.md)**
 
+Downloadable: **[API reference (PDF)](docs/pdf/ChaanBean-Android-API-Reference.pdf)** · **[Screen walkthrough (PDF)](docs/pdf/ChaanBean-Android-Screen-Walkthrough.pdf)**
+
 ---
 
 ## Read this before you deploy anything
