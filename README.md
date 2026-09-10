@@ -55,6 +55,7 @@ real seeded data rather than a mockup.
 | ![](docs/screenshots/71-lang-hindi-drawer.png) | ![](docs/screenshots/73-lang-malayalam-drawer.png) | ![](docs/screenshots/75-lang-tamil-drawer.png) | ![](docs/screenshots/68-theme-dark-home.png) |
 
 **[→ Full walkthrough: all 64 captures, every screen and tab](docs/SCREENS.md)**
+**[→ API reference: all 42 endpoints, how to run against them, and their source](docs/API.md)**
 
 ---
 
