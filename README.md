@@ -19,15 +19,16 @@ Inspired by platforms such as **LegAn**, ChaanBean replaces fragmented, multi-st
 ## Table of Contents
 
 1. [Platform Overview & Philosophy](#platform-overview--philosophy)
-2. [Core Capabilities & Modules](#core-capabilities--modules)
-3. [System Prerequisites](#system-prerequisites)
-4. [Step-by-Step Quick Start](#step-by-step-quick-start)
-5. [Default Demo Credentials](#default-demo-credentials)
-6. [Manual Configuration & Environment Variables (Sandbox vs. Production)](#manual-configuration--environment-variables)
-7. [External Providers & Credentials Setup Guide](#external-providers--credentials-setup-guide)
-8. [Automated Verification & Test Suites](#automated-verification--test-suites)
-9. [Application Architecture & Route Directory](#application-architecture--route-directory)
-10. [Troubleshooting & FAQ](#troubleshooting--faq)
+2. [Platform Visual Interface & Screenshots](#platform-visual-interface--screenshots)
+3. [Core Capabilities & Modules](#core-capabilities--modules)
+4. [System Prerequisites](#system-prerequisites)
+5. [Step-by-Step Quick Start](#step-by-step-quick-start)
+6. [Default Demo Credentials](#default-demo-credentials)
+7. [Manual Configuration & Environment Variables (Sandbox vs. Production)](#manual-configuration--environment-variables)
+8. [External Providers & Credentials Setup Guide](#external-providers--credentials-setup-guide)
+9. [Automated Verification & Test Suites](#automated-verification--test-suites)
+10. [Application Architecture & Route Directory](#application-architecture--route-directory)
+11. [Troubleshooting & FAQ](#troubleshooting--faq)
 
 ---
 
@@ -55,6 +56,46 @@ MCA + public GST + Udyam + eCourts + document upload + financial analysis ➔ De
 - **Section 65B Digital Evidence Logging**: Immutable audit trail with SHA-256 cryptographic certificate seals admissible under Section 65B of the Indian Evidence Act, 1872.
 - **Dual-Theme Design System**: Flawless, accessibility-tested Dark Mode and Bright/Light Mode with custom brand hues.
 - **Internal Owner/Admin OS**: Complete executive command desk featuring a 7-stage CRM sales pipeline, customer health score tracking, MRR waterfall, and attribution analytics.
+
+---
+
+## Platform Visual Interface & Screenshots
+
+ChaanBean features a simple, effective, futuristic interface designed around high contrast, explainable risk visualization, and a unified **White and Swiggy Orange (`#FC8019`) theme** with full Dark Mode and Bright/Light Mode dual-theme capabilities.
+
+### 1. Executive Operations Command Center (`/`)
+Dual-mode enterprise operations hub displaying real-time monitored trade receivables, approved MSME credit limits, statutory registry connections, and the interactive **Deterministic Credit Risk Flag Radar**.
+
+| Bright / Light Mode | Obsidian / Dark Mode |
+| :---: | :---: |
+| ![Executive Dashboard - Light Mode](docs/screenshots/01-executive-dashboard-light.png) | ![Executive Dashboard - Dark Mode](docs/screenshots/02-executive-dashboard-dark.png) |
+
+---
+
+### 2. Business Background Check — 18 Dedicated Verification Tabs (`/background-check`)
+Centralized statutory verification gateway providing **18 isolated feature tabs** with dedicated parameter input boxes, autofill chips, and formatted visual dossier reports.
+
+| Bright / Light Mode | Obsidian / Dark Mode |
+| :---: | :---: |
+| ![Business Background Check - Light Mode](docs/screenshots/03-business-background-check-light.png) | ![Business Background Check - Dark Mode](docs/screenshots/04-business-background-check-dark.png) |
+
+---
+
+### 3. Automated Payment Recovery & OmniTrace 360™ Command Center (`/payment-recovery`)
+Deterministic 4-stage escalation pipeline featuring **CALL All Time** emergency voice cadences, Income Tax & GST-reported statutory legal notices, and consumer delivery app telephone linkages across Amazon, Swiggy, Meesho, Zomato, Blinkit, Paytm, Zepto, and WhatsApp.
+
+| Bright / Light Mode | Obsidian / Dark Mode |
+| :---: | :---: |
+| ![Payment Recovery Workbench - Light Mode](docs/screenshots/05-payment-recovery-workbench-light.png) | ![Payment Recovery Desk - Dark Mode](docs/screenshots/06-payment-recovery-dark.png) |
+
+---
+
+### 4. Trust Hub Supplier Registry & Credit Risk Underwriting
+Community default registries, verified vendor credentials, and explainable Green/Amber/Red counterparty credit risk portfolios.
+
+| Trust Hub & Verified Supplier Registry (`/trust-hub`) | Debtors Portfolio & Credit Risk Flags (`/debtors`) |
+| :---: | :---: |
+| ![Trust Hub Supplier Registry](docs/screenshots/07-trust-hub-light.png) | ![Debtors Credit Risk Portfolio](docs/screenshots/08-debtors-credit-risk-light.png) |
 
 ---
 

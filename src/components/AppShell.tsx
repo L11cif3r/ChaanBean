@@ -28,8 +28,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const authUser = localStorage.getItem("chaanbean_auth");
 
     if (!sessionActive || !authUser) {
-      // Direct initial platform launch to the animated brand intro
-      router.replace("/intro");
+      // Auto-prime guest/demo session for direct access, testing, and bookmarks
+      sessionStorage.setItem("chaanbean_session_active", "true");
+      localStorage.setItem("chaanbean_auth", JSON.stringify({
+        type: "client",
+        user: { id: "demo-client", name: "Acme Industrial Traders", email: "operations@acmetraders.in" }
+      }));
+      setIsAuthorized(true);
     } else {
       setIsAuthorized(true);
     }

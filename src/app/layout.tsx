@@ -21,8 +21,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{
             __html: `
               try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlTheme = urlParams.get("theme");
+                if (urlTheme === "light" || urlTheme === "dark") {
+                  localStorage.setItem("chaanbean_theme", urlTheme);
+                }
                 const saved = localStorage.getItem("chaanbean_theme");
-                if (saved === "dark") {
+                const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+                if (saved === "dark" || (!saved && prefersDark)) {
                   document.documentElement.classList.remove("light");
                   document.documentElement.classList.add("dark");
                 } else {

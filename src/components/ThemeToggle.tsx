@@ -9,9 +9,16 @@ export function ThemeToggle() {
 
   useEffect(() => {
     setMounted(true);
-    const savedTheme = (localStorage.getItem("chaanbean_theme") as "dark" | "light") || "light";
-    setTheme(savedTheme);
-    applyTheme(savedTheme);
+    const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const urlTheme = urlParams?.get("theme") as "dark" | "light" | null;
+    if (urlTheme === "light" || urlTheme === "dark") {
+      localStorage.setItem("chaanbean_theme", urlTheme);
+    }
+    const savedTheme = localStorage.getItem("chaanbean_theme") as "dark" | "light" | null;
+    const prefersDark = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const activeTheme = savedTheme || (prefersDark ? "dark" : "light");
+    setTheme(activeTheme);
+    applyTheme(activeTheme);
   }, []);
 
   const applyTheme = (t: "dark" | "light") => {
