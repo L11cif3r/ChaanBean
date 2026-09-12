@@ -632,21 +632,21 @@ export function AdapterCard({
             {/* Input fields specific to this adapter */}
             <div className="grid gap-3 sm:grid-cols-2">
               <div className={config.secondaryInputLabel ? "" : "sm:col-span-2"}>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  {config.primaryInputLabel} <span className="text-chaan-brand">*</span>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  {config.primaryInputLabel} <span className="text-[#FC8019]">*</span>
                 </label>
                 <input
                   type="text"
                   value={primaryInput}
                   onChange={(e) => setPrimaryInput(e.target.value)}
                   placeholder={config.primaryPlaceholder}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs font-mono text-slate-100 uppercase tracking-wider outline-none focus:border-chaan-brand"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-xs font-mono text-slate-900 dark:text-slate-100 uppercase tracking-wider outline-none focus:border-[#FC8019]"
                 />
               </div>
 
               {config.secondaryInputLabel && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     {config.secondaryInputLabel}
                   </label>
                   <input
@@ -654,7 +654,7 @@ export function AdapterCard({
                     value={secondaryInput}
                     onChange={(e) => setSecondaryInput(e.target.value)}
                     placeholder={config.secondaryPlaceholder}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-slate-100 outline-none focus:border-chaan-brand"
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-[#FC8019]"
                   />
                 </div>
               )}
@@ -729,8 +729,8 @@ export function AdapterCard({
                     }}
                     className={`text-[11px] px-2.5 py-1 rounded-lg border transition font-mono ${
                       primaryInput === ent.id
-                        ? "bg-chaan-brand/20 text-chaan-brand border-chaan-brand/50 font-bold"
-                        : "bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white"
+                        ? "bg-orange-500/20 text-[#FC8019] border-[#FC8019]/50 font-bold"
+                        : "bg-white dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-orange-50 dark:hover:bg-slate-700 hover:text-[#FC8019] dark:hover:text-white"
                     }`}
                   >
                     <span className="font-sans font-medium">{ent.name}</span>{" "}

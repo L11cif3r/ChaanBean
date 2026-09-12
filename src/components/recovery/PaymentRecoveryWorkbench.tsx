@@ -152,22 +152,22 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
   return (
     <div className="space-y-6">
       {/* Debtor Focus Strip */}
-      <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 flex flex-wrap items-center justify-between gap-4">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-5 flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-chaan-brand/10 border border-chaan-brand/30 flex items-center justify-center text-chaan-brand shrink-0">
+          <div className="h-10 w-10 rounded-xl bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 flex items-center justify-center text-[#FC8019] shrink-0">
             <Building2 size={20} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase font-mono text-slate-400">Target Debtor Account</span>
-              <span className="rounded bg-rose-950/80 text-rose-300 border border-rose-800/60 px-2 py-0.5 text-[10px] font-mono font-bold">
+              <span className="text-[10px] uppercase font-mono text-slate-500 dark:text-slate-400">Target Debtor Account</span>
+              <span className="rounded bg-rose-50 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 px-2 py-0.5 text-[10px] font-mono font-bold">
                 {activeAccount?.currentLevel || "L1"} Escalated
               </span>
             </div>
             <select
               value={selectedAccountId}
               onChange={(e) => setSelectedAccountId(e.target.value)}
-              className="mt-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-white outline-none focus:border-chaan-brand"
+              className="mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-[#FC8019]"
             >
               {accounts.map((acc) => (
                 <option key={acc.id} value={acc.id}>
@@ -179,29 +179,29 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
         </div>
 
         <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 px-3.5 py-2">
             <span className="text-[10px] text-slate-500 uppercase">Outstanding Debt</span>
-            <div className="text-base font-black text-white">{formatINR(activeAccount?.outstandingAmount || 0)}</div>
+            <div className="text-base font-black text-slate-900 dark:text-white">{formatINR(activeAccount?.outstandingAmount || 0)}</div>
           </div>
-          <div className="rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 px-3.5 py-2">
             <span className="text-[10px] text-slate-500 uppercase">Days Overdue</span>
-            <div className="text-base font-black text-amber-400">{activeAccount?.daysOverdue || 0} Days</div>
+            <div className="text-base font-black text-amber-600 dark:text-amber-400">{activeAccount?.daysOverdue || 0} Days</div>
           </div>
-          <div className="rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 px-3.5 py-2">
             <span className="text-[10px] text-slate-500 uppercase">Debtor Phone</span>
-            <div className="text-sm font-bold text-slate-200">{activeAccount?.phone || "+91 9876543210"}</div>
+            <div className="text-sm font-bold text-slate-800 dark:text-slate-200">{activeAccount?.phone || "+91 9876543210"}</div>
           </div>
         </div>
       </div>
 
       {/* Navigation Tabs for Payment Recovery Super-Features */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-chaan-border pb-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
         <button
           onClick={() => setActiveTab("call_all_time")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 border ${
             activeTab === "call_all_time"
-              ? "bg-chaan-brand text-white shadow-md shadow-chaan-brand/20"
-              : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+              ? "bg-[#FC8019] text-white border-[#FC8019] shadow-md shadow-orange-500/20"
+              : "border-transparent bg-white dark:bg-transparent text-slate-600 dark:text-slate-400 hover:text-[#FC8019] dark:hover:text-white hover:bg-orange-50 dark:hover:bg-slate-800/60 hover:border-orange-200 dark:hover:border-slate-700"
           }`}
         >
           <PhoneCall size={14} />
@@ -210,10 +210,10 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
 
         <button
           onClick={() => setActiveTab("legal_notices")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 border ${
             activeTab === "legal_notices"
-              ? "bg-chaan-brand text-white shadow-md shadow-chaan-brand/20"
-              : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+              ? "bg-[#FC8019] text-white border-[#FC8019] shadow-md shadow-orange-500/20"
+              : "border-transparent bg-white dark:bg-transparent text-slate-600 dark:text-slate-400 hover:text-[#FC8019] dark:hover:text-white hover:bg-orange-50 dark:hover:bg-slate-800/60 hover:border-orange-200 dark:hover:border-slate-700"
           }`}
         >
           <FileText size={14} />
@@ -222,10 +222,10 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
 
         <button
           onClick={() => setActiveTab("transaction_followup")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 border ${
             activeTab === "transaction_followup"
-              ? "bg-chaan-brand text-white shadow-md shadow-chaan-brand/20"
-              : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+              ? "bg-[#FC8019] text-white border-[#FC8019] shadow-md shadow-orange-500/20"
+              : "border-transparent bg-white dark:bg-transparent text-slate-600 dark:text-slate-400 hover:text-[#FC8019] dark:hover:text-white hover:bg-orange-50 dark:hover:bg-slate-800/60 hover:border-orange-200 dark:hover:border-slate-700"
           }`}
         >
           <Clock size={14} />
@@ -234,22 +234,22 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
 
         <button
           onClick={() => setActiveTab("omnitrace_360")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 border ${
             activeTab === "omnitrace_360"
-              ? "bg-chaan-brand text-white shadow-md shadow-chaan-brand/20"
-              : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+              ? "bg-[#FC8019] text-white border-[#FC8019] shadow-md shadow-orange-500/20"
+              : "border-transparent bg-white dark:bg-transparent text-slate-600 dark:text-slate-400 hover:text-[#FC8019] dark:hover:text-white hover:bg-orange-50 dark:hover:bg-slate-800/60 hover:border-orange-200 dark:hover:border-slate-700"
           }`}
         >
-          <Sparkles size={14} className="text-amber-400" />
+          <Sparkles size={14} className="text-amber-500 dark:text-amber-400" />
           <span>OmniTrace 360™ (Find Someone)</span>
         </button>
 
         <button
           onClick={() => setActiveTab("lawsuits_legal_team")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 border ${
             activeTab === "lawsuits_legal_team"
-              ? "bg-chaan-brand text-white shadow-md shadow-chaan-brand/20"
-              : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+              ? "bg-[#FC8019] text-white border-[#FC8019] shadow-md shadow-orange-500/20"
+              : "border-transparent bg-white dark:bg-transparent text-slate-600 dark:text-slate-400 hover:text-[#FC8019] dark:hover:text-white hover:bg-orange-50 dark:hover:bg-slate-800/60 hover:border-orange-200 dark:hover:border-slate-700"
           }`}
         >
           <Gavel size={14} />

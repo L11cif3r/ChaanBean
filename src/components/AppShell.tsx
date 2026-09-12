@@ -42,17 +42,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Prevent flash of unauthenticated customer dashboard on client
   if (!mounted || !isAuthorized) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
+      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] dark:bg-[#090D16]">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#FC8019] border-t-transparent" />
-          <span className="text-xs font-mono text-slate-500">Launching ChaanBean...</span>
+          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">Launching ChaanBean...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] text-slate-800">
+    <div className="flex min-h-screen bg-[#F8FAFC] dark:bg-[#090D16] text-slate-800 dark:text-slate-100">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header />

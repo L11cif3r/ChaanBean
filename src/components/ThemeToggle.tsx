@@ -34,22 +34,32 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="flex items-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-2.5 py-1 text-xs text-slate-500 dark:text-slate-400">
-        <Sun size={13} />
-        <span>Bright Mode</span>
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-400">
+        <Sun size={16} />
       </div>
     );
   }
 
+  const isDark = theme === "dark";
+
   return (
     <button
       onClick={toggleTheme}
-      aria-label="White & Swiggy Orange Theme"
-      className="flex items-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50/80 px-2.5 py-1 text-xs font-semibold text-[#FC8019] hover:bg-orange-100 transition shadow-sm"
-      title="Active Theme: White & Swiggy Orange (#FC8019)"
+      aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-orange-200 dark:border-orange-500/30 bg-orange-50/80 dark:bg-orange-500/15 text-[#FC8019] hover:bg-orange-100 dark:hover:bg-orange-500/25 transition-all shadow-sm group"
     >
-      <span className="h-2 w-2 rounded-full bg-[#FC8019] animate-pulse" />
-      <span className="font-medium text-slate-800">Swiggy Orange</span>
+      {isDark ? (
+        <Sun
+          size={16}
+          className="text-[#FC8019] transition-transform duration-300 group-hover:rotate-45"
+        />
+      ) : (
+        <Moon
+          size={16}
+          className="text-[#FC8019] transition-transform duration-300 group-hover:-rotate-12"
+        />
+      )}
     </button>
   );
 }
