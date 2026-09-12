@@ -3,6 +3,7 @@ import Link from "next/link";
 import { EscalationBadge } from "@/components/ui";
 import { RecoveryActions } from "@/components/RecoveryActions";
 import { CallAudioPlayer } from "@/components/CallAudioPlayer";
+import { PaymentRecoveryWorkbench, type RecoveryAccountItem } from "@/components/recovery/PaymentRecoveryWorkbench";
 import {
   Phone,
   FileText,
@@ -49,6 +50,34 @@ export default async function PaymentRecoveryPage() {
       take: 10,
     }),
   ]);
+
+  // Format accounts for the interactive workbench
+  const formattedAccounts: RecoveryAccountItem[] = accounts.map((a) => {
+    let phone = "+91 98765 43210";
+    try {
+      const parsed = JSON.parse(a.buyer.mobileNumbers);
+      if (Array.isArray(parsed) && parsed.length > 0) phone = parsed[0];
+    } catch {
+      // fallback
+    }
+    const daysOverdue = Math.max(0, Math.floor((Date.now() - a.dueDate.getTime()) / 86400000));
+
+    return {
+      id: a.id,
+      buyerId: a.buyerId,
+      buyerName: a.buyer.name,
+      phone,
+      email: a.buyer.email,
+      language: a.buyer.language || "en",
+      outstandingAmount: a.outstandingAmount,
+      dueDate: a.dueDate.toISOString(),
+      status: a.overdueStatus,
+      currentLevel: a.escalationStates[0]?.currentLevel || "L1",
+      daysOverdue,
+      pan: a.buyer.pan,
+      gstin: a.buyer.gstin,
+    };
+  });
 
   // Operations View Metrics
   const callsScheduled = allCalls.filter((c) => c.status === "scheduled").length;
@@ -193,6 +222,9 @@ export default async function PaymentRecoveryPage() {
           <p className="text-[10px] text-slate-400">Formal legal demands with Gov reference</p>
         </div>
       </section>
+
+      {/* Interactive Payment Recovery & OmniTrace 360 Command Center */}
+      <PaymentRecoveryWorkbench accounts={formattedAccounts} />
 
       {/* Debtor Escalation Accounts Table */}
       <section className="rounded-2xl border border-chaan-border bg-chaan-card p-6 space-y-4 shadow-sm">

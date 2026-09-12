@@ -27,6 +27,10 @@ import {
   Sparkles,
   CheckCircle2,
   RefreshCw,
+  Calendar,
+  GraduationCap,
+  PhoneForwarded,
+  Layers,
 } from "lucide-react";
 
 export interface AdapterConfig {
@@ -67,6 +71,19 @@ const ADAPTER_CONFIGS: Record<ReportType, AdapterConfig> = {
     defaultId: "27AAECG1234H1Z5",
     subjectType: "business",
   },
+  gst_monthly_filings: {
+    reportType: "gst_monthly_filings",
+    title: "GST Monthly Filings (12 Months)",
+    category: "Tax & GST Intelligence",
+    description: "Full 12-month return filing regularity calendar with GSTR-1 & GSTR-3B ARN verification, filing dates, and tax payments.",
+    primaryInputLabel: "Target GSTIN",
+    primaryPlaceholder: "e.g. 27AAECG1234H1Z5",
+    secondaryInputLabel: "Financial Year Bracket",
+    secondaryPlaceholder: "FY 2024-25",
+    defaultId: "27AAECG1234H1Z5",
+    defaultSecondary: "FY 2024-25",
+    subjectType: "business",
+  },
   gst_supreme_report: {
     reportType: "gst_supreme_report",
     title: "GST Supreme Report",
@@ -78,6 +95,16 @@ const ADAPTER_CONFIGS: Record<ReportType, AdapterConfig> = {
     secondaryPlaceholder: "e.g. 9876543210",
     defaultId: "27AAECG1234H1Z5",
     defaultSecondary: "9876543210",
+    subjectType: "business",
+  },
+  pan_to_gst: {
+    reportType: "pan_to_gst",
+    title: "PAN to GST Number Directory",
+    category: "Tax & GST Intelligence",
+    description: "Multi-state corporate GSTIN directory mapping PAN across all registered Indian states, trade branches, and jurisdictional wards.",
+    primaryInputLabel: "10-Character Corporate PAN",
+    primaryPlaceholder: "e.g. AAECG1234H",
+    defaultId: "AAECG1234H",
     subjectType: "business",
   },
   bureau_report: {
@@ -156,6 +183,29 @@ const ADAPTER_CONFIGS: Record<ReportType, AdapterConfig> = {
     defaultId: "27AAECG1234H1Z5",
     subjectType: "business",
   },
+  trust_hub_verification: {
+    reportType: "trust_hub_verification",
+    title: "Trust Hub & Trust ID Verification",
+    category: "Trust Network & Identity",
+    description: "Enterprise Trust ID verification, 0-100 credibility scoring, peer default registry check, and cryptographic seals.",
+    primaryInputLabel: "GSTIN / PAN / Trust ID",
+    primaryPlaceholder: "e.g. 27AAECG1234H1Z5 or TRUST-CB-AAEC-001",
+    defaultId: "27AAECG1234H1Z5",
+    subjectType: "business",
+  },
+  education_marksheet_check: {
+    reportType: "education_marksheet_check",
+    title: "10th and 12th Educational Marksheets",
+    category: "Founder & Director Background",
+    description: "National Academic Depository (NAD) & CBSE verified 10th and 12th board marksheet certificates, roll numbers, and passing scores.",
+    primaryInputLabel: "Director DIN, Name, or PAN",
+    primaryPlaceholder: "e.g. 08492018 or 27AAECG1234H1Z5",
+    secondaryInputLabel: "Board / Stream (Optional)",
+    secondaryPlaceholder: "CBSE / Commerce",
+    defaultId: "27AAECG1234H1Z5",
+    defaultSecondary: "CBSE / Commerce",
+    subjectType: "individual",
+  },
   import_export_report: {
     reportType: "import_export_report",
     title: "DGFT Import-Export Report",
@@ -178,9 +228,9 @@ const ADAPTER_CONFIGS: Record<ReportType, AdapterConfig> = {
   },
   mobile_identity: {
     reportType: "mobile_identity",
-    title: "Mobile Identity & Telecom KYC",
+    title: "Mobile Identity (All Alternate Numbers)",
     category: "Identity & Delivery Graph",
-    description: "Telecom operator KYC validation, subscriber name concordance, and active SIM tenure.",
+    description: "Telecom operator KYC validation, subscriber concordance, SIM tenure, and all linked alternate numbers.",
     primaryInputLabel: "10-digit Mobile Number",
     primaryPlaceholder: "e.g. 9876543210",
     secondaryInputLabel: "Subscriber Name (Optional Verification)",
@@ -221,12 +271,71 @@ const ADAPTER_CONFIGS: Record<ReportType, AdapterConfig> = {
   },
   find_someone: {
     reportType: "find_someone",
-    title: "Find Someone / Skip Tracing",
+    title: "OmniTrace 360™ (Find Someone)",
     category: "Identity & Delivery Graph",
-    description: "Deep skip tracing engine for absconding debtors, locating alternate phones, emails, and physical clusters.",
+    description: "Deep skip tracing engine: addresses, bank payment source, apps used (Amazon/Swiggy/Meesho/Zomato/Blinkit/Paytm/Zepto/WhatsApp), and tri-bureau scores.",
     primaryInputLabel: "Target Subject Name, Mobile, or PAN",
     primaryPlaceholder: "e.g. Rajeshwar Deshmukh or 9876543210",
     defaultId: "27AAECG1234H1Z5",
+    subjectType: "business",
+  },
+  voice_call_cadence: {
+    reportType: "voice_call_cadence",
+    title: "Default Payments Voice Calls (1m/2m/5m/30m/1h)",
+    category: "Recovery & Telephony Automation",
+    description: "Automated Asterisk PBX / Vobiz voice dialing queue cadence: schedule calls every 1 min, 2 mins, 5 mins, 30 mins, or every hour.",
+    primaryInputLabel: "Debtor GSTIN or Phone",
+    primaryPlaceholder: "e.g. 27AAECG1234H1Z5 or 9876543210",
+    secondaryInputLabel: "Cadence Interval",
+    secondaryPlaceholder: "Every 30 Mins (or 1m, 2m, 5m, 1h)",
+    defaultId: "27AAECG1234H1Z5",
+    defaultSecondary: "Every 30 Mins",
+    subjectType: "business",
+  },
+  legal_notice_suite: {
+    reportType: "legal_notice_suite",
+    title: "Legal Notices - GST, MSME, Income Tax & Demand",
+    category: "Statutory Legal Enforcement",
+    description: "Statutory 4-notice suite with verified Government Reference Numbers officially reported to GSTN and Income Tax Department portals.",
+    primaryInputLabel: "Debtor GSTIN / PAN / Account ID",
+    primaryPlaceholder: "e.g. 27AAECG1234H1Z5",
+    secondaryInputLabel: "Claim Amount (INR)",
+    secondaryPlaceholder: "₹8,90,000",
+    defaultId: "27AAECG1234H1Z5",
+    defaultSecondary: "₹8,90,000",
+    subjectType: "business",
+  },
+  delayed_payment_followup: {
+    reportType: "delayed_payment_followup",
+    title: "Delayed Payments Follow-Up",
+    category: "Recovery & Telephony Automation",
+    description: "Temporal payment escalation engine with aging buckets (1-15d, 16-30d, 31-45d, 45d+), promise-to-pay tracker, and escalation timeline.",
+    primaryInputLabel: "Debtor GSTIN or Account ID",
+    primaryPlaceholder: "e.g. 27AAECG1234H1Z5",
+    defaultId: "27AAECG1234H1Z5",
+    subjectType: "business",
+  },
+  subscription_seats: {
+    reportType: "subscription_seats",
+    title: "User Access (5 Seats Included)",
+    category: "Enterprise Subscription & Team",
+    description: "5 organization team access seats included per subscription at ₹0 additional charge: Admin, Finance Controller, Collections Lead, Legal, External CA.",
+    primaryInputLabel: "Organization Domain / Company ID",
+    primaryPlaceholder: "e.g. chaanbean.com",
+    defaultId: "chaanbean.com",
+    subjectType: "business",
+  },
+  additional_company_addon: {
+    reportType: "additional_company_addon",
+    title: "Add Additional Company (₹1,500)",
+    category: "Enterprise Subscription & Team",
+    description: "Add and monitor additional sister concern corporate entities or subsidiary profiles at ₹1,500 one-time setup fee per company.",
+    primaryInputLabel: "Additional Company Name / GSTIN",
+    primaryPlaceholder: "e.g. Acme Polymers Manufacturing Pvt Ltd",
+    secondaryInputLabel: "Company State & CIN",
+    secondaryPlaceholder: "e.g. Gujarat · U25200GJ2021PTC120000",
+    defaultId: "Acme Polymers Manufacturing Pvt Ltd",
+    defaultSecondary: "Gujarat · U25200GJ2021PTC120000",
     subjectType: "business",
   },
 };
@@ -378,8 +487,12 @@ export function AdapterCard({
       case "gst_exact_turnover":
       case "gst_slab_check":
         return <FileText className="text-chaan-brand" size={18} />;
+      case "gst_monthly_filings":
+        return <Calendar className="text-chaan-brand" size={18} />;
       case "gst_supreme_report":
         return <KeyRound className="text-amber-400" size={18} />;
+      case "pan_to_gst":
+        return <Layers className="text-chaan-brand" size={18} />;
       case "bureau_report":
       case "payment_behaviour":
         return <CreditCard className="text-chaan-brand" size={18} />;
@@ -393,6 +506,10 @@ export function AdapterCard({
         return <Users className="text-chaan-brand" size={18} />;
       case "msme_report":
         return <Award className="text-chaan-brand" size={18} />;
+      case "trust_hub_verification":
+        return <ShieldCheck className="text-emerald-400" size={18} />;
+      case "education_marksheet_check":
+        return <GraduationCap className="text-sky-400" size={18} />;
       case "import_export_report":
         return <Ship className="text-chaan-brand" size={18} />;
       case "mobile_to_pan":
@@ -401,6 +518,16 @@ export function AdapterCard({
         return <Phone className="text-chaan-brand" size={18} />;
       case "find_someone":
         return <Search className="text-chaan-brand" size={18} />;
+      case "voice_call_cadence":
+        return <PhoneForwarded className="text-amber-400" size={18} />;
+      case "legal_notice_suite":
+        return <Scale className="text-rose-400" size={18} />;
+      case "delayed_payment_followup":
+        return <Clock className="text-amber-400" size={18} />;
+      case "subscription_seats":
+        return <Users className="text-sky-400" size={18} />;
+      case "additional_company_addon":
+        return <Building2 className="text-chaan-brand" size={18} />;
       default:
         return <Sparkles className="text-chaan-brand" size={18} />;
     }

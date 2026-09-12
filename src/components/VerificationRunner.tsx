@@ -40,41 +40,93 @@ type TabKey =
   | "judicial"
   | "corporate"
   | "identity"
+  | "recovery"
+  | "subscription"
   | "bundle";
 
 const CATEGORY_ADAPTERS: Record<Exclude<TabKey, "all" | "bundle">, ReportType[]> = {
-  tax: ["gst_exact_turnover", "gst_slab_check", "gst_supreme_report"],
+  tax: [
+    "gst_exact_turnover",
+    "gst_slab_check",
+    "gst_monthly_filings",
+    "gst_supreme_report",
+    "pan_to_gst",
+  ],
   bureau: ["bureau_report", "payment_behaviour"],
   judicial: ["court_case_history", "fir_check"],
-  corporate: ["company_supreme_report", "director_details", "msme_report", "import_export_report"],
+  corporate: [
+    "director_details",
+    "msme_report",
+    "trust_hub_verification",
+    "education_marksheet_check",
+    "import_export_report",
+    "company_supreme_report",
+  ],
   identity: [
     "mobile_to_pan",
     "mobile_identity",
+    "find_someone",
     "mobile_to_address",
     "pan_to_mobile_email",
     "address_enrichment",
-    "find_someone",
+  ],
+  recovery: [
+    "voice_call_cadence",
+    "legal_notice_suite",
+    "delayed_payment_followup",
+  ],
+  subscription: [
+    "subscription_seats",
+    "additional_company_addon",
   ],
 };
 
 const ALL_REPORT_TYPES: ReportType[] = [
-  "gst_exact_turnover",
+  // 1. Director Details
+  "director_details",
+  // 2. MSME Report
+  "msme_report",
+  // 3. GST Slab
   "gst_slab_check",
+  // 4. GST Exact Turnover Filed
+  "gst_exact_turnover",
+  // 5. GST Filing on Month Basis
+  "gst_monthly_filings",
+  // 6. GST Supreme Report PAN Number for all Purchase and Sales
   "gst_supreme_report",
-  "bureau_report",
-  "payment_behaviour",
+  // 7. Trust Hub and Trust ID
+  "trust_hub_verification",
+  // 8. Mobile to PAN
+  "mobile_to_pan",
+  // 9. Mobile Identity (All Alternate Numbers)
+  "mobile_identity",
+  // 10. Court Case History & FIR Report
   "court_case_history",
   "fir_check",
-  "company_supreme_report",
-  "director_details",
-  "msme_report",
+  // 11. Import Export Report
   "import_export_report",
-  "mobile_to_pan",
-  "mobile_identity",
+  // 12. 10th and 12th Marksheets
+  "education_marksheet_check",
+  // 13. PAN to GST Number Directory
+  "pan_to_gst",
+  // 14. Default Payments Voice Calls Cadence (1m/2m/5m/30m/1h)
+  "voice_call_cadence",
+  // 15. Legal Notices - GST, MSME, Income Tax & Demand
+  "legal_notice_suite",
+  // 16. Delayed Payments Follow Up
+  "delayed_payment_followup",
+  // 17. User Access 5 per Subscription
+  "subscription_seats",
+  // 18. Add Additional Company Name for ₹1,500
+  "additional_company_addon",
+  // Underlying Supporting Gateways
+  "find_someone",
+  "bureau_report",
+  "payment_behaviour",
+  "company_supreme_report",
   "mobile_to_address",
   "pan_to_mobile_email",
   "address_enrichment",
-  "find_someone",
 ];
 
 export function VerificationRunner({
@@ -103,7 +155,7 @@ export function VerificationRunner({
   const handleRunBundle = async () => {
     if (!bundleSubjectId.trim()) return;
     setBundleLoading(true);
-    setBundleProgress("Dispatching parallel queries across 11 statutory gateways...");
+    setBundleProgress("Dispatching parallel queries across 18 statutory gateways...");
     try {
       const res = await fetch("/api/verification", {
         method: "POST",
@@ -119,16 +171,16 @@ export function VerificationRunner({
       const data = await res.json();
       if (data.reports?.length) {
         const nextMap: Partial<Record<ReportType, NormalizedReport>> = { ...reportsMap };
-        for (const rep of data.reports as NormalizedReport[]) {
-          nextMap[rep.reportType] = rep;
+        for (const rep of data.reports) {
+          nextMap[rep.reportType as ReportType] = rep;
         }
         setReportsMap(nextMap);
-        setBundleProgress(`Successfully completed fan-out! ${data.reports.length} reports compiled.`);
+        setBundleProgress(`Completed! ${data.reports.length} reports compiled into dossier.`);
       } else {
-        setBundleProgress(data.error || "Fan-out encountered an error");
+        setBundleProgress(data.error || "Bundle execution failed");
       }
     } catch {
-      setBundleProgress("Network error during bundle execution");
+      setBundleProgress("Network error running bundle");
     } finally {
       setBundleLoading(false);
     }
@@ -136,16 +188,19 @@ export function VerificationRunner({
 
   // Filter adapters by active tab and search query
   const getVisibleAdapters = (): ReportType[] => {
-    let list: ReportType[] = ALL_REPORT_TYPES;
-    if (activeTab !== "all" && activeTab !== "bundle") {
-      list = CATEGORY_ADAPTERS[activeTab] || ALL_REPORT_TYPES;
+    let list: ReportType[];
+    if (activeTab === "all") {
+      list = ALL_REPORT_TYPES;
+    } else if (activeTab === "bundle") {
+      return [];
+    } else {
+      list = CATEGORY_ADAPTERS[activeTab] || [];
     }
 
     if (!searchFilter.trim()) return list;
-
     const q = searchFilter.toLowerCase();
     return list.filter((rt) => {
-      const label = REPORT_LABELS[rt]?.toLowerCase() || "";
+      const label = (REPORT_LABELS[rt] || "").toLowerCase();
       const code = rt.toLowerCase();
       return label.includes(q) || code.includes(q);
     });
@@ -167,7 +222,7 @@ export function VerificationRunner({
                 : "text-slate-400 hover:text-white hover:bg-slate-800/60"
             }`}
           >
-            All 17 Verification Adapters
+            All 18 Verification Features
           </button>
           <button
             onClick={() => setActiveTab("tax")}
@@ -178,29 +233,7 @@ export function VerificationRunner({
             }`}
           >
             <FileText size={14} />
-            Tax & GST Intelligence
-          </button>
-          <button
-            onClick={() => setActiveTab("bureau")}
-            className={`px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 ${
-              activeTab === "bureau"
-                ? "bg-chaan-brand text-white shadow-sm shadow-chaan-brand/30"
-                : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-            }`}
-          >
-            <CreditCard size={14} />
-            Credit Bureau & Scoring
-          </button>
-          <button
-            onClick={() => setActiveTab("judicial")}
-            className={`px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 ${
-              activeTab === "judicial"
-                ? "bg-chaan-brand text-white shadow-sm shadow-chaan-brand/30"
-                : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-            }`}
-          >
-            <Scale size={14} />
-            Judicial & FIR
+            Tax & GST (5)
           </button>
           <button
             onClick={() => setActiveTab("corporate")}
@@ -211,7 +244,18 @@ export function VerificationRunner({
             }`}
           >
             <Building2 size={14} />
-            Corporate & MSME
+            Corporate & MSME (6)
+          </button>
+          <button
+            onClick={() => setActiveTab("judicial")}
+            className={`px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 ${
+              activeTab === "judicial"
+                ? "bg-chaan-brand text-white shadow-sm shadow-chaan-brand/30"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+            }`}
+          >
+            <Scale size={14} />
+            Judicial & Police (2)
           </button>
           <button
             onClick={() => setActiveTab("identity")}
@@ -222,7 +266,29 @@ export function VerificationRunner({
             }`}
           >
             <Phone size={14} />
-            Identity & Delivery Graph
+            Identity & Delivery (6)
+          </button>
+          <button
+            onClick={() => setActiveTab("recovery")}
+            className={`px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 ${
+              activeTab === "recovery"
+                ? "bg-chaan-brand text-white shadow-sm shadow-chaan-brand/30"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+            }`}
+          >
+            <Phone size={14} />
+            Recovery & Voice (3)
+          </button>
+          <button
+            onClick={() => setActiveTab("subscription")}
+            className={`px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 ${
+              activeTab === "subscription"
+                ? "bg-chaan-brand text-white shadow-sm shadow-chaan-brand/30"
+                : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+            }`}
+          >
+            <Award size={14} />
+            Seats & Add-on (2)
           </button>
           <button
             onClick={() => setActiveTab("bundle")}
@@ -233,7 +299,7 @@ export function VerificationRunner({
             }`}
           >
             <Zap size={14} />
-            Multi-Adapter Fan-Out
+            360° Bundle Dossier
           </button>
         </div>
 

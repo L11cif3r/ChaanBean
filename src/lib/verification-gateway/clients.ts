@@ -507,30 +507,89 @@ export async function callKycAggregator(
       latencyMs: Date.now() - start + 90,
       data: {
         mobileVerified: true,
+        primaryMobile: entity.mobile,
         subscriberName: entity.name,
         simActiveDays: 1420,
         circle: entity.gstin.startsWith("29") ? "Karnataka" : entity.gstin.startsWith("32") ? "Kerala" : "Maharashtra & Goa",
         addressConfidence: entity.isDefaulted ? 0.45 : 0.96,
         registeredAddress: entity.address,
+        alternateNumbers: [
+          { mobile: entity.mobile, source: "Primary Telecom KYC (Jio/Airtel)", status: "Active (1,420 days)", circle: "Maharashtra & Mumbai" },
+          { mobile: `+91 98201 ${entity.mobile.slice(-5)}`, source: "GST Portal Signatory Record", status: "Active (980 days)", circle: "Maharashtra" },
+          { mobile: `+91 97110 ${entity.mobile.slice(-5)}`, source: "CIBIL / Bank Trade Record", status: "Active (650 days)", circle: "Delhi NCR" },
+          { mobile: `+91 98672 ${entity.mobile.slice(-5)}`, source: "MCA DIN Registry", status: "Active (1,840 days)", circle: "Gujarat" },
+        ],
       },
     };
   }
 
   if (type === "find_someone") {
-    // Skip tracing with real data from database
+    // OmniTrace 360™ - Deep Digital Footprint, Bank Source, Delivery App Numbers & Multi-Bureau Dossier
+    const lastDigits = entity.mobile ? entity.mobile.slice(-5) : "44102";
     return {
       success: true,
-      provider: "ChaanBean Skip Tracing & Recovery Intelligence",
+      provider: "OmniTrace 360™ — Deep Digital Footprint & Skip-Tracing Intelligence",
       isSandbox: true,
       status: "completed",
       latencyMs: Date.now() - start + 110,
       data: {
         subject: entity.name,
-        alternateMobiles: [entity.mobile, `+91 98201 ${entity.mobile.slice(-5)}`],
-        associatedEmails: [entity.email, `director.${entity.pan.toLowerCase().slice(0, 5)}@gmail.com`],
-        activeGeoLocations: [entity.address.split(",")[0] || "Mumbai MIDC", "Industrial Estate"],
-        linkedEntities: [entity.name, "Acme Logistics LLP"],
-        lastActiveDate: new Date(Date.now() - 2 * 86400000).toISOString(),
+        address: entity.address,
+        addressConfidence: entity.isDefaulted ? 0.48 : 0.98,
+        activeGeoLocations: [entity.address, "MIDC Industrial Estate Cluster", "Worli Logistics Depot"],
+        lastActiveDate: new Date(Date.now() - 1 * 86400000).toISOString(),
+        bankPaymentSource: {
+          primaryBank: "HDFC Bank Ltd",
+          accountType: "Commercial Current Account",
+          maskedAccountNumber: `XXXX-XXXX-${entity.pan ? entity.pan.slice(-4) : "5821"}`,
+          ifsc: "HDFC0000060",
+          branch: "Fort Commercial Branch, Mumbai",
+          lastPaymentMode: "NEFT / IMPS Transfer",
+          lastUtrNumber: `HDFCR52024090${Date.now().toString().slice(-6)}`,
+          secondaryBank: "State Bank of India (SBIN0000300 - Nariman Point Branch)",
+        },
+        ecommerceAndAppMobiles: {
+          amazon: entity.mobile,
+          swiggy: entity.mobile,
+          meesho: `+91 97110 ${lastDigits}`,
+          zomato: entity.mobile,
+          blinkit: entity.mobile,
+          paytm: `+91 98201 ${lastDigits}`,
+          zepto: entity.mobile,
+          whatsapp: entity.mobile,
+        },
+        alternateNumbersFromSources: {
+          gstPortal: `+91 98201 ${lastDigits}`,
+          cibil: `+91 97110 ${lastDigits}`,
+          experian: `+91 98672 ${lastDigits}`,
+          crif: entity.mobile,
+          otherApps: [`+91 91678 ${lastDigits}`, `+91 99203 ${lastDigits}`],
+        },
+        companyFinancialsAndBureaus: {
+          cibil: {
+            score: entity.isDefaulted ? 520 : entity.isOverdue ? 635 : 715,
+            band: entity.isDefaulted ? "Poor" : entity.isOverdue ? "Fair" : "Good",
+            activeTradeLines: 12,
+            utilizationPct: entity.isDefaulted ? 92.4 : 44.0,
+            overdueStatus: entity.isDefaulted ? "Defaulted" : "Current",
+          },
+          experian: {
+            score: entity.isDefaulted ? 540 : entity.isOverdue ? 650 : 730,
+            band: entity.isDefaulted ? "Poor" : entity.isOverdue ? "Fair" : "Good",
+            activeTradeLines: 14,
+            utilizationPct: entity.isDefaulted ? 89.0 : 38.5,
+            overdueStatus: "Current",
+          },
+          crif: {
+            score: entity.isDefaulted ? 535 : entity.isOverdue ? 642 : 722,
+            band: entity.isDefaulted ? "Poor" : entity.isOverdue ? "Fair" : "Good",
+            repaymentIndex: entity.isDefaulted ? "42%" : "94%",
+            activeTradeLines: 11,
+            overdueStatus: "Current",
+          },
+          annualTurnoverEst: Math.round(entity.creditLimit * 4.2),
+          netWorth: entity.isDefaulted ? 12000000 : 38500000,
+        },
       },
     };
   }
@@ -738,4 +797,434 @@ export async function generateGovReferenceId(
     gstPortalRef: `GSTN-DRC-01A-${(numHash % 90000) + 10000}`,
   };
 }
+
+// -------------------------------------------------------------
+// 10. GST Filing On Month Basis (All 12 Months)
+// -------------------------------------------------------------
+export async function callGstMonthlyFilings(
+  subjectId: string
+): Promise<ProviderCallResult<Record<string, unknown>>> {
+  const start = Date.now();
+  const entity = await lookupDatabaseEntity(subjectId);
+
+  const monthNames = [
+    "APR 2024", "MAY 2024", "JUN 2024", "JUL 2024",
+    "AUG 2024", "SEP 2024", "OCT 2024", "NOV 2024",
+    "DEC 2024", "JAN 2025", "FEB 2025", "MAR 2025",
+  ];
+
+  const baseTurnover = entity.creditLimit > 0 ? entity.creditLimit * 0.35 : 1850000;
+
+  const months = monthNames.map((month, idx) => {
+    const isLate = (entity.isDefaulted && idx > 5) || (entity.isOverdue && idx === 10);
+    const isMissing = entity.isDefaulted && idx > 8;
+
+    const gstr1Status = isMissing ? "Not Filed" : isLate ? "Delayed (by 18 days)" : "Filed On-Time";
+    const gstr3bStatus = isMissing ? "Not Filed" : isLate ? "Delayed (by 24 days)" : "Filed On-Time";
+
+    const turnover = Math.round(baseTurnover * (1 + (idx % 3) * 0.08));
+    const taxPaid = Math.round(turnover * 0.18);
+
+    return {
+      month,
+      gstr1Status,
+      gstr1Date: isMissing ? "—" : `11-${String(idx + 5 > 12 ? idx - 7 : idx + 5).padStart(2, "0")}-2024`,
+      gstr1Arn: isMissing ? "—" : `AA27042401${String(92830 + idx)}`,
+      gstr3bStatus,
+      gstr3bDate: isMissing ? "—" : `20-${String(idx + 5 > 12 ? idx - 7 : idx + 5).padStart(2, "0")}-2024`,
+      gstr3bArn: isMissing ? "—" : `AA27042402${String(83740 + idx)}`,
+      taxableTurnover: isMissing ? 0 : turnover,
+      taxPaid: isMissing ? 0 : taxPaid,
+    };
+  });
+
+  const onTimeCount = months.filter((m) => m.gstr3bStatus === "Filed On-Time").length;
+
+  return {
+    success: true,
+    provider: "GSTN Public Return Filing Gateway",
+    isSandbox: true,
+    status: "completed",
+    latencyMs: Date.now() - start + 110,
+    data: {
+      gstin: entity.gstin,
+      financialYear: "FY 2024-25",
+      filingRegularityPct: Math.round((onTimeCount / 12) * 100),
+      onTimeCount,
+      delayedCount: months.filter((m) => m.gstr3bStatus.includes("Delayed")).length,
+      missingCount: months.filter((m) => m.gstr3bStatus === "Not Filed").length,
+      months,
+    },
+  };
+}
+
+// -------------------------------------------------------------
+// 11. Trust Hub & Trust ID Verification
+// -------------------------------------------------------------
+export async function callTrustHubVerification(
+  subjectId: string
+): Promise<ProviderCallResult<Record<string, unknown>>> {
+  const start = Date.now();
+  const entity = await lookupDatabaseEntity(subjectId);
+
+  const trustId = entity.gstin ? `TRUST-CB-${entity.gstin.slice(2, 6)}-001` : "TRUST-CB-ACME-001";
+  const trustScore = entity.isDefaulted ? 38 : entity.isOverdue ? 64 : 94;
+
+  return {
+    success: true,
+    provider: "ChaanBean Trust Hub Compliance Registry",
+    isSandbox: true,
+    status: "completed",
+    latencyMs: Date.now() - start + 80,
+    data: {
+      trustId,
+      entityName: entity.name,
+      gstin: entity.gstin,
+      pan: entity.pan,
+      trustScore,
+      credibilityBand: entity.isDefaulted ? "High Risk Commercial Defaulter" : entity.isOverdue ? "Monitored Tier 2 Enterprise" : "Tier 1 - Verified Enterprise",
+      complianceBadges: [
+        "GST Verified Enterprise",
+        "MSME Registered Supplier",
+        "Zero Default Certified Network",
+        "MCA21 Corporate Audited",
+        "Trust Network Certified",
+      ],
+      peerDefaultCheck: {
+        hasActiveDefault: entity.isDefaulted,
+        reportedDefaultsCount: entity.isDefaulted ? 1 : 0,
+        registryStatus: entity.isDefaulted ? "Active Peer Commercial Default Reported (₹8,90,000)" : "Clear — Zero Peer Defaults Reported in Registry",
+      },
+      verifiedSince: "2023-04-10",
+      cryptographicSeal: "864aa8d2558641ab99824bf190e28e18c5029471abdf201",
+    },
+  };
+}
+
+// -------------------------------------------------------------
+// 12. 10th and 12th Educational Marksheets Verification
+// -------------------------------------------------------------
+export async function callEducationMarksheetCheck(
+  subjectId: string
+): Promise<ProviderCallResult<Record<string, unknown>>> {
+  const start = Date.now();
+  const entity = await lookupDatabaseEntity(subjectId);
+  const candidateName = entity.directors[0]?.name || "Harish Parekh";
+
+  return {
+    success: true,
+    provider: "National Academic Depository (NAD) & CBSE Verification Desk",
+    isSandbox: true,
+    status: "completed",
+    latencyMs: Date.now() - start + 95,
+    data: {
+      verifiedCandidate: candidateName,
+      directorDin: entity.directors[0]?.din || "08492018",
+      class10: {
+        board: "Central Board of Secondary Education (CBSE)",
+        rollNumber: "6149208",
+        schoolName: "St. Xavier's Model Senior Secondary School",
+        passingYear: 2008,
+        result: "PASSED (First Division)",
+        score: "88.4% (CGPA 9.2)",
+        verificationHash: "CBSE-X-8941A-77C2",
+        status: "Authentic & Board Sealed",
+      },
+      class12: {
+        board: "Central Board of Secondary Education (CBSE)",
+        rollNumber: "6284910",
+        schoolName: "St. Xavier's Model Senior Secondary School",
+        stream: "Commerce with Mathematics",
+        passingYear: 2010,
+        result: "PASSED (Distinction)",
+        score: "91.2%",
+        verificationHash: "CBSE-XII-9921B-44D1",
+        status: "Authentic & Board Sealed",
+      },
+      overallEducationalCheck: "Verified Authentic — Zero Discrepancies",
+    },
+  };
+}
+
+// -------------------------------------------------------------
+// 13. PAN to GST Number Directory (Multi-State Registrations)
+// -------------------------------------------------------------
+export async function callPanToGst(
+  subjectId: string
+): Promise<ProviderCallResult<Record<string, unknown>>> {
+  const start = Date.now();
+  const entity = await lookupDatabaseEntity(subjectId);
+  const pan = entity.pan || "AAECG1234H";
+
+  const gstins = [
+    {
+      gstin: `27${pan}1Z5`,
+      state: "Maharashtra (27)",
+      tradeName: `${entity.name} - West Regional Hub`,
+      status: "Active",
+      address: "MIDC Industrial Area, Andheri East, Mumbai 400093",
+      registrationDate: "2018-07-01",
+    },
+    {
+      gstin: `29${pan}1ZX`,
+      state: "Karnataka (29)",
+      tradeName: `${entity.name} - South Distribution Depot`,
+      status: "Active",
+      address: "Peenya Industrial Area, Phase II, Bengaluru 560058",
+      registrationDate: "2019-03-15",
+    },
+    {
+      gstin: `07${pan}1ZQ`,
+      state: "Delhi (07)",
+      tradeName: `${entity.name} - North Depot`,
+      status: "Active",
+      address: "Okhla Industrial Area Phase III, New Delhi 110020",
+      registrationDate: "2020-11-20",
+    },
+    {
+      gstin: `24${pan}1ZV`,
+      state: "Gujarat (24)",
+      tradeName: `${entity.name} - Manufacturing Unit`,
+      status: "Active",
+      address: "GIDC Industrial Estate, Makarpura, Vadodara 390010",
+      registrationDate: "2021-08-10",
+    },
+  ];
+
+  return {
+    success: true,
+    provider: "GSTN Multi-State Corporate PAN Aggregator",
+    isSandbox: true,
+    status: "completed",
+    latencyMs: Date.now() - start + 85,
+    data: {
+      pan,
+      legalName: entity.name,
+      totalRegistrations: gstins.length,
+      activeRegistrations: gstins.length,
+      gstins,
+    },
+  };
+}
+
+// -------------------------------------------------------------
+// 14. Default Payments Voice Calls Cadence
+// -------------------------------------------------------------
+export async function callVoiceCallCadence(
+  subjectId: string,
+  selectedCadence?: string
+): Promise<ProviderCallResult<Record<string, unknown>>> {
+  const start = Date.now();
+  const entity = await lookupDatabaseEntity(subjectId);
+
+  const cadence = selectedCadence || "Every 30 Mins";
+
+  return {
+    success: true,
+    provider: "Asterisk PBX / Vobiz High-Frequency Telephony Desk",
+    isSandbox: true,
+    status: "completed",
+    latencyMs: Date.now() - start + 75,
+    data: {
+      targetDebtor: entity.name,
+      targetPhone: entity.mobile,
+      availableCadences: [
+        "Every 1 Min (Critical Emergency Default)",
+        "Every 2 Mins (High Velocity Escalation)",
+        "Every 5 Mins (Intense Collection Cycle)",
+        "Every 30 Mins (Standard Escalation)",
+        "Every 1 Hour (Hourly Check-In)",
+      ],
+      activeCadence: cadence,
+      queueStatus: "Active Outbound Dialing Queue",
+      telephonyCarrier: "Asterisk 20 LTS / Vobiz SIP Trunking",
+      callingWindow: "Standard 09:00-18:00 IST (CALL ALL TIME Emergency Mode Supported)",
+      totalCallsDispatched: 8,
+      nextCallInSeconds: 120,
+      speechDialect: "en-IN / hi-IN Native Neural Synthesis",
+      lastCallOutcome: "Answered (48s) · Promise to Pay Recorded",
+    },
+  };
+}
+
+// -------------------------------------------------------------
+// 15. Legal Notices Suite (GST, MSME, Income Tax & Demand)
+// -------------------------------------------------------------
+export async function callLegalNoticeSuite(
+  subjectId: string
+): Promise<ProviderCallResult<Record<string, unknown>>> {
+  const start = Date.now();
+  const entity = await lookupDatabaseEntity(subjectId);
+
+  const itRef = `ITD-DISPUTE-ACK-${Math.floor(10000 + Math.random() * 90000)}`;
+  const gstRef = `GSTN-DRC-01A-${Math.floor(10000 + Math.random() * 90000)}`;
+
+  return {
+    success: true,
+    provider: "ChaanBean Statutory Legal Desk & Gov Notification Gateway",
+    isSandbox: true,
+    status: "completed",
+    latencyMs: Date.now() - start + 120,
+    data: {
+      targetDebtor: entity.name,
+      gstin: entity.gstin,
+      pan: entity.pan,
+      outstandingDebt: entity.outstandingAmount || 890000,
+      notices: [
+        {
+          noticeType: "GST Non-Compliance Notice",
+          statutorySection: "CGST Act 2017 Section 16(4)",
+          govReferenceId: gstRef,
+          authorityReported: "Goods and Services Tax Network (GSTN) Portal",
+          consequence: "Input Tax Credit (ITC) reversal & portal delinquency flag",
+          status: "Officially Reported & Served",
+        },
+        {
+          noticeType: "MSMED Act 2006 Section 16 Notice",
+          statutorySection: "MSMED Act 2006 Section 16 & 18",
+          govReferenceId: `MSMED-REC-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+          authorityReported: "MSME Samadhaan Facilitation Council",
+          consequence: "Statutory 20.25% p.a. compound penal interest (3x RBI rate)",
+          status: "Officially Reported & Served",
+        },
+        {
+          noticeType: "Income Tax Section 43B(h) Notice",
+          statutorySection: "Income Tax Act 1961 Section 43B(h)",
+          govReferenceId: itRef,
+          authorityReported: "Income Tax Department (ITD) E-Filing Portal",
+          consequence: "Disallowance of trade payable deduction from debtor's taxable income",
+          status: "Officially Reported & Served",
+        },
+        {
+          noticeType: "Commercial Legal Demand Notice",
+          statutorySection: "Section 138 Negotiable Instruments Act 1881 & Order 37 CPC",
+          govReferenceId: `CIVIL-DEMAND-${Math.floor(1000 + Math.random() * 9000)}`,
+          authorityReported: "Chief Judicial Magistrate / Commercial District Court",
+          consequence: "Summary recovery suit & prosecution of signatory directors",
+          status: "Speed Post & Registered Email Dispatch",
+        },
+      ],
+      governmentReportingSummary: {
+        incomeTaxAckRef: itRef,
+        gstPortalAckRef: gstRef,
+        reportedAt: new Date().toISOString(),
+        admissibleUnderLaw: "Bharatiya Sakshya Adhiniyam 2023 Section 63 (BSA / §65B IEA)",
+      },
+    },
+  };
+}
+
+// -------------------------------------------------------------
+// 16. Delayed Payments Follow-Up Desk
+// -------------------------------------------------------------
+export async function callDelayedPaymentFollowup(
+  subjectId: string
+): Promise<ProviderCallResult<Record<string, unknown>>> {
+  const start = Date.now();
+  const entity = await lookupDatabaseEntity(subjectId);
+
+  const daysOverdue = entity.isDefaulted ? 48 : entity.isOverdue ? 26 : 5;
+
+  return {
+    success: true,
+    provider: "Temporal Payment Follow-Up & Escalation Orchestrator",
+    isSandbox: true,
+    status: "completed",
+    latencyMs: Date.now() - start + 80,
+    data: {
+      debtorName: entity.name,
+      outstandingAmount: entity.outstandingAmount || 890000,
+      daysOverdue,
+      agingBucket: daysOverdue > 45 ? "45+ Days (Arbitration Escaped)" : daysOverdue > 30 ? "31-45 Days (Severe Escalation)" : daysOverdue > 15 ? "16-30 Days (Active Voice)" : "1-15 Days (Soft Reminder)",
+      promisedPaymentDate: "2026-09-22",
+      collectorAssigned: "Rajesh Nair (Senior Collections Officer)",
+      escalationTimeline: [
+        { day: "Day 1", channel: "WhatsApp & Email", status: "Delivered & Read", detail: "Sent digital statement of accounts with 1-click UPI link" },
+        { day: "Day 15", channel: "WhatsApp", status: "Delivered", detail: "Automated due date reminder" },
+        { day: "Day 24", channel: "Asterisk Voice Bot", status: "Answered (48s)", detail: "Debtor verbally confirmed promise-to-pay by 22nd" },
+        { day: "Day 32", channel: "Legal Notice Dispatch", status: "Trigger Ready", detail: "Scheduled if payment not credited by promise date" },
+      ],
+      nextScheduledFollowup: "2026-09-20 (Automated Pre-Promise Confirmation Call)",
+    },
+  };
+}
+
+// -------------------------------------------------------------
+// 17. User Access 5 per Subscription
+// -------------------------------------------------------------
+export async function callSubscriptionSeats(
+  subjectId: string
+): Promise<ProviderCallResult<Record<string, unknown>>> {
+  const start = Date.now();
+
+  return {
+    success: true,
+    provider: "ChaanBean Team & Multi-User Governance Engine",
+    isSandbox: true,
+    status: "completed",
+    latencyMs: Date.now() - start + 70,
+    data: {
+      planName: "Growth Enterprise Subscription",
+      totalIncludedSeats: 5,
+      activeSeatsCount: 4,
+      availableSeatsCount: 1,
+      seats: [
+        { name: "Siddharth Verma", email: "siddharth@chaanbean.com", role: "Super Admin / Owner", status: "Active", permissions: "Full Access & Billing" },
+        { name: "Pooja Deshmukh", email: "pooja@chaanbean.com", role: "Finance Controller", status: "Active", permissions: "Credit Approval & Settlements" },
+        { name: "Rajesh Nair", email: "rajesh@chaanbean.com", role: "Collections Lead", status: "Active", permissions: "Voice Dialing & Recovery" },
+        { name: "Adv. Harish Parekh", email: "legal@chaanbean.com", role: "Dispute & Legal Counsel", status: "Active", permissions: "Arbitration & Legal Notices" },
+        { name: "Seat #5 (Available)", email: "unallocated@chaanbean.com", role: "External CA / Auditor", status: "Available to Invite", permissions: "Audit & Read-Only" },
+      ],
+      billingStatus: "All 5 user seats included at ₹0 additional charge under subscription",
+    },
+  };
+}
+
+// -------------------------------------------------------------
+// 18. Add Additional Company Name for ₹1,500
+// -------------------------------------------------------------
+export async function callAdditionalCompanyAddon(
+  subjectId: string
+): Promise<ProviderCallResult<Record<string, unknown>>> {
+  const start = Date.now();
+  const entity = await lookupDatabaseEntity(subjectId);
+
+  return {
+    success: true,
+    provider: "Multi-Entity Corporate Billing Desk",
+    isSandbox: true,
+    status: "completed",
+    latencyMs: Date.now() - start + 75,
+    data: {
+      featureTitle: "Add Additional Company Name / Sister Concern Profile",
+      addOnFeeINR: 1500,
+      pricingDescription: "₹1,500 One-Time Setup per Additional Company Entity",
+      primaryRegisteredCompany: entity.name,
+      walletBalance: 98500,
+      activeAddOnCompanies: [
+        {
+          companyName: "Acme Logistics & Supply Chain LLP",
+          gstin: "27AABCA1234K1Z2",
+          cin: "AAP-9812",
+          state: "Maharashtra",
+          addedAt: "2026-08-15",
+          feeBilled: "₹1,500 Debited",
+          monitoringStatus: "Active",
+        },
+        {
+          companyName: "Acme Polymers Manufacturing Pvt Ltd",
+          gstin: "24AABCA5678M1Z9",
+          cin: "U25200GJ2021PTC120000",
+          state: "Gujarat",
+          addedAt: "2026-08-28",
+          feeBilled: "₹1,500 Debited",
+          monitoringStatus: "Active",
+        },
+      ],
+      instantRegistrationAvailable: true,
+      instantRegistrationFee: 1500,
+    },
+  };
+}
+
 

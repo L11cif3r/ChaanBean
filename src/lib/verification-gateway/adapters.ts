@@ -8,6 +8,15 @@ import {
   callFirCheckAggregator,
   callTradeAggregator,
   callAddressEnrichment,
+  callGstMonthlyFilings,
+  callTrustHubVerification,
+  callEducationMarksheetCheck,
+  callPanToGst,
+  callVoiceCallCadence,
+  callLegalNoticeSuite,
+  callDelayedPaymentFollowup,
+  callSubscriptionSeats,
+  callAdditionalCompanyAddon,
 } from "./clients";
 
 export interface VerificationAdapter {
@@ -27,9 +36,43 @@ function futureDate(hours: number): string {
 /** Real APIsetu client adapter with sandbox fallback */
 export const gstAdapter: VerificationAdapter = {
   provider: "apisetu_client",
-  supportedReports: ["gst_slab_check", "gst_exact_turnover", "gst_supreme_report"],
+  supportedReports: [
+    "gst_slab_check",
+    "gst_exact_turnover",
+    "gst_supreme_report",
+    "gst_monthly_filings",
+    "pan_to_gst",
+  ],
   async getReport(subjectType, subjectId, reportType) {
     const entity = await lookupDatabaseEntity(subjectId);
+
+    if (reportType === "gst_monthly_filings") {
+      const res = await callGstMonthlyFilings(subjectId);
+      return {
+        reportType,
+        subjectType,
+        subjectId,
+        provider: res.provider,
+        status: res.status,
+        fetchedAt: new Date().toISOString(),
+        expiresAt: futureDate(168),
+        data: res.data,
+      };
+    }
+
+    if (reportType === "pan_to_gst") {
+      const res = await callPanToGst(subjectId);
+      return {
+        reportType,
+        subjectType,
+        subjectId,
+        provider: res.provider,
+        status: res.status,
+        fetchedAt: new Date().toISOString(),
+        expiresAt: futureDate(360),
+        data: res.data,
+      };
+    }
 
     if (reportType === "gst_slab_check") {
       const slab = entity.creditLimit > 5000000 ? "₹5Cr+ (Medium/Large)" : entity.creditLimit > 1500000 ? "₹1.5Cr–5Cr (Small)" : "₹40L–1.5Cr (Micro)";
@@ -150,8 +193,38 @@ export const identityAdapter: VerificationAdapter = {
     "pan_to_mobile_email",
     "find_someone",
     "address_enrichment",
+    "education_marksheet_check",
+    "trust_hub_verification",
   ],
   async getReport(subjectType, subjectId, reportType) {
+    if (reportType === "education_marksheet_check") {
+      const res = await callEducationMarksheetCheck(subjectId);
+      return {
+        reportType,
+        subjectType,
+        subjectId,
+        provider: res.provider,
+        status: res.status,
+        fetchedAt: new Date().toISOString(),
+        expiresAt: futureDate(2160),
+        data: res.data,
+      };
+    }
+
+    if (reportType === "trust_hub_verification") {
+      const res = await callTrustHubVerification(subjectId);
+      return {
+        reportType,
+        subjectType,
+        subjectId,
+        provider: res.provider,
+        status: res.status,
+        fetchedAt: new Date().toISOString(),
+        expiresAt: futureDate(168),
+        data: res.data,
+      };
+    }
+
     if (reportType === "address_enrichment") {
       const res = await callAddressEnrichment(subjectId);
       return {
@@ -238,12 +311,95 @@ export const companyAdapter: VerificationAdapter = {
   },
 };
 
+/** Default Recovery, Voice Cadence, Legal Notices, Seats & Company Add-on Adapter */
+export const recoveryAdapter: VerificationAdapter = {
+  provider: "debt_recovery_orchestration_gateway",
+  supportedReports: [
+    "voice_call_cadence",
+    "legal_notice_suite",
+    "delayed_payment_followup",
+    "subscription_seats",
+    "additional_company_addon",
+  ],
+  async getReport(subjectType, subjectId, reportType) {
+    if (reportType === "voice_call_cadence") {
+      const res = await callVoiceCallCadence(subjectId);
+      return {
+        reportType,
+        subjectType,
+        subjectId,
+        provider: res.provider,
+        status: res.status,
+        fetchedAt: new Date().toISOString(),
+        expiresAt: futureDate(24),
+        data: res.data,
+      };
+    }
+
+    if (reportType === "legal_notice_suite") {
+      const res = await callLegalNoticeSuite(subjectId);
+      return {
+        reportType,
+        subjectType,
+        subjectId,
+        provider: res.provider,
+        status: res.status,
+        fetchedAt: new Date().toISOString(),
+        expiresAt: futureDate(720),
+        data: res.data,
+      };
+    }
+
+    if (reportType === "delayed_payment_followup") {
+      const res = await callDelayedPaymentFollowup(subjectId);
+      return {
+        reportType,
+        subjectType,
+        subjectId,
+        provider: res.provider,
+        status: res.status,
+        fetchedAt: new Date().toISOString(),
+        expiresAt: futureDate(72),
+        data: res.data,
+      };
+    }
+
+    if (reportType === "subscription_seats") {
+      const res = await callSubscriptionSeats(subjectId);
+      return {
+        reportType,
+        subjectType,
+        subjectId,
+        provider: res.provider,
+        status: res.status,
+        fetchedAt: new Date().toISOString(),
+        expiresAt: futureDate(720),
+        data: res.data,
+      };
+    }
+
+    // additional_company_addon
+    const res = await callAdditionalCompanyAddon(subjectId);
+    return {
+      reportType,
+      subjectType,
+      subjectId,
+      provider: res.provider,
+      status: res.status,
+      fetchedAt: new Date().toISOString(),
+      expiresAt: futureDate(720),
+      data: res.data,
+    };
+  },
+};
+
 export const ALL_ADAPTERS: VerificationAdapter[] = [
   gstAdapter,
   bureauAdapter,
   courtAdapter,
   identityAdapter,
   companyAdapter,
+  recoveryAdapter,
 ];
 
 export function findAdapter(reportType: ReportType): VerificationAdapter | undefined {

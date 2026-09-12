@@ -60,20 +60,43 @@ MCA + public GST + Udyam + eCourts + document upload + financial analysis ➔ De
 
 ## Core Capabilities & Modules
 
-### 1. Centralized Business Verification & Trust Hub (`/trust-hub`, `/background-check`)
-- **Trust ID System**: Generate unique digital certificates (`TRUST-CB-XXXX`) with 3-step KYC verification (Identity, Statutory Registration, Financial Health).
-- **Community Default Registry**: Crowdsourced MSME default alerts to prevent serial defaulting across trade networks.
-- **Real Input Parsing**: Evaluates valid Indian PAN (`[A-Z]{5}[0-9]{4}[A-Z]{1}`) and GSTIN formats without synthetic random delays.
+### 1. Centralized Business Background Check (`/background-check`, `/trust-hub`)
+The background check gateway provides 18 dedicated verification features with individual interactive parameter boxes and formatted, visual dossier reports:
+1. **Director Details (`director_details`)**: MCA21 DIN director profile, appointments, shareholding stakes, and disqualifications under Companies Act §164(2).
+2. **MSME Report (`msme_report`)**: Udyam registration certificate, enterprise classification (Micro/Small/Medium), NIC codes, and major operational activities.
+3. **GST Slab Check (`gst_slab_check`)**: Aggregate turnover bracket, tax liability slab, active return filing cadence, and composite vs. regular categorization.
+4. **GST Exact Turnover Filed (`gst_exact_turnover`)**: Multi-year aggregate and taxable turnover from audited GSTR-3B/9 filings with financial year breakdown.
+5. **GST Filing on Month Basis (`gst_monthly_filings`)**: 12-month compliance calendar with GSTR-1 & GSTR-3B ARN numbers, filing dates, turnover filed, tax paid, and consistency score.
+6. **GST Supreme Report (`gst_supreme_report`)**: PAN-level all purchase and sales reconciliation, counterparty ITC mismatch detection, and top vendor risk vectors.
+7. **Trust Hub & Trust ID (`trust_hub_verification`)**: Digital Trust ID certificate (`TRUST-CB-XXXX`), credibility score (0–1000), compliance badges, and peer default registry check.
+8. **Mobile to PAN (`mobile_to_pan`)**: Resolves primary mobile number to verified PAN cardholder name and identity status via NSDL/ITD registry.
+9. **Mobile Identity for All Alternate Numbers (`mobile_identity`)**: Telecom KYC verification across all associated numbers with carrier circle, SIM tenure, and alternate linkages.
+10. **Court Case History & FIR Report (`court_case_history`, `fir_check`)**: e-Courts commercial litigation, Section 138 NI Act cheque dishonor, NCLT insolvency proceedings, and State CCTNS police FIR records.
+11. **Import Export Report (`import_export_report`)**: DGFT Importer-Exporter Code (IEC), ICEGATE customs clearances, export EPCG authorizations, and major sea/air ports.
+12. **10th & 12th Marksheets (`education_marksheet_check`)**: National Academic Depository (NAD) & CBSE marksheet verification with roll number, passing year, subject breakdown, and cryptographic SHA-256 hash.
+13. **PAN to GST Number Directory (`pan_to_gst`)**: Comprehensive multi-state GSTIN directory linking all state branch registrations under a single parent PAN.
+14. **Default Payments Voice Calls Cadence (`voice_call_cadence`)**: Outbound Asterisk/Vobiz telephony cadence scheduler (1 min, 2 mins, 5 mins, 30 mins, and every 1 hour) with emergency 24/7 override.
+15. **Legal Notices Suite (`legal_notice_suite`)**: 4 statutory notices (GST §16(4) ITC loss notice, MSME Samadhaan notice, Income Tax §43B(h) disallowance notice, and Section 138 NI Act demand) with Government Reference Numbers reported to IT and GST departments.
+16. **Delayed Payments Follow Up (`delayed_payment_followup`)**: Temporal aging schedule (1–15, 16–30, 31–45, 45+ days), promise-to-pay tracker, and payment reconciliation timeline.
+17. **User Access 5 per Subscription (`subscription_seats`)**: 5 team member access seats included per standard subscription with role-based governance.
+18. **Add Additional Company Name for ₹1,500 (`additional_company_addon`)**: Multi-entity expansion module allowing additional corporate profile coverage for a flat ₹1,500 add-on.
 
 ### 2. Credit Intelligence & Risk Underwriting (`/debtors`, `/buyers/[id]`)
 - 🟢 **Green Flag**: Prime/Low Risk (approved credit tenor of 45–90 days, standard terms).
 - 🟠 **Amber Flag**: Moderate Risk (requires upfront collateral, advance deposit, or restricted 15-day tenor).
 - 🔴 **Red Flag**: High Risk / Active Defaults (hard stop on credit extension; immediate recovery initiation).
 
-### 3. Automated Post-Due-Date Recovery Flow (`/payment-recovery`)
-- **L1 (Days 1–15 Overdue)**: Gentle automated reminders via WhatsApp and polite voice telephony.
-- **L2 (Days 16–30 Overdue)**: Firm reminders referencing contractual payment terms and impending credit bureau reporting.
-- **L3 (Days 31–45+ Overdue)**: Statutory Formal Demand Notice citing MSMED Act 2006 Section 16 penal interest, Section 138 NI Act warnings, and NCLT IBC escalation.
+### 3. Automated Payment Recovery & OmniTrace 360™ Command Center (`/payment-recovery`)
+- **CALL All Time (Emergency 24/7 Override)**: High-frequency voice cadence (1m, 2m, 5m, 30m, 1h) with optional 24/7 override bypassing standard TRAI limits for critical default recovery.
+- **Legal Notices with Statutory Reporting**: 4-way statutory notice dispatch simultaneously reported to the **Income Tax Department** (§43B(h)) and **GST Department** (§16(4) / DRC-01A), returning official **Government Reference Numbers** (`ITD-DISPUTE-ACK-...`, `GSTN-DRC-01A-...`).
+- **Transaction Follow UP**: Debtor aging buckets, promise-to-pay ledger, payment receipts, and UTR reconciliation.
+- **OmniTrace 360™ (Find Someone)**:
+  - **Physical Address**: Operational delivery cluster and geo-verified facility address.
+  - **Payment Bank Origin**: Bank name (e.g. HDFC Bank, ICICI Bank, SBI), masked account number, IFSC code, and last payment UTR reference.
+  - **Consumer Delivery App Mobiles**: Numbers verified across Amazon, Swiggy, Meesho, Zomato, Blinkit, Paytm, Zepto, and WhatsApp.
+  - **Alternate Phone Numbers**: Alternate contact linkages extracted from GST portal, CIBIL, Experian, and CRIF.
+  - **Company Financials & Tri-Bureau Reports**: CIBIL Commercial rank, Experian Commercial score, CRIF Commercial score, estimated annual turnover, and net worth.
+- **Lawsuits / In-House Legal Team Desk**: Institutional arbitration under MSMED Act 2006 §16 (20.25% compound monthly penal interest) and §18 conciliation, plus Order 37 CPC summary suits with designated panel advocate assignment.
 
 ### 4. Statutory Arbitration Center (`/arbitration`)
 - Auto-generates formal **Statements of Claim** for MSME Samadhaan arbitration councils.
