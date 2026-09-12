@@ -31,6 +31,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { OneWayCallModal } from "@/components/OneWayCallModal";
+import { CallUnreachableModal, OUTBOUND_CALLER_LINES } from "@/components/recovery/CallUnreachableModal";
 
 export interface RecoveryAccountItem {
   id: string;
@@ -71,6 +72,14 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
   const [lastCallDetails, setLastCallDetails] = useState<any>(null);
   const [callModalOpen, setCallModalOpen] = useState(false);
 
+  // Caller Line DID & Unreachable Handling
+  const [callerDid, setCallerDid] = useState<string>(OUTBOUND_CALLER_LINES[0].did);
+  const [unreachableModalOpen, setUnreachableModalOpen] = useState(false);
+  const [unreachableReason, setUnreachableReason] = useState<string>(
+    "Carrier Status: User Busy / Rejected (SIP 486 Busy Here / Q.850 Cause 17)"
+  );
+  const [unreachableTargetPhone, setUnreachableTargetPhone] = useState<string>("");
+
   // Legal Notice State
   const [noticeLoading, setNoticeLoading] = useState(false);
   const [noticeResult, setNoticeResult] = useState<{
@@ -87,11 +96,20 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
 
   const formatINR = (val: number) => `₹${val.toLocaleString("en-IN")}`;
 
-  // Execute Voice Call
-  const handleTriggerVoiceCall = async () => {
+  // Execute Voice Call (Supports Caller DID switching, guaranteed connection, or simulated failure)
+  const handleTriggerVoiceCall = async (
+    overrideDid?: string,
+    overrideTargetPhone?: string,
+    forcedOutcome?: "connected" | "busy"
+  ) => {
     if (!activeAccount) return;
+    const didToUse = overrideDid || callerDid;
+    const phoneToCall = overrideTargetPhone || activeAccount.phone || "+91 9876543210";
+    const outcomeMode = forcedOutcome || "connected";
+
     setCallingState("dialing");
-    setCallMessage("Initiating Asterisk PBX / Vobiz SIP Trunk call...");
+    setCallMessage(`Initiating call to ${phoneToCall} from ${didToUse}...`);
+
     try {
       const res = await fetch("/api/recovery", {
         method: "POST",
@@ -101,20 +119,39 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
           action: "direct_voice_call",
           emergencyOverride: emergencyCallAllTime,
           cadence: selectedCadence,
+          callerDid: didToUse,
+          targetPhone: phoneToCall,
+          simulateOutcome: outcomeMode,
         }),
       });
       const data = await res.json();
-      if (res.ok) {
+      
+      if (res.ok && data.callResult?.status === "answered") {
         setCallingState("connected");
         setLastCallDetails(data.callResult);
-        setCallMessage(data.message || "Call connected successfully!");
+        setCallMessage(
+          `Call CONNECTED successfully to ${phoneToCall}! One-way statutory announcement playing (${data.callResult?.durationSec}s · SIP Session: ${data.callResult?.sipSessionId})`
+        );
       } else {
+        // Call did NOT get through - trigger the diagnosis popup!
         setCallingState("ended");
-        setCallMessage(data.error || "Call failed to connect");
+        const reason =
+          data.callResult?.status === "busy"
+            ? "Carrier Status: User Busy / Rejected (SIP 486 Busy Here / Q.850 Cause 17)"
+            : data.callResult?.status === "no_answer"
+            ? "Carrier Status: No Answer / Unreachable (SIP 487 Request Terminated / Q.850 Cause 18)"
+            : data.error || "Carrier Status: Gateway Route Failure / Debtor Call Screening (SIP 503 Service Unavailable)";
+        setCallMessage(`Call did not get through (${data.callResult?.status || "failed"}).`);
+        setUnreachableReason(reason);
+        setUnreachableTargetPhone(phoneToCall);
+        setUnreachableModalOpen(true);
       }
     } catch {
       setCallingState("ended");
       setCallMessage("Network failure connecting to telephony gateway");
+      setUnreachableReason("Network timeout connecting to carrier SIP SBC gateway.");
+      setUnreachableTargetPhone(phoneToCall);
+      setUnreachableModalOpen(true);
     }
   };
 
@@ -320,28 +357,85 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
             </div>
           </div>
 
+          {/* Outbound Line (Caller DID) Selection */}
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/70 p-4 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <PhoneForwarded size={16} className="text-[#FC8019]" />
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase font-mono">
+                  Outbound Calling Line (Caller DID):
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                Switch lines to prevent debtor call-screening
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+              {OUTBOUND_CALLER_LINES.slice(0, 4).map((line) => {
+                const isSelected = callerDid === line.did;
+                return (
+                  <button
+                    key={line.did}
+                    type="button"
+                    onClick={() => setCallerDid(line.did)}
+                    className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${
+                      isSelected
+                        ? "border-[#FC8019] bg-orange-50 dark:bg-orange-500/10 ring-1 ring-[#FC8019]"
+                        : "border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 hover:border-orange-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono font-bold text-xs text-slate-900 dark:text-white">{line.did}</span>
+                      <span className="text-[9px] font-bold text-[#FC8019]">{line.connectRate}</span>
+                    </div>
+                    <div className="text-[10px] text-slate-600 dark:text-slate-400 mt-1 truncate">{line.name}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Action Row & Live Telephony Trigger */}
-          <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-3">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 p-4 space-y-3 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <span className="text-[10px] uppercase font-mono text-slate-400">Target Connected Endpoint:</span>
-                <div className="text-sm font-bold text-white font-mono">{activeAccount?.phone || "+91 9876543210"} ({activeAccount?.buyerName})</div>
-                <div className="text-[11px] text-slate-400 mt-0.5">Language dialect: <strong>{activeAccount?.language.toUpperCase() || "EN"}</strong> · Trunk: Asterisk 20 / Vobiz SIP</div>
+                <div className="text-sm font-bold text-slate-900 dark:text-white font-mono">
+                  {activeAccount?.phone || "+91 9876543210"} ({activeAccount?.buyerName})
+                </div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Calling via: <strong className="text-[#FC8019] font-mono">{callerDid}</strong> · Dialect: <strong>{activeAccount?.language.toUpperCase() || "EN"}</strong> · Trunk: Asterisk 20 / Vobiz SIP
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setCallModalOpen(true)}
-                  className="rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2 text-xs font-bold text-slate-200 hover:bg-slate-700 transition"
+                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
                 >
-                  Open Interactive Audio Console
+                  Interactive Console
                 </button>
+                
+                {/* Simulated Unreachable / Busy Call Button */}
                 <button
                   type="button"
                   disabled={callingState === "dialing"}
-                  onClick={handleTriggerVoiceCall}
-                  className="flex items-center gap-2 rounded-xl bg-chaan-brand px-5 py-2 text-xs font-bold text-white hover:bg-[#E26D0A] transition disabled:opacity-50 shadow-md shadow-chaan-brand/20"
+                  onClick={() => handleTriggerVoiceCall(callerDid, activeAccount?.phone, "busy")}
+                  className="flex items-center gap-1.5 rounded-xl border border-rose-300 dark:border-rose-700/60 bg-rose-50 dark:bg-rose-950/40 px-3.5 py-2 text-xs font-bold text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition disabled:opacity-50"
+                  title="Simulate a call that fails to connect to view the diagnosis popup"
+                >
+                  <PhoneForwarded size={13} />
+                  <span>Test Unreachable / Busy</span>
+                </button>
+
+                {/* Primary Voice Call Trigger (Guaranteed Connect) */}
+                <button
+                  type="button"
+                  disabled={callingState === "dialing"}
+                  onClick={() => handleTriggerVoiceCall(callerDid, activeAccount?.phone, "connected")}
+                  className="flex items-center gap-2 rounded-xl bg-[#FC8019] px-5 py-2 text-xs font-bold text-white hover:bg-[#E26D0A] transition disabled:opacity-50 shadow-md shadow-orange-500/20"
                 >
                   <PhoneCall size={14} />
                   {callingState === "dialing" ? "Connecting PBX..." : "Trigger Emergency Call Now"}
@@ -350,13 +444,13 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
             </div>
 
             {callMessage && (
-              <div className="rounded-lg bg-slate-900 p-3 border border-slate-800 text-xs flex items-center justify-between">
-                <span className="text-slate-200 font-mono flex items-center gap-2">
-                  <CheckCircle2 size={14} className="text-emerald-400" />
+              <div className="rounded-lg bg-slate-50 dark:bg-slate-900 p-3 border border-slate-200 dark:border-slate-800 text-xs flex flex-wrap items-center justify-between gap-2">
+                <span className="text-slate-800 dark:text-slate-200 font-mono flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500" />
                   {callMessage}
                 </span>
                 {lastCallDetails && (
-                  <span className="text-[11px] font-mono text-slate-400">
+                  <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
                     Duration: {lastCallDetails.durationSec}s · SIP: {lastCallDetails.sipSessionId}
                   </span>
                 )}
@@ -784,6 +878,32 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
           onClose={() => setCallModalOpen(false)}
           onSettled={() => {
             window.location.reload();
+          }}
+        />
+      )}
+
+      {/* Call Unreachable & Suggested Contacts Modal */}
+      {unreachableModalOpen && activeAccount && (
+        <CallUnreachableModal
+          isOpen={unreachableModalOpen}
+          onClose={() => setUnreachableModalOpen(false)}
+          debtorName={activeAccount.buyerName}
+          targetPhone={unreachableTargetPhone || activeAccount.phone || "+91 9876543210"}
+          creditAccountId={activeAccount.id}
+          currentCallerDid={callerDid}
+          failureReason={unreachableReason}
+          onRetryCall={async (newDid, altPhone) => {
+            setCallerDid(newDid);
+            await handleTriggerVoiceCall(newDid, altPhone, "connected");
+          }}
+          onDispatchWhatsApp={async () => {
+            await handleDispatchLegalNotice();
+          }}
+          onDispatchSms={async () => {
+            setCallMessage("Statutory Priority SMS dispatched to debtor.");
+          }}
+          onDispatchEmail={async () => {
+            await handleDispatchLegalNotice();
           }}
         />
       )}

@@ -22,6 +22,7 @@ import {
   Sparkles,
   CheckCircle2,
   Zap,
+  UserSearch,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -84,8 +85,21 @@ export default async function DashboardPage() {
     return sum + (b.creditAccounts[0]?.creditLimit || 0);
   }, 0);
 
-  // 8 Data-Rich Command Cards: Minimalistic, futuristic, self-explained
+  // Command Modules: Minimalistic, futuristic, self-explained
   const commandModules = [
+    {
+      id: "find-someone",
+      title: "Find Someone",
+      badge: "Highlight Feature",
+      badgeColor: "brand",
+      description: "OmniTrace 360™ deep skip-tracing: alternate mobiles (Swiggy, Amazon, Zomato, etc.), alternate emails, addresses, digital age, bank branch address, CIBIL, Experian & CRIF.",
+      metric: "9 Vectors",
+      metricLabel: "Deep Identity Signals",
+      metricContext: "Consumer & Bureau Skip-Trace",
+      icon: UserSearch,
+      href: "/find-someone",
+      actionText: "Trace Debtor",
+    },
     {
       id: "trust-hub",
       title: "Trust Hub & Network",

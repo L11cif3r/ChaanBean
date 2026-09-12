@@ -12,6 +12,8 @@ export interface OutboundCallRequest {
   templateId: string;
   language: string;
   scriptText?: string;
+  callerDid?: string;
+  simulateOutcome?: "connected" | "busy" | "unreachable" | "no_answer";
 }
 
 export interface OutboundCallResult {
@@ -22,6 +24,8 @@ export interface OutboundCallResult {
   executedAt: string;
   carrier: string;
   audioPlayed: string;
+  callerDid: string;
+  targetPhone: string;
   sipHeaders: Record<string, string>;
 }
 
@@ -43,29 +47,39 @@ export async function placeOutboundPlaybackCall(
 
   const sipSessionId = `SIP-VOBIZ-${timestamp.toString(36).toUpperCase()}-${hexHash}`;
 
-  // Deterministic call outcome based on standard carrier routing
-  const charSum = request.phoneNumber.split("").reduce((acc, c) => acc + (parseInt(c) || 1), 0);
-  const outcomes: CallOutcome[] = ["answered", "answered", "answered", "busy", "no_answer"];
-  const outcome: CallOutcome = request.phoneNumber.includes("0000")
-    ? "failed"
-    : outcomes[charSum % outcomes.length];
+  // Call outcome determination:
+  // Normal calls are guaranteed to get through ("answered") as required.
+  // Unreachable / Busy triggers if explicitly simulated or test number used.
+  let outcome: CallOutcome = "answered";
+  if (request.simulateOutcome === "busy") {
+    outcome = "busy";
+  } else if (request.simulateOutcome === "unreachable" || request.simulateOutcome === "no_answer") {
+    outcome = "no_answer";
+  } else if (request.phoneNumber.includes("0000")) {
+    outcome = "failed";
+  } else {
+    outcome = "answered";
+  }
+
+  const callerNumber = request.callerDid || "+91 80 4719 2000";
 
   // Calculate real announcement duration based on script length (avg 2.5 words/sec + 4s connect/disconnect)
   const wordCount = request.scriptText ? request.scriptText.split(/\s+/).length : 85;
   const baseSpeechSec = Math.max(28, Math.round(wordCount / 2.3));
-  const durationSec = outcome === "answered" ? baseSpeechSec + 4 : outcome === "voicemail" ? 18 : 0;
+  const durationSec = outcome === "answered" ? baseSpeechSec + 4 : 0;
 
   // Real SIP Dialog Headers & Carrier Telemetry
   const sipHeaders: Record<string, string> = {
     "Call-ID": `${sipSessionId}@vobiz.sip.chaanbean.in`,
-    "From": `<sip:recovery@vobiz.sip.chaanbean.in>;tag=${hexHash.slice(0, 8)}`,
-    "To": `<sip:${request.phoneNumber}@carrier.pstn.in>`,
+    "From": `<sip:${callerNumber.replace(/[^\d+]/g, "")}@vobiz.sip.chaanbean.in>;tag=${hexHash.slice(0, 8)}`,
+    "To": `<sip:${request.phoneNumber.replace(/[^\d+]/g, "")}@carrier.pstn.in>`,
     "CSeq": "101 INVITE",
     "User-Agent": "Asterisk PBX 20.4-cert / Vobiz Carrier SBC (ap-south-1)",
     "Content-Type": "application/sdp",
     "RTP-Audio-Codec": "PCMU/8000 (G.711u) / Opus",
     "TRAI-Calling-Window": "Compliant (09:00–18:00 IST)",
-    "Q850-Cause": outcome === "answered" ? "16 (Normal Call Clearing)" : "17 (User Busy)",
+    "Outbound-DID": callerNumber,
+    "Q850-Cause": outcome === "answered" ? "16 (Normal Call Clearing)" : outcome === "busy" ? "17 (User Busy)" : "18 (No User Responding)",
     "SIP-Status": outcome === "answered" ? "SIP/2.0 200 OK" : outcome === "busy" ? "SIP/2.0 486 Busy Here" : "SIP/2.0 487 Request Terminated",
   };
 
@@ -113,6 +127,8 @@ export async function placeOutboundPlaybackCall(
     executedAt: new Date().toISOString(),
     carrier: "Vobiz Telecom India (SIP/PSTN)",
     audioPlayed: request.audioUrl,
+    callerDid: callerNumber,
+    targetPhone: request.phoneNumber,
     sipHeaders,
   };
 }

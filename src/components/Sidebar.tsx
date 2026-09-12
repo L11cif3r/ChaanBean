@@ -21,6 +21,7 @@ import {
   Building2,
   BarChart3,
   FileSearch,
+  UserSearch,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
 
@@ -42,6 +43,7 @@ export function Sidebar() {
   ];
 
   const networkNav = [
+    { href: "/find-someone", label: "Find Someone", icon: UserSearch, badge: "Highlight" },
     { href: "/trust-hub", label: t.trustHub, icon: Shield, badge: "Network" },
     { href: "/vendors", label: t.vendors, icon: Users, badge: "KYC" },
   ];
@@ -174,7 +176,9 @@ export function Sidebar() {
                   {badge && (
                     <span className={clsx(
                       "text-[9px] font-mono px-2 py-0.5 rounded-md border",
-                      isActive
+                      badge === "Highlight"
+                        ? "bg-gradient-to-r from-[#FC8019] to-amber-500 text-white font-bold border-transparent shadow-sm shadow-orange-500/20"
+                        : isActive
                         ? "bg-orange-100/80 dark:bg-orange-500/20 border-[#FC8019]/30 text-[#FC8019] font-bold"
                         : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400"
                     )}>

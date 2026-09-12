@@ -20,7 +20,9 @@ import {
   Clock,
   Sparkles,
   ExternalLink,
+  PhoneForwarded,
 } from "lucide-react";
+import { CallUnreachableModal, OUTBOUND_CALLER_LINES } from "@/components/recovery/CallUnreachableModal";
 
 interface CallDetailsData {
   account: {
@@ -81,6 +83,14 @@ export function OneWayCallModal({
   const [currentWordIndex, setCurrentWordIndex] = useState(-1);
   const [isSettling, setIsSettling] = useState(false);
   const [settlementSuccess, setSettlementSuccess] = useState<string | null>(null);
+
+  // Caller line & unreachable handling
+  const [callerDid, setCallerDid] = useState<string>(OUTBOUND_CALLER_LINES[0].did);
+  const [unreachableModalOpen, setUnreachableModalOpen] = useState(false);
+  const [unreachableReason, setUnreachableReason] = useState<string>(
+    "Carrier Status: User Busy / Rejected (SIP 486 Busy Here / Q.850 Cause 17)"
+  );
+  const [targetPhoneToCall, setTargetPhoneToCall] = useState<string>("");
 
   const durationTimerRef = useRef<NodeJS.Timeout | null>(null);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
@@ -166,8 +176,16 @@ export function OneWayCallModal({
   };
 
   // 2. Start Live One-Way Outbound Call
-  const startCall = async () => {
+  const startCall = async (
+    overrideDid?: string,
+    overrideTargetPhone?: string,
+    forceOutcome?: "connected" | "busy"
+  ) => {
     if (!data) return;
+    const didToUse = overrideDid || callerDid;
+    const phoneToDial = overrideTargetPhone || targetPhoneToCall || data.account.phone;
+    const outcomeMode = forceOutcome || "connected";
+
     setCallState("dialing");
     setCallDuration(0);
 
@@ -179,11 +197,28 @@ export function OneWayCallModal({
         body: JSON.stringify({
           creditAccountId,
           action: "direct_voice_call",
+          callerDid: didToUse,
+          targetPhone: phoneToDial,
+          simulateOutcome: outcomeMode,
         }),
       });
 
       const callResponse = await res.json();
       if (!res.ok) throw new Error(callResponse.error || "Call failed to connect");
+
+      if (callResponse.callResult?.status !== "answered") {
+        setCallState("idle");
+        const reason =
+          callResponse.callResult?.status === "busy"
+            ? "Carrier Status: User Busy / Rejected (SIP 486 Busy Here / Q.850 Cause 17)"
+            : callResponse.callResult?.status === "no_answer"
+            ? "Carrier Status: No Answer / Unreachable (SIP 487 Request Terminated / Q.850 Cause 18)"
+            : callResponse.error || "Carrier Status: Route Failure / Call Screened (SIP 503)";
+        setUnreachableReason(reason);
+        setTargetPhoneToCall(phoneToDial);
+        setUnreachableModalOpen(true);
+        return;
+      }
 
       const sipId = callResponse.callResult?.sipSessionId || `SIP-VOBIZ-${Date.now().toString(36).toUpperCase()}`;
       setSipCallId(sipId);
@@ -211,6 +246,9 @@ export function OneWayCallModal({
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Outbound call failed");
       setCallState("idle");
+      setUnreachableReason(err instanceof Error ? err.message : "Telephony connection failed");
+      setTargetPhoneToCall(phoneToDial);
+      setUnreachableModalOpen(true);
     }
   };
 
@@ -383,16 +421,45 @@ export function OneWayCallModal({
                 </div>
               </div>
 
+              {/* Caller Line DID Selection */}
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-800/80 pt-3 text-xs">
+                <span className="text-slate-400 font-mono text-[11px] flex items-center gap-1.5">
+                  <PhoneForwarded size={12} className="text-[#FC8019]" />
+                  Outbound Line (Caller DID):
+                </span>
+                <select
+                  value={callerDid}
+                  onChange={(e) => setCallerDid(e.target.value)}
+                  className="rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1 font-mono focus:border-orange-500 focus:outline-none"
+                >
+                  {OUTBOUND_CALLER_LINES.map((line) => (
+                    <option key={line.did} value={line.did}>
+                      {line.did} — {line.name} ({line.connectRate})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Call Controls */}
-              <div className="mt-4 flex flex-wrap items-center gap-3 pt-3 border-t border-slate-800/80">
+              <div className="mt-3 flex flex-wrap items-center gap-2.5">
                 {callState === "idle" && (
-                  <button
-                    onClick={startCall}
-                    className="flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition shadow-lg shadow-emerald-500/20"
-                  >
-                    <PhoneCall size={14} />
-                    Dial Outbound One-Way Call
-                  </button>
+                  <>
+                    <button
+                      onClick={() => startCall(callerDid, undefined, "connected")}
+                      className="flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition shadow-lg shadow-emerald-500/20"
+                    >
+                      <PhoneCall size={14} />
+                      Dial Outbound One-Way Call
+                    </button>
+                    <button
+                      onClick={() => startCall(callerDid, undefined, "busy")}
+                      className="flex items-center gap-1.5 rounded-lg border border-rose-700 bg-rose-950/40 px-3 py-2 text-xs font-bold text-rose-300 hover:bg-rose-900/40 transition"
+                      title="Simulate busy/unreachable to test the diagnosis popup"
+                    >
+                      <PhoneOff size={13} />
+                      Test Unreachable / Busy
+                    </button>
+                  </>
                 )}
 
                 {(callState === "dialing" ||
@@ -410,7 +477,7 @@ export function OneWayCallModal({
 
                 {callState === "completed" && (
                   <button
-                    onClick={startCall}
+                    onClick={() => startCall(callerDid, undefined, "connected")}
                     className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition"
                   >
                     <PhoneCall size={14} />
@@ -506,6 +573,33 @@ export function OneWayCallModal({
           </>
         ) : null}
       </div>
+
+      {/* Call Unreachable Diagnosis Modal */}
+      {unreachableModalOpen && data && (
+        <CallUnreachableModal
+          isOpen={unreachableModalOpen}
+          onClose={() => setUnreachableModalOpen(false)}
+          debtorName={data.account.buyerName}
+          targetPhone={targetPhoneToCall || data.account.phone}
+          creditAccountId={creditAccountId}
+          currentCallerDid={callerDid}
+          failureReason={unreachableReason}
+          onRetryCall={async (newDid, altPhone) => {
+            setCallerDid(newDid);
+            setUnreachableModalOpen(false);
+            await startCall(newDid, altPhone, "connected");
+          }}
+          onDispatchWhatsApp={async () => {
+            setError(null);
+          }}
+          onDispatchSms={async () => {
+            setError(null);
+          }}
+          onDispatchEmail={async () => {
+            setError(null);
+          }}
+        />
+      )}
     </div>
   );
 }

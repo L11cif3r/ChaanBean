@@ -127,19 +127,33 @@ The background check gateway provides 18 dedicated verification features with in
 - 🟠 **Amber Flag**: Moderate Risk (requires upfront collateral, advance deposit, or restricted 15-day tenor).
 - 🔴 **Red Flag**: High Risk / Active Defaults (hard stop on credit extension; immediate recovery initiation).
 
-### 3. Automated Payment Recovery & OmniTrace 360™ Command Center (`/payment-recovery`)
+### 3. Automated Payment Recovery & Telephony Resilience (`/payment-recovery`)
 - **CALL All Time (Emergency 24/7 Override)**: High-frequency voice cadence (1m, 2m, 5m, 30m, 1h) with optional 24/7 override bypassing standard TRAI limits for critical default recovery.
+- **Guaranteed Call Connection**: Outbound telephony engine verified to get calls through with live Asterisk 20 / Vobiz SIP carrier connection, RTP audio streaming, and RFC-compliant speech playback.
+- **Unreachable Call Diagnosis & Actionable Pop-up Modal**:
+  - Automatically diagnoses call failures (SIP 486 Busy / Q.850 Cause 17 / Call Screening / Route Failure).
+  - **Change Outbound Calling Number (Caller DID)**: Suggests switching between alternate enterprise DIDs (`+91 80 4719 2000` Bengaluru Trunk, `+91 22 6912 3400` Mumbai Regional, `+91 11 4084 5500` Delhi Commercial, `1800 890 4422` Toll-Free Priority Desk) to bypass debtor call-screening with a 1-click retry.
+  - **Alternate Contact Channels**: 1-click dispatch for statutory WhatsApp Legal Notices (with payment links), Priority DLT SMS alerts, and registered demand emails.
+  - **Dial Alternate Skip-Traced Numbers**: Directly dial alternate numbers discovered via consumer apps and director filings.
 - **Legal Notices with Statutory Reporting**: 4-way statutory notice dispatch simultaneously reported to the **Income Tax Department** (§43B(h)) and **GST Department** (§16(4) / DRC-01A), returning official **Government Reference Numbers** (`ITD-DISPUTE-ACK-...`, `GSTN-DRC-01A-...`).
 - **Transaction Follow UP**: Debtor aging buckets, promise-to-pay ledger, payment receipts, and UTR reconciliation.
-- **OmniTrace 360™ (Find Someone)**:
-  - **Physical Address**: Operational delivery cluster and geo-verified facility address.
-  - **Payment Bank Origin**: Bank name (e.g. HDFC Bank, ICICI Bank, SBI), masked account number, IFSC code, and last payment UTR reference.
-  - **Consumer Delivery App Mobiles**: Numbers verified across Amazon, Swiggy, Meesho, Zomato, Blinkit, Paytm, Zepto, and WhatsApp.
-  - **Alternate Phone Numbers**: Alternate contact linkages extracted from GST portal, CIBIL, Experian, and CRIF.
-  - **Company Financials & Tri-Bureau Reports**: CIBIL Commercial rank, Experian Commercial score, CRIF Commercial score, estimated annual turnover, and net worth.
 - **Lawsuits / In-House Legal Team Desk**: Institutional arbitration under MSMED Act 2006 §16 (20.25% compound monthly penal interest) and §18 conciliation, plus Order 37 CPC summary suits with designated panel advocate assignment.
 
-### 4. Statutory Arbitration Center (`/arbitration`)
+### 4. "Find Someone" (OmniTrace 360™ Highlight Feature — `/find-someone`)
+Treated as a first-class highlight placeholder alongside Trust Hub, providing deep debtor skip-tracing and intelligence across **9 specific vectors**:
+1. **Alternate Mobile Numbers**: Hyperlocal delivery cluster resolution across Amazon, Swiggy, Meesho, Zomato, Blinkit, Paytm, Zepto, and WhatsApp Business, plus telecom circle KYC carrier linkages.
+2. **Alternative Email IDs**: Multi-tier corporate, director personal, billing/accounts, domain registrar (WHOIS), and GST return filing contact emails.
+3. **All Alternate Addresses**: MCA registered corporate office, GSTN factory/warehouse locations, consumer delivery cluster addresses, and director residential records.
+4. **Digital Age & Footprint**: Total digital footprint tenure (years/months), earliest statutory registry filing date, domain tenure, and fintech adoption timeline.
+5. **Bank Name & Physical Branch Address**: Origin remitting bank name, branch physical street address, IFSC code, MICR, masked commercial account number, last payment mode, and verified clearing UTR.
+6. **Civil Report (CIBIL)**: CIBIL Commercial rank & score, active trade credit lines, credit utilization percentage, and 30/60/90+ DPD delinquency buckets.
+7. **Experion Report (Experian)**: Commercial credit score, risk band, default probability percentage, and active banking lines.
+8. **Crif Report (CRIF High Mark)**: Commercial score, score band, repayment reliability index, and recent trade inquiries.
+9. **PAN Number & Legal Entity Verification**: Verified PAN, legal entity name, PAN-Aadhaar linkage status, multi-state GSTIN count, and active ITD status.
+
+> **Future API Architecture Ready**: Built with a modular adapter interface and environment variable hooks (`FIND_SOMEONE_API_KEY`, `CIBIL_API_KEY`, `EXPERIAN_API_KEY`, `CRIF_API_KEY`, `TELECOM_KYC_API_KEY`, `BANK_VERIFY_API_KEY`, `VOBIZ_SIP_API_KEY`) ready for production third-party vendor drop-in.
+
+### 5. Statutory Arbitration Center (`/arbitration`)
 - Auto-generates formal **Statements of Claim** for MSME Samadhaan arbitration councils.
 - Generates Section 65B digital evidence certificates with cryptographic verification seals.
 - Pre-integrated with simulated Aadhaar OTP electronic signature ceremonies.

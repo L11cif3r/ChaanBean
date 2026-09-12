@@ -101,12 +101,21 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { creditAccountId, action = "tick" } = body as {
+    const {
+      creditAccountId,
+      action = "tick",
+      callerDid,
+      simulateOutcome,
+      targetPhone,
+    } = body as {
       creditAccountId: string;
       action?: "tick" | "legal_notice" | "direct_voice_call" | "settle_payment";
       paymentAmount?: number;
       paymentMode?: string;
       utrNumber?: string;
+      callerDid?: string;
+      simulateOutcome?: "connected" | "busy" | "unreachable" | "no_answer";
+      targetPhone?: string;
     };
 
     if (!creditAccountId) {
@@ -122,12 +131,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Credit account not found" }, { status: 404 });
     }
 
-    let phone = "+919876543210";
-    try {
-      const mobiles = JSON.parse(account.buyer.mobileNumbers);
-      if (Array.isArray(mobiles) && mobiles.length > 0) phone = mobiles[0];
-    } catch {
-      // fallback
+    let phone = targetPhone || "+919876543210";
+    if (!targetPhone) {
+      try {
+        const mobiles = JSON.parse(account.buyer.mobileNumbers);
+        if (Array.isArray(mobiles) && mobiles.length > 0) phone = mobiles[0];
+      } catch {
+        // fallback
+      }
     }
 
     // 1. Direct Voice Outbound Call Execution
@@ -168,6 +179,8 @@ export async function POST(req: Request) {
         templateId,
         language: lang,
         scriptText,
+        callerDid,
+        simulateOutcome,
       });
 
       // Update escalation state to L2
