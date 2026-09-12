@@ -183,7 +183,7 @@ export default function LoginPage() {
       {/* Ambient Crimson Glow */}
       <div
         className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[500px] -translate-x-1/2 rounded-full blur-[140px] opacity-15 dark:opacity-25"
-        style={{ background: "radial-gradient(circle, #F44851 0%, rgba(244,72,81,0) 70%)" }}
+        style={{ background: "radial-gradient(circle, #FC8019 0%, rgba(252, 128, 25,0) 70%)" }}
       />
 
       {/* Brand Header */}
@@ -201,7 +201,7 @@ export default function LoginPage() {
           <div className="text-left">
             <span className="text-2xl font-extrabold tracking-tight">
               <span className="text-slate-900 dark:text-white">Chaan</span>
-              <span className="text-[#F44851]">Bean</span>
+              <span className="text-[#FC8019]">Bean</span>
             </span>
             <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-mono tracking-wider uppercase">
               B2B Credit Recovery & Verification
@@ -222,7 +222,7 @@ export default function LoginPage() {
             }}
             className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold transition ${
               portal === "client"
-                ? "bg-[#F44851] text-white shadow-md shadow-[#F44851]/20"
+                ? "bg-[#FC8019] text-white shadow-md shadow-[#FC8019]/20"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
@@ -238,7 +238,7 @@ export default function LoginPage() {
             }}
             className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold transition ${
               portal === "admin"
-                ? "bg-[#F44851] text-white shadow-md shadow-[#F44851]/20"
+                ? "bg-[#FC8019] text-white shadow-md shadow-[#FC8019]/20"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
@@ -258,7 +258,7 @@ export default function LoginPage() {
               }}
               className={`text-sm font-bold transition pb-1 border-b-2 ${
                 mode === "login"
-                  ? "text-slate-900 dark:text-white border-[#F44851]"
+                  ? "text-slate-900 dark:text-white border-[#FC8019]"
                   : "text-slate-500 border-transparent hover:text-slate-800 dark:hover:text-slate-300"
               }`}
             >
@@ -272,7 +272,7 @@ export default function LoginPage() {
               }}
               className={`text-sm font-bold transition pb-1 border-b-2 ${
                 mode === "register"
-                  ? "text-slate-900 dark:text-white border-[#F44851]"
+                  ? "text-slate-900 dark:text-white border-[#FC8019]"
                   : "text-slate-500 border-transparent hover:text-slate-800 dark:hover:text-slate-300"
               }`}
             >
@@ -309,7 +309,7 @@ export default function LoginPage() {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Business Email / Account Identifier
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] focus-within:ring-1 focus-within:ring-[#F44851] transition">
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] focus-within:ring-1 focus-within:ring-[#FC8019] transition">
                   <Mail size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="email"
@@ -326,7 +326,7 @@ export default function LoginPage() {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Password
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] focus-within:ring-1 focus-within:ring-[#F44851] transition">
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] focus-within:ring-1 focus-within:ring-[#FC8019] transition">
                   <Lock size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="password"
@@ -343,7 +343,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={fillSampleClient}
-                  className="text-[11px] font-semibold text-[#F44851] hover:text-[#D9303A] hover:underline transition"
+                  className="text-[11px] font-semibold text-[#FC8019] hover:text-[#E26D0A] hover:underline transition"
                 >
                   Fill Sample Client Credentials (Acme Traders)
                 </button>
@@ -358,7 +358,7 @@ export default function LoginPage() {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Enterprise Company Name *
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] transition">
                   <Building2 size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="text"
@@ -376,7 +376,7 @@ export default function LoginPage() {
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Contact Person Name
                   </label>
-                  <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                  <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] transition">
                     <User size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                     <input
                       type="text"
@@ -392,7 +392,7 @@ export default function LoginPage() {
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Mobile Phone (+91)
                   </label>
-                  <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                  <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] transition">
                     <Phone size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                     <input
                       type="tel"
@@ -409,7 +409,7 @@ export default function LoginPage() {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Official Business Email *
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] transition">
                   <Mail size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="email"
@@ -433,7 +433,7 @@ export default function LoginPage() {
                     placeholder="AABCZ1234F"
                     value={pan}
                     onChange={(e) => setPan(e.target.value.toUpperCase())}
-                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-[#F44851]"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-[#FC8019]"
                   />
                 </div>
 
@@ -447,7 +447,7 @@ export default function LoginPage() {
                     placeholder="27AABCZ1234F1Z5"
                     value={gstin}
                     onChange={(e) => setGstin(e.target.value.toUpperCase())}
-                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-[#F44851]"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-[#FC8019]"
                   />
                 </div>
               </div>
@@ -459,7 +459,7 @@ export default function LoginPage() {
                 <select
                   value={plan}
                   onChange={(e) => setPlan(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-[#F44851]"
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-[#FC8019]"
                 >
                   <option value="growth" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Growth Enterprise (₹2,50,000 initial credits)</option>
                   <option value="enterprise" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Custom Enterprise (Multi-seat + Priority Telephony)</option>
@@ -475,7 +475,7 @@ export default function LoginPage() {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Administrator Email
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] transition">
                   <Mail size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="email"
@@ -492,7 +492,7 @@ export default function LoginPage() {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Admin Passkey / Security Key
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] transition">
                   <KeyRound size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="password"
@@ -509,7 +509,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={fillSampleAdmin}
-                  className="text-[11px] font-semibold text-[#F44851] hover:text-[#D9303A] hover:underline transition"
+                  className="text-[11px] font-semibold text-[#FC8019] hover:text-[#E26D0A] hover:underline transition"
                 >
                   Fill Sample Admin Credentials (Owner)
                 </button>
@@ -524,7 +524,7 @@ export default function LoginPage() {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Administrator Full Name *
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] transition">
                   <User size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="text"
@@ -541,7 +541,7 @@ export default function LoginPage() {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Official Admin Email *
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] transition">
                   <Mail size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="email"
@@ -558,7 +558,7 @@ export default function LoginPage() {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Master Security Key *
                 </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#F44851] transition">
+                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] transition">
                   <KeyRound size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
                   <input
                     type="text"
@@ -578,7 +578,7 @@ export default function LoginPage() {
                 <select
                   value={adminRole}
                   onChange={(e) => setAdminRole(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-[#F44851]"
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-[#FC8019]"
                 >
                   <option value="owner" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">System Owner (Full MRR & Pipeline Access)</option>
                   <option value="team_member" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Team Member (CRM & Pipeline Operator)</option>
@@ -591,7 +591,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#F44851] py-3 text-xs font-bold text-white shadow-lg shadow-[#F44851]/30 hover:bg-[#D9303A] disabled:opacity-50 transition"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#FC8019] py-3 text-xs font-bold text-white shadow-lg shadow-[#FC8019]/30 hover:bg-[#E26D0A] disabled:opacity-50 transition"
           >
             {loading ? (
               <>
@@ -619,7 +619,7 @@ export default function LoginPage() {
         <div className="mt-6 pt-4 border-t border-slate-800 text-center flex items-center justify-center gap-4">
           <Link
             href="/intro"
-            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#F44851] transition"
+            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#FC8019] transition"
           >
             <RotateCcw size={13} />
             <span>Watch Intro Animation</span>

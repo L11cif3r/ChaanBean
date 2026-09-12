@@ -537,8 +537,8 @@ export function AdapterCard({
     <div
       className={`rounded-xl border transition duration-200 ${
         isExpanded
-          ? "border-chaan-brand/60 bg-chaan-card shadow-lg shadow-chaan-brand/5"
-          : "border-chaan-border bg-chaan-card hover:border-slate-600"
+          ? "border-[#FC8019]/60 bg-white shadow-md shadow-orange-500/5"
+          : "border-slate-200 bg-white hover:border-orange-300 shadow-sm"
       }`}
     >
       {/* Box Header & Clickable Summary Area */}
@@ -547,30 +547,30 @@ export function AdapterCard({
         className="cursor-pointer p-5 flex items-start justify-between gap-4 select-none"
       >
         <div className="flex items-start gap-3.5">
-          <div className="rounded-xl border border-chaan-border bg-slate-900/80 p-2.5 shrink-0 mt-0.5">
+          <div className="rounded-xl border border-orange-200 bg-orange-50/60 p-2.5 shrink-0 mt-0.5">
             {getIcon()}
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-bold text-white text-sm tracking-tight">{config.title}</h3>
+              <h3 className="font-bold text-slate-900 text-sm tracking-tight">{config.title}</h3>
               {currentReport && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/80 border border-emerald-800/60 px-2 py-0.5 text-[10px] font-mono text-emerald-300 font-semibold">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-mono text-emerald-700 font-semibold">
                   <CheckCircle2 size={10} />
                   Report Ready
                 </span>
               )}
             </div>
-            <p className="mt-1 text-xs text-slate-400 max-w-xl line-clamp-2">{config.description}</p>
+            <p className="mt-1 text-xs text-slate-600 max-w-xl line-clamp-2">{config.description}</p>
 
-            <div className="mt-2.5 flex flex-wrap items-center gap-3 text-[11px] font-mono text-slate-400">
+            <div className="mt-2.5 flex flex-wrap items-center gap-3 text-[11px] font-mono text-slate-500">
               <span className="flex items-center gap-1">
-                <Clock size={12} className="text-slate-500" />
-                Cache TTL: <strong className="text-slate-300">{ttl}h</strong>
+                <Clock size={12} className="text-slate-400" />
+                Cache TTL: <strong className="text-slate-700">{ttl}h</strong>
               </span>
               <span>·</span>
-              <span>Used: <strong className="text-slate-300">{timesUsed}x</strong></span>
+              <span>Used: <strong className="text-slate-700">{timesUsed}x</strong></span>
               <span>·</span>
-              <span className="text-amber-400 font-semibold">Cost: ₹{cost}</span>
+              <span className="text-[#FC8019] font-semibold">Cost: ₹{cost}</span>
             </div>
           </div>
         </div>
@@ -578,7 +578,7 @@ export function AdapterCard({
         <div className="flex items-center gap-2 shrink-0 pt-1">
           <button
             type="button"
-            className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/80 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition"
+            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-[#FC8019] hover:border-orange-200 transition shadow-sm"
           >
             <span>{isExpanded ? "Collapse" : "Configure & Pull"}</span>
             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -588,16 +588,16 @@ export function AdapterCard({
 
       {/* Specific Area of Respectiveness: Inputs & Controls when expanded */}
       {isExpanded && (
-        <div className="border-t border-chaan-border px-5 pb-5 pt-4 space-y-4">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 space-y-3.5">
+        <div className="border-t border-slate-200 px-5 pb-5 pt-4 space-y-4">
+          <div className="rounded-xl border border-slate-200 bg-orange-50/15 p-4 space-y-3.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-bold text-slate-200 uppercase font-mono tracking-wider flex items-center gap-1.5">
+              <span className="text-xs font-bold text-slate-800 uppercase font-mono tracking-wider flex items-center gap-1.5">
                 <Sparkles size={13} className="text-chaan-brand" />
                 Dedicated Adapter Parameters
               </span>
 
               {/* Subject Type toggle for dual adapters */}
-              <div className="flex items-center gap-1 text-[11px] rounded-lg border border-slate-800 bg-slate-950 p-0.5">
+              <div className="flex items-center gap-1 text-[11px] rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm">
                 <button
                   type="button"
                   onClick={(e) => {

@@ -53,7 +53,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
             <div>
               <span className="font-bold text-white text-base tracking-tight">
-                Chaan<span className="text-[#F44851]">Bean</span>
+                Chaan<span className="text-[#FC8019]">Bean</span>
               </span>
               <span className="ml-2 rounded bg-amber-950/80 border border-amber-800/80 px-2 py-0.5 text-[10px] font-mono text-amber-400 uppercase font-semibold">
                 Internal Ops

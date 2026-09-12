@@ -43,7 +43,7 @@ export function TrustHubOverview({
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-5">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/10 border border-rose-500/30 text-[#F44851]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/10 border border-rose-500/30 text-[#FC8019]">
               <Shield size={20} />
             </div>
             <h1 className="text-2xl font-bold text-white tracking-tight">Trust Hub</h1>
@@ -63,7 +63,7 @@ export function TrustHubOverview({
         {/* Product 1: Business Verification (Trust ID) */}
         <div
           onClick={() => onSelectTab("business-verification")}
-          className="group relative cursor-pointer overflow-hidden rounded-2xl border border-chaan-border bg-chaan-card p-6 lg:p-7 shadow-lg hover:border-[#F44851]/70 hover:shadow-2xl hover:shadow-rose-950/20 transition-all duration-300"
+          className="group relative cursor-pointer overflow-hidden rounded-2xl border border-chaan-border bg-chaan-card p-6 lg:p-7 shadow-lg hover:border-[#FC8019]/70 hover:shadow-2xl hover:shadow-rose-950/20 transition-all duration-300"
         >
           {/* Subtle Shield Watermark Background */}
           <div className="pointer-events-none absolute -right-6 -bottom-6 text-slate-800/20 group-hover:text-rose-500/10 transition-all duration-500">
@@ -72,16 +72,16 @@ export function TrustHubOverview({
 
           <div className="relative z-10 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center rounded-md bg-[#F44851] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+              <span className="inline-flex items-center rounded-md bg-[#FC8019] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
                 NEW
               </span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-300 group-hover:bg-[#F44851] group-hover:text-white transition">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-300 group-hover:bg-[#FC8019] group-hover:text-white transition">
                 <ArrowRight size={16} />
               </div>
             </div>
 
             <div>
-              <h2 className="text-lg font-bold text-white group-hover:text-[#FF6B72] transition">
+              <h2 className="text-lg font-bold text-white group-hover:text-[#FFA34D] transition">
                 Business Verification (Trust ID)
               </h2>
               <p className="mt-2 text-xs text-slate-400 leading-relaxed max-w-sm">
@@ -89,7 +89,7 @@ export function TrustHubOverview({
               </p>
             </div>
 
-            <div className="pt-2 flex items-center gap-2 text-xs font-semibold text-[#F44851]">
+            <div className="pt-2 flex items-center gap-2 text-xs font-semibold text-[#FC8019]">
               <span>Explore Centralised Verification</span>
               <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
             </div>
@@ -99,7 +99,7 @@ export function TrustHubOverview({
         {/* Product 2: Check Verified Businesses */}
         <div
           onClick={() => onSelectTab("verify-id")}
-          className="group relative cursor-pointer overflow-hidden rounded-2xl border border-chaan-border bg-chaan-card p-6 lg:p-7 shadow-lg hover:border-[#F44851]/70 hover:shadow-2xl hover:shadow-rose-950/20 transition-all duration-300"
+          className="group relative cursor-pointer overflow-hidden rounded-2xl border border-chaan-border bg-chaan-card p-6 lg:p-7 shadow-lg hover:border-[#FC8019]/70 hover:shadow-2xl hover:shadow-rose-950/20 transition-all duration-300"
         >
           {/* Subtle Shield Watermark Background */}
           <div className="pointer-events-none absolute -right-6 -bottom-6 text-slate-800/20 group-hover:text-rose-500/10 transition-all duration-500">
@@ -108,16 +108,16 @@ export function TrustHubOverview({
 
           <div className="relative z-10 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center rounded-md bg-[#F44851] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+              <span className="inline-flex items-center rounded-md bg-[#FC8019] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
                 NEW
               </span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-300 group-hover:bg-[#F44851] group-hover:text-white transition">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-300 group-hover:bg-[#FC8019] group-hover:text-white transition">
                 <ArrowRight size={16} />
               </div>
             </div>
 
             <div>
-              <h2 className="text-lg font-bold text-white group-hover:text-[#FF6B72] transition">
+              <h2 className="text-lg font-bold text-white group-hover:text-[#FFA34D] transition">
                 Check Verified Businesses
               </h2>
               <p className="mt-2 text-xs text-slate-400 leading-relaxed max-w-sm">
@@ -125,7 +125,7 @@ export function TrustHubOverview({
               </p>
             </div>
 
-            <div className="pt-2 flex items-center gap-2 text-xs font-semibold text-[#F44851]">
+            <div className="pt-2 flex items-center gap-2 text-xs font-semibold text-[#FC8019]">
               <span>Verify by Trust ID (TH-...)</span>
               <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
             </div>
@@ -221,10 +221,10 @@ export function TrustHubOverview({
       <section className="rounded-2xl border border-chaan-border bg-chaan-card p-6 shadow-md">
         <div className="flex items-center justify-between pb-4 border-b border-chaan-border">
           <div className="flex items-center gap-2">
-            <Building2 size={18} className="text-[#F44851]" />
+            <Building2 size={18} className="text-[#FC8019]" />
             <h2 className="text-base font-semibold text-white">Trust Hub Verified Counterparties</h2>
           </div>
-          <Link href="/vendors" className="text-xs text-[#F44851] hover:underline">
+          <Link href="/vendors" className="text-xs text-[#FC8019] hover:underline">
             Register New Vendor →
           </Link>
         </div>
@@ -235,7 +235,7 @@ export function TrustHubOverview({
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-semibold text-slate-200">{v.name}</h3>
-                  <span className="text-[11px] font-mono text-[#F44851]">{v.vendorTrustId}</span>
+                  <span className="text-[11px] font-mono text-[#FC8019]">{v.vendorTrustId}</span>
                 </div>
                 <span className="rounded bg-emerald-950/60 px-2 py-0.5 text-[10px] text-emerald-400 border border-emerald-800/50">
                   Score: {v.trustScore}/100

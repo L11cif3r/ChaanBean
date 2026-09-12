@@ -58,7 +58,7 @@ export function ArbitrationActions({
         <button
           onClick={() => performAction("generate_settlement")}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-chaan-brand hover:bg-[#D9303A] text-white px-3.5 py-2 text-xs font-bold transition shadow-sm shadow-[#F44851]/20 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-chaan-brand hover:bg-[#E26D0A] text-white px-3.5 py-2 text-xs font-bold transition shadow-sm shadow-[#FC8019]/20 disabled:opacity-50"
         >
           <FileCheck size={13} />
           Draft Settlement Terms

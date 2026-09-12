@@ -35,7 +35,7 @@ export function RiskRadarExpandable({
         className="flex flex-wrap items-center justify-between gap-4 p-4 sm:px-6 cursor-pointer select-none hover:bg-slate-800/30 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-[#F44851]/10 border border-[#F44851]/25 flex items-center justify-center text-[#F44851] shrink-0">
+          <div className="h-9 w-9 rounded-xl bg-[#FC8019]/10 border border-[#FC8019]/25 flex items-center justify-center text-[#FC8019] shrink-0">
             <Sparkles size={16} />
           </div>
           <div>
@@ -72,7 +72,7 @@ export function RiskRadarExpandable({
           {/* Expand/Collapse Icon Button */}
           <button
             type="button"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-chaan-border bg-slate-900/60 hover:border-[#F44851]/40 hover:bg-[#F44851]/10 text-xs font-semibold text-slate-300 hover:text-white transition shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-chaan-border bg-slate-900/60 hover:border-[#FC8019]/40 hover:bg-[#FC8019]/10 text-xs font-semibold text-slate-300 hover:text-white transition shadow-sm"
           >
             <span>{isExpanded ? "Collapse" : "Expand Definitions"}</span>
             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -89,7 +89,7 @@ export function RiskRadarExpandable({
             </p>
             <Link
               href="/debtors"
-              className="text-xs font-semibold text-[#F44851] hover:underline flex items-center gap-1"
+              className="text-xs font-semibold text-[#FC8019] hover:underline flex items-center gap-1"
             >
               Inspect Full Portfolio →
             </Link>

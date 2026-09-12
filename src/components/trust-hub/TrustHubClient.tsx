@@ -67,7 +67,7 @@ export function TrustHubClient({
           onClick={() => switchTab("overview")}
           className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition ${
             activeTab === "overview"
-              ? "bg-[#F44851] text-white shadow-md shadow-rose-950/40"
+              ? "bg-[#FC8019] text-white shadow-md shadow-rose-950/40"
               : "border border-slate-700/60 bg-slate-800/40 text-slate-300 hover:bg-slate-800 hover:text-white"
           }`}
         >
@@ -79,7 +79,7 @@ export function TrustHubClient({
           onClick={() => switchTab("business-verification")}
           className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition ${
             activeTab === "business-verification"
-              ? "bg-[#F44851] text-white shadow-md shadow-rose-950/40"
+              ? "bg-[#FC8019] text-white shadow-md shadow-rose-950/40"
               : "border border-slate-700/60 bg-slate-800/40 text-slate-300 hover:bg-slate-800 hover:text-white"
           }`}
         >
@@ -94,7 +94,7 @@ export function TrustHubClient({
           onClick={() => switchTab("verify-id")}
           className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition ${
             activeTab === "verify-id"
-              ? "bg-[#F44851] text-white shadow-md shadow-rose-950/40"
+              ? "bg-[#FC8019] text-white shadow-md shadow-rose-950/40"
               : "border border-slate-700/60 bg-slate-800/40 text-slate-300 hover:bg-slate-800 hover:text-white"
           }`}
         >

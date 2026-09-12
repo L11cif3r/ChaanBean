@@ -46,7 +46,7 @@ export function RecoveryActions({ creditAccountId }: { creditAccountId: string }
         <button
           disabled={loading}
           onClick={() => runTick("tick")}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-chaan-brand hover:bg-[#D9303A] text-white px-3 py-1.5 text-xs font-semibold transition shadow-sm shadow-[#F44851]/20 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-chaan-brand hover:bg-[#E26D0A] text-white px-3 py-1.5 text-xs font-semibold transition shadow-sm shadow-[#FC8019]/20 disabled:opacity-50"
         >
           <PhoneCall size={12} />
           Execute Policy Tick

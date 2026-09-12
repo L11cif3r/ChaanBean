@@ -44,21 +44,12 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      aria-label="Toggle Dark and Bright Mode"
-      className="flex items-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition shadow-sm"
-      title={theme === "dark" ? "Switch to Bright Mode" : "Switch to Dark Mode"}
+      aria-label="White & Swiggy Orange Theme"
+      className="flex items-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50/80 px-2.5 py-1 text-xs font-semibold text-[#FC8019] hover:bg-orange-100 transition shadow-sm"
+      title="Active Theme: White & Swiggy Orange (#FC8019)"
     >
-      {theme === "dark" ? (
-        <>
-          <Sun size={13} className="text-amber-400" />
-          <span>Bright Mode</span>
-        </>
-      ) : (
-        <>
-          <Moon size={13} className="text-sky-600 dark:text-sky-500" />
-          <span className="text-slate-700 dark:text-slate-300">Dark Mode</span>
-        </>
-      )}
+      <span className="h-2 w-2 rounded-full bg-[#FC8019] animate-pulse" />
+      <span className="font-medium text-slate-800">Swiggy Orange</span>
     </button>
   );
 }

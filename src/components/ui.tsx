@@ -174,7 +174,7 @@ export function SummaryCard({
   href?: string;
 }) {
   const inner = (
-    <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 transition-all duration-200 hover:border-[#F44851]/40 hover:bg-chaan-cardHover shadow-sm hover:shadow-[0_0_20px_rgba(244,72,81,0.06)]">
+    <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 transition-all duration-200 hover:border-[#FC8019]/40 hover:bg-chaan-cardHover shadow-sm hover:shadow-[0_0_20px_rgba(252, 128, 25,0.06)]">
       <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">{title}</p>
       <p className="mt-2 text-2xl font-bold tracking-tight text-white font-mono">{value}</p>
       {subtitle && <p className="mt-1 text-[11px] text-slate-400 leading-snug">{subtitle}</p>}

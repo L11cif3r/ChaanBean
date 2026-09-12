@@ -197,7 +197,7 @@ export default async function DashboardPage() {
       {/* Top Critical Operations Banner: Futuristic, Minimalist, Self-Explained */}
       <div className="rounded-2xl border border-rose-900/40 bg-gradient-to-r from-rose-950/30 via-slate-900/80 to-slate-900/60 p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="h-10 w-10 rounded-xl bg-[#F44851]/15 border border-[#F44851]/30 flex items-center justify-center text-[#F44851] shrink-0 shadow-sm shadow-[#F44851]/20">
+          <div className="h-10 w-10 rounded-xl bg-[#FC8019]/15 border border-[#FC8019]/30 flex items-center justify-center text-[#FC8019] shrink-0 shadow-sm shadow-[#FC8019]/20">
             <FileCheck2 size={20} />
           </div>
           <div>
@@ -220,7 +220,7 @@ export default async function DashboardPage() {
           </div>
           <Link
             href="/trust-hub"
-            className="rounded-xl bg-[#F44851] hover:bg-[#D9303A] px-4 py-2 text-xs font-bold text-white transition shadow-sm shadow-[#F44851]/25"
+            className="rounded-xl bg-[#FC8019] hover:bg-[#E26D0A] px-4 py-2 text-xs font-bold text-white transition shadow-sm shadow-[#FC8019]/25"
           >
             Review Network →
           </Link>
@@ -232,7 +232,7 @@ export default async function DashboardPage() {
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold text-white tracking-tight">Enterprise Credit & Recovery Hub</h1>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#F44851]/15 border border-[#F44851]/30 text-[#F44851] font-mono font-semibold">
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#FC8019]/15 border border-[#FC8019]/30 text-[#FC8019] font-mono font-semibold">
               Live Gateway
             </span>
           </div>
@@ -245,7 +245,7 @@ export default async function DashboardPage() {
           <RiskRadarModal triggerVariant="button" flagCounts={flagCounts} />
           <Link
             href="/background-check"
-            className="flex items-center gap-2 rounded-xl bg-[#F44851] px-4 py-2 text-xs font-bold text-white hover:bg-[#D9303A] transition shadow-md shadow-[#F44851]/20"
+            className="flex items-center gap-2 rounded-xl bg-[#FC8019] px-4 py-2 text-xs font-bold text-white hover:bg-[#E26D0A] transition shadow-md shadow-[#FC8019]/20"
           >
             <Search size={14} />
             Verify New Counterparty
@@ -293,7 +293,7 @@ export default async function DashboardPage() {
             </span>
             <RiskRadarModal triggerVariant="badge" flagCounts={flagCounts} />
           </div>
-          <div className="text-2xl font-black text-[#F44851] font-mono">
+          <div className="text-2xl font-black text-[#FC8019] font-mono">
             {flagCounts.green} Safe · {flagCounts.amber} Caution · {flagCounts.red} Alert
           </div>
           <p className="text-[11px] text-slate-400">
@@ -321,7 +321,7 @@ export default async function DashboardPage() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Building2 size={16} className="text-[#F44851]" />
+            <Building2 size={16} className="text-[#FC8019]" />
             <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
               Core Operational Modules
             </h2>
@@ -335,11 +335,11 @@ export default async function DashboardPage() {
             return (
               <div
                 key={m.id}
-                className="group rounded-2xl border border-chaan-border bg-chaan-card p-5 transition-all duration-200 hover:-translate-y-1 hover:border-[#F44851]/40 hover:shadow-xl hover:shadow-[#F44851]/5 flex flex-col justify-between"
+                className="group rounded-2xl border border-chaan-border bg-chaan-card p-5 transition-all duration-200 hover:-translate-y-1 hover:border-[#FC8019]/40 hover:shadow-xl hover:shadow-[#FC8019]/5 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
-                    <div className="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/60 group-hover:scale-105 transition-transform text-[#F44851]">
+                    <div className="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/60 group-hover:scale-105 transition-transform text-[#FC8019]">
                       <Icon size={20} />
                     </div>
                     <span
@@ -355,7 +355,7 @@ export default async function DashboardPage() {
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-bold text-white mt-3.5 group-hover:text-[#F44851] transition-colors">
+                  <h3 className="text-sm font-bold text-white mt-3.5 group-hover:text-[#FC8019] transition-colors">
                     {m.title}
                   </h3>
                   <p className="text-xs text-slate-400 mt-1.5 leading-relaxed line-clamp-2">
@@ -378,7 +378,7 @@ export default async function DashboardPage() {
 
                   <Link
                     href={m.href}
-                    className="flex items-center gap-1 text-xs font-semibold text-[#F44851] hover:text-[#FF6B72] transition"
+                    className="flex items-center gap-1 text-xs font-semibold text-[#FC8019] hover:text-[#FFA34D] transition"
                   >
                     <span>{m.actionText}</span>
                     <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
@@ -399,7 +399,7 @@ export default async function DashboardPage() {
               <h2 className="text-base font-semibold text-white">Active Debtors & Risk Standing</h2>
               <p className="text-xs text-slate-400">Live counterparty credit status pulled from database</p>
             </div>
-            <Link href="/debtors" className="text-xs font-semibold text-[#F44851] hover:underline">
+            <Link href="/debtors" className="text-xs font-semibold text-[#FC8019] hover:underline">
               Full Portfolio →
             </Link>
           </div>
@@ -416,7 +416,7 @@ export default async function DashboardPage() {
                   <div>
                     <Link
                       href={`/buyers/${b.id}`}
-                      className="font-semibold text-slate-200 hover:text-[#F44851] transition text-sm"
+                      className="font-semibold text-slate-200 hover:text-[#FC8019] transition text-sm"
                     >
                       {b.name}
                     </Link>
@@ -445,13 +445,13 @@ export default async function DashboardPage() {
         <section className="rounded-2xl border border-chaan-border bg-chaan-card p-6">
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-chaan-border">
             <div className="flex items-center gap-2">
-              <Activity size={16} className="text-[#F44851]" />
+              <Activity size={16} className="text-[#FC8019]" />
               <div>
                 <h2 className="text-base font-semibold text-white">Immutable Telephony & Legal Audit Trail</h2>
                 <p className="text-xs text-slate-400">Section 65B Indian Evidence Act compliant court-admissible logs</p>
               </div>
             </div>
-            <Link href="/payment-recovery" className="text-xs font-semibold text-[#F44851] hover:underline">
+            <Link href="/payment-recovery" className="text-xs font-semibold text-[#FC8019] hover:underline">
               Recovery Console →
             </Link>
           </div>

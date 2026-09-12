@@ -57,18 +57,18 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="flex w-64 flex-col border-r border-chaan-border bg-chaan-card text-white shrink-0">
+    <aside className="flex w-64 flex-col border-r border-slate-200 bg-white text-slate-800 shrink-0">
       {/* Brand Header */}
-      <div className="border-b border-chaan-border px-6 py-5">
+      <div className="border-b border-slate-200 px-6 py-5">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="relative h-9 w-12 shrink-0 group-hover:scale-105 transition-transform">
             <Image src="/logo.png" alt="ChaanBean Logo" fill className="object-contain" priority />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-white">
-              Chaan<span className="text-[#F44851]">Bean</span>
+            <h1 className="text-xl font-bold tracking-tight text-slate-900">
+              Chaan<span className="text-[#FC8019]">Bean</span>
             </h1>
-            <p className="text-[10px] text-slate-400 font-mono tracking-wide">CREDIT & RECOVERY OS</p>
+            <p className="text-[10px] text-slate-500 font-mono tracking-wide">CREDIT & RECOVERY OS</p>
           </div>
         </Link>
       </div>
@@ -77,7 +77,7 @@ export function Sidebar() {
       <nav className="flex-1 p-4 space-y-6 overflow-y-auto font-sans">
         {/* Section 1: Core Engines */}
         <div>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 px-3 block mb-1.5">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 px-3 block mb-1.5 font-semibold">
             Core Workflows
           </span>
           <div className="space-y-1">
@@ -90,20 +90,20 @@ export function Sidebar() {
                   className={clsx(
                     "flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-all duration-150",
                     isActive
-                      ? "bg-[#F44851]/10 text-[#F44851] border border-[#F44851]/25 font-semibold shadow-[0_0_15px_rgba(244,72,81,0.10)]"
-                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white font-medium"
+                      ? "bg-orange-50 text-[#FC8019] border border-[#FC8019]/30 font-semibold shadow-sm"
+                      : "text-slate-600 hover:bg-orange-50/70 hover:text-[#FC8019] font-medium"
                   )}
                 >
                   <div className="flex items-center gap-2.5 truncate">
-                    <Icon size={16} className={isActive ? "text-[#F44851]" : "text-slate-400"} />
+                    <Icon size={16} className={isActive ? "text-[#FC8019]" : "text-slate-400"} />
                     <span className="truncate">{label}</span>
                   </div>
                   {badge && (
                     <span className={clsx(
                       "text-[9px] font-mono px-2 py-0.5 rounded-md border",
                       isActive
-                        ? "bg-[#F44851]/15 border-[#F44851]/30 text-[#F44851] font-bold"
-                        : "bg-slate-800 border-slate-700 text-slate-400"
+                        ? "bg-orange-100/80 border-[#FC8019]/30 text-[#FC8019] font-bold"
+                        : "bg-slate-100 border-slate-200 text-slate-500"
                     )}>
                       {badge}
                     </span>
@@ -129,16 +129,16 @@ export function Sidebar() {
                   className={clsx(
                     "flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-all duration-150",
                     isActive
-                      ? "bg-[#F44851]/10 text-[#F44851] border border-[#F44851]/25 font-semibold shadow-[0_0_15px_rgba(244,72,81,0.10)]"
-                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white font-medium"
+                      ? "bg-orange-50 text-[#FC8019] border border-[#FC8019]/30 font-semibold shadow-sm"
+                      : "text-slate-600 hover:bg-orange-50/70 hover:text-[#FC8019] font-medium"
                   )}
                 >
                   <div className="flex items-center gap-2.5 truncate">
-                    <Icon size={16} className={isActive ? "text-[#F44851]" : "text-slate-400"} />
+                    <Icon size={16} className={isActive ? "text-[#FC8019]" : "text-slate-400"} />
                     <span className="truncate">{label}</span>
                   </div>
                   {badge && (
-                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-[#F44851]/15 border border-[#F44851]/30 text-[#F44851] font-bold">
+                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-orange-100/80 border border-[#FC8019]/30 text-[#FC8019] font-bold">
                       {badge}
                     </span>
                   )}
@@ -150,7 +150,7 @@ export function Sidebar() {
 
         {/* Section 2: Network & Due Diligence */}
         <div>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 px-3 block mb-1.5">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 px-3 block mb-1.5 font-semibold">
             Network & Trust
           </span>
           <div className="space-y-1">
@@ -163,20 +163,20 @@ export function Sidebar() {
                   className={clsx(
                     "flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-all duration-150",
                     isActive
-                      ? "bg-[#F44851]/10 text-[#F44851] border border-[#F44851]/25 font-semibold shadow-[0_0_15px_rgba(244,72,81,0.10)]"
-                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white font-medium"
+                      ? "bg-orange-50 text-[#FC8019] border border-[#FC8019]/30 font-semibold shadow-sm"
+                      : "text-slate-600 hover:bg-orange-50/70 hover:text-[#FC8019] font-medium"
                   )}
                 >
                   <div className="flex items-center gap-2.5 truncate">
-                    <Icon size={16} className={isActive ? "text-[#F44851]" : "text-slate-400"} />
+                    <Icon size={16} className={isActive ? "text-[#FC8019]" : "text-slate-400"} />
                     <span className="truncate">{label}</span>
                   </div>
                   {badge && (
                     <span className={clsx(
                       "text-[9px] font-mono px-2 py-0.5 rounded-md border",
                       isActive
-                        ? "bg-[#F44851]/15 border-[#F44851]/30 text-[#F44851] font-bold"
-                        : "bg-slate-800 border-slate-700 text-slate-400"
+                        ? "bg-orange-100/80 border-[#FC8019]/30 text-[#FC8019] font-bold"
+                        : "bg-slate-100 border-slate-200 text-slate-500"
                     )}>
                       {badge}
                     </span>
@@ -189,16 +189,16 @@ export function Sidebar() {
 
         {/* Section 3: Operations OS & Settings */}
         <div>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 px-3 block mb-1.5">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 px-3 block mb-1.5 font-semibold">
             Management
           </span>
           <div className="space-y-1">
             <Link
               href="/admin"
-              className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold text-amber-400 bg-amber-950/20 border border-amber-800/40 hover:bg-amber-900/30 transition-colors"
+              className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors"
             >
               <span className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
                 {t.adminPortal}
               </span>
               <ExternalLink size={12} />
@@ -213,11 +213,11 @@ export function Sidebar() {
                   className={clsx(
                     "flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs transition-all duration-150",
                     isActive
-                      ? "bg-[#F44851]/10 text-[#F44851] border border-[#F44851]/25 font-semibold shadow-[0_0_15px_rgba(244,72,81,0.10)]"
-                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white font-medium"
+                      ? "bg-orange-50 text-[#FC8019] border border-[#FC8019]/30 font-semibold shadow-sm"
+                      : "text-slate-600 hover:bg-orange-50/70 hover:text-[#FC8019] font-medium"
                   )}
                 >
-                  <Icon size={16} className={isActive ? "text-[#F44851]" : "text-slate-400"} />
+                  <Icon size={16} className={isActive ? "text-[#FC8019]" : "text-slate-400"} />
                   <span>{label}</span>
                 </Link>
               );
@@ -225,7 +225,7 @@ export function Sidebar() {
 
             <Link
               href="/intro"
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-400 hover:bg-slate-800/50 hover:text-[#F44851] transition-colors"
+              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-500 hover:bg-orange-50/70 hover:text-[#FC8019] transition-colors"
             >
               <RotateCcw size={15} />
               <span>Watch Animated Intro</span>
@@ -238,7 +238,7 @@ export function Sidebar() {
                 localStorage.removeItem("chaanbean_auth");
                 document.cookie = "chaanbean_session=; path=/; max-age=0";
               }}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-400 hover:bg-slate-800/50 hover:text-white transition-colors"
+              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
             >
               <LogOut size={15} />
               <span>Sign Out / Switch Portal</span>
@@ -247,17 +247,17 @@ export function Sidebar() {
         </div>
 
         {/* Quick Report Default Card */}
-        <div className="rounded-xl border border-rose-800/40 bg-rose-950/20 p-3 space-y-2">
-          <div className="flex items-center gap-1.5 text-rose-400 text-xs font-semibold">
+        <div className="rounded-xl border border-orange-200 bg-orange-50/60 p-3 space-y-2">
+          <div className="flex items-center gap-1.5 text-[#FC8019] text-xs font-semibold">
             <AlertTriangle size={14} />
             <span>Community Default Alert</span>
           </div>
-          <p className="text-[11px] text-slate-300">
+          <p className="text-[11px] text-slate-600">
             Encountered a commercial default? Report to the Trust Hub to automatically protect peer enterprises.
           </p>
           <Link
             href="/trust-hub"
-            className="block text-center rounded-xl bg-[#F44851] hover:bg-[#D9303A] py-2 text-xs font-bold text-white transition shadow-sm shadow-[#F44851]/20"
+            className="block text-center rounded-xl bg-[#FC8019] hover:bg-[#E26D0A] py-2 text-xs font-bold text-white transition shadow-sm shadow-orange-500/20"
           >
             Report Default →
           </Link>
@@ -265,12 +265,12 @@ export function Sidebar() {
       </nav>
 
       {/* Compliance Stamp Footer */}
-      <div className="border-t border-chaan-border p-4 text-[11px] text-slate-500 font-mono">
-        <div className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+      <div className="border-t border-slate-200 p-4 text-[11px] text-slate-500 font-mono">
+        <div className="flex items-center gap-1.5 text-emerald-600 font-semibold">
           <FileCheck2 size={13} />
           <span>TRAI & MSME Verified</span>
         </div>
-        <div className="text-slate-500 mt-1">Single-Decision Risk Desk · India Market</div>
+        <div className="text-slate-400 mt-1">Single-Decision Risk Desk · India Market</div>
       </div>
     </aside>
   );

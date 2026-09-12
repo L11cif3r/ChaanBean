@@ -46,10 +46,10 @@ export function RiskRadarModal({
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className={`inline-flex items-center gap-1.5 rounded-xl border border-chaan-border bg-chaan-card px-3 py-1.5 text-xs font-semibold text-slate-300 hover:border-[#F44851]/50 hover:text-white hover:bg-[#F44851]/5 transition shadow-sm ${className}`}
+          className={`inline-flex items-center gap-1.5 rounded-xl border border-chaan-border bg-chaan-card px-3 py-1.5 text-xs font-semibold text-slate-300 hover:border-[#FC8019]/50 hover:text-white hover:bg-[#FC8019]/5 transition shadow-sm ${className}`}
           title="Click to view Green, Amber, and Red risk flag definitions & instructions"
         >
-          <Sparkles size={13} className="text-[#F44851]" />
+          <Sparkles size={13} className="text-[#FC8019]" />
           <span>Risk Flag Criteria &amp; Definitions</span>
           <HelpCircle size={12} className="text-slate-400" />
         </button>
@@ -59,7 +59,7 @@ export function RiskRadarModal({
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className={`inline-flex items-center gap-1 rounded-lg bg-[#F44851]/10 border border-[#F44851]/30 px-2 py-0.5 text-[10px] font-mono text-[#F44851] hover:bg-[#F44851]/20 font-semibold transition ${className}`}
+          className={`inline-flex items-center gap-1 rounded-lg bg-[#FC8019]/10 border border-[#FC8019]/30 px-2 py-0.5 text-[10px] font-mono text-[#FC8019] hover:bg-[#FC8019]/20 font-semibold transition ${className}`}
           title="Click to view Green, Amber, and Red risk flag definitions & instructions"
         >
           <Sparkles size={10} />
@@ -71,10 +71,10 @@ export function RiskRadarModal({
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className={`h-8 w-8 rounded-xl border border-chaan-border bg-chaan-card flex items-center justify-center text-slate-400 hover:text-[#F44851] hover:border-[#F44851]/40 transition shadow-sm ${className}`}
+          className={`h-8 w-8 rounded-xl border border-chaan-border bg-chaan-card flex items-center justify-center text-slate-400 hover:text-[#FC8019] hover:border-[#FC8019]/40 transition shadow-sm ${className}`}
           title="Risk Flag Criteria & Definitions"
         >
-          <Sparkles size={14} className="text-[#F44851]" />
+          <Sparkles size={14} className="text-[#FC8019]" />
         </button>
       )}
 
@@ -82,10 +82,10 @@ export function RiskRadarModal({
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className={`fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-[#F44851]/40 bg-slate-900/90 backdrop-blur-md px-4 py-2.5 text-xs font-bold text-white shadow-xl shadow-[#F44851]/15 hover:bg-[#F44851] hover:border-[#F44851] transition-all group ${className}`}
+          className={`fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-[#FC8019]/40 bg-slate-900/90 backdrop-blur-md px-4 py-2.5 text-xs font-bold text-white shadow-xl shadow-[#FC8019]/15 hover:bg-[#FC8019] hover:border-[#FC8019] transition-all group ${className}`}
           title="Click to inspect how Green, Amber, and Red credit risk flags are differentiated"
         >
-          <Sparkles size={14} className="text-[#F44851] group-hover:text-white transition-colors" />
+          <Sparkles size={14} className="text-[#FC8019] group-hover:text-white transition-colors" />
           <span className="tracking-wide">Risk Flag Instructions</span>
         </button>
       )}
@@ -100,7 +100,7 @@ export function RiskRadarModal({
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-chaan-border pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-[#F44851]/15 border border-[#F44851]/30 flex items-center justify-center text-[#F44851] shrink-0 shadow-sm shadow-[#F44851]/20">
+                <div className="h-10 w-10 rounded-xl bg-[#FC8019]/15 border border-[#FC8019]/30 flex items-center justify-center text-[#FC8019] shrink-0 shadow-sm shadow-[#FC8019]/20">
                   <Sparkles size={20} />
                 </div>
                 <div>
@@ -125,7 +125,7 @@ export function RiskRadarModal({
             {/* Quick Context Summary */}
             <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3.5 text-xs text-slate-300 leading-relaxed space-y-1">
               <div className="flex items-center gap-1.5 font-semibold text-slate-200">
-                <Info size={13} className="text-[#F44851]" />
+                <Info size={13} className="text-[#FC8019]" />
                 <span>Zero Black-Box Scoring Principle</span>
               </div>
               <p className="text-slate-400 text-[11px]">

@@ -93,7 +93,7 @@ export default async function PaymentRecoveryPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-6">
         <div>
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-[#F44851]/10 border border-[#F44851]/25 flex items-center justify-center text-[#F44851]">
+            <div className="h-10 w-10 rounded-xl bg-[#FC8019]/10 border border-[#FC8019]/25 flex items-center justify-center text-[#FC8019]">
               <Phone size={20} />
             </div>
             <div>
@@ -123,7 +123,7 @@ export default async function PaymentRecoveryPage() {
       <section className="rounded-2xl border border-chaan-border bg-chaan-card p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-chaan-border pb-3">
           <div className="flex items-center gap-2">
-            <Activity size={16} className="text-[#F44851]" />
+            <Activity size={16} className="text-[#FC8019]" />
             <h2 className="text-sm font-semibold text-white tracking-tight">
               Statutory 4-Stage Escalation Pipeline — Self-Explaining Progression
             </h2>
@@ -175,12 +175,12 @@ export default async function PaymentRecoveryPage() {
           </div>
 
           {/* Stage 4 */}
-          <div className="rounded-xl border border-[#F44851]/30 bg-[#F44851]/10 p-4 space-y-2">
+          <div className="rounded-xl border border-[#FC8019]/30 bg-[#FC8019]/10 p-4 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="rounded bg-[#F44851]/20 text-[#F44851] border border-[#F44851]/40 px-2 py-0.5 text-[10px] font-mono font-bold">
+              <span className="rounded bg-[#FC8019]/20 text-[#FC8019] border border-[#FC8019]/40 px-2 py-0.5 text-[10px] font-mono font-bold">
                 STAGE 4 · DAYS 45+
               </span>
-              <Gavel size={13} className="text-[#F44851]" />
+              <Gavel size={13} className="text-[#FC8019]" />
             </div>
             <h3 className="font-semibold text-white text-xs">In-House Arbitration</h3>
             <p className="text-[11px] text-slate-300 leading-relaxed">
@@ -262,7 +262,7 @@ export default async function PaymentRecoveryPage() {
                 return (
                   <tr key={a.id} className="hover:bg-slate-800/40 transition">
                     <td className="px-4 py-3 font-semibold text-slate-200">
-                      <Link href={`/buyers/${a.buyerId}`} className="hover:text-[#F44851] transition">
+                      <Link href={`/buyers/${a.buyerId}`} className="hover:text-[#FC8019] transition">
                         {a.buyer.name}
                       </Link>
                     </td>
@@ -300,7 +300,7 @@ export default async function PaymentRecoveryPage() {
         <section className="rounded-2xl border border-chaan-border bg-chaan-card p-6 space-y-4 shadow-sm">
           <div className="flex items-center justify-between pb-4 border-b border-chaan-border">
             <div className="flex items-center gap-2">
-              <Phone size={16} className="text-[#F44851]" />
+              <Phone size={16} className="text-[#FC8019]" />
               <h2 className="text-base font-semibold text-white">Asterisk / Vobiz Voice Dialing Events</h2>
             </div>
             <span className="text-xs font-mono text-slate-400">{allCalls.length} Attempts</span>
@@ -392,7 +392,7 @@ export default async function PaymentRecoveryPage() {
         <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-chaan-border">
           <div>
             <div className="flex items-center gap-2">
-              <Activity size={16} className="text-[#F44851]" />
+              <Activity size={16} className="text-[#FC8019]" />
               <h2 className="text-base font-semibold text-white">Immutable Legal Evidence Audit Trail</h2>
             </div>
             <p className="mt-0.5 text-xs text-slate-400">
@@ -416,7 +416,7 @@ export default async function PaymentRecoveryPage() {
               {evidenceLogs.map((log) => (
                 <tr key={log.id} className="hover:bg-slate-800/40 transition">
                   <td className="px-4 py-3">
-                    <span className="uppercase font-bold text-[#F44851] font-mono text-[11px] bg-[#F44851]/10 border border-[#F44851]/30 px-2 py-0.5 rounded">
+                    <span className="uppercase font-bold text-[#FC8019] font-mono text-[11px] bg-[#FC8019]/10 border border-[#FC8019]/30 px-2 py-0.5 rounded">
                       {log.channel}
                     </span>
                   </td>

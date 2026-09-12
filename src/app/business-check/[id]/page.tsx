@@ -443,7 +443,7 @@ export default function BusinessProfilePage() {
                           contentStyle={{ background: "var(--chaan-card)", border: "1px solid var(--chaan-border)", borderRadius: 8, fontSize: 12 }}
                         />
                         <Legend wrapperStyle={{ fontSize: 12 }} />
-                        <Bar dataKey="revenue" name="Revenue" fill="#F44851" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="revenue" name="Revenue" fill="#FC8019" radius={[4, 4, 0, 0]} />
                         <Bar dataKey="netProfit" name="Net Profit" fill="#10b981" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>

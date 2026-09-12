@@ -33,7 +33,7 @@ export default async function ArbitrationPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-6">
         <div>
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-[#F44851]/10 border border-[#F44851]/25 flex items-center justify-center text-[#F44851]">
+            <div className="h-10 w-10 rounded-xl bg-[#FC8019]/10 border border-[#FC8019]/25 flex items-center justify-center text-[#FC8019]">
               <Scale size={20} />
             </div>
             <div>
@@ -63,7 +63,7 @@ export default async function ArbitrationPage() {
       <section className="rounded-2xl border border-chaan-border bg-chaan-card p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-chaan-border pb-3">
           <div className="flex items-center gap-2">
-            <Calculator size={16} className="text-[#F44851]" />
+            <Calculator size={16} className="text-[#FC8019]" />
             <h2 className="text-sm font-semibold text-white tracking-tight">
               Statutory Penal Interest Engine — Under MSMED Act, 2006 (Section 16)
             </h2>
@@ -142,19 +142,19 @@ export default async function ArbitrationPage() {
           return (
             <div
               key={c.id}
-              className="rounded-2xl border border-chaan-border bg-chaan-card p-6 space-y-6 shadow-sm hover:border-[#F44851]/30 transition-all"
+              className="rounded-2xl border border-chaan-border bg-chaan-card p-6 space-y-6 shadow-sm hover:border-[#FC8019]/30 transition-all"
             >
               {/* Case Header */}
               <div className="flex flex-wrap items-start justify-between gap-4 border-b border-chaan-border pb-5">
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="font-mono text-xs text-[#F44851] font-bold px-2.5 py-1 rounded-lg bg-[#F44851]/10 border border-[#F44851]/30">
+                    <span className="font-mono text-xs text-[#FC8019] font-bold px-2.5 py-1 rounded-lg bg-[#FC8019]/10 border border-[#FC8019]/30">
                       {c.caseNumber || "ARB-CB-2024-001"}
                     </span>
                     <h3 className="text-lg font-bold text-white">
                       <Link
                         href={`/buyers/${c.creditAccount.buyerId}`}
-                        className="hover:text-[#F44851] transition"
+                        className="hover:text-[#FC8019] transition"
                       >
                         {c.creditAccount.buyer.name}
                       </Link>
@@ -165,7 +165,7 @@ export default async function ArbitrationPage() {
                           ? "bg-emerald-950/80 text-emerald-400 border-emerald-800"
                           : c.status === "settlement_pending"
                             ? "bg-amber-950/80 text-amber-400 border-amber-800"
-                            : "bg-[#F44851]/15 text-[#F44851] border-[#F44851]/40"
+                            : "bg-[#FC8019]/15 text-[#FC8019] border-[#FC8019]/40"
                       }`}
                     >
                       {c.status.replace(/_/g, " ")}
@@ -248,7 +248,7 @@ export default async function ArbitrationPage() {
                 </p>
                 {c.settlementTerms && (
                   <div className="pt-3 border-t border-chaan-border text-slate-300">
-                    <span className="font-semibold text-[#F44851]">Drafted Settlement Terms: </span>
+                    <span className="font-semibold text-[#FC8019]">Drafted Settlement Terms: </span>
                     <span className="text-slate-300 font-mono text-[11px]">{c.settlementTerms}</span>
                   </div>
                 )}
@@ -312,7 +312,7 @@ export default async function ArbitrationPage() {
                           key={idx}
                           className="rounded-lg bg-slate-950/80 p-3 border border-slate-800 font-mono text-[11px] space-y-1"
                         >
-                          <div className="text-[#F44851] font-bold">{h.arbitrator}</div>
+                          <div className="text-[#FC8019] font-bold">{h.arbitrator}</div>
                           <div className="text-slate-300 text-[10px]">
                             Date: {new Date(h.hearingDate).toLocaleString("en-IN")}
                           </div>

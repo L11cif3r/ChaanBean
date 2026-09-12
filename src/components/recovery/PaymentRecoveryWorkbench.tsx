@@ -341,7 +341,7 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
                   type="button"
                   disabled={callingState === "dialing"}
                   onClick={handleTriggerVoiceCall}
-                  className="flex items-center gap-2 rounded-xl bg-chaan-brand px-5 py-2 text-xs font-bold text-white hover:bg-[#D9303A] transition disabled:opacity-50 shadow-md shadow-chaan-brand/20"
+                  className="flex items-center gap-2 rounded-xl bg-chaan-brand px-5 py-2 text-xs font-bold text-white hover:bg-[#E26D0A] transition disabled:opacity-50 shadow-md shadow-chaan-brand/20"
                 >
                   <PhoneCall size={14} />
                   {callingState === "dialing" ? "Connecting PBX..." : "Trigger Emergency Call Now"}
@@ -744,7 +744,7 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
             </div>
             <Link
               href="/arbitration"
-              className="flex items-center gap-2 rounded-xl bg-chaan-brand px-4 py-2 text-xs font-bold text-white hover:bg-[#D9303A] transition shadow-md shadow-chaan-brand/20"
+              className="flex items-center gap-2 rounded-xl bg-chaan-brand px-4 py-2 text-xs font-bold text-white hover:bg-[#E26D0A] transition shadow-md shadow-chaan-brand/20"
             >
               <span>Launch Institutional Arbitration</span>
               <ChevronRight size={14} />

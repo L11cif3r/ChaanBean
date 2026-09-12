@@ -21,20 +21,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                const t = localStorage.getItem("chaanbean_theme");
-                if (t === "dark") {
-                  document.documentElement.classList.remove("light");
-                  document.documentElement.classList.add("dark");
-                } else {
-                  document.documentElement.classList.remove("dark");
-                  document.documentElement.classList.add("light");
-                }
+                localStorage.setItem("chaanbean_theme", "light");
+                document.documentElement.classList.remove("dark");
+                document.documentElement.classList.add("light");
               } catch (e) {}
             `,
           }}
         />
       </head>
-      <body className="min-h-screen bg-[#F8FAFC] text-slate-900 dark:bg-[#0B0F17] dark:text-slate-100 antialiased font-sans transition-colors duration-200">
+      <body className="min-h-screen bg-[#F8FAFC] text-slate-900 antialiased font-sans">
         <LanguageProvider>
           <AppShell>{children}</AppShell>
         </LanguageProvider>

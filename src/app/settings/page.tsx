@@ -28,7 +28,7 @@ export default async function SettingsPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-6">
         <div>
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-[#F44851]/10 border border-[#F44851]/25 flex items-center justify-center text-[#F44851]">
+            <div className="h-10 w-10 rounded-xl bg-[#FC8019]/10 border border-[#FC8019]/25 flex items-center justify-center text-[#FC8019]">
               <Settings size={20} />
             </div>
             <div>
@@ -51,7 +51,7 @@ export default async function SettingsPage() {
         <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-chaan-border">
           <div>
             <div className="flex items-center gap-2">
-              <Cpu size={16} className="text-[#F44851]" />
+              <Cpu size={16} className="text-[#FC8019]" />
               <h2 className="text-base font-semibold text-white">External Integration Health &amp; Gateway Registry</h2>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -83,7 +83,7 @@ export default async function SettingsPage() {
                       className={`rounded-lg px-2.5 py-0.5 text-[10px] font-mono uppercase font-bold border ${
                         a.status === "Live"
                           ? "bg-emerald-950/80 text-emerald-400 border-emerald-800/80"
-                          : "bg-[#F44851]/10 text-[#F44851] border-[#F44851]/30"
+                          : "bg-[#FC8019]/10 text-[#FC8019] border-[#FC8019]/30"
                       }`}
                     >
                       {a.status}
@@ -105,7 +105,7 @@ export default async function SettingsPage() {
           <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-chaan-border">
             <div>
               <div className="flex items-center gap-2">
-                <CreditCard size={16} className="text-[#F44851]" />
+                <CreditCard size={16} className="text-[#FC8019]" />
                 <h2 className="text-base font-semibold text-white">Wallet Credit Consumption Ledger</h2>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">

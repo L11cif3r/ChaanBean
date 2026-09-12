@@ -4,23 +4,24 @@
 
 :root {
   --background: #f8fafc;
-  --foreground: #0f172a;
+  --foreground: #111827;
   --card-bg: #ffffff;
-  --border-color: #e2e8f0;
+  --border-color: #e5e7eb;
+  --swiggy-orange: #fc8019;
+  --swiggy-orange-hover: #e26d0a;
+  --swiggy-orange-light: #fff2e7;
 }
 
-html.light {
+html.light,
+html.dark,
+html {
   --background: #f8fafc;
-  --foreground: #0f172a;
+  --foreground: #111827;
   --card-bg: #ffffff;
-  --border-color: #e2e8f0;
-}
-
-html.dark {
-  --background: #0b0f17;
-  --foreground: #f8fafc;
-  --card-bg: #131b2a;
-  --border-color: #243247;
+  --border-color: #e5e7eb;
+  --swiggy-orange: #fc8019;
+  --swiggy-orange-hover: #e26d0a;
+  --swiggy-orange-light: #fff2e7;
 }
 
 /* =========================================================
@@ -176,11 +177,17 @@ html.light a.text-slate-400:hover {
 }
 html.light .hover\:text-chaan-accent:hover,
 html.light .hover\:text-sky-400:hover {
-  color: #0284c7 !important;
+  color: #fc8019 !important;
 }
 
 /* 8. Buttons & High-Contrast Overrides */
 /* Solid buttons that MUST maintain white text */
+html.light .bg-chaan-brand,
+html.light .bg-chaan-brand *,
+html.light .bg-\[\#FC8019\],
+html.light .bg-\[\#FC8019\] *,
+html.light .bg-\[\#fc8019\],
+html.light .bg-\[\#fc8019\] *,
 html.light .bg-rose-600,
 html.light .bg-rose-600 *,
 html.light .bg-rose-500,
@@ -199,6 +206,12 @@ html.light .bg-chaan-accent * {
 }
 
 /* Hover on solid buttons maintains white text */
+html.light .bg-chaan-brand:hover,
+html.light .bg-chaan-brand:hover *,
+html.light .bg-\[\#FC8019\]:hover,
+html.light .bg-\[\#FC8019\]:hover *,
+html.light .bg-\[\#fc8019\]:hover,
+html.light .bg-\[\#fc8019\]:hover *,
 html.light .bg-rose-600:hover,
 html.light .bg-rose-600:hover *,
 html.light .bg-emerald-600:hover,
@@ -214,11 +227,45 @@ html.light .bg-chaan-accent:hover * {
   color: #ffffff !important;
 }
 
-html.light .bg-chaan-accent {
-  background-color: #0284c7 !important;
+html.light .bg-chaan-accent,
+.bg-chaan-accent {
+  background-color: #fc8019 !important;
+  color: #ffffff !important;
 }
+
+html.light .bg-chaan-brand,
+.bg-chaan-brand,
+.bg-\[\#FC8019\],
+.bg-\[\#fc8019\] {
+  background-color: #fc8019 !important;
+  color: #ffffff !important;
+}
+
+html.light .bg-chaan-brand:hover,
+.bg-chaan-brand:hover,
+.bg-\[\#FC8019\]:hover,
+.bg-\[\#fc8019\]:hover,
+.hover\:bg-chaan-brandDark:hover {
+  background-color: #e26d0a !important;
+  color: #ffffff !important;
+}
+
+html.light .text-chaan-brand,
+.text-chaan-brand,
+.text-\[\#FC8019\],
+.text-\[\#fc8019\] {
+  color: #fc8019 !important;
+}
+
+html.light .border-chaan-brand,
+.border-chaan-brand,
+.border-\[\#FC8019\],
+.border-\[\#fc8019\] {
+  border-color: #fc8019 !important;
+}
+
 html.light .hover\:bg-sky-400:hover {
-  background-color: #0369a1 !important;
+  background-color: #e26d0a !important;
 }
 
 /* Amber & Light Emerald buttons maintain crisp dark text */
@@ -410,9 +457,9 @@ html.light aside {
 }
 
 html.light aside a.bg-slate-800\/80 {
-  background-color: #f0f9ff !important;
-  color: #0284c7 !important;
-  border-color: #bae6fd !important;
+  background-color: #fff2e7 !important;
+  color: #fc8019 !important;
+  border-color: #fed7aa !important;
 }
 
 html.light aside a.bg-amber-500\/10 {
@@ -433,7 +480,7 @@ html.light textarea {
 html.light input:focus,
 html.light select:focus,
 html.light textarea:focus {
-  border-color: #0284c7 !important;
+  border-color: #fc8019 !important;
   outline: none;
 }
 
@@ -504,14 +551,14 @@ body {
 
 @keyframes logoBloom {
   0% {
-    filter: drop-shadow(0 0 0px rgba(244, 72, 81, 0));
+    filter: drop-shadow(0 0 0px rgba(252, 128, 25, 0));
   }
   50% {
-    filter: drop-shadow(0 0 35px rgba(244, 72, 81, 0.75)) drop-shadow(0 0 70px rgba(244, 72, 81, 0.35));
+    filter: drop-shadow(0 0 35px rgba(252, 128, 25, 0.75)) drop-shadow(0 0 70px rgba(252, 128, 25, 0.35));
     transform: scale(1.03);
   }
   100% {
-    filter: drop-shadow(0 0 20px rgba(244, 72, 81, 0.45));
+    filter: drop-shadow(0 0 20px rgba(252, 128, 25, 0.45));
     transform: scale(1);
   }
 }

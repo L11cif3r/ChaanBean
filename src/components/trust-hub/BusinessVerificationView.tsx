@@ -45,7 +45,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-[#F44851] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-rose-950/40 hover:bg-[#D9303A] transition"
+          className="flex items-center gap-2 rounded-xl bg-[#FC8019] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-rose-950/40 hover:bg-[#E26D0A] transition"
         >
           <Zap size={14} />
           <span>Start Verification Process</span>
@@ -92,7 +92,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
 
           <button
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 rounded-xl bg-[#F44851] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#D9303A] shadow-md transition"
+            className="flex items-center gap-2 rounded-xl bg-[#FC8019] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#E26D0A] shadow-md transition"
           >
             <span>Start Verification Process</span>
             <ArrowRight size={14} />
@@ -112,7 +112,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Building2 size={16} className="text-[#F44851]" />
+              <Building2 size={16} className="text-[#FC8019]" />
               <span>Supported Business Types</span>
             </h3>
             <span className="text-xs text-slate-400">Select structure to initiate</span>
@@ -122,18 +122,18 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
             {/* Proprietorship */}
             <div
               onClick={() => openWizardWithTier("proprietorship")}
-              className="cursor-pointer group rounded-xl border border-slate-800 bg-slate-900/60 p-5 hover:border-[#F44851] hover:bg-rose-950/10 transition flex flex-col justify-between"
+              className="cursor-pointer group rounded-xl border border-slate-800 bg-slate-900/60 p-5 hover:border-[#FC8019] hover:bg-rose-950/10 transition flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800 text-[#F44851] group-hover:bg-rose-500/20 transition">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800 text-[#FC8019] group-hover:bg-rose-500/20 transition">
                     <UserCheck size={18} />
                   </div>
                   <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300 font-medium">
                     Individual
                   </span>
                 </div>
-                <h4 className="mt-3 text-sm font-bold text-white group-hover:text-[#FF6B72] transition">
+                <h4 className="mt-3 text-sm font-bold text-white group-hover:text-[#FFA34D] transition">
                   Proprietorship
                 </h4>
                 <p className="mt-1 text-xs text-slate-400">
@@ -143,25 +143,25 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
 
               <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
                 <span className="text-xs text-slate-400">Price:</span>
-                <span className="text-sm font-mono font-bold text-[#F44851]">₹ 1,000</span>
+                <span className="text-sm font-mono font-bold text-[#FC8019]">₹ 1,000</span>
               </div>
             </div>
 
             {/* Partnership Firm */}
             <div
               onClick={() => openWizardWithTier("partnership")}
-              className="cursor-pointer group rounded-xl border border-slate-800 bg-slate-900/60 p-5 hover:border-[#F44851] hover:bg-rose-950/10 transition flex flex-col justify-between"
+              className="cursor-pointer group rounded-xl border border-slate-800 bg-slate-900/60 p-5 hover:border-[#FC8019] hover:bg-rose-950/10 transition flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800 text-[#F44851] group-hover:bg-rose-500/20 transition">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800 text-[#FC8019] group-hover:bg-rose-500/20 transition">
                     <Briefcase size={18} />
                   </div>
                   <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300 font-medium">
                     Partners
                   </span>
                 </div>
-                <h4 className="mt-3 text-sm font-bold text-white group-hover:text-[#FF6B72] transition">
+                <h4 className="mt-3 text-sm font-bold text-white group-hover:text-[#FFA34D] transition">
                   Partnership Firm
                 </h4>
                 <p className="mt-1 text-xs text-slate-400">
@@ -171,14 +171,14 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
 
               <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
                 <span className="text-xs text-slate-400">Price:</span>
-                <span className="text-sm font-mono font-bold text-[#F44851]">₹ 1,500</span>
+                <span className="text-sm font-mono font-bold text-[#FC8019]">₹ 1,500</span>
               </div>
             </div>
 
             {/* Company / LLP */}
             <div
               onClick={() => openWizardWithTier("company")}
-              className="cursor-pointer group rounded-xl border border-rose-900/60 bg-rose-950/20 p-5 hover:border-[#F44851] hover:bg-rose-950/30 transition flex flex-col justify-between ring-1 ring-rose-500/40"
+              className="cursor-pointer group rounded-xl border border-rose-900/60 bg-rose-950/20 p-5 hover:border-[#FC8019] hover:bg-rose-950/30 transition flex flex-col justify-between ring-1 ring-rose-500/40"
             >
               <div>
                 <div className="flex items-center justify-between">
@@ -189,7 +189,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
                     Recommended
                   </span>
                 </div>
-                <h4 className="mt-3 text-sm font-bold text-white group-hover:text-[#FF6B72] transition">
+                <h4 className="mt-3 text-sm font-bold text-white group-hover:text-[#FFA34D] transition">
                   Company / LLP
                 </h4>
                 <p className="mt-1 text-xs text-slate-400">
@@ -199,7 +199,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
 
               <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
                 <span className="text-xs text-slate-400">Price:</span>
-                <span className="text-sm font-mono font-bold text-[#F44851]">₹ 2,000</span>
+                <span className="text-sm font-mono font-bold text-[#FC8019]">₹ 2,000</span>
               </div>
             </div>
           </div>
@@ -288,7 +288,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
         {/* Section: What You'll Need */}
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-5 space-y-4">
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <PhoneCall size={16} className="text-[#F44851]" />
+            <PhoneCall size={16} className="text-[#FC8019]" />
             <span>What You&apos;ll Need</span>
           </h3>
 
@@ -319,7 +319,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-center space-y-2">
-              <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#F44851] text-xs font-bold text-white">
+              <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#FC8019] text-xs font-bold text-white">
                 1
               </div>
               <h4 className="text-xs font-bold text-white">Select Business Type</h4>
@@ -327,7 +327,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-center space-y-2">
-              <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#F44851] text-xs font-bold text-white">
+              <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#FC8019] text-xs font-bold text-white">
                 2
               </div>
               <h4 className="text-xs font-bold text-white">Provide Details</h4>
@@ -335,7 +335,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-center space-y-2">
-              <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#F44851] text-xs font-bold text-white">
+              <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#FC8019] text-xs font-bold text-white">
                 3
               </div>
               <h4 className="text-xs font-bold text-white">Get Verified</h4>
@@ -353,7 +353,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
 
           <button
             onClick={() => setModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#F44851] px-8 py-3 text-sm font-bold text-white shadow-xl shadow-rose-950/50 hover:bg-[#D9303A] transition"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#FC8019] px-8 py-3 text-sm font-bold text-white shadow-xl shadow-rose-950/50 hover:bg-[#E26D0A] transition"
           >
             <span>Start Verification Process</span>
             <ArrowRight size={16} />

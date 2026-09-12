@@ -47,11 +47,11 @@ export default function IntroPage() {
       {/* Ambient Crimson Halo Glow */}
       <div
         className="pointer-events-none absolute -top-40 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full blur-[140px] opacity-15 dark:opacity-30"
-        style={{ background: "radial-gradient(circle, #F44851 0%, rgba(244,72,81,0) 70%)" }}
+        style={{ background: "radial-gradient(circle, #FC8019 0%, rgba(252, 128, 25,0) 70%)" }}
       />
       <div
         className="pointer-events-none absolute bottom-0 left-1/2 h-[450px] w-[700px] -translate-x-1/2 rounded-full blur-[160px] opacity-10 dark:opacity-20"
-        style={{ background: "radial-gradient(circle, #D9303A 0%, rgba(11,15,23,0) 80%)" }}
+        style={{ background: "radial-gradient(circle, #E26D0A 0%, rgba(11,15,23,0) 80%)" }}
       />
 
       {/* Top Header Bar with Theme Switcher and Skip Trigger */}
@@ -67,7 +67,7 @@ export default function IntroPage() {
         </button>
         <button
           onClick={handleSkip}
-          className="flex items-center gap-1.5 rounded-full border border-[#F44851]/40 bg-[#F44851]/10 px-4 py-1.5 text-xs font-semibold text-[#F44851] hover:bg-[#F44851]/20 transition shadow-lg shadow-[#F44851]/10"
+          className="flex items-center gap-1.5 rounded-full border border-[#FC8019]/40 bg-[#FC8019]/10 px-4 py-1.5 text-xs font-semibold text-[#FC8019] hover:bg-[#FC8019]/20 transition shadow-lg shadow-[#FC8019]/10"
         >
           <span>Skip to Login</span>
           <ArrowRight size={13} />
@@ -138,7 +138,7 @@ export default function IntroPage() {
         <div className="mt-8 space-y-2 animate-fadeIn" style={{ animationDelay: "1.2s", animationFillMode: "both" }}>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
             <span className="text-slate-900 dark:text-white">Chaan</span>
-            <span className="bg-gradient-to-r from-[#F44851] to-[#FF6B72] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#FC8019] to-[#FFA34D] bg-clip-text text-transparent">
               Bean
             </span>
           </h1>
@@ -151,7 +151,7 @@ export default function IntroPage() {
         <div className="mt-8 w-48 sm:w-64 space-y-2">
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800/80">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[#F44851] to-[#FF6B72] transition-all duration-100 ease-out"
+              className="h-full rounded-full bg-gradient-to-r from-[#FC8019] to-[#FFA34D] transition-all duration-100 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
