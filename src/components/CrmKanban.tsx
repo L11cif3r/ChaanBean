@@ -611,10 +611,13 @@ export function CrmKanban({
                   onChange={(e) => setNewLeadSource(e.target.value)}
                   className="w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-slate-200 outline-none"
                 >
+                  <option value="facebook_ads">Facebook Ads</option>
+                  <option value="instagram_ads">Instagram Ads</option>
+                  <option value="youtube_ads">YouTube Ads</option>
                   <option value="paid_search">Paid Search (Google Ads)</option>
                   <option value="referral">Referral / Word of Mouth</option>
                   <option value="whatsapp_inbound">WhatsApp Inbound</option>
-                  <option value="trust_hub_referral">Trust Hub Peer Referral</option>
+                  <option value="trust_network_referral">Trust Network Peer Referral</option>
                   <option value="organic">Organic SEO</option>
                   <option value="partner">Channel Partner</option>
                 </select>

@@ -103,7 +103,7 @@ export const REPORT_LABELS: Record<ReportType, string> = {
   gst_exact_turnover: "GST Exact Turnover Filed",
   gst_monthly_filings: "GST Filing on Month Basis",
   gst_supreme_report: "GST Supreme Report (Purchase & Sales PANs)",
-  trust_hub_verification: "Trust Hub & Trust ID Verification",
+  trust_hub_verification: "Trust Network & Trust ID Verification",
   mobile_to_pan: "Mobile to PAN",
   mobile_identity: "Mobile Identity (All Alternate Numbers)",
   court_case_history: "Court Case History – FIR Report",

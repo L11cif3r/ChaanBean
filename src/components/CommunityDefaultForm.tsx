@@ -70,7 +70,7 @@ export function CommunityDefaultForm({ onReported }: { onReported?: () => void }
           <div className="flex items-center justify-between pb-3 border-b border-rose-900/40">
             <div className="flex items-center gap-2 text-rose-400 font-semibold text-sm">
               <AlertTriangle size={16} />
-              <span>Publish Peer Default Report to Trust Hub Network</span>
+              <span>Publish Peer Default Report to Trust Network</span>
             </div>
             <button
               type="button"

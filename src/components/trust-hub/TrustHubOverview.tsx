@@ -46,7 +46,7 @@ export function TrustHubOverview({
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/10 border border-rose-500/30 text-[#FC8019]">
               <Shield size={20} />
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Trust Hub</h1>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Trust Network</h1>
           </div>
           <p className="mt-1 text-xs text-slate-400 font-medium">
             Excellent products for you (2 items) · Opt-in B2B verification exchange, verified compliance badges, and community default alerts.
@@ -222,7 +222,7 @@ export function TrustHubOverview({
         <div className="flex items-center justify-between pb-4 border-b border-chaan-border">
           <div className="flex items-center gap-2">
             <Building2 size={18} className="text-[#FC8019]" />
-            <h2 className="text-base font-semibold text-white">Trust Hub Verified Counterparties</h2>
+            <h2 className="text-base font-semibold text-white">Trust Network Verified Counterparties</h2>
           </div>
           <Link href="/vendors" className="text-xs text-[#FC8019] hover:underline">
             Register New Vendor →

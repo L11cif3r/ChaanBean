@@ -860,7 +860,7 @@ export async function callGstMonthlyFilings(
 }
 
 // -------------------------------------------------------------
-// 11. Trust Hub & Trust ID Verification
+// 11. Trust Network & Trust ID Verification
 // -------------------------------------------------------------
 export async function callTrustHubVerification(
   subjectId: string
@@ -873,7 +873,7 @@ export async function callTrustHubVerification(
 
   return {
     success: true,
-    provider: "ChaanBean Trust Hub Compliance Registry",
+    provider: "ChaanBean Trust Network Compliance Registry",
     isSandbox: true,
     status: "completed",
     latencyMs: Date.now() - start + 80,

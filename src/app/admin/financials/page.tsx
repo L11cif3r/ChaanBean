@@ -58,7 +58,7 @@ export default async function AdminFinancialsPage() {
       revenueINR: Math.round((latest.grossRevenue * vendorShare) / 100),
     },
     {
-      module: "Trust Hub & Community Defaults",
+      module: "Trust Network & Community Defaults",
       sharePct: trustHubShare,
       revenueINR: Math.round((latest.grossRevenue * trustHubShare) / 100),
     },

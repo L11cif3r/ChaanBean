@@ -87,9 +87,9 @@ export default async function AdminCustomersPage() {
   const featureAdoption = [
     { module: "Verification Gateway & Risk Flags", adoptedCount: companiesUsingVerification, rate: Math.round((companiesUsingVerification / totalCompaniesCount) * 100) },
     { module: "Payment Recovery & Outbound Voice", adoptedCount: companiesUsingRecovery, rate: Math.round((companiesUsingRecovery / totalCompaniesCount) * 100) },
-    { module: "Trust Hub & Community Defaults", adoptedCount: companiesUsingTrustHub, rate: Math.round((companiesUsingTrustHub / totalCompaniesCount) * 100) },
+    { module: "Trust Network & Community Defaults", adoptedCount: companiesUsingTrustHub, rate: Math.round((companiesUsingTrustHub / totalCompaniesCount) * 100) },
     { module: "Vendor Registration & Bulk KYC", adoptedCount: companiesUsingVendors, rate: Math.round((companiesUsingVendors / totalCompaniesCount) * 100) },
-    { module: "Arbitration Dispute Resolution", adoptedCount: companiesUsingArbitration, rate: Math.round((companiesUsingArbitration / totalCompaniesCount) * 100) },
+    { module: "Dispute Resolution Center", adoptedCount: companiesUsingArbitration, rate: Math.round((companiesUsingArbitration / totalCompaniesCount) * 100) },
   ];
 
   // Real Verification Report Consumption from database

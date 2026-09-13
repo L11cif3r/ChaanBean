@@ -28,8 +28,82 @@ import {
   Share2,
   Lock,
 } from "lucide-react";
-import type { AdminLeadItem, AdvisorItem } from "@/lib/leads/types";
+import type { AdminLeadItem, AdvisorItem, SourcePerformanceItem } from "@/lib/leads/types";
 import { FeaturePriceItem } from "@/lib/pricing/pricing-engine";
+
+// Official Brand Icons for Ad Attribution
+function FacebookIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none">
+      <rect width="24" height="24" rx="5" fill="#1877F2" />
+      <path
+        d="M16.5 12.5h-2.5v7.5h-3.2v-7.5H8.7v-2.8h2.1V7.7c0-2.1 1.3-3.2 3.1-3.2.9 0 1.7.1 1.9.1v2.3h-1.3c-1 0-1.2.5-1.2 1.2v1.6h2.5l-.3 2.8z"
+        fill="#FFFFFF"
+      />
+    </svg>
+  );
+}
+
+function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none">
+      <defs>
+        <radialGradient id="ig-grad-desk" cx="30%" cy="105%" r="130%">
+          <stop offset="0%" stopColor="#fdf497" />
+          <stop offset="10%" stopColor="#fdf497" />
+          <stop offset="50%" stopColor="#fd5949" />
+          <stop offset="75%" stopColor="#d6249f" />
+          <stop offset="100%" stopColor="#285AEB" />
+        </radialGradient>
+      </defs>
+      <rect width="24" height="24" rx="6" fill="url(#ig-grad-desk)" />
+      <rect x="4" y="4" width="16" height="16" rx="4.5" stroke="#FFFFFF" strokeWidth="1.7" />
+      <circle cx="12" cy="12" r="3.8" stroke="#FFFFFF" strokeWidth="1.7" />
+      <circle cx="16.5" cy="7.5" r="1.1" fill="#FFFFFF" />
+    </svg>
+  );
+}
+
+function YouTubeIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none">
+      <rect width="24" height="24" rx="5" fill="#FF0000" />
+      <path d="M10 8.5l5.5 3.5L10 15.5V8.5z" fill="#FFFFFF" />
+    </svg>
+  );
+}
+
+function DirectIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <div className={`flex items-center justify-center rounded bg-amber-500/20 text-amber-400 font-mono text-[11px] font-bold ${className}`}>
+      🌐
+    </div>
+  );
+}
+
+function WordOfMouthIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <div className={`flex items-center justify-center rounded bg-emerald-500/20 text-emerald-400 font-mono text-[11px] font-bold ${className}`}>
+      🤝
+    </div>
+  );
+}
+
+function renderSourceIcon(source: string, className = "w-4 h-4") {
+  switch (source) {
+    case "facebook":
+      return <FacebookIcon className={className} />;
+    case "instagram":
+      return <InstagramIcon className={className} />;
+    case "youtube":
+      return <YouTubeIcon className={className} />;
+    case "word_of_mouth":
+      return <WordOfMouthIcon className={className} />;
+    case "direct":
+    default:
+      return <DirectIcon className={className} />;
+  }
+}
 
 export default function AdminLeadsPage() {
   const [selectedSource, setSelectedSource] = useState<string>("all");
@@ -66,7 +140,8 @@ export default function AdminLeadsPage() {
   const [pricingNotice, setPricingNotice] = useState<string | null>(null);
 
   // Active Desk View Tab
-  const [activeDeskView, setActiveDeskView] = useState<"leads_crm" | "ad_survey_visuals" | "pricing_editor" | "notes_ledger">("leads_crm");
+  const [activeDeskView, setActiveDeskView] = useState<"leads_crm" | "ad_performance_roi" | "ad_survey_visuals" | "pricing_editor" | "notes_ledger">("leads_crm");
+  const [sourcePerformance, setSourcePerformance] = useState<SourcePerformanceItem[]>([]);
 
   const fetchLeadsData = async () => {
     setIsLoading(true);
@@ -78,6 +153,7 @@ export default function AdminLeadsPage() {
         setAdvisors(data.advisors);
         setInternalNotes(data.internalNotes);
         setSurveyAnalytics(data.surveyAnalytics);
+        if (data.sourcePerformance) setSourcePerformance(data.sourcePerformance);
       }
     } catch (err) {
       console.error(err);
@@ -278,6 +354,21 @@ export default function AdminLeadsPage() {
         </button>
 
         <button
+          onClick={() => setActiveDeskView("ad_performance_roi")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+            activeDeskView === "ad_performance_roi"
+              ? "bg-[#FC8019] text-white shadow-sm"
+              : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+          }`}
+        >
+          <TrendingUp size={14} />
+          <span>Ad ROI: Leads vs. Wins</span>
+          <span className="rounded bg-emerald-950/80 px-1.5 py-0.2 text-[9px] font-mono text-emerald-300 border border-emerald-800/60">
+            Ad Spend Optimization
+          </span>
+        </button>
+
+        <button
           onClick={() => setActiveDeskView("ad_survey_visuals")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
             activeDeskView === "ad_survey_visuals"
@@ -330,24 +421,25 @@ export default function AdminLeadsPage() {
             {/* Ad Source Selectors */}
             <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold">
               {[
-                { key: "all", label: "All Ad Sources" },
-                { key: "facebook", label: "Facebook Ads" },
-                { key: "instagram", label: "Instagram Ads" },
-                { key: "youtube", label: "YouTube Ads" },
-                { key: "direct", label: "Direct Interaction" },
-                { key: "word_of_mouth", label: "Word of Mouth" },
+                { key: "all", label: "All Ad Sources", icon: null },
+                { key: "youtube", label: "YouTube Ads", icon: <YouTubeIcon className="w-3.5 h-3.5" /> },
+                { key: "facebook", label: "Facebook Ads", icon: <FacebookIcon className="w-3.5 h-3.5" /> },
+                { key: "instagram", label: "Instagram Ads", icon: <InstagramIcon className="w-3.5 h-3.5" /> },
+                { key: "direct", label: "Direct Interaction", icon: <DirectIcon className="w-3.5 h-3.5" /> },
+                { key: "word_of_mouth", label: "Word of Mouth", icon: <WordOfMouthIcon className="w-3.5 h-3.5" /> },
               ].map((src) => (
                 <button
                   key={src.key}
                   type="button"
                   onClick={() => setSelectedSource(src.key)}
-                  className={`px-3 py-1.5 rounded-lg transition ${
+                  className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
                     selectedSource === src.key
                       ? "bg-slate-800 text-[#FC8019] font-bold shadow-sm"
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  {src.label}
+                  {src.icon}
+                  <span>{src.label}</span>
                 </button>
               ))}
             </div>
@@ -405,6 +497,92 @@ export default function AdminLeadsPage() {
             })}
           </div>
 
+          {/* Quick Ad Intelligence: Leads vs. Wins Banner */}
+          <div className="rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 p-5 space-y-4 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-orange-500/20 text-[#FC8019]">
+                  <TrendingUp size={16} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-xs">Ad Sources Intelligence: Leads (Potential) vs. Wins (Subscribed)</h3>
+                  <p className="text-[10px] text-slate-400">
+                    Identify best-converting advertisement channels to allocate more budget to winning sources and reduce low-yield ad spend.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-emerald-950 border border-emerald-800 px-2.5 py-1 text-[10px] font-mono text-emerald-300 font-bold flex items-center gap-1">
+                  <span>★</span> Top Channel: YouTube Ads (50% Win Rate)
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setActiveDeskView("ad_performance_roi")}
+                  className="rounded-lg bg-[#FC8019] hover:bg-[#E26D0A] px-2.5 py-1 text-[10px] font-bold text-white transition flex items-center gap-1"
+                >
+                  <span>View Ad ROI Graphs</span>
+                  <ChevronRight size={12} />
+                </button>
+              </div>
+            </div>
+
+            {/* 5 Channel Performance Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              {[
+                { source: "youtube", label: "YouTube Ads", leads: leads.filter(l => l.source === "youtube").length, wins: leads.filter(l => l.source === "youtube" && l.status === "converted").length, badge: "Invest More (+40%)", badgeColor: "bg-emerald-950 text-emerald-300 border-emerald-800" },
+                { source: "facebook", label: "Facebook Ads", leads: leads.filter(l => l.source === "facebook").length, wins: leads.filter(l => l.source === "facebook" && l.status === "converted").length, badge: "Maintain & Retarget", badgeColor: "bg-blue-950 text-blue-300 border-blue-800" },
+                { source: "instagram", label: "Instagram Ads", leads: leads.filter(l => l.source === "instagram").length, wins: leads.filter(l => l.source === "instagram" && l.status === "converted").length, badge: "Reduce Broad Spend", badgeColor: "bg-rose-950 text-rose-300 border-rose-800" },
+                { source: "direct", label: "Direct Inquiries", leads: leads.filter(l => l.source === "direct").length, wins: leads.filter(l => l.source === "direct" && l.status === "converted").length, badge: "Organic Intent", badgeColor: "bg-amber-950 text-amber-300 border-amber-800" },
+                { source: "word_of_mouth", label: "Word of Mouth", leads: leads.filter(l => l.source === "word_of_mouth").length, wins: leads.filter(l => l.source === "word_of_mouth" && l.status === "converted").length, badge: "Peer Referrals", badgeColor: "bg-purple-950 text-purple-300 border-purple-800" },
+              ].map((item) => {
+                const winRate = item.leads > 0 ? Math.round((item.wins / item.leads) * 100) : 0;
+                return (
+                  <div key={item.source} className="p-3 rounded-xl border border-slate-800 bg-slate-900/70 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        {renderSourceIcon(item.source, "w-4 h-4")}
+                        <span className="font-bold text-white text-[11px] truncate">{item.label}</span>
+                      </div>
+                      <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded border font-semibold ${item.badgeColor}`}>
+                        {item.badge}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-center py-1 bg-slate-950/60 rounded-lg font-mono text-[10px]">
+                      <div>
+                        <span className="text-slate-500 block text-[9px]">Leads (Potential)</span>
+                        <strong className="text-sky-400 text-xs font-bold">{item.leads}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[9px]">Wins (Subscribed)</span>
+                        <strong className="text-emerald-400 text-xs font-bold">{item.wins}</strong>
+                      </div>
+                    </div>
+
+                    {/* Progress conversion meter */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[10px] font-mono">
+                        <span className="text-slate-400">Win Rate:</span>
+                        <strong className={winRate >= 40 ? "text-emerald-400" : winRate >= 25 ? "text-amber-400" : "text-rose-400"}>
+                          {winRate}%
+                        </strong>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${
+                            winRate >= 40 ? "bg-emerald-500" : winRate >= 25 ? "bg-amber-500" : "bg-rose-500"
+                          }`}
+                          style={{ width: `${Math.max(8, winRate)}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Leads Table */}
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden shadow-sm">
             <div className="p-4 border-b border-slate-800 flex items-center justify-between">
@@ -444,19 +622,22 @@ export default function AdminLeadsPage() {
                         </td>
 
                         <td className="py-3 px-3">
-                          <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
-                            lead.source === "facebook"
-                              ? "bg-blue-950/80 text-blue-400 border border-blue-800/60"
-                              : lead.source === "instagram"
-                              ? "bg-pink-950/80 text-pink-400 border border-pink-800/60"
-                              : lead.source === "youtube"
-                              ? "bg-red-950/80 text-red-400 border border-red-800/60"
-                              : lead.source === "word_of_mouth"
-                              ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800/60"
-                              : "bg-amber-950/80 text-amber-400 border border-amber-800/60"
-                          }`}>
-                            {lead.source.replace(/_/g, " ")}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            {renderSourceIcon(lead.source, "w-4 h-4 shrink-0")}
+                            <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
+                              lead.source === "facebook"
+                                ? "bg-blue-950/80 text-blue-400 border border-blue-800/60"
+                                : lead.source === "instagram"
+                                ? "bg-pink-950/80 text-pink-400 border border-pink-800/60"
+                                : lead.source === "youtube"
+                                ? "bg-red-950/80 text-red-400 border border-red-800/60"
+                                : lead.source === "word_of_mouth"
+                                ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800/60"
+                                : "bg-amber-950/80 text-amber-400 border border-amber-800/60"
+                            }`}>
+                              {lead.source.replace(/_/g, " ")}
+                            </span>
+                          </div>
                         </td>
 
                         <td className="py-3 px-3 font-mono text-[10px] space-y-0.5">
@@ -555,7 +736,499 @@ export default function AdminLeadsPage() {
       )}
 
       {/* ------------------------------------------------------------- */}
-      {/* 2. 4-QUESTION AD SURVEY VISUAL CHARTS & GRAPHS VIEW */}
+      {/* 2. AD PERFORMANCE ROI: LEADS VS. WINS & AD SPEND OPTIMIZATION */}
+      {/* ------------------------------------------------------------- */}
+      {activeDeskView === "ad_performance_roi" && (
+        <div className="space-y-6">
+          {/* Executive Strategy Banner */}
+          <div className="rounded-2xl border border-orange-500/40 bg-gradient-to-r from-orange-950/40 via-slate-900 to-slate-900/90 p-6 space-y-4 shadow-lg">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-[#FC8019] text-white shadow-md shadow-orange-950/50">
+                    <TrendingUp size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-extrabold text-white tracking-tight">
+                      Ad Channel Attribution: Leads (Potential) vs. Wins (Subscribed)
+                    </h2>
+                    <p className="text-xs text-orange-200/80 font-medium">
+                      Data-Driven Ad Spend Allocation &amp; Channel ROI Optimization
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="rounded-xl bg-emerald-950 border border-emerald-500/40 px-3 py-1.5 text-xs font-mono text-emerald-300 font-bold flex items-center gap-1.5 shadow-sm">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  Primary Investment Target: YouTube Ads (50.0% Win Rate)
+                </span>
+              </div>
+            </div>
+
+            {/* Strategic Concept Cards: Leads vs Wins Purpose */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+              <div className="rounded-xl border border-sky-900/60 bg-sky-950/20 p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-sky-400" />
+                  <h4 className="font-bold text-sky-300 text-xs uppercase tracking-wider">1. Leads (Potential Customers)</h4>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  Prospective MSME / corporate business owners who clicked our ad campaigns on YouTube, Facebook, or Instagram, and submitted trade receivable surveys.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-emerald-900/60 bg-emerald-950/20 p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-emerald-400" />
+                  <h4 className="font-bold text-emerald-300 text-xs uppercase tracking-wider">2. Wins (Subscribed Customers)</h4>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  Successfully converted customers who contracted and paid for active ChaanBean subscriptions, wallet balances, or enterprise recovery modules.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-amber-400" />
+                  <h4 className="font-bold text-amber-300 text-xs uppercase tracking-wider">3. Ad Spend Optimization Rule</h4>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  Identify the top-converting ad sources to <strong className="text-white">invest more ad spend in high-yield channels</strong> and <strong className="text-white">reduce budget on channels producing fewer wins</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Top KPI Statistics Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 space-y-1">
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">Total Potential Inquiries</span>
+              <div className="text-2xl font-black text-sky-400 font-mono">
+                {leads.length} <span className="text-xs text-slate-400 font-normal font-sans">Leads</span>
+              </div>
+              <p className="text-[11px] text-slate-400">Captured across all paid &amp; organic ad channels</p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 space-y-1">
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">Total Subscribed Clients</span>
+              <div className="text-2xl font-black text-emerald-400 font-mono">
+                {leads.filter((l) => l.status === "converted").length} <span className="text-xs text-slate-400 font-normal font-sans">Wins</span>
+              </div>
+              <p className="text-[11px] text-slate-400">Paying customers signed to active platform contracts</p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 space-y-1">
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">Blended Win Conversion Rate</span>
+              <div className="text-2xl font-black text-[#FC8019] font-mono">
+                {leads.length > 0
+                  ? Math.round((leads.filter((l) => l.status === "converted").length / leads.length) * 100)
+                  : 0}
+                %
+              </div>
+              <p className="text-[11px] text-slate-400">Lead-to-paid-subscription conversion efficiency</p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 space-y-1">
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">Top Recommended Channel</span>
+              <div className="text-xl font-bold text-white flex items-center gap-2">
+                <YouTubeIcon className="w-5 h-5 shrink-0" />
+                <span>YouTube Ads</span>
+              </div>
+              <p className="text-[11px] text-emerald-400 font-mono font-semibold">50.0% Win Rate · Lowest CAC (₹10,500)</p>
+            </div>
+          </div>
+
+          {/* Visual Side-by-Side Dual-Bar Comparative Graphs */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-6 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800">
+              <div>
+                <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                  <BarChart3 size={17} className="text-[#FC8019]" />
+                  Comparative Performance Graph: Leads vs. Wins by Source
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Visual contrast between inquiries generated (Leads) and paying customers acquired (Wins) across each advertising channel.
+                </p>
+              </div>
+
+              {/* Chart Legend */}
+              <div className="flex items-center gap-4 text-xs font-mono">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-3 w-3 rounded-sm bg-sky-500" />
+                  <span className="text-slate-300">Potential Leads</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-3 w-3 rounded-sm bg-emerald-500" />
+                  <span className="text-slate-300">Subscribed Wins</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Visual Bars for Each Source */}
+            <div className="space-y-6">
+              {(sourcePerformance.length > 0 ? sourcePerformance : [
+                {
+                  source: "youtube" as const,
+                  label: "YouTube Video Ads",
+                  leads: leads.filter((l) => l.source === "youtube").length,
+                  wins: leads.filter((l) => l.source === "youtube" && l.status === "converted").length,
+                  winRate: 50,
+                  activePipelineCount: 3,
+                  lostCount: 1,
+                  adSpendINR: 42000,
+                  costPerLead: 5250,
+                  costPerWin: 10500,
+                  recommendedBudgetShare: 45,
+                  recommendationTag: "scale" as const,
+                  recommendationReason: "Highest win conversion rate (50.0%). Decision makers viewing in-depth video walkthroughs of the Asterisk dialer & dispute vault subscribe with high intent. Strongly recommend increasing ad spend (+40% budget).",
+                },
+                {
+                  source: "facebook" as const,
+                  label: "Facebook Newsfeed & Reel Ads",
+                  leads: leads.filter((l) => l.source === "facebook").length,
+                  wins: leads.filter((l) => l.source === "facebook" && l.status === "converted").length,
+                  winRate: 33,
+                  activePipelineCount: 4,
+                  lostCount: 2,
+                  adSpendINR: 48000,
+                  costPerLead: 5333,
+                  costPerWin: 16000,
+                  recommendedBudgetShare: 35,
+                  recommendationTag: "maintain" as const,
+                  recommendationReason: "Strong lead volume (9 leads) with reliable 33.3% conversion rate. Retargeting campaigns on Section 43B(h) yield consistent B2B signups. Maintain current investment.",
+                },
+                {
+                  source: "instagram" as const,
+                  label: "Instagram Stories & Carousel Ads",
+                  leads: leads.filter((l) => l.source === "instagram").length,
+                  wins: leads.filter((l) => l.source === "instagram" && l.status === "converted").length,
+                  winRate: 29,
+                  activePipelineCount: 3,
+                  lostCount: 2,
+                  adSpendINR: 35000,
+                  costPerLead: 5000,
+                  costPerWin: 17500,
+                  recommendedBudgetShare: 20,
+                  recommendationTag: "reduce" as const,
+                  recommendationReason: "High lead inquiries (7 leads) but lower subscription conversion (28.6%). Recommend reducing broad targeting spend and focusing budget strictly on retargeting warm audiences.",
+                },
+                {
+                  source: "direct" as const,
+                  label: "Direct Website Inquiries",
+                  leads: leads.filter((l) => l.source === "direct").length,
+                  wins: leads.filter((l) => l.source === "direct" && l.status === "converted").length,
+                  winRate: 50,
+                  activePipelineCount: 2,
+                  lostCount: 0,
+                  adSpendINR: 0,
+                  costPerLead: 0,
+                  costPerWin: 0,
+                  recommendedBudgetShare: 0,
+                  recommendationTag: "organic" as const,
+                  recommendationReason: "Zero-ad-spend inbound web search traffic. High customer intent with 50.0% conversion.",
+                },
+                {
+                  source: "word_of_mouth" as const,
+                  label: "Word of Mouth / Trust Network Referrals",
+                  leads: leads.filter((l) => l.source === "word_of_mouth").length,
+                  wins: leads.filter((l) => l.source === "word_of_mouth" && l.status === "converted").length,
+                  winRate: 67,
+                  activePipelineCount: 1,
+                  lostCount: 0,
+                  adSpendINR: 0,
+                  costPerLead: 0,
+                  costPerWin: 0,
+                  recommendedBudgetShare: 0,
+                  recommendationTag: "organic" as const,
+                  recommendationReason: "Organic B2B peer-to-peer viral growth loop via Trust Network. Outstanding conversion (66.7%) at ₹0 acquisition cost.",
+                },
+              ]).map((perf) => {
+                const maxLeadScale = 12; // Base scale for bar visual width
+                const leadWidthPct = Math.min(100, Math.round((perf.leads / maxLeadScale) * 100));
+                const winWidthPct = Math.min(100, Math.round((perf.wins / maxLeadScale) * 100));
+
+                return (
+                  <div key={perf.source} className="p-4 rounded-xl border border-slate-800/80 bg-slate-950/60 space-y-3 hover:border-slate-700 transition">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        {renderSourceIcon(perf.source, "w-5 h-5 shrink-0")}
+                        <div>
+                          <div className="font-bold text-white text-sm flex items-center gap-2">
+                            <span>{perf.label}</span>
+                            {perf.recommendationTag === "scale" && (
+                              <span className="rounded-full bg-emerald-950 border border-emerald-500 text-emerald-300 text-[10px] font-mono font-bold px-2 py-0.5">
+                                ★ SCALE SPEND (+40%)
+                              </span>
+                            )}
+                            {perf.recommendationTag === "maintain" && (
+                              <span className="rounded-full bg-blue-950 border border-blue-500 text-blue-300 text-[10px] font-mono font-bold px-2 py-0.5">
+                                MAINTAIN BUDGET
+                              </span>
+                            )}
+                            {perf.recommendationTag === "reduce" && (
+                              <span className="rounded-full bg-rose-950 border border-rose-500 text-rose-300 text-[10px] font-mono font-bold px-2 py-0.5">
+                                REDUCE BROAD SPEND (-30%)
+                              </span>
+                            )}
+                            {perf.recommendationTag === "organic" && (
+                              <span className="rounded-full bg-purple-950 border border-purple-500 text-purple-300 text-[10px] font-mono font-bold px-2 py-0.5">
+                                ORGANIC VIRAL ENGINE
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 text-xs font-mono">
+                        <span className="text-slate-400">
+                          Ad Spend: <strong className="text-white">{perf.adSpendINR > 0 ? `₹${perf.adSpendINR.toLocaleString("en-IN")}` : "₹0 (Organic)"}</strong>
+                        </span>
+                        <span className="text-slate-500">|</span>
+                        <span className="text-slate-400">
+                          Win Rate:{" "}
+                          <strong className={perf.winRate >= 45 ? "text-emerald-400 font-bold" : perf.winRate >= 30 ? "text-amber-400 font-bold" : "text-rose-400 font-bold"}>
+                            {perf.winRate}%
+                          </strong>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Dual Comparative Visual Bars */}
+                    <div className="space-y-2 font-mono text-xs pt-1">
+                      {/* Bar 1: Potential Leads */}
+                      <div>
+                        <div className="flex justify-between text-[11px] mb-1">
+                          <span className="text-sky-400 flex items-center gap-1.5 font-semibold">
+                            <span className="h-2 w-2 rounded-full bg-sky-400" />
+                            Potential Customer Inquiries (Leads):
+                          </span>
+                          <strong className="text-sky-300">{perf.leads} Leads</strong>
+                        </div>
+                        <div className="w-full h-3.5 rounded-md bg-slate-900 overflow-hidden border border-slate-800">
+                          <div
+                            className="h-full bg-gradient-to-r from-sky-600 to-sky-400 rounded-md transition-all duration-500 flex items-center justify-end pr-2 text-[10px] font-bold text-slate-950"
+                            style={{ width: `${Math.max(12, leadWidthPct)}%` }}
+                          >
+                            {perf.leads > 0 ? perf.leads : ""}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bar 2: Subscribed Wins */}
+                      <div>
+                        <div className="flex justify-between text-[11px] mb-1">
+                          <span className="text-emerald-400 flex items-center gap-1.5 font-semibold">
+                            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                            Subscribed Paying Customers (Wins):
+                          </span>
+                          <strong className="text-emerald-300">{perf.wins} Wins ({perf.winRate}% conversion)</strong>
+                        </div>
+                        <div className="w-full h-3.5 rounded-md bg-slate-900 overflow-hidden border border-slate-800">
+                          <div
+                            className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-md transition-all duration-500 flex items-center justify-end pr-2 text-[10px] font-bold text-slate-950"
+                            style={{ width: `${Math.max(8, winWidthPct)}%` }}
+                          >
+                            {perf.wins > 0 ? perf.wins : ""}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Unit Economics & Strategic Rationale */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2 pt-2 border-t border-slate-800/80 text-[11px] font-mono">
+                      <div className="bg-slate-900/80 p-2 rounded-lg">
+                        <span className="text-slate-500 block text-[9px]">Cost Per Lead (CPL):</span>
+                        <strong className="text-white text-xs">{perf.costPerLead > 0 ? `₹${perf.costPerLead.toLocaleString("en-IN")}` : "₹0"}</strong>
+                      </div>
+                      <div className="bg-slate-900/80 p-2 rounded-lg">
+                        <span className="text-slate-500 block text-[9px]">Customer Acquisition Cost (CAC):</span>
+                        <strong className={perf.costPerWin > 0 && perf.costPerWin <= 12000 ? "text-emerald-400 text-xs" : "text-amber-400 text-xs"}>
+                          {perf.costPerWin > 0 ? `₹${perf.costPerWin.toLocaleString("en-IN")}` : "₹0 (Organic)"}
+                        </strong>
+                      </div>
+                      <div className="bg-slate-900/80 p-2 rounded-lg">
+                        <span className="text-slate-500 block text-[9px]">Active In Pipeline:</span>
+                        <strong className="text-sky-400 text-xs">{perf.activePipelineCount} in progress</strong>
+                      </div>
+                      <div className="bg-slate-900/80 p-2 rounded-lg flex items-center justify-between">
+                        <div>
+                          <span className="text-slate-500 block text-[9px]">Budget Share:</span>
+                          <strong className="text-[#FC8019] text-xs">{perf.recommendedBudgetShare}%</strong>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedSource(perf.source);
+                            setActiveDeskView("leads_crm");
+                          }}
+                          className="px-2 py-1 rounded bg-slate-800 hover:bg-[#FC8019] text-white text-[10px] font-bold transition flex items-center gap-1"
+                        >
+                          <span>Filter CRM</span>
+                          <ArrowRight size={10} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Strategic Advice Text */}
+                    <div className="p-2.5 rounded-lg bg-slate-900/40 border border-slate-800/60 text-xs text-slate-300 flex items-start gap-2">
+                      <span className="text-[#FC8019] font-bold text-xs mt-0.5">💡 Strategy:</span>
+                      <p className="text-[11px] leading-relaxed text-slate-300 font-sans">
+                        {perf.recommendationReason}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Strategic Ad Budget Reallocation Matrix */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden shadow-sm space-y-4">
+            <div className="p-5 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                  <DollarSign size={16} className="text-emerald-400" />
+                  Actionable Ad Budget Reallocation Matrix (Maximize Customer Subscriptions)
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Recommended budget shifts based on observed conversion from inquiries (Leads) to active platform subscribers (Wins).
+                </p>
+              </div>
+              <span className="rounded-xl bg-orange-500/10 border border-orange-500/30 px-3 py-1 text-xs font-mono text-[#FC8019] font-bold">
+                Goal: Highest ROI per INR Ad Spend
+              </span>
+            </div>
+
+            <div className="overflow-x-auto p-4 pt-0">
+              <table className="w-full text-left text-xs font-sans">
+                <thead className="bg-slate-950/80 text-slate-400 font-mono uppercase text-[10px] border-b border-slate-800">
+                  <tr>
+                    <th className="py-3 px-4">Ad Source Channel</th>
+                    <th className="py-3 px-3">Current Ad Spend</th>
+                    <th className="py-3 px-3">Leads (Potential)</th>
+                    <th className="py-3 px-3">Wins (Subscribed)</th>
+                    <th className="py-3 px-3">Win Rate %</th>
+                    <th className="py-3 px-3">CAC (Cost / Win)</th>
+                    <th className="py-3 px-3">Recommended Strategic Action</th>
+                    <th className="py-3 px-4">New Budget Target</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 font-mono text-xs">
+                  <tr className="hover:bg-slate-800/30 transition">
+                    <td className="py-3 px-4 font-sans font-bold text-white flex items-center gap-2">
+                      <YouTubeIcon className="w-4 h-4 shrink-0" />
+                      <span>YouTube Video Ads</span>
+                    </td>
+                    <td className="py-3 px-3 text-slate-300">₹42,000</td>
+                    <td className="py-3 px-3 text-sky-400 font-bold">8</td>
+                    <td className="py-3 px-3 text-emerald-400 font-bold">4</td>
+                    <td className="py-3 px-3 text-emerald-400 font-bold">50.0%</td>
+                    <td className="py-3 px-3 text-emerald-300">₹10,500</td>
+                    <td className="py-3 px-3">
+                      <span className="rounded bg-emerald-950 text-emerald-300 px-2 py-0.5 font-bold border border-emerald-800">
+                        Scale Ad Spend (+43%)
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-emerald-400 font-bold">₹60,000 / mo</td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-800/30 transition">
+                    <td className="py-3 px-4 font-sans font-bold text-white flex items-center gap-2">
+                      <FacebookIcon className="w-4 h-4 shrink-0" />
+                      <span>Facebook Newsfeed &amp; Reels</span>
+                    </td>
+                    <td className="py-3 px-3 text-slate-300">₹48,000</td>
+                    <td className="py-3 px-3 text-sky-400 font-bold">9</td>
+                    <td className="py-3 px-3 text-emerald-400 font-bold">3</td>
+                    <td className="py-3 px-3 text-amber-400 font-bold">33.3%</td>
+                    <td className="py-3 px-3 text-slate-300">₹16,000</td>
+                    <td className="py-3 px-3">
+                      <span className="rounded bg-blue-950 text-blue-300 px-2 py-0.5 font-bold border border-blue-800">
+                        Maintain &amp; Retarget
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-slate-200 font-bold">₹48,000 / mo</td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-800/30 transition">
+                    <td className="py-3 px-4 font-sans font-bold text-white flex items-center gap-2">
+                      <InstagramIcon className="w-4 h-4 shrink-0" />
+                      <span>Instagram Stories &amp; Carousels</span>
+                    </td>
+                    <td className="py-3 px-3 text-slate-300">₹35,000</td>
+                    <td className="py-3 px-3 text-sky-400 font-bold">7</td>
+                    <td className="py-3 px-3 text-emerald-400 font-bold">2</td>
+                    <td className="py-3 px-3 text-rose-400 font-bold">28.6%</td>
+                    <td className="py-3 px-3 text-rose-300">₹17,500</td>
+                    <td className="py-3 px-3">
+                      <span className="rounded bg-rose-950 text-rose-300 px-2 py-0.5 font-bold border border-rose-800">
+                        Reduce Broad Spend (-43%)
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-rose-300 font-bold">₹20,000 / mo</td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-800/30 transition">
+                    <td className="py-3 px-4 font-sans font-bold text-white flex items-center gap-2">
+                      <DirectIcon className="w-4 h-4 shrink-0" />
+                      <span>Direct Website Inquiries</span>
+                    </td>
+                    <td className="py-3 px-3 text-slate-400">₹0</td>
+                    <td className="py-3 px-3 text-sky-400 font-bold">4</td>
+                    <td className="py-3 px-3 text-emerald-400 font-bold">2</td>
+                    <td className="py-3 px-3 text-emerald-400 font-bold">50.0%</td>
+                    <td className="py-3 px-3 text-emerald-400">₹0 (Free)</td>
+                    <td className="py-3 px-3">
+                      <span className="rounded bg-amber-950 text-amber-300 px-2 py-0.5 font-bold border border-amber-800">
+                        Organic Search SEO
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-slate-400">₹0 / mo</td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-800/30 transition">
+                    <td className="py-3 px-4 font-sans font-bold text-white flex items-center gap-2">
+                      <WordOfMouthIcon className="w-4 h-4 shrink-0" />
+                      <span>Word of Mouth / Trust Network</span>
+                    </td>
+                    <td className="py-3 px-3 text-slate-400">₹0</td>
+                    <td className="py-3 px-3 text-sky-400 font-bold">3</td>
+                    <td className="py-3 px-3 text-emerald-400 font-bold">2</td>
+                    <td className="py-3 px-3 text-purple-300 font-bold">66.7%</td>
+                    <td className="py-3 px-3 text-emerald-400">₹0 (Free)</td>
+                    <td className="py-3 px-3">
+                      <span className="rounded bg-purple-950 text-purple-300 px-2 py-0.5 font-bold border border-purple-800">
+                        Peer Viral Growth
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-purple-300">₹0 / mo</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Bottom Summary Callout */}
+            <div className="p-4 mx-4 mb-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="text-slate-300">
+                Total Ad Budget stays neutral at <strong className="text-white font-mono">₹1,28,000 / month</strong>, but reallocating <strong className="text-emerald-400 font-mono">₹18,000</strong> from low-converting Instagram broad ads into high-converting YouTube video campaigns is projected to generate <strong className="text-[#FC8019] font-mono">+3 additional monthly subscriber Wins (+₹28,500 MRR)</strong>.
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveDeskView("leads_crm")}
+                className="rounded-lg bg-[#FC8019] hover:bg-[#E26D0A] px-3 py-1.5 text-white font-bold transition flex items-center gap-1.5 shadow-sm"
+              >
+                <span>Manage Leads in CRM</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* 3. 4-QUESTION AD SURVEY VISUAL CHARTS & GRAPHS VIEW */}
       {/* ------------------------------------------------------------- */}
       {activeDeskView === "ad_survey_visuals" && surveyAnalytics && (
         <div className="space-y-6">

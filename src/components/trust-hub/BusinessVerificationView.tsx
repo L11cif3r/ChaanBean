@@ -59,7 +59,7 @@ export function BusinessVerificationView({ onVerifiedSuccess }: BusinessVerifica
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-950/40 px-3 py-1 text-[11px] font-semibold text-rose-400">
             <ShieldCheck size={14} />
-            <span>TrustHub — Centralised Business Verification</span>
+            <span>Trust Network — Centralised Business Verification</span>
           </div>
           <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight">
             Complete KYC verification for your business in one place

@@ -82,7 +82,7 @@ export function VerifyBusinessView({ initialTrustId = "" }: VerifyBusinessViewPr
     <div className="space-y-6">
       {/* Header */}
       <div className="border-b border-chaan-border pb-4">
-        <h2 className="text-xl font-bold text-white tracking-tight">TrustHub — Verify Business</h2>
+        <h2 className="text-xl font-bold text-white tracking-tight">Trust Network — Verify Business</h2>
         <p className="text-xs text-slate-400 mt-0.5">
           Check verified businesses on ChaanBean Platform using their Trust ID
         </p>

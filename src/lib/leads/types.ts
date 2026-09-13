@@ -1,4 +1,4 @@
-﻿export interface AdSurveyResponse {
+export interface AdSurveyResponse {
   hasGst: "Yes" | "No";
   organizationName: string;
   businessOnCredit: "Yes" | "No";
@@ -36,4 +36,20 @@ export interface InternalNoteItem {
   text: string;
   tag: string;
   timestamp: string;
+}
+
+export interface SourcePerformanceItem {
+  source: "facebook" | "instagram" | "youtube" | "direct" | "word_of_mouth";
+  label: string;
+  leads: number; // Potential customers
+  wins: number;  // Subscribed customers
+  winRate: number; // Win / Lead percentage
+  activePipelineCount: number;
+  lostCount: number;
+  adSpendINR: number;
+  costPerLead: number;
+  costPerWin: number;
+  recommendedBudgetShare: number; // Suggested budget % allocation
+  recommendationTag: "scale" | "maintain" | "reduce" | "organic";
+  recommendationReason: string;
 }
