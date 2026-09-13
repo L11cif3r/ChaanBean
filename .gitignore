@@ -33,6 +33,7 @@ yarn-error.log*
 *.db
 *.db-journal
 *.sqlite
+!prisma/seed.db
 
 # typescript
 *.tsbuildinfo
