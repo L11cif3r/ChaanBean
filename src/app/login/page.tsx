@@ -99,7 +99,7 @@ export default function LoginPage() {
           localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "client", user: data.user }));
           document.cookie = "chaanbean_session=client; path=/; max-age=86400";
           document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
-          setTimeout(() => router.push("/"), 700);
+          setTimeout(() => router.push("/dashboard"), 700);
         } else {
           // Register client
           const res = await fetch("/api/auth", {
@@ -124,7 +124,7 @@ export default function LoginPage() {
           localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "client", user: data.user }));
           document.cookie = "chaanbean_session=client; path=/; max-age=86400";
           document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
-          setTimeout(() => router.push("/"), 700);
+          setTimeout(() => router.push("/dashboard"), 700);
         }
       } else {
         // Admin portal

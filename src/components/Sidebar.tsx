@@ -30,12 +30,12 @@ export function Sidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
 
-  if (pathname.startsWith("/admin") || pathname === "/intro" || pathname === "/login") {
+  if (pathname.startsWith("/admin") || pathname === "/intro" || pathname === "/login" || pathname === "/subscription") {
     return null;
   }
 
   const coreNav = [
-    { href: "/", label: t.dashboard, icon: LayoutDashboard },
+    { href: "/dashboard", label: t.dashboard, icon: LayoutDashboard },
     { href: "/debtors", label: t.debtors, icon: UserCircle, badge: "Portfolio" },
     { href: "/background-check", label: t.backgroundCheck, icon: Search, badge: "11 APIs" },
     { href: "/payment-recovery", label: t.paymentRecovery, icon: Phone, badge: "Voice AI" },
@@ -62,7 +62,7 @@ export function Sidebar() {
     <aside className="flex w-64 flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0D1322] text-slate-800 dark:text-slate-100 shrink-0">
       {/* Brand Header */}
       <div className="border-b border-slate-200 dark:border-slate-800 px-6 py-5">
-        <Link href="/" className="flex items-center gap-3 group">
+        <Link href="/dashboard" className="flex items-center gap-3 group">
           <div className="relative h-9 w-12 shrink-0 group-hover:scale-105 transition-transform">
             <Image src="/logo.png" alt="ChaanBean Logo" fill className="object-contain" priority />
           </div>

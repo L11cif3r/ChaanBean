@@ -4,8 +4,13 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // If opening the platform at root "/" without active subscription or session, redirect to /subscription
+  // Always display the subscription page first when opening the platform at root "/"
   if (pathname === "/") {
+    return NextResponse.redirect(new URL("/subscription", request.url));
+  }
+
+  // Protect /dashboard and ensure active subscription or session
+  if (pathname.startsWith("/dashboard")) {
     const subCookie = request.cookies.get("chaanbean_subscription");
     const sessionCookie = request.cookies.get("chaanbean_session");
 
@@ -21,5 +26,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/"],
+  matcher: ["/", "/dashboard/:path*"],
 };
