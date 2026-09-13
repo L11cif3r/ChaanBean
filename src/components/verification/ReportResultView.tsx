@@ -1206,7 +1206,7 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
       }
 
       // -------------------------------------------------------------
-      // TRUST HUB & TRUST ID VERIFICATION
+      // TRUST NETWORK & TRUST ID VERIFICATION
       // -------------------------------------------------------------
       case "trust_hub_verification": {
         const trustId = (data.trustId as string) || "TRUST-CB-001";

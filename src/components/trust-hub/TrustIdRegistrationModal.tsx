@@ -122,7 +122,7 @@ export function TrustIdRegistrationModal({
             <ShieldCheck size={22} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white">TrustHub — Business Verification Wizard</h3>
+            <h3 className="text-lg font-bold text-white">Trust Network — Business Verification Wizard</h3>
             <p className="text-xs text-slate-400">
               Complete KYC verification and mint your official shareable Trust ID
             </p>
@@ -479,7 +479,7 @@ export function TrustIdRegistrationModal({
                 }}
                 className="rounded-xl bg-[#FC8019] px-6 py-2.5 text-xs font-semibold text-white hover:bg-[#E26D0A] transition"
               >
-                View in Trust Hub
+                View in Trust Network
               </button>
             </div>
           </div>

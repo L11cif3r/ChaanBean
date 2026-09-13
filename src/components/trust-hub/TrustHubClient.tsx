@@ -72,7 +72,7 @@ export function TrustHubClient({
           }`}
         >
           <LayoutGrid size={15} />
-          <span>Trust Hub Overview</span>
+          <span>Trust Network Overview</span>
         </button>
 
         <button

@@ -20,11 +20,10 @@ export interface RiskScoreResult {
 }
 
 const WEIGHTS = {
-  turnover: 15,
-  gstCompliance: 20,
+  turnover: 20,
+  gstFilings: 25,
   bureau: 30,
   litigation: 15,
-  network: 10,
   identity: 5,
   standing: 5,
 };
@@ -49,32 +48,35 @@ function scoreTurnover(reports: NormalizedReport[]): SignalBreakdown {
   };
 }
 
-function scoreGstCompliance(reports: NormalizedReport[]): SignalBreakdown {
-  const r = reports.find((x) => x.reportType === "gst_supreme_report");
+function scoreGstFilings(reports: NormalizedReport[]): SignalBreakdown {
+  const r = reports.find((x) => x.reportType === "gst_monthly_filings" || x.reportType === "gst_exact_turnover");
   if (r?.status === "pending") {
     return {
-      signal: "GST compliance",
-      source: "GST Supreme Report",
-      weight: WEIGHTS.gstCompliance,
+      signal: "GSTR-3B filing regularity",
+      source: "GSTN Public Filing Registry",
+      weight: WEIGHTS.gstFilings,
       subScore: 50,
       maxScore: 100,
-      effect: "Pending OTP — provisional neutral score",
+      effect: "Pending verification — provisional neutral score",
       ruleId: "RS-GST-PENDING",
     };
   }
-  const consistency = r?.data?.filingConsistency as string;
-  const mismatches = Boolean(r?.data?.mismatches);
+
+  const filingStatus = (r?.data?.filingStatus as string) ?? "regular";
+  const lateReturns = Number(r?.data?.lateReturnsCount ?? 0);
   let sub = 85;
-  if (consistency === "lapses") sub = 40;
-  if (mismatches) sub = Math.min(sub, 25);
+  if (lateReturns >= 3) sub = 35;
+  else if (lateReturns >= 1) sub = 60;
+  else if (filingStatus === "regular") sub = 90;
+
   return {
-    signal: "GST compliance",
-    source: "GST Supreme Report",
-    weight: WEIGHTS.gstCompliance,
+    signal: "GSTR-3B filing regularity",
+    source: "GSTN Public Filing Registry",
+    weight: WEIGHTS.gstFilings,
     subScore: sub,
     maxScore: 100,
-    effect: mismatches ? "Filing mismatches detected" : `${consistency ?? "unknown"} filings`,
-    ruleId: "RS-GST-002",
+    effect: lateReturns > 0 ? `${lateReturns} delayed GSTR-3B returns logged` : "Consistent on-time monthly filings",
+    ruleId: "RS-GST-REG-001",
   };
 }
 
@@ -116,19 +118,6 @@ function scoreLitigation(reports: NormalizedReport[]): SignalBreakdown {
     maxScore: 100,
     effect: active > 0 || firRegistered ? "Active/unresolved cases — hard flag" : "Clean",
     ruleId: "RS-LIT-001",
-  };
-}
-
-function scoreNetwork(peerDefaults: number): SignalBreakdown {
-  const sub = peerDefaults > 0 ? 10 : 90;
-  return {
-    signal: "Network reputation",
-    source: "Trust Hub peer reports",
-    weight: WEIGHTS.network,
-    subScore: sub,
-    maxScore: 100,
-    effect: peerDefaults > 0 ? `${peerDefaults} peer-reported default(s) — strong Red signal` : "No peer defaults",
-    ruleId: "RS-TRUST-001",
   };
 }
 
@@ -182,10 +171,9 @@ export function computeRiskScore(
 ): RiskScoreResult {
   const signals = [
     scoreTurnover(reports),
-    scoreGstCompliance(reports),
+    scoreGstFilings(reports),
     scoreBureau(reports),
     scoreLitigation(reports),
-    scoreNetwork(options?.peerReportedDefaults ?? 0),
     scoreIdentity(reports),
     scoreStanding(reports),
   ];
@@ -199,12 +187,10 @@ export function computeRiskScore(
 
   // Hard overrides
   const litigation = signals.find((s) => s.signal === "Litigation exposure");
-  const network = signals.find((s) => s.signal === "Network reputation");
   const bureau = signals.find((s) => s.signal === "Bureau score");
 
   let flag: RiskFlagColor = "green";
   if (
-    (network && network.subScore <= 20) ||
     (litigation && litigation.subScore <= 20) ||
     compositeScore < 45 ||
     (bureau && bureau.subScore <= 25)

@@ -49,6 +49,17 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  // Pre-fill email from query parameters (if directed from "Already a customer?" on subscription page)
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const emailParam = params.get("email");
+      if (emailParam) {
+        setClientEmail(emailParam);
+      }
+    }
+  }, []);
+
   // Quick fill sample credentials
   const fillSampleClient = () => {
     setClientEmail("trade.ops@acmetraders.in");
@@ -83,11 +94,12 @@ export default function LoginPage() {
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || "Login failed");
 
-          setSuccessMsg(`Welcome back, ${data.user?.name || "Client"}! Redirecting...`);
+          setSuccessMsg(`Welcome back, ${data.user?.name || "Client"}! Redirecting to Dashboard...`);
           sessionStorage.setItem("chaanbean_session_active", "true");
           localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "client", user: data.user }));
           document.cookie = "chaanbean_session=client; path=/; max-age=86400";
-          setTimeout(() => router.push("/"), 700);
+          document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
+          setTimeout(() => router.push("/dashboard"), 700);
         } else {
           // Register client
           const res = await fetch("/api/auth", {
@@ -111,7 +123,8 @@ export default function LoginPage() {
           sessionStorage.setItem("chaanbean_session_active", "true");
           localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "client", user: data.user }));
           document.cookie = "chaanbean_session=client; path=/; max-age=86400";
-          setTimeout(() => router.push("/"), 700);
+          document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
+          setTimeout(() => router.push("/dashboard"), 700);
         }
       } else {
         // Admin portal
@@ -133,6 +146,7 @@ export default function LoginPage() {
           localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "admin", user: data.user }));
           localStorage.setItem("chaanbean_admin_role", data.user?.role || "owner");
           document.cookie = "chaanbean_session=admin; path=/; max-age=86400";
+          document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
           setTimeout(() => router.push("/admin"), 700);
         } else {
           // Register admin
@@ -155,6 +169,7 @@ export default function LoginPage() {
           localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "admin", user: data.user }));
           localStorage.setItem("chaanbean_admin_role", data.user?.role || "owner");
           document.cookie = "chaanbean_session=admin; path=/; max-age=86400";
+          document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
           setTimeout(() => router.push("/admin"), 700);
         }
       }
@@ -615,21 +630,22 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Bottom Link to Intro */}
-        <div className="mt-6 pt-4 border-t border-slate-800 text-center flex items-center justify-center gap-4">
+        {/* Bottom Link to Intro & Subscription */}
+        <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 text-center flex flex-wrap items-center justify-center gap-4 text-xs">
+          <Link
+            href="/subscription"
+            className="flex items-center gap-1.5 font-bold text-[#FC8019] hover:text-[#E26D0A] transition"
+          >
+            <span>Need a plan? View Subscriptions</span>
+            <ArrowRight size={13} />
+          </Link>
+          <span className="text-slate-300 dark:text-slate-700">·</span>
           <Link
             href="/intro"
-            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#FC8019] transition"
+            className="flex items-center gap-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition"
           >
-            <RotateCcw size={13} />
-            <span>Watch Intro Animation</span>
-          </Link>
-          <span className="text-slate-700">·</span>
-          <Link
-            href="/"
-            className="text-xs text-slate-400 hover:text-white transition"
-          >
-            Enter as Guest
+            <RotateCcw size={12} />
+            <span>Watch Intro</span>
           </Link>
         </div>
       </div>

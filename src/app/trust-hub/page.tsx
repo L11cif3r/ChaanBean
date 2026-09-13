@@ -22,7 +22,7 @@ export default async function TrustHubPage() {
       fallback={
         <div className="p-8 text-center text-slate-400">
           <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent mb-2" />
-          <p className="text-xs">Loading Trust Hub & Network...</p>
+          <p className="text-xs">Loading Trust Network...</p>
         </div>
       }
     >

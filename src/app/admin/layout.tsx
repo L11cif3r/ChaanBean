@@ -36,6 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { href: "/admin", label: "Executive Overview", icon: LayoutDashboard },
+    { href: "/admin/leads", label: "Leads & Ad Funnel", icon: TrendingUp },
     { href: "/admin/pipeline", label: "Sales Pipeline (CRM)", icon: GitPullRequest },
     { href: "/admin/customers", label: "Customer Engagement", icon: Users2 },
     { href: "/admin/marketing", label: "Marketing & Attribution", icon: TrendingUp },

@@ -185,7 +185,7 @@ const ADAPTER_CONFIGS: Record<ReportType, AdapterConfig> = {
   },
   trust_hub_verification: {
     reportType: "trust_hub_verification",
-    title: "Trust Hub & Trust ID Verification",
+    title: "Trust Network & Trust ID Verification",
     category: "Trust Network & Identity",
     description: "Enterprise Trust ID verification, 0-100 credibility scoring, peer default registry check, and cryptographic seals.",
     primaryInputLabel: "GSTIN / PAN / Trust ID",

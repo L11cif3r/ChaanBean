@@ -24,7 +24,7 @@ export async function POST(req: Request) {
         debtorPan: debtorPan || null,
         amountDefaulted: parseFloat(amountDefaulted),
         defaultDate: defaultDate ? new Date(defaultDate) : new Date(),
-        notes: notes || "Peer-reported commercial default via Trust Hub network",
+        notes: notes || "Peer-reported commercial default via Trust Network",
         verified: true,
       },
     });
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Community default of ₹${parseFloat(amountDefaulted).toLocaleString("en-IN")} published to Trust Hub. Associated risk flags updated.`,
+      message: `Community default of ₹${parseFloat(amountDefaulted).toLocaleString("en-IN")} published to Trust Network. Associated risk flags updated.`,
       defaultId: record.id,
     });
   } catch (error) {

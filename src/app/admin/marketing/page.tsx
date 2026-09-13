@@ -69,7 +69,7 @@ export default async function AdminMarketingPage() {
             <h1 className="text-2xl font-bold text-white tracking-tight">Marketing Attribution & Funnels</h1>
           </div>
           <p className="mt-1 text-sm text-slate-400">
-            Channel conversion performance, campaign-level CPL & CAC, multi-stage funnel, and Trust Hub viral referrals.
+            Channel conversion performance, campaign-level CPL & CAC, multi-stage funnel, and Trust Network viral referrals.
           </p>
         </div>
       </div>
@@ -92,7 +92,7 @@ export default async function AdminMarketingPage() {
           subtitle="Revenue closed from marketing leads"
         />
         <SummaryCard
-          title="Trust Hub Viral Referrals"
+          title="Trust Network Viral Referrals"
           value={trustHubAttributions.length}
           subtitle="Company-to-company viral invites"
         />
@@ -183,17 +183,17 @@ export default async function AdminMarketingPage() {
         </div>
       </section>
 
-      {/* Trust Hub Viral Peer Referral Engine */}
+      {/* Trust Network Viral Peer Referral Engine */}
       <section className="rounded-xl border border-emerald-900/50 bg-emerald-950/20 p-6 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-emerald-400">
             <Share2 size={18} />
-            <h2 className="text-sm font-semibold text-white">Trust Hub Peer-to-Peer Viral Growth</h2>
+            <h2 className="text-sm font-semibold text-white">Trust Network Peer-to-Peer Viral Growth</h2>
           </div>
           <span className="text-xs font-mono text-emerald-400 font-bold">Virality Coeff (K-Factor): 1.34</span>
         </div>
         <p className="text-xs text-slate-300">
-          When customer companies onboard vendors or verify counterparties, counterparties opt into the Trust Hub network.
+          When customer companies onboard vendors or verify counterparties, counterparties opt into the Trust Network.
           This turns verification into an organic acquisition loop with ₹0 customer acquisition cost.
         </p>
         <div className="grid gap-3 sm:grid-cols-3 pt-2 font-mono text-xs">

@@ -81,9 +81,9 @@ export async function GET() {
   const featureAdoption = [
     { module: "Verification Gateway & Risk Engine", adoptedCount: companiesUsingVerification, adoptionRatePct: Math.round((companiesUsingVerification / totalCompaniesCount) * 100) },
     { module: "Payment Recovery & Voice Dialing", adoptedCount: companiesUsingRecovery, adoptionRatePct: Math.round((companiesUsingRecovery / totalCompaniesCount) * 100) },
-    { module: "Trust Hub & Community Defaults", adoptedCount: companiesUsingTrustHub, adoptionRatePct: Math.round((companiesUsingTrustHub / totalCompaniesCount) * 100) },
+    { module: "Trust Network & Community Defaults", adoptedCount: companiesUsingTrustHub, adoptionRatePct: Math.round((companiesUsingTrustHub / totalCompaniesCount) * 100) },
     { module: "Vendor Registration & Bulk KYC", adoptedCount: companiesUsingVendors, adoptionRatePct: Math.round((companiesUsingVendors / totalCompaniesCount) * 100) },
-    { module: "Arbitration Center", adoptedCount: companiesUsingArbitration, adoptionRatePct: Math.round((companiesUsingArbitration / totalCompaniesCount) * 100) },
+    { module: "Dispute Resolution Center", adoptedCount: companiesUsingArbitration, adoptionRatePct: Math.round((companiesUsingArbitration / totalCompaniesCount) * 100) },
   ];
 
   // Wallet usage breakdown by report type directly from database

@@ -1,4 +1,4 @@
-# ChaanBean — MSME Credit Intelligence, Business Verification & Recovery Platform
+# ChaanBean — MSME Credit Intelligence, Business Verification & Recovery Platform 
 
 [![Next.js 15](https://img.shields.io/badge/Next.js-15.2.4-black?style=flat&logo=next.js)](https://nextjs.org/)
 [![React 19](https://img.shields.io/badge/React-19.0.0-blue?style=flat&logo=react)](https://react.dev/)

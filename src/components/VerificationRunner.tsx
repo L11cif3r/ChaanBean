@@ -147,8 +147,8 @@ export const ALL_18_FEATURE_TABS: FeatureTabDef[] = [
   {
     key: "trust_hub_verification",
     num: 7,
-    label: "Trust Hub and Trust ID",
-    shortLabel: "Trust Hub & ID",
+    label: "Trust Network and Trust ID",
+    shortLabel: "Trust Network & ID",
     reportTypes: ["trust_hub_verification"],
     category: "Corporate & Identity",
     description: "Digital Trust ID certificate (TRUST-CB-XXXX), credibility score (0–1000), compliance seals, and peer default registry check.",

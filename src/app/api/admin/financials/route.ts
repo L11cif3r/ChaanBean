@@ -57,7 +57,7 @@ export async function GET(req: Request) {
     { module: "Background Check & Verification Gateway", sharePct: verificationShare, revenueINR: Math.round((latest.grossRevenue * verificationShare) / 100) },
     { module: "Payment Recovery & Voice Outbound Engine", sharePct: recoveryShare, revenueINR: Math.round((latest.grossRevenue * recoveryShare) / 100) },
     { module: "Vendor Registration & Bulk KYC", sharePct: vendorShare, revenueINR: Math.round((latest.grossRevenue * vendorShare) / 100) },
-    { module: "Trust Hub & Community Defaults", sharePct: trustHubShare, revenueINR: Math.round((latest.grossRevenue * trustHubShare) / 100) },
+    { module: "Trust Network & Community Defaults", sharePct: trustHubShare, revenueINR: Math.round((latest.grossRevenue * trustHubShare) / 100) },
   ];
 
   // Weighted Pipeline contribution to next month forecast

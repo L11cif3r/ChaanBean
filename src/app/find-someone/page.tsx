@@ -122,7 +122,7 @@ export default function FindSomeonePage() {
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-[#FC8019] hover:border-orange-200 transition shadow-sm"
             >
               <ShieldCheck size={14} className="text-emerald-500" />
-              <span>Trust Hub Registry</span>
+              <span>Trust Network Registry</span>
             </Link>
             <Link
               href="/payment-recovery"
