@@ -10,7 +10,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const isAdmin = pathname.startsWith("/admin");
-  const isAuthOrIntro = pathname === "/intro" || pathname === "/login";
+  const isAuthOrIntro = pathname === "/intro" || pathname === "/login" || pathname === "/subscription";
 
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const [mounted, setMounted] = useState<boolean>(false);
@@ -26,15 +26,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     // Check if active session exists in current browser
     const sessionActive = sessionStorage.getItem("chaanbean_session_active");
     const authUser = localStorage.getItem("chaanbean_auth");
+    const hasSubCookie = typeof document !== "undefined" && document.cookie.includes("chaanbean_subscription=active");
+    const hasSessionCookie = typeof document !== "undefined" && (document.cookie.includes("chaanbean_session=client") || document.cookie.includes("chaanbean_session=admin"));
 
-    if (!sessionActive || !authUser) {
-      // Auto-prime guest/demo session for direct access, testing, and bookmarks
-      sessionStorage.setItem("chaanbean_session_active", "true");
-      localStorage.setItem("chaanbean_auth", JSON.stringify({
-        type: "client",
-        user: { id: "demo-client", name: "Acme Industrial Traders", email: "operations@acmetraders.in" }
-      }));
-      setIsAuthorized(true);
+    if ((!sessionActive && !authUser) || (!hasSubCookie && !hasSessionCookie)) {
+      router.push("/subscription");
     } else {
       setIsAuthorized(true);
     }

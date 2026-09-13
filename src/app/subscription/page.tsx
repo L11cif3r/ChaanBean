@@ -22,6 +22,7 @@ import {
   X,
   ShieldCheck,
   Award,
+  UserCheck,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -103,11 +104,53 @@ export default function SubscriptionPage() {
   });
 
   const [selectedPlan, setSelectedPlan] = useState<PlanTier>(PLANS[1]);
+  const [customerInput, setCustomerInput] = useState<string>("");
   const [gatewayOpen, setGatewayOpen] = useState(false);
   const [paymentTab, setPaymentTab] = useState<"upi" | "card" | "netbanking" | "neft">("upi");
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [txnDetails, setTxnDetails] = useState<{ txnId: string; timestamp: string } | null>(null);
+
+  const handleGoToLogin = () => {
+    const trimmed = customerInput.trim();
+    if (trimmed) {
+      router.push(`/login?email=${encodeURIComponent(trimmed)}`);
+    } else {
+      router.push("/login");
+    }
+  };
+
+  const handleQuickDemoLogin = () => {
+    if (typeof window !== "undefined") {
+      document.cookie = "chaanbean_session=client; path=/; max-age=86400";
+      document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
+      sessionStorage.setItem("chaanbean_session_active", "true");
+      localStorage.setItem(
+        "chaanbean_auth",
+        JSON.stringify({
+          type: "client",
+          user: {
+            id: "demo-client-101",
+            name: "Acme Industrial Traders",
+            email: "trade.ops@acmetraders.in",
+            companyName: "Acme Traders Pvt Ltd",
+          },
+        })
+      );
+      localStorage.setItem(
+        "chaanbean_subscription",
+        JSON.stringify({
+          active: true,
+          planId: "growth",
+          planName: "Growth Plan (Verified Customer)",
+          paidAmount: 14999,
+          txnId: "CUSTOMER-LOGIN-ACTIVE",
+          paidAt: new Date().toISOString(),
+        })
+      );
+    }
+    router.push("/");
+  };
 
   // Fetch dynamic pricing from backend engine so owner modifications immediately take effect
   useEffect(() => {
@@ -148,8 +191,23 @@ export default function SubscriptionPage() {
       setTxnDetails({ txnId, timestamp });
       setPaymentSuccess(true);
 
-      // Save active subscription in localStorage and cookie
+      // Save active subscription and authenticated session in localStorage and cookie
       if (typeof window !== "undefined") {
+        document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
+        document.cookie = "chaanbean_session=client; path=/; max-age=86400";
+        sessionStorage.setItem("chaanbean_session_active", "true");
+        localStorage.setItem(
+          "chaanbean_auth",
+          JSON.stringify({
+            type: "client",
+            user: {
+              id: "sub-user-active",
+              name: "Subscribed Enterprise Client",
+              email: "operations@acmetraders.in",
+              companyName: "Acme Traders Pvt Ltd",
+            },
+          })
+        );
         localStorage.setItem(
           "chaanbean_subscription",
           JSON.stringify({
@@ -161,7 +219,6 @@ export default function SubscriptionPage() {
             paidAt: timestamp,
           })
         );
-        document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
       }
 
       // Automatically forward to platform dashboard after 2 seconds
@@ -174,6 +231,15 @@ export default function SubscriptionPage() {
   const handleExploreBypass = () => {
     if (typeof window !== "undefined") {
       document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
+      document.cookie = "chaanbean_session=client; path=/; max-age=86400";
+      sessionStorage.setItem("chaanbean_session_active", "true");
+      localStorage.setItem(
+        "chaanbean_auth",
+        JSON.stringify({
+          type: "client",
+          user: { id: "demo-client", name: "Acme Industrial Traders", email: "operations@acmetraders.in" },
+        })
+      );
       localStorage.setItem(
         "chaanbean_subscription",
         JSON.stringify({
@@ -207,31 +273,124 @@ export default function SubscriptionPage() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={handleExploreBypass}
-            className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-[#FC8019] transition underline"
+        <div className="flex items-center gap-3">
+          <Link
+            href="/login"
+            className="flex items-center gap-1.5 rounded-xl border border-[#FC8019]/40 bg-orange-50 dark:bg-orange-500/10 px-3.5 py-1.5 text-xs font-bold text-[#FC8019] hover:bg-orange-100 dark:hover:bg-orange-500/20 transition shadow-sm"
           >
-            Bypass / Explore Demo Mode →
-          </button>
+            <UserCheck size={14} />
+            <span>Already a user? Log In</span>
+            <ArrowRight size={13} />
+          </Link>
           <ThemeToggle />
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
-        <div className="text-center space-y-3 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 text-[#FC8019] text-xs font-mono font-semibold">
-            <Sparkles size={14} />
-            <span>Enterprise Gateway Onboarding</span>
+      {/* Hero & Side Input Section */}
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch max-w-6xl mx-auto">
+          {/* Left Column: Headline & Value Propositions */}
+          <div className="lg:col-span-7 flex flex-col justify-center space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 text-[#FC8019] text-xs font-mono font-semibold w-fit">
+              <Sparkles size={14} />
+              <span>Enterprise Gateway Onboarding</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+              Choose Your Credit &amp; Recovery Hub Subscription
+            </h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+              Select a plan to access India&apos;s most advanced statutory B2B credit scoring and debt recovery platform. Powered by 18 public verification gateways, Asterisk voice recovery, and fast-track dispute decrees.
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 pt-2 font-mono text-xs text-slate-600 dark:text-slate-300">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={16} className="text-emerald-500 shrink-0" />
+                <span>18 Public Gateways</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <PhoneCall size={16} className="text-[#FC8019] shrink-0" />
+                <span>Asterisk Cadence Dialer</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Scale size={16} className="text-blue-500 shrink-0" />
+                <span>Statutory §43B(h) Notices</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Award size={16} className="text-purple-500 shrink-0" />
+                <span>Section 65B Legal Proof</span>
+              </div>
+            </div>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            Choose Your Credit &amp; Recovery Hub Subscription
-          </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-            Select a plan to access India&apos;s most advanced statutory B2B credit scoring and debt recovery platform. Powered by 18 public verification gateways, Asterisk voice recovery, and fast-track dispute decrees.
-          </p>
+
+          {/* Right Column: "Already a customer?" Side Input Card */}
+          <div className="lg:col-span-5">
+            <div className="h-full rounded-2xl border-2 border-orange-500/30 dark:border-orange-500/40 bg-white dark:bg-slate-900/90 p-6 shadow-xl shadow-orange-500/5 flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="rounded-full bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 px-2.5 py-0.5 text-[10px] font-mono text-[#FC8019] uppercase font-bold tracking-wider">
+                    Existing Account
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">Instant Access</span>
+                </div>
+
+                <div className="flex items-center gap-2.5 pt-1">
+                  <div className="h-10 w-10 rounded-xl bg-orange-50 dark:bg-orange-500/15 text-[#FC8019] flex items-center justify-center font-bold shrink-0">
+                    <UserCheck size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Already a customer?</h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                      Sign in to access your registered enterprise dashboard and recovery cases.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 pt-1">
+                  <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block font-mono uppercase tracking-wider">
+                    Registered Email or Phone
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      placeholder="e.g. trade.ops@acmetraders.in"
+                      value={customerInput}
+                      onChange={(e) => setCustomerInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleGoToLogin();
+                      }}
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-[#FC8019] focus:ring-1 focus:ring-[#FC8019] transition"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGoToLogin}
+                  className="w-full py-2.5 rounded-xl bg-[#FC8019] hover:bg-[#E26D0A] text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-md shadow-orange-500/20"
+                >
+                  <span>Already a user? Login</span>
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-mono">
+                  <span className="text-slate-500 dark:text-slate-400">Sample Account:</span>
+                  <button
+                    type="button"
+                    onClick={handleQuickDemoLogin}
+                    className="text-[#FC8019] font-bold hover:underline flex items-center gap-1"
+                  >
+                    <span>1-Click Demo Login</span>
+                    <ArrowRight size={11} />
+                  </button>
+                </div>
+                <div className="text-[10px] text-slate-400 font-mono text-center">
+                  256-bit SSL Encrypted · Direct Dashboard Redirection
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Pricing Cards Grid */}

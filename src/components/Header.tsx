@@ -89,7 +89,9 @@ export function Header() {
           onClick={() => {
             sessionStorage.removeItem("chaanbean_session_active");
             localStorage.removeItem("chaanbean_auth");
+            localStorage.removeItem("chaanbean_subscription");
             document.cookie = "chaanbean_session=; path=/; max-age=0";
+            document.cookie = "chaanbean_subscription=; path=/; max-age=0";
           }}
           className="flex items-center gap-1.5 rounded-lg border border-[#FC8019]/40 bg-orange-50 dark:bg-orange-500/15 px-3 py-1.5 text-xs font-semibold text-[#FC8019] hover:bg-orange-100 dark:hover:bg-orange-500/25 transition shadow-sm"
           title="Switch User or Admin Account"

@@ -33,7 +33,12 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const cookieStore = await cookies();
   const subCookie = cookieStore.get("chaanbean_subscription");
-  if (!subCookie || subCookie.value !== "active") {
+  const sessionCookie = cookieStore.get("chaanbean_session");
+
+  const isSubscribed = subCookie && subCookie.value === "active";
+  const isLoggedIn = sessionCookie && (sessionCookie.value === "client" || sessionCookie.value === "admin");
+
+  if (!isSubscribed && !isLoggedIn) {
     redirect("/subscription");
   }
 
