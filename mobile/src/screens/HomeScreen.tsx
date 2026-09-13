@@ -31,11 +31,32 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </View>
           <View style={[styles.statusBadge, { backgroundColor: theme.greenBg, borderColor: theme.greenBorder }]}>
             <View style={[styles.statusDot, { backgroundColor: theme.green }]} />
-            <Text style={[styles.statusText, { color: theme.green }]}>11 Adapters Active</Text>
+            <Text style={[styles.statusText, { color: theme.green }]}>18 Adapters Active</Text>
           </View>
         </View>
 
-        <Text style={[styles.heroSummary, { color: theme.textMuted }]}>
+        {/* Subscription Tier Banner */}
+        <TouchableOpacity
+          onPress={() => onOpenHubSubscreen("subscription")}
+          style={[styles.subBanner, { backgroundColor: theme.surfaceSecondary, borderColor: theme.brand + "30" }]}
+        >
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 2 }}>
+              <View style={[styles.planPill, { backgroundColor: theme.brand }]}>
+                <Text style={styles.planPillText}>GROWTH PLAN</Text>
+              </View>
+              <Text style={[styles.subStatusText, { color: theme.green }]}>Active Subscription</Text>
+            </View>
+            <Text style={[styles.subDetailText, { color: theme.textMuted }]}>
+              5 Seats Included · 250 Checks/mo · OmniTrace 360™ · Legal Notices Suite
+            </Text>
+          </View>
+          <View style={styles.upgradeBtn}>
+            <Text style={[styles.upgradeText, { color: theme.brand }]}>Manage Tier →</Text>
+          </View>
+        </TouchableOpacity>
+
+        <Text style={[styles.heroSummary, { color: theme.textMuted, marginTop: 10 }]}>
           Real-time trade receivables monitoring · Deterministic Green/Amber/Red underwriting · TRAI-compliant tele-recovery
         </Text>
       </View>
@@ -242,6 +263,40 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 10,
     fontWeight: "700",
+  },
+  subBanner: {
+    marginTop: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  planPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  planPillText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "900",
+  },
+  subStatusText: {
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  subDetailText: {
+    fontSize: 10,
+    marginTop: 2,
+  },
+  upgradeBtn: {
+    marginLeft: 8,
+  },
+  upgradeText: {
+    fontSize: 11,
+    fontWeight: "800",
   },
   heroSummary: {
     fontSize: 11,

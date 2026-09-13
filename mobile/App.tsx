@@ -14,12 +14,15 @@ import { ArbitrationScreen } from "./src/screens/ArbitrationScreen";
 import { TrustHubScreen } from "./src/screens/TrustHubScreen";
 import { AdminOSScreen } from "./src/screens/AdminOSScreen";
 import { SettingsScreen } from "./src/screens/SettingsScreen";
+import { SubscriptionScreen } from "./src/screens/SubscriptionScreen";
 
 function MainApp() {
   const { theme, isDark } = useTheme();
   const [currentTab, setCurrentTab] = useState<TabKey>("home");
   const [activeSubscreen, setActiveSubscreen] = useState<string | null>(null);
   const [targetBuyerId, setTargetBuyerId] = useState<string | undefined>(undefined);
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(true);
+  const [loggedInCustomer, setLoggedInCustomer] = useState<string | null>("trade.ops@acmetraders.in");
 
   const handleSelectTab = (tab: TabKey) => {
     setActiveSubscreen(null);
@@ -39,7 +42,10 @@ function MainApp() {
   let headerTitle = "ChaanBean";
   let headerSub = "MSME Credit & Recovery";
 
-  if (activeSubscreen === "debtors") {
+  if (activeSubscreen === "subscription") {
+    headerTitle = "Subscription Gateway";
+    headerSub = "3-Step Enterprise Onboarding";
+  } else if (activeSubscreen === "debtors") {
     headerTitle = "Debtors Portfolio";
     headerSub = "Green / Amber / Red Underwriting";
   } else if (activeSubscreen === "business-check") {
@@ -53,7 +59,7 @@ function MainApp() {
     headerSub = "Digital Trust ID & Blacklist";
   } else if (activeSubscreen === "admin-os") {
     headerTitle = "Executive OS";
-    headerSub = "7-Stage CRM & MRR Waterfall";
+    headerSub = "7-Stage CRM & Ad ROI Intelligence";
   } else if (activeSubscreen === "settings") {
     headerTitle = "Platform Settings";
     headerSub = "Configuration & Gateway Health";
@@ -90,6 +96,20 @@ function MainApp() {
 
       <View style={[styles.body, { backgroundColor: theme.background }]}>
         {/* Render Subscreen if active */}
+        {activeSubscreen === "subscription" && (
+          <SubscriptionScreen
+            onClose={() => setActiveSubscreen(null)}
+            onSuccessSubscribe={() => {
+              setIsSubscribed(true);
+              setActiveSubscreen(null);
+            }}
+            onCustomerLoginSuccess={(email) => {
+              setLoggedInCustomer(email);
+              setIsSubscribed(true);
+              setActiveSubscreen(null);
+            }}
+          />
+        )}
         {activeSubscreen === "debtors" && (
           <DebtorsScreen
             initialBuyerId={targetBuyerId}

@@ -94,6 +94,84 @@ export const RecoveryScreen: React.FC = () => {
             thumbColor="#FFFFFF"
           />
         </View>
+
+        {/* Dual Recovery Mode Switcher: Delayed Payment (1-45 days) vs Default Payment (45+ days) */}
+        <View style={[styles.modeSelectorCard, { backgroundColor: theme.surfaceSecondary, borderColor: theme.cardBorder }]}>
+          <Text style={[styles.modeSelectorLabel, { color: theme.textSecondary }]}>
+            STATUTORY RECOVERY WORKBENCH MODE
+          </Text>
+          <View style={styles.modeTabsRow}>
+            <TouchableOpacity
+              onPress={() => setSelectedBuyer(buyers.find((b) => b.daysOverdue <= 45) || buyers[0])}
+              style={[
+                styles.modeTabBtn,
+                {
+                  backgroundColor: selectedBuyer.daysOverdue <= 45 ? theme.brand : theme.card,
+                  borderColor: selectedBuyer.daysOverdue <= 45 ? theme.brand : theme.cardBorder,
+                },
+              ]}
+            >
+              <Ionicons
+                name="time-outline"
+                size={14}
+                color={selectedBuyer.daysOverdue <= 45 ? "#FFFFFF" : theme.textSecondary}
+                style={{ marginRight: 4 }}
+              />
+              <Text
+                style={[
+                  styles.modeTabText,
+                  { color: selectedBuyer.daysOverdue <= 45 ? "#FFFFFF" : theme.text },
+                ]}
+              >
+                Delayed Payment (1-45 Days)
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setSelectedBuyer(buyers.find((b) => b.daysOverdue > 45) || buyers[buyers.length - 1])}
+              style={[
+                styles.modeTabBtn,
+                {
+                  backgroundColor: selectedBuyer.daysOverdue > 45 ? theme.red : theme.card,
+                  borderColor: selectedBuyer.daysOverdue > 45 ? theme.red : theme.cardBorder,
+                },
+              ]}
+            >
+              <Ionicons
+                name="alert-circle-outline"
+                size={14}
+                color={selectedBuyer.daysOverdue > 45 ? "#FFFFFF" : theme.textSecondary}
+                style={{ marginRight: 4 }}
+              />
+              <Text
+                style={[
+                  styles.modeTabText,
+                  { color: selectedBuyer.daysOverdue > 45 ? "#FFFFFF" : theme.text },
+                ]}
+              >
+                Default Payment (45+ Days)
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.statutoryNoticeShootBox}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.statutoryTitle, { color: theme.text }]}>
+                {selectedBuyer.daysOverdue > 45 ? "MSMED §16 + IT §43B(h) Disallowance" : "Friendly Commercial Notice + GST ITC"}
+              </Text>
+              <Text style={[styles.statutorySub, { color: theme.textMuted }]}>
+                Target: {selectedBuyer.name} ({selectedBuyer.pan}) · {selectedBuyer.daysOverdue} days overdue
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => handleDispatchStatutoryNotice(selectedBuyer, selectedBuyer.daysOverdue > 45 ? "MSMED §16 & IT §43B(h) Legal Demand" : "GST ITC Reversal Notice §16(4)")}
+              style={[styles.shootBtn, { backgroundColor: selectedBuyer.daysOverdue > 45 ? theme.red : theme.brand }]}
+            >
+              <Ionicons name="send" size={12} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <Text style={styles.shootBtnText}>Shoot Gov Notices</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       {/* Notice Success Banner */}
@@ -449,5 +527,61 @@ const styles = StyleSheet.create({
   noticeBtnText: {
     fontSize: 11,
     fontWeight: "700",
+  },
+  modeSelectorCard: {
+    marginTop: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+  },
+  modeSelectorLabel: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  modeTabsRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 10,
+  },
+  modeTabBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  modeTabText: {
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  statutoryNoticeShootBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 8,
+  },
+  statutoryTitle: {
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  statutorySub: {
+    fontSize: 10,
+    marginTop: 2,
+  },
+  shootBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 8,
+  },
+  shootBtnText: {
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontWeight: "800",
   },
 });

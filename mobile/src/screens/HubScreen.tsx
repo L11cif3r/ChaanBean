@@ -12,6 +12,14 @@ export const HubScreen: React.FC<HubScreenProps> = ({ onSelectSubscreen }) => {
 
   const hubItems = [
     {
+      id: "subscription",
+      title: "Subscription & Enterprise Tiers",
+      subtitle: "3-tier plans (Starter, Growth, Enterprise), add-on seats & payment gateway",
+      icon: "card",
+      color: theme.brand,
+      badge: "Mandatory Gateway",
+    },
+    {
       id: "debtors",
       title: "Debtors Portfolio & Risk Underwriting",
       subtitle: "Green/Amber/Red counterparty risk flags, exposure limits & radar breakdown",
@@ -46,7 +54,7 @@ export const HubScreen: React.FC<HubScreenProps> = ({ onSelectSubscreen }) => {
     {
       id: "admin-os",
       title: "Owner / Admin Executive OS",
-      subtitle: "7-Stage Sales CRM Kanban, customer health scores & MRR revenue waterfall",
+      subtitle: "7-Stage CRM Kanban, Ad ROI intelligence (Leads vs Wins), & MRR waterfall",
       icon: "stats-chart",
       color: theme.purple,
       badge: "Executive Desk",

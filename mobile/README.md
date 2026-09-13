@@ -170,15 +170,16 @@ mobile/
   │    │    ├── MetricCard.tsx     # KPI cards
   │    │    └── UnreachableModal.tsx # SIP 486 / Q.850 Cause 17 diagnosis & DID switcher
   │    └── screens/
-  │         ├── HomeScreen.tsx         # Command Desk & Risk Radar
+  │         ├── HomeScreen.tsx         # Command Desk, Subscription status & Risk Radar
+  │         ├── SubscriptionScreen.tsx # 3-Tier Enterprise Onboarding & PayGateway
   │         ├── VerificationScreen.tsx # 18 dedicated statutory tabs
   │         ├── FindSomeoneScreen.tsx  # OmniTrace 360™ debtor skip-tracing
-  │         ├── RecoveryScreen.tsx     # Tele-Recovery desk & legal notices
+  │         ├── RecoveryScreen.tsx     # Tele-Recovery desk, dual mode & §43B(h) / GST notice shoot
   │         ├── HubScreen.tsx          # Navigation hub to deep sub-modules
   │         ├── DebtorsScreen.tsx      # Debtors portfolio & buyer risk dossier
   │         ├── BusinessCheckScreen.tsx # 12-section financial intelligence & comparison
   │         ├── ArbitrationScreen.tsx  # MSMED Act §16 claim builder & Aadhaar e-Sign
   │         ├── TrustHubScreen.tsx     # Trust ID passport & community blacklist
-  │         ├── AdminOSScreen.tsx      # 7-Stage CRM & MRR waterfall
+  │         ├── AdminOSScreen.tsx      # 7-Stage CRM, Leads & Ad ROI intelligence, MRR waterfall
   │         └── SettingsScreen.tsx     # Theme switcher & gateway health
 ```
