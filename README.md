@@ -102,6 +102,9 @@ Community default registries, verified vendor credentials, and explainable Green
 ### 5. Cross-Platform Mobile Application (React Native & Expo — `/mobile`)
 Full-featured mobile companion app delivering all 18 statutory verification tabs, OmniTrace 360™ debtor skip-tracing, tele-recovery dialer with Asterisk/Vobiz DID switcher, and 20.25% MSMED Act compounding.
 
+> **Live Public Mobile Deployment**: **[https://chaanbean.vercel.app](https://chaanbean.vercel.app)** *(100% public, no login required to test)*  
+> *Branch*: `mobile-app-2`
+
 | 1. Operations Command Desk | 2. 18 Statutory Verification Adapters |
 | :---: | :---: |
 | ![Mobile Command Desk](docs/screenshots/09-mobile-command-desk.png) | ![Mobile 18 Verification Adapters](docs/screenshots/10-mobile-verification-runner.png) |

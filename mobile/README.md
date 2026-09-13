@@ -5,6 +5,12 @@ A cross-platform React Native (Expo) mobile application for **ChaanBean** — MS
 
 Built with **React Native**, **Expo SDK 57**, and a dual-theme design system featuring **Swiggy Orange (`#FC8019`)** and **Obsidian Dark Mode**.
 
+[![Deploy with Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://chaanbean.vercel.app)
+[![Live App](https://img.shields.io/badge/Live%20Public%20App-chaanbean.vercel.app-success?style=for-the-badge)](https://chaanbean.vercel.app)
+
+**Live Production Web App**: **[https://chaanbean.vercel.app](https://chaanbean.vercel.app)**  
+*Alternate Alias*: [https://mobile-rho-henna.vercel.app](https://mobile-rho-henna.vercel.app)
+
 ---
 
 ## Mobile Application Screenshots & Interface
