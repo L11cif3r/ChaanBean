@@ -257,7 +257,7 @@ export function Sidebar() {
             <span>Community Default Alert</span>
           </div>
           <p className="text-[11px] text-slate-600 dark:text-slate-300">
-            Encountered a commercial default? Report to the Trust Hub to automatically protect peer enterprises.
+            Encountered a commercial default? Report to the Trust Network to automatically protect peer enterprises.
           </p>
           <Link
             href="/trust-hub"

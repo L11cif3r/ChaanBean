@@ -22,7 +22,15 @@ export default async function BuyerProfilePage({ params }: { params: Promise<{ i
   if (!buyer) notFound();
 
   const flag = buyer.riskFlags[0];
-  const signals: SignalBreakdown[] = flag ? JSON.parse(flag.signalBreakdown) : [];
+  const rawSignals: SignalBreakdown[] = flag ? JSON.parse(flag.signalBreakdown) : [];
+  // Strictly omit GST Supreme Report and Trust Hub from deterministic signal breakdown
+  const signals: SignalBreakdown[] = rawSignals.filter(
+    (s) =>
+      !s.signal.toLowerCase().includes("trust hub") &&
+      !s.source.toLowerCase().includes("trust hub") &&
+      !s.signal.toLowerCase().includes("gst supreme") &&
+      !s.source.toLowerCase().includes("gst supreme")
+  );
   const account = buyer.creditAccounts[0];
   const subjectId = buyer.gstin ?? buyer.pan ?? buyer.id;
 

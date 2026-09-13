@@ -25,9 +25,18 @@ import {
   UserSearch,
 } from "lucide-react";
 
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
+  const cookieStore = await cookies();
+  const subCookie = cookieStore.get("chaanbean_subscription");
+  if (!subCookie || subCookie.value !== "active") {
+    redirect("/subscription");
+  }
+
   const company = await prisma.company.findFirst({
     include: {
       trustProfiles: true,
@@ -102,7 +111,7 @@ export default async function DashboardPage() {
     },
     {
       id: "trust-hub",
-      title: "Trust Hub & Network",
+      title: "Trust Network",
       badge: `${communityDefaultsCount} Peer Defaults`,
       badgeColor: "amber",
       description: "Opt-in peer compliance exchange, verified trust badges, and community default warning system.",
@@ -111,7 +120,7 @@ export default async function DashboardPage() {
       metricContext: "Verified Counterparty Status",
       icon: Shield,
       href: "/trust-hub",
-      actionText: "Open Trust Hub",
+      actionText: "Open Trust Network",
     },
     {
       id: "debtors",
@@ -167,10 +176,10 @@ export default async function DashboardPage() {
     },
     {
       id: "arbitration",
-      title: "Arbitration Center",
+      title: "Dispute Resolution Center",
       badge: "MSMED Act §18",
       badgeColor: "amber",
-      description: "Fast-track institutional arbitration, statutory 20.25% compound interest computation, and Aadhaar e-Sign filing.",
+      description: "Fast-track institutional dispute resolution, statutory 20.25% compound interest computation, and Aadhaar e-Sign filing.",
       metric: `${arbitrationCount} Claims`,
       metricLabel: "Pending Decrees",
       metricContext: "Statutory Adjudication",
@@ -245,7 +254,7 @@ export default async function DashboardPage() {
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Enterprise Credit & Recovery Hub</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Credit and Recovery Hub</h1>
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-orange-50 dark:bg-[#FC8019]/15 border border-orange-200 dark:border-[#FC8019]/30 text-[#FC8019] font-mono font-semibold">
               Live Gateway
             </span>

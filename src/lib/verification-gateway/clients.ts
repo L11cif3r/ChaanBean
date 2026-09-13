@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/db";
+import { getFeaturePrice } from "@/lib/pricing/pricing-engine";
 
 export interface ProviderCallResult<T> {
   success: boolean;
@@ -1197,8 +1198,8 @@ export async function callAdditionalCompanyAddon(
     latencyMs: Date.now() - start + 75,
     data: {
       featureTitle: "Add Additional Company Name / Sister Concern Profile",
-      addOnFeeINR: 1500,
-      pricingDescription: "₹1,500 One-Time Setup per Additional Company Entity",
+      addOnFeeINR: getFeaturePrice("additional_company"),
+      pricingDescription: `₹${getFeaturePrice("additional_company").toLocaleString("en-IN")} One-Time Setup per Additional Company Entity`,
       primaryRegisteredCompany: entity.name,
       walletBalance: 98500,
       activeAddOnCompanies: [
@@ -1208,7 +1209,7 @@ export async function callAdditionalCompanyAddon(
           cin: "AAP-9812",
           state: "Maharashtra",
           addedAt: "2026-08-15",
-          feeBilled: "₹1,500 Debited",
+          feeBilled: `₹${getFeaturePrice("additional_company").toLocaleString("en-IN")} Debited`,
           monitoringStatus: "Active",
         },
         {
@@ -1217,12 +1218,12 @@ export async function callAdditionalCompanyAddon(
           cin: "U25200GJ2021PTC120000",
           state: "Gujarat",
           addedAt: "2026-08-28",
-          feeBilled: "₹1,500 Debited",
+          feeBilled: `₹${getFeaturePrice("additional_company").toLocaleString("en-IN")} Debited`,
           monitoringStatus: "Active",
         },
       ],
       instantRegistrationAvailable: true,
-      instantRegistrationFee: 1500,
+      instantRegistrationFee: getFeaturePrice("additional_company"),
     },
   };
 }

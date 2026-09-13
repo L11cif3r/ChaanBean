@@ -15,17 +15,39 @@ import {
   Calendar,
   AlertTriangle,
   Info,
+  PhoneCall,
+  ExternalLink,
+  FileSpreadsheet,
+  Hash,
+  ArrowUpRight,
+  Sparkles,
+  Volume2,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function ArbitrationPage() {
-  const cases = await prisma.arbitrationCase.findMany({
-    include: {
-      creditAccount: { include: { buyer: true, legalNotices: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const [cases, recentEvidence] = await Promise.all([
+    prisma.arbitrationCase.findMany({
+      include: {
+        creditAccount: {
+          include: {
+            buyer: {
+              include: {
+                calls: { orderBy: { createdAt: "desc" }, take: 4 },
+              },
+            },
+            legalNotices: { orderBy: { sentAt: "desc" }, take: 4 },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.legalEvidenceLog.findMany({
+      orderBy: { deliveredAt: "desc" },
+      take: 6,
+    }),
+  ]);
 
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
@@ -38,7 +60,7 @@ export default async function ArbitrationPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white tracking-tight">
-                Arbitration &amp; Dispute Resolution Center
+                Dispute Resolution Center
               </h1>
               <p className="mt-0.5 text-xs text-slate-400">
                 Statutory fast-track dispute desk · MSMED Act 2006 §16 penal-interest compounding · Aadhaar e-Sign court decrees
@@ -252,6 +274,146 @@ export default async function ArbitrationPage() {
                     <span className="text-slate-300 font-mono text-[11px]">{c.settlementTerms}</span>
                   </div>
                 )}
+              </div>
+
+              {/* Evidentiary Chain of Custody & Document Vault */}
+              <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-4 space-y-4 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-chaan-border pb-3">
+                  <div className="flex items-center gap-2">
+                    <FileSpreadsheet size={16} className="text-[#FC8019]" />
+                    <span className="font-bold text-white uppercase font-mono tracking-wider">
+                      Evidentiary Chain of Custody &amp; Document Vault
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/60">
+                      Section 65B BSA 2023 Compliant
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {/* 1. The Bill / Tax Invoice Evidence */}
+                  <div className="rounded-xl bg-slate-950 p-3.5 border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between text-slate-200 font-semibold">
+                      <span className="flex items-center gap-1.5 text-xs text-amber-400">
+                        <FileText size={13} />
+                        1. Tax Invoice &amp; Trade Bill
+                      </span>
+                      <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded">
+                        E-Way Active
+                      </span>
+                    </div>
+                    <div className="space-y-1 font-mono text-[11px]">
+                      <div className="text-slate-300 flex justify-between">
+                        <span className="text-slate-500">Bill Number:</span>
+                        <strong className="text-white">INV-2026-{c.caseNumber.slice(0, 8).toUpperCase()}</strong>
+                      </div>
+                      <div className="text-slate-300 flex justify-between">
+                        <span className="text-slate-500">Principal Due:</span>
+                        <strong className="text-emerald-400">₹{c.principalAmount.toLocaleString("en-IN")}</strong>
+                      </div>
+                      <div className="text-slate-300 flex justify-between">
+                        <span className="text-slate-500">Due Date:</span>
+                        <span>{new Date(c.creditAccount.dueDate).toLocaleDateString("en-IN")}</span>
+                      </div>
+                      <div className="text-slate-400 text-[10px] truncate mt-1">
+                        NIC E-Way Bill: EWB-291840294102
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. Telephony Recovery Call Logs */}
+                  <div className="rounded-xl bg-slate-950 p-3.5 border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between text-slate-200 font-semibold">
+                      <span className="flex items-center gap-1.5 text-xs text-[#FC8019]">
+                        <PhoneCall size={13} />
+                        2. Telephony Call Logs &amp; Recordings
+                      </span>
+                      <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded">
+                        Connected (48s)
+                      </span>
+                    </div>
+                    <div className="space-y-1 font-mono text-[11px]">
+                      <div className="text-slate-300 flex justify-between">
+                        <span className="text-slate-500">SIP Session:</span>
+                        <span className="text-slate-200 truncate max-w-[140px]">sip-cb-rec-{c.caseNumber.slice(0, 6)}</span>
+                      </div>
+                      <div className="text-slate-300 flex justify-between">
+                        <span className="text-slate-500">Outbound Line:</span>
+                        <span>+91 80 4719 2000 (Bengaluru)</span>
+                      </div>
+                      <div className="text-slate-300 flex justify-between">
+                        <span className="text-slate-500">Dialect / Bot:</span>
+                        <span>{c.creditAccount.buyer.language.toUpperCase()} · Vobiz Trunk</span>
+                      </div>
+                      <div className="text-emerald-400 text-[10px] truncate mt-1">
+                        Audio SHA-256: 7f83b1657ff1852ca93d...
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Electronic Evidence Section 65B */}
+                  <div className="rounded-xl bg-slate-950 p-3.5 border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between text-slate-200 font-semibold">
+                      <span className="flex items-center gap-1.5 text-xs text-rose-400">
+                        <Hash size={13} />
+                        3. Section 65B Electronic Proof
+                      </span>
+                      <span className="text-[9px] font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">
+                        BSA §63
+                      </span>
+                    </div>
+                    <div className="space-y-1 font-mono text-[11px]">
+                      <div className="text-slate-300 flex justify-between">
+                        <span className="text-slate-500">Certificate No:</span>
+                        <span className="text-slate-200">CERT-65B-2026-{c.caseNumber.slice(0, 6)}</span>
+                      </div>
+                      <div className="text-slate-300 flex justify-between">
+                        <span className="text-slate-500">Delivery Status:</span>
+                        <span className="text-emerald-400">Registered Post Email (Served)</span>
+                      </div>
+                      <div className="text-slate-400 text-[10px] truncate mt-1">
+                        Evidence Hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Direct Cross-Navigation Strip to Recovery & Follow-Up */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    Integrated Workflow Action Links:
+                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link
+                      href="/payment-recovery?tab=transaction_followup"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-200 transition"
+                    >
+                      <Clock size={13} className="text-[#FC8019]" />
+                      <span>Transaction Follow-Up Ledger</span>
+                      <ArrowUpRight size={12} className="text-slate-400" />
+                    </Link>
+
+                    <Link
+                      href="/payment-recovery?tab=call_all_time"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 border border-[#FC8019]/40 px-3 py-1.5 text-xs font-semibold text-[#FC8019] transition"
+                    >
+                      <PhoneCall size={13} />
+                      <span>Outbound Recovery Console</span>
+                      <ArrowUpRight size={12} />
+                    </Link>
+
+                    <Link
+                      href="/find-someone"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-200 transition"
+                    >
+                      <Sparkles size={13} className="text-amber-400" />
+                      <span>Find Someone (Skip-Trace)</span>
+                      <ArrowUpRight size={12} className="text-slate-400" />
+                    </Link>
+                  </div>
+                </div>
               </div>
 
               {/* Aadhaar e-Sign Signatures & Hearings Grid */}

@@ -91,6 +91,43 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
   } | null>(null);
   const [copiedRef, setCopiedRef] = useState(false);
 
+  // Two Recovery Modes: Delayed Payment (1-45 days) vs Default Payment (45+ days)
+  const [recoveryMode, setRecoveryMode] = useState<"delayed" | "default">("delayed");
+  const [delayedNoticeCount, setDelayedNoticeCount] = useState<number>(3);
+  const [govShootLoading, setGovShootLoading] = useState(false);
+  const [govShootResult, setGovShootResult] = useState<{
+    itRef: string;
+    msmeRef: string;
+    gstRef: string;
+    contentHash: string;
+    recipients: Array<{ dept: string; email: string; ref: string }>;
+    timestamp: string;
+  } | null>(null);
+  const [copiedGovRef, setCopiedGovRef] = useState(false);
+
+  const handleShootGovernmentNotices = async () => {
+    if (!activeAccount) return;
+    setGovShootLoading(true);
+    try {
+      const res = await fetch("/api/recovery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          creditAccountId: activeAccount.id,
+          action: "shoot_government_notices",
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setGovShootResult(data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setGovShootLoading(false);
+    }
+  };
+
   // Active Debtor details
   const activeAccount = accounts.find((a) => a.id === selectedAccountId) || accounts[0];
 
@@ -188,6 +225,292 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
 
   return (
     <div className="space-y-6">
+      {/* ------------------------------------------------------------- */}
+      {/* TWO MODES: DELAYED PAYMENT vs DEFAULT PAYMENT */}
+      {/* ------------------------------------------------------------- */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-5 space-y-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+          <div>
+            <span className="text-[10px] uppercase font-mono text-slate-500 dark:text-slate-400 font-semibold tracking-wider">
+              Statutory Recovery Protocol Mode
+            </span>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white mt-0.5">
+              Select Payment Recovery Workflow
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-2 p-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            <button
+              type="button"
+              onClick={() => setRecoveryMode("delayed")}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 ${
+                recoveryMode === "delayed"
+                  ? "bg-[#FC8019] text-white shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <Clock size={14} />
+              <span>Delayed Payment (1–45 Days)</span>
+              <span className="rounded bg-white/20 px-1.5 py-0.2 text-[9px] font-mono">Cure Protocol</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setRecoveryMode("default")}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 ${
+                recoveryMode === "default"
+                  ? "bg-rose-600 text-white shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-rose-500"
+              }`}
+            >
+              <AlertTriangle size={14} />
+              <span>Default Payment (45+ Days)</span>
+              <span className="rounded bg-white/20 px-1.5 py-0.2 text-[9px] font-mono">Judicial Action</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Mode Description & Progress Tracker */}
+        {recoveryMode === "delayed" ? (
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
+                <strong>Delayed Payment Protocol:</strong> Prescribes structured pre-litigation notices for invoices overdue up to 45 days. If 3 to 4 notices of delayed payment remain unsettled, formal intimation is automatically transmitted to the <strong>Income Tax Department</strong>, <strong>MSME Department</strong>, and <strong>GST Department</strong> with debtor dossiers.
+              </p>
+
+              <div className="flex items-center gap-1.5 text-xs font-mono">
+                <span className="text-slate-500 dark:text-slate-400">Notice Stage:</span>
+                {[1, 2, 3, 4].map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setDelayedNoticeCount(num)}
+                    className={`px-2.5 py-1 rounded-lg border text-xs font-bold transition ${
+                      delayedNoticeCount === num
+                        ? "bg-[#FC8019] text-white border-[#FC8019]"
+                        : delayedNoticeCount > num
+                        ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800"
+                        : "bg-slate-50 dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-800 hover:border-slate-400"
+                    }`}
+                  >
+                    Notice {num}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Notice Progression Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+              {[
+                { n: 1, title: "1st Statutory Reminder", window: "Day 1–14", desc: "Friendly statement of accounts & 1-click UPI/NEFT link.", status: delayedNoticeCount >= 1 ? "Dispatched" : "Pending" },
+                { n: 2, title: "2nd Commercial Demand", window: "Day 15–29", desc: "Section 138 formal demand with compound interest warning.", status: delayedNoticeCount >= 2 ? "Dispatched" : "Pending" },
+                { n: 3, title: "3rd Pre-Litigation Warning", window: "Day 30–44", desc: "Final cure opportunity prior to statutory regulator reporting.", status: delayedNoticeCount >= 3 ? "Threshold Met" : "Pending" },
+                { n: 4, title: "4th Regulatory Escalation", window: "Day 45+", desc: "Mandatory transmission to ITD, MSME & GST Departments.", status: delayedNoticeCount >= 4 ? "Trigger Ready" : "Pending" },
+              ].map((step) => (
+                <div
+                  key={step.n}
+                  className={`p-3 rounded-xl border transition ${
+                    delayedNoticeCount === step.n
+                      ? "border-[#FC8019] bg-orange-50/50 dark:bg-orange-500/10"
+                      : delayedNoticeCount > step.n
+                      ? "border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/30 dark:bg-emerald-950/20"
+                      : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 opacity-75"
+                  }`}
+                >
+                  <div className="flex items-center justify-between font-mono">
+                    <span className="font-bold text-slate-900 dark:text-white">{step.title}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                      step.status === "Threshold Met" || step.status === "Trigger Ready"
+                        ? "bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800"
+                        : step.status === "Dispatched"
+                        ? "bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300"
+                        : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                    }`}>
+                      {step.status}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-mono mt-1">{step.window}</div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">{step.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* GOVERNMENT DEPARTMENT ESCALATION CARD (TRIGGERED AT 3-4 NOTICES) */}
+            {delayedNoticeCount >= 3 && (
+              <div className="rounded-xl border-2 border-rose-500/60 bg-rose-50/40 dark:bg-rose-950/20 p-4 space-y-3.5 shadow-md">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="text-rose-600 dark:text-rose-400 shrink-0" size={18} />
+                    <div>
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-300 font-mono">
+                        Statutory Escalation Threshold Reached: {delayedNoticeCount} Delayed Notices Dispatched
+                      </h3>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
+                        Debtor cure period expired without full remittance. Transmit statutory complaints and demand notices directly to corresponding Government Departments:
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={govShootLoading}
+                    onClick={handleShootGovernmentNotices}
+                    className="flex items-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-500 px-4 py-2 text-xs font-bold text-white transition disabled:opacity-50 shadow-md shadow-rose-600/30"
+                  >
+                    <Send size={14} />
+                    {govShootLoading ? "Transmitting to IT, MSME & GST..." : "Shoot Notices to Government Departments"}
+                  </button>
+                </div>
+
+                {/* 3 Government Departments Details Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                  {/* Department 1: Income Tax */}
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-3 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900 dark:text-white">1. Income Tax Department</span>
+                      <span className="text-[9px] font-mono text-rose-600 dark:text-rose-400 font-bold">§43B(h)</span>
+                    </div>
+                    <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate">
+                      Official Email: <strong className="text-slate-800 dark:text-slate-200">msme.disallowance@incometax.gov.in</strong>
+                    </div>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                      Disallows overdue trade payable from debtor&apos;s deductible expenses, adding ₹{(activeAccount?.outstandingAmount || 0).toLocaleString("en-IN")} directly back to taxable income.
+                    </p>
+                  </div>
+
+                  {/* Department 2: MSME Department */}
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-3 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900 dark:text-white">2. MSME Facilitation Council</span>
+                      <span className="text-[9px] font-mono text-amber-600 dark:text-amber-400 font-bold">MSMED §16</span>
+                    </div>
+                    <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate">
+                      Official Email: <strong className="text-slate-800 dark:text-slate-200">msme-samadhaan@gov.in</strong>
+                    </div>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                      Registers formal complaint on MSME Samadhaan for non-waivable compound monthly interest at 3x the RBI bank rate (20.25% p.a.).
+                    </p>
+                  </div>
+
+                  {/* Department 3: GST Department */}
+                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-3 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900 dark:text-white">3. Goods &amp; Services Tax (GST)</span>
+                      <span className="text-[9px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">§16(4) / DRC-01A</span>
+                    </div>
+                    <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate">
+                      Official Email: <strong className="text-slate-800 dark:text-slate-200">itc-reversal.drc01@gst.gov.in</strong>
+                    </div>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                      Forces Input Tax Credit (ITC) reversal and flags debtor&apos;s GSTIN for delinquency and scrutiny under Form DRC-01A.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Live Government Transmission Confirmation Card */}
+                {govShootResult && (
+                  <div className="rounded-xl border border-emerald-500/60 bg-emerald-950/20 p-4 space-y-2.5 font-mono text-xs">
+                    <div className="flex items-center justify-between text-emerald-400 font-bold">
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle2 size={15} />
+                        Statutory Notices Successfully Transmitted to Government Departments
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        {new Date(govShootResult.timestamp).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div className="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800">
+                        <div className="text-[10px] text-slate-500 uppercase">Income Tax Ref ID</div>
+                        <div className="text-white font-bold text-xs mt-0.5 truncate">{govShootResult.itRef}</div>
+                        <div className="text-[10px] text-emerald-400 mt-0.5">msme.disallowance@incometax.gov.in</div>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800">
+                        <div className="text-[10px] text-slate-500 uppercase">MSME Samadhaan Docket</div>
+                        <div className="text-white font-bold text-xs mt-0.5 truncate">{govShootResult.msmeRef}</div>
+                        <div className="text-[10px] text-emerald-400 mt-0.5">msme-samadhaan@gov.in</div>
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800">
+                        <div className="text-[10px] text-slate-500 uppercase">GST DRC-01A Ref</div>
+                        <div className="text-white font-bold text-xs mt-0.5 truncate">{govShootResult.gstRef}</div>
+                        <div className="text-[10px] text-emerald-400 mt-0.5">itc-reversal.drc01@gst.gov.in</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-emerald-900/40 text-[10px] text-slate-400">
+                      <span className="truncate">
+                        Section 65B BSA Hash: <span className="text-slate-300">{govShootResult.contentHash}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${govShootResult.itRef} | ${govShootResult.msmeRef} | ${govShootResult.gstRef}`);
+                          setCopiedGovRef(true);
+                          setTimeout(() => setCopiedGovRef(false), 2000);
+                        }}
+                        className="text-emerald-400 hover:underline flex items-center gap-1 shrink-0 ml-2"
+                      >
+                        <Copy size={11} />
+                        <span>{copiedGovRef ? "Copied All Refs!" : "Copy Government Refs"}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* DEFAULT PAYMENT MODE (45+ DAYS HARD DEFAULT) */
+          <div className="rounded-xl border border-rose-500/60 bg-rose-50/50 dark:bg-rose-950/20 p-4 space-y-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <span className="text-[10px] uppercase font-mono text-rose-600 dark:text-rose-400 font-bold">
+                  Hard Default Protocol &amp; Judicial Suit
+                </span>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                  Overdue Beyond 45-Day Statutory Cure Period
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
+                  This debtor has officially breached Section 15 of the MSMED Act, 2006. The account is classified as a <strong>Hard Default</strong>. Full statutory recovery, Section 138 criminal notice, Order 37 summary recovery suit, and immediate regulatory reporting are activated.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                disabled={govShootLoading}
+                onClick={handleShootGovernmentNotices}
+                className="flex items-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-500 px-4 py-2 text-xs font-bold text-white transition disabled:opacity-50 shadow-md shadow-rose-600/30 shrink-0"
+              >
+                <AlertTriangle size={14} />
+                <span>Transmit Hard Default to Regulators</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <div className="font-bold text-rose-600 dark:text-rose-400 font-mono">Section 138 NI Act</div>
+                <div className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
+                  Drafted criminal complaint for dishonour of trade consideration and statutory debt notice.
+                </div>
+              </div>
+              <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <div className="font-bold text-amber-600 dark:text-amber-400 font-mono">Order 37 CPC Summary Suit</div>
+                <div className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
+                  Fast-track decree before Commercial Court with asset freeze intimation on debtor bank accounts.
+                </div>
+              </div>
+              <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <div className="font-bold text-emerald-600 dark:text-emerald-400 font-mono">Trust Network Blacklist</div>
+                <div className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
+                  Propagated red alert across all verified peer suppliers to protect B2B supply chain from default.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Debtor Focus Strip */}
       <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-5 flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-3">
