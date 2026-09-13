@@ -2,7 +2,22 @@
 
 A cross-platform React Native (Expo) mobile application for **ChaanBean** — MSME Credit Intelligence, Business Verification & Recovery Platform.
 
+
 Built with **React Native**, **Expo SDK 57**, and a dual-theme design system featuring **Swiggy Orange (`#FC8019`)** and **Obsidian Dark Mode**.
+
+---
+
+## Mobile Application Screenshots & Interface
+
+| 1. Operations Command Desk | 2. 18 Statutory Verification Adapters |
+| :---: | :---: |
+| ![Command Desk](docs/screenshots/09-mobile-command-desk.png) | ![18 Adapters](docs/screenshots/10-mobile-verification-runner.png) |
+| *Real-time receivables, credit risk radar & 4-tier shortcuts* | *18 isolated statutory tabs, parameter boxes & dossier reports* |
+
+| 3. OmniTrace 360™ Debtor Skip-Trace | 4. Tele-Recovery Desk & Unreachable Modal |
+| :---: | :---: |
+| ![OmniTrace 360](docs/screenshots/11-mobile-omnitrace-skiptrace.png) | ![Tele-Recovery](docs/screenshots/12-mobile-recovery-workbench.png) |
+| *Delivery cluster mobiles (Swiggy, Amazon) & commercial bureaus* | *CALL All Time, Caller DID switcher & SIP 486 diagnosis* |
 
 ---
 

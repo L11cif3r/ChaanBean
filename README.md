@@ -99,6 +99,19 @@ Community default registries, verified vendor credentials, and explainable Green
 
 ---
 
+### 5. Cross-Platform Mobile Application (React Native & Expo — `/mobile`)
+Full-featured mobile companion app delivering all 18 statutory verification tabs, OmniTrace 360™ debtor skip-tracing, tele-recovery dialer with Asterisk/Vobiz DID switcher, and 20.25% MSMED Act compounding.
+
+| 1. Operations Command Desk | 2. 18 Statutory Verification Adapters |
+| :---: | :---: |
+| ![Mobile Command Desk](docs/screenshots/09-mobile-command-desk.png) | ![Mobile 18 Verification Adapters](docs/screenshots/10-mobile-verification-runner.png) |
+
+| 3. OmniTrace 360™ Debtor Skip-Tracing | 4. Tele-Recovery Desk & Unreachable Modal |
+| :---: | :---: |
+| ![Mobile OmniTrace 360](docs/screenshots/11-mobile-omnitrace-skiptrace.png) | ![Mobile Tele-Recovery](docs/screenshots/12-mobile-recovery-workbench.png) |
+
+---
+
 ## Core Capabilities & Modules
 
 ### 1. Centralized Business Background Check (`/background-check`, `/trust-hub`)
