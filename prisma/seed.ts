@@ -56,6 +56,18 @@ async function main() {
   await prisma.templateTranslation.deleteMany();
   await prisma.communityDefault.deleteMany();
 
+  await prisma.legalFeeLedger.deleteMany();
+  await prisma.legalEvidencePack.deleteMany();
+  await prisma.legalAdvisor.deleteMany();
+  await prisma.paymentReconciliation.deleteMany();
+  await prisma.paymentLink.deleteMany();
+  await prisma.promiseToPay.deleteMany();
+  await prisma.creditHold.deleteMany();
+  await prisma.monitoringAlert.deleteMany();
+  await prisma.invoice.deleteMany();
+  await prisma.aiDecisionLog.deleteMany();
+  await prisma.erpSyncConfig.deleteMany();
+
   await prisma.legalEvidenceLog.deleteMany();
   await prisma.legalNotice.deleteMany();
   await prisma.arbitrationCase.deleteMany();
@@ -611,6 +623,306 @@ async function main() {
       },
     });
   }
+
+  // 13. Legal Advisors
+  const advisorRajesh = await prisma.legalAdvisor.create({
+    data: {
+      name: "Adv. Rajesh Nair",
+      firmName: "Nair & Associates Legal Chambers",
+      barCouncilNo: "MAH/1420/2012",
+      specialization: "MSMED Act Arbitration & Commercial Recovery",
+      jurisdiction: "Mumbai & Maharashtra",
+      status: "verified",
+      contactEmail: "rajesh.nair@nairlegal.in",
+      phone: "+919820199443",
+      activeCasesCount: 6,
+      successRate: 94.5,
+    },
+  });
+
+  await prisma.legalAdvisor.create({
+    data: {
+      name: "Adv. Ananya Deshmukh",
+      firmName: "Apex Commercial Dispute Chambers",
+      barCouncilNo: "D/3891/2015",
+      specialization: "Section 138 NI Act Cheque Bounce",
+      jurisdiction: "Delhi NCR & Northern India",
+      status: "verified",
+      contactEmail: "ananya@apexdisputes.in",
+      phone: "+919811442211",
+      activeCasesCount: 4,
+      successRate: 91.0,
+    },
+  });
+
+  await prisma.legalAdvisor.create({
+    data: {
+      name: "Adv. K. Venkatesh",
+      firmName: "Venkatesh & Partners Debt Advisory",
+      barCouncilNo: "KAR/2104/2010",
+      specialization: "Insolvency & Bankruptcy Code (IBC) / NCLT",
+      jurisdiction: "Bengaluru & Karnataka",
+      status: "verified",
+      contactEmail: "k.venkatesh@vpartners.law",
+      phone: "+919845012390",
+      activeCasesCount: 3,
+      successRate: 88.5,
+    },
+  });
+
+  // Link advisor to existing Metro Supplies case if created
+  const metroCase = await prisma.arbitrationCase.findFirst({
+    where: { caseNumber: "ARB-CB-2024-001" },
+  });
+  if (metroCase) {
+    await prisma.arbitrationCase.update({
+      where: { id: metroCase.id },
+      data: { assignedAdvisorId: advisorRajesh.id },
+    });
+
+    // Evidence Pack for Metro Supplies
+    await prisma.legalEvidencePack.create({
+      data: {
+        creditAccountId: metroCase.creditAccountId,
+        arbitrationCaseId: metroCase.id,
+        title: "Statutory MSMED Claim Bundle - Metro Supplies Co",
+        bundleUrl: "/evidence/ARB-CB-2024-001-bundle.pdf",
+        status: "certified",
+        generatedBy: "ChaanBean Automated Evidence Engine",
+        documentsList: JSON.stringify([
+          { type: "INVOICE", ref: "INV-2024-889", amount: 890000, date: "2024-06-10" },
+          { type: "DELIVERY_CHALLAN", ref: "POD-889-SIGNED", status: "signed_acknowledged" },
+          { type: "CHEQUE_RETURN_MEMO", ref: "CHEQUE-991204", reason: "Funds Insufficient" },
+          { type: "LEGAL_DEMAND_NOTICE", ref: "IT-GST-ACK-2024-8891", channel: "Speed Post & Registered Email" },
+          { type: "MSME_INTEREST_CALC", statutoryRate: "21.75%", formula: "3x RBI Bank Rate Compound Monthly" },
+        ]),
+      },
+    });
+
+    // Legal Fee Ledger
+    await prisma.legalFeeLedger.create({
+      data: {
+        arbitrationCaseId: metroCase.id,
+        advisorId: advisorRajesh.id,
+        feeType: "notice_and_filing_fee",
+        amount: 25000,
+        paymentStatus: "escrowed",
+        transactionRef: "TXN-ESCROW-2024-9912",
+      },
+    });
+  }
+
+  // 14. Invoices & Exposure for Buyers
+  const creditAccounts = await prisma.creditAccount.findMany({
+    include: { buyer: true },
+  });
+
+  for (const ca of creditAccounts) {
+    if (ca.buyer.name === "Greenline Retail LLP") {
+      await prisma.invoice.create({
+        data: {
+          creditAccountId: ca.id,
+          buyerId: ca.buyer.id,
+          invoiceNumber: "INV-2024-101",
+          invoiceDate: new Date(Date.now() - 20 * 86400000),
+          dueDate: new Date(Date.now() + 10 * 86400000),
+          amount: 125000,
+          paidAmount: 0,
+          status: "unpaid",
+          ageingBucket: "current",
+          notes: "Regular retail consignment goods.",
+        },
+      });
+      // Payment link
+      await prisma.paymentLink.create({
+        data: {
+          creditAccountId: ca.id,
+          amount: 125000,
+          linkUrl: `https://pay.chaanbean.in/inv/INV-2024-101?token=gl_${ca.id.slice(-6)}`,
+          status: "active",
+          expiresAt: new Date(Date.now() + 10 * 86400000),
+        },
+      });
+    } else if (ca.buyer.name === "Sunrise Distributors") {
+      await prisma.invoice.create({
+        data: {
+          creditAccountId: ca.id,
+          buyerId: ca.buyer.id,
+          invoiceNumber: "INV-2024-205",
+          invoiceDate: new Date(Date.now() - 65 * 86400000),
+          dueDate: new Date(Date.now() - 35 * 86400000),
+          amount: 280000,
+          paidAmount: 0,
+          status: "overdue",
+          ageingBucket: "31-60",
+          notes: "Delayed payment for Q2 inventory dispatch.",
+        },
+      });
+      await prisma.invoice.create({
+        data: {
+          creditAccountId: ca.id,
+          buyerId: ca.buyer.id,
+          invoiceNumber: "INV-2024-244",
+          invoiceDate: new Date(Date.now() - 35 * 86400000),
+          dueDate: new Date(Date.now() - 5 * 86400000),
+          amount: 200000,
+          paidAmount: 0,
+          status: "overdue",
+          ageingBucket: "1-30",
+        },
+      });
+      // Promise to Pay
+      await prisma.promiseToPay.create({
+        data: {
+          creditAccountId: ca.id,
+          buyerId: ca.buyer.id,
+          amount: 280000,
+          promisedDate: new Date(Date.now() + 4 * 86400000),
+          status: "pending",
+          paymentMode: "RTGS",
+          notes: "Customer confirmed fund release from receivables clearance.",
+          recordedBy: "Pooja Deshmukh (Agent)",
+        },
+      });
+    } else if (ca.buyer.name === "Metro Supplies Co") {
+      await prisma.invoice.create({
+        data: {
+          creditAccountId: ca.id,
+          buyerId: ca.buyer.id,
+          invoiceNumber: "INV-2024-889",
+          invoiceDate: new Date(Date.now() - 125 * 86400000),
+          dueDate: new Date(Date.now() - 95 * 86400000),
+          amount: 890000,
+          paidAmount: 0,
+          status: "overdue",
+          ageingBucket: "90+",
+          notes: "Under Section 16 MSMED Act Statutory Arbitration.",
+        },
+      });
+      // Credit Hold
+      await prisma.creditHold.create({
+        data: {
+          creditAccountId: ca.id,
+          reason: "Statutory default exceeding 90 days with cheque dishonor. Account frozen for further billing.",
+          status: "active",
+          placedBy: "ChaanBean Risk Guard Engine",
+        },
+      });
+    } else if (ca.buyer.name === "Malabar Spices & Trading") {
+      await prisma.invoice.create({
+        data: {
+          creditAccountId: ca.id,
+          buyerId: ca.buyer.id,
+          invoiceNumber: "INV-2024-312",
+          invoiceDate: new Date(Date.now() - 72 * 86400000),
+          dueDate: new Date(Date.now() - 42 * 86400000),
+          amount: 320000,
+          paidAmount: 100000,
+          status: "partial",
+          ageingBucket: "31-60",
+          notes: "Partially settled via NEFT. Remainder committed.",
+        },
+      });
+      // Reconciliation record
+      await prisma.paymentReconciliation.create({
+        data: {
+          companyId: company.id,
+          creditAccountId: ca.id,
+          amountPaid: 100000,
+          paymentMode: "bank_transfer",
+          referenceNo: "UTR-HDFC-99120042",
+          status: "matched",
+          notes: "Part payment allocated against INV-2024-312",
+        },
+      });
+    }
+  }
+
+  // 15. Monitoring Alerts
+  await prisma.monitoringAlert.create({
+    data: {
+      companyId: company.id,
+      buyerId: buyerIds[2], // Metro Supplies
+      severity: "critical",
+      type: "defaulter_reported",
+      title: "Community Peer Default Signal Detected",
+      description: "Metro Supplies Co was reported for payment default of ₹8,90,000 by a network peer supplier. Immediate credit hold enforced.",
+      status: "active",
+    },
+  });
+
+  await prisma.monitoringAlert.create({
+    data: {
+      companyId: company.id,
+      buyerId: buyerIds[1], // Sunrise Distributors
+      severity: "high",
+      type: "overdue_spike",
+      title: "Overdue Ageing Crossed 30 Days",
+      description: "Outstanding balance of ₹4,80,000 is now in 31-60 day overdue bucket. L2 Voice notice scheduled.",
+      status: "active",
+    },
+  });
+
+  await prisma.monitoringAlert.create({
+    data: {
+      companyId: company.id,
+      buyerId: buyerIds[0], // Greenline Retail
+      severity: "low",
+      type: "credit_limit_breach",
+      title: "Utilization Within Safe Threshold",
+      description: "Greenline Retail current exposure ₹1,25,000 is at 25% of evaluated limit.",
+      status: "acknowledged",
+      acknowledgedBy: "Harish Parekh",
+      acknowledgedAt: new Date(),
+    },
+  });
+
+  // 16. ERP Integration & AI Decision Governance Logs
+  await prisma.erpSyncConfig.create({
+    data: {
+      companyId: company.id,
+      provider: "tally",
+      apiEndpoint: "https://sync.tallyconnector.in/api/v2/acme",
+      lastSyncAt: new Date(Date.now() - 4 * 3600000),
+      syncStatus: "ready",
+      recordsSynced: 142,
+    },
+  });
+
+  await prisma.erpSyncConfig.create({
+    data: {
+      companyId: company.id,
+      provider: "zoho",
+      apiEndpoint: "https://books.zoho.in/api/v3/acme",
+      lastSyncAt: new Date(Date.now() - 12 * 3600000),
+      syncStatus: "ready",
+      recordsSynced: 98,
+    },
+  });
+
+  await prisma.aiDecisionLog.create({
+    data: {
+      companyId: company.id,
+      module: "risk_scoring",
+      promptHash: "hash_risk_eval_metro_supplies",
+      modelUsed: "gemini-2.0-flash",
+      confidenceScore: 0.98,
+      flaggedForHumanReview: false,
+      decisionSummary: "Evaluated high probability of default based on GSTR-3B delayed filing and cheque bounce incident.",
+    },
+  });
+
+  await prisma.aiDecisionLog.create({
+    data: {
+      companyId: company.id,
+      module: "response_classification",
+      promptHash: "hash_voice_transcript_sunrise",
+      modelUsed: "gemini-2.0-flash",
+      confidenceScore: 0.94,
+      flaggedForHumanReview: false,
+      decisionSummary: "Classified debtor intent as 'Promise to Pay' (amount: ₹2,80,000, date: within 4 days).",
+    },
+  });
 
   // 17. Seed Financial Intelligence Demo Businesses (V0 Public-Data + Document Intelligence)
   await seedFinancialIntelligenceBusinesses(company.id);

@@ -58,6 +58,12 @@ export function Sidebar() {
     { href: "/business-check?filter=docs", label: "Documents", icon: FileSearch },
   ];
 
+  const monitoringNav = [
+    { href: "/monitoring", label: "Post-Credit Radar", icon: AlertTriangle, badge: "Alerts" },
+    { href: "/collections", label: "Collections Desk", icon: RotateCcw, badge: "Ageing" },
+    { href: "/legal-advisors", label: "Legal Network", icon: Scale, badge: "Verified" },
+  ];
+
   return (
     <aside className="flex w-64 flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0D1322] text-slate-800 dark:text-slate-100 shrink-0">
       {/* Brand Header */}
@@ -123,6 +129,40 @@ export function Sidebar() {
           </span>
           <div className="space-y-1">
             {financialIntelNav.map(({ href, label, icon: Icon, badge }) => {
+              const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={clsx(
+                    "flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-all duration-150",
+                    isActive
+                      ? "bg-orange-50 dark:bg-orange-500/15 text-[#FC8019] border border-[#FC8019]/30 font-semibold shadow-sm"
+                      : "text-slate-600 dark:text-slate-300 hover:bg-orange-50/70 dark:hover:bg-orange-500/10 hover:text-[#FC8019] font-medium"
+                  )}
+                >
+                  <div className="flex items-center gap-2.5 truncate">
+                    <Icon size={16} className={isActive ? "text-[#FC8019]" : "text-slate-400"} />
+                    <span className="truncate">{label}</span>
+                  </div>
+                  {badge && (
+                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-orange-100/80 dark:bg-orange-500/20 border border-[#FC8019]/30 text-[#FC8019] font-bold">
+                      {badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section 1.8: Post-Credit Monitoring & Collections */}
+        <div>
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 px-3 block mb-1.5">
+            Monitoring & Recovery
+          </span>
+          <div className="space-y-1">
+            {monitoringNav.map(({ href, label, icon: Icon, badge }) => {
               const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
               return (
                 <Link
