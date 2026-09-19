@@ -136,9 +136,104 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </TouchableOpacity>
       </View>
 
+      {/* Enterprise Security & Recovery Pipeline Status */}
+      <View style={[styles.sectionCard, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionHeaderLeft}>
+            <Ionicons name="shield-half-outline" size={18} color={theme.green} style={{ marginRight: 6 }} />
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Security & Automation Pipeline</Text>
+          </View>
+          <View style={[styles.secPill, { backgroundColor: theme.greenBg, borderColor: theme.greenBorder }]}>
+            <Text style={[styles.secPillText, { color: theme.green }]}>PHASE 3-7 LIVE</Text>
+          </View>
+        </View>
+
+        <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 10, gap: 8 }}>
+          <TouchableOpacity
+            onPress={() => onOpenHubSubscreen("monitoring")}
+            style={[styles.miniPipelineBox, { backgroundColor: theme.surfaceSecondary, borderColor: theme.cardBorder }]}
+          >
+            <Ionicons name="radar" size={16} color={theme.amber} />
+            <Text style={[styles.miniPipelineVal, { color: theme.text }]}>1 Hold</Text>
+            <Text style={[styles.miniPipelineLabel, { color: theme.textMuted }]}>EWS Radar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => onOpenHubSubscreen("collections")}
+            style={[styles.miniPipelineBox, { backgroundColor: theme.surfaceSecondary, borderColor: theme.cardBorder }]}
+          >
+            <Ionicons name="cash" size={16} color={theme.blue} />
+            <Text style={[styles.miniPipelineVal, { color: theme.text }]}>₹14.2L</Text>
+            <Text style={[styles.miniPipelineLabel, { color: theme.textMuted }]}>Collected</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => onOpenHubSubscreen("legal")}
+            style={[styles.miniPipelineBox, { backgroundColor: theme.surfaceSecondary, borderColor: theme.cardBorder }]}
+          >
+            <Ionicons name="scale" size={16} color={theme.purple} />
+            <Text style={[styles.miniPipelineVal, { color: theme.text }]}>3 Verified</Text>
+            <Text style={[styles.miniPipelineLabel, { color: theme.textMuted }]}>Advocates</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => onOpenHubSubscreen("reports")}
+            style={[styles.miniPipelineBox, { backgroundColor: theme.surfaceSecondary, borderColor: theme.cardBorder }]}
+          >
+            <Ionicons name="bar-chart" size={16} color={theme.green} />
+            <Text style={[styles.miniPipelineVal, { color: theme.text }]}>41.5D</Text>
+            <Text style={[styles.miniPipelineLabel, { color: theme.textMuted }]}>Avg DSO</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* Fast Action Shortcuts */}
       <Text style={[styles.groupTitle, { color: theme.textSecondary }]}>QUICK WORKFLOW ACTIONS</Text>
       <View style={styles.actionGrid}>
+        <TouchableOpacity
+          onPress={() => onOpenHubSubscreen("monitoring")}
+          style={[styles.actionBtn, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}
+        >
+          <View style={[styles.actionIconCircle, { backgroundColor: theme.amberBg }]}>
+            <Ionicons name="radar-outline" size={20} color={theme.amber} />
+          </View>
+          <Text style={[styles.actionBtnTitle, { color: theme.text }]}>Monitoring Radar</Text>
+          <Text style={[styles.actionBtnSub, { color: theme.textMuted }]}>EWS & Credit Holds</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => onOpenHubSubscreen("collections")}
+          style={[styles.actionBtn, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}
+        >
+          <View style={[styles.actionIconCircle, { backgroundColor: theme.blueBg }]}>
+            <Ionicons name="cash-outline" size={20} color={theme.blue} />
+          </View>
+          <Text style={[styles.actionBtnTitle, { color: theme.text }]}>Collections Desk</Text>
+          <Text style={[styles.actionBtnSub, { color: theme.textMuted }]}>WhatsApp & UPI QR</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => onOpenHubSubscreen("legal")}
+          style={[styles.actionBtn, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}
+        >
+          <View style={[styles.actionIconCircle, { backgroundColor: theme.purpleBg }]}>
+            <Ionicons name="scale-outline" size={20} color={theme.purple} />
+          </View>
+          <Text style={[styles.actionBtnTitle, { color: theme.text }]}>Legal Counsel</Text>
+          <Text style={[styles.actionBtnSub, { color: theme.textMuted }]}>Empanelled Advocates</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => onOpenHubSubscreen("reports")}
+          style={[styles.actionBtn, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}
+        >
+          <View style={[styles.actionIconCircle, { backgroundColor: theme.greenBg }]}>
+            <Ionicons name="bar-chart-outline" size={20} color={theme.green} />
+          </View>
+          <Text style={[styles.actionBtnTitle, { color: theme.text }]}>Executive Audit</Text>
+          <Text style={[styles.actionBtnSub, { color: theme.textMuted }]}>Aging Waterfall & ROI</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           onPress={() => onNavigateTab("verify")}
           style={[styles.actionBtn, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}
@@ -146,8 +241,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <View style={[styles.actionIconCircle, { backgroundColor: theme.brand + "18" }]}>
             <Ionicons name="shield-checkmark" size={20} color={theme.brand} />
           </View>
-          <Text style={[styles.actionBtnTitle, { color: theme.text }]}>18 Statutory Adapters</Text>
-          <Text style={[styles.actionBtnSub, { color: theme.textMuted }]}>GST, DIN, Udyam, Marksheets</Text>
+          <Text style={[styles.actionBtnTitle, { color: theme.text }]}>18 Adapters</Text>
+          <Text style={[styles.actionBtnSub, { color: theme.textMuted }]}>Statutory KYC & DIN</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -168,8 +263,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <View style={[styles.actionIconCircle, { backgroundColor: theme.redBg }]}>
             <Ionicons name="call" size={20} color={theme.red} />
           </View>
-          <Text style={[styles.actionBtnTitle, { color: theme.text }]}>Tele-Recovery Desk</Text>
-          <Text style={[styles.actionBtnSub, { color: theme.textMuted }]}>CALL All Time & Asterisk DID</Text>
+          <Text style={[styles.actionBtnTitle, { color: theme.text }]}>Tele-Recovery</Text>
+          <Text style={[styles.actionBtnSub, { color: theme.textMuted }]}>Asterisk PBX & Calls</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -464,4 +559,24 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginTop: 2,
   },
+  miniPipelineBox: {
+    flex: 1,
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  miniPipelineVal: {
+    fontSize: 13,
+    fontWeight: "800",
+    marginTop: 3,
+  },
+  miniPipelineLabel: {
+    fontSize: 9,
+    fontWeight: "600",
+    marginTop: 1,
+  },
 });
+
