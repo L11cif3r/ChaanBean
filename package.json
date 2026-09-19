@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && prisma db push --accept-data-loss && tsx prisma/seed.ts && node -e \"const fs=require('fs'); if(fs.existsSync('prisma/dev.db')) fs.copyFileSync('prisma/dev.db', 'prisma/seed.db');\" && next build",
-    "start": "next start",
+    "dev": "node api.js && next dev",
+    "build": "node api.js && prisma generate && prisma db push --accept-data-loss && tsx prisma/seed.ts && node -e \"const fs=require('fs'); if(fs.existsSync('prisma/dev.db')) fs.copyFileSync('prisma/dev.db', 'prisma/seed.db');\" && next build",
+    "start": "node api.js && next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",

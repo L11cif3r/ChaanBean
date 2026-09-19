@@ -20,6 +20,38 @@ export const HubScreen: React.FC<HubScreenProps> = ({ onSelectSubscreen }) => {
       badge: "Mandatory Gateway",
     },
     {
+      id: "monitoring",
+      title: "Post-Credit Security & EWS Radar",
+      subtitle: "Real-time exposure tracking, early warning default signals & credit hold controls",
+      icon: "radar",
+      color: theme.amber,
+      badge: "Phase 3 Radar",
+    },
+    {
+      id: "collections",
+      title: "Payment Collections & Invoicing Desk",
+      subtitle: "Virtual Accounts (ICICI Escrow), WhatsApp notices, dynamic UPI QR & PTP commitments",
+      icon: "cash",
+      color: theme.blue,
+      badge: "Phase 4 Collections",
+    },
+    {
+      id: "legal",
+      title: "Legal Recovery & Empanelled Network",
+      subtitle: "High Court verified advocates, AI counsel matching, & Section 65B certified evidence",
+      icon: "scale",
+      color: theme.purple,
+      badge: "Phase 5 Counsel",
+    },
+    {
+      id: "reports",
+      title: "Executive Reports & Debtor Aging",
+      subtitle: "Trade receivables aging waterfall, recovery channel ROI, & risk migration audit",
+      icon: "bar-chart",
+      color: theme.green,
+      badge: "Phase 7 Reports",
+    },
+    {
       id: "debtors",
       title: "Debtors Portfolio & Risk Underwriting",
       subtitle: "Green/Amber/Red counterparty risk flags, exposure limits & radar breakdown",
@@ -62,10 +94,10 @@ export const HubScreen: React.FC<HubScreenProps> = ({ onSelectSubscreen }) => {
     {
       id: "settings",
       title: "Platform Settings & Health",
-      subtitle: "Obsidian Dark / Light theme toggle, backend modes & 11 gateway health telemetry",
+      subtitle: "Obsidian Dark / Light theme toggle, backend modes & 18 gateway health telemetry",
       icon: "settings",
       color: theme.amber,
-      badge: "11 Adapters",
+      badge: "18 Adapters",
     },
   ];
 
@@ -74,7 +106,7 @@ export const HubScreen: React.FC<HubScreenProps> = ({ onSelectSubscreen }) => {
       <View style={[styles.heroCard, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
         <Text style={[styles.heroTitle, { color: theme.text }]}>Platform Navigation Hub</Text>
         <Text style={[styles.heroDesc, { color: theme.textSecondary }]}>
-          Access specialized modules: Debtors underwriting, Financial intelligence, Arbitration council, Trust Hub, and Admin OS.
+          Complete enterprise credit suite: Continuous Monitoring, Collections & PTP, Empanelled Legal Counsel, Executive Reports, Debtors Underwriting, and Statutory Arbitration.
         </Text>
       </View>
 
