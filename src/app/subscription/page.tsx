@@ -502,7 +502,7 @@ export default function SubscriptionPage() {
               >
                 {isPopular && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                    <span className="rounded-full bg-[#FC8019] px-3.5 py-1 text-[11px] font-bold text-white uppercase tracking-wider font-mono shadow-md">
+                    <span className="block whitespace-nowrap rounded-full bg-[#FC8019] px-3 py-1 text-[11px] font-bold text-white uppercase tracking-wider font-mono shadow-md">
                       {plan.badge}
                     </span>
                   </div>

@@ -24,7 +24,7 @@ export default function IntroPage() {
     }, 100);
 
     const timer = setTimeout(() => {
-      router.push("/login");
+      router.push("/subscription");
     }, 3000);
 
     return () => {
@@ -34,7 +34,7 @@ export default function IntroPage() {
   }, [router, animationKey]);
 
   const handleSkip = () => {
-    router.push("/login");
+    router.push("/subscription");
   };
 
   const handleReplay = () => {
@@ -69,7 +69,7 @@ export default function IntroPage() {
           onClick={handleSkip}
           className="flex items-center gap-1.5 rounded-full border border-[#FC8019]/40 bg-[#FC8019]/10 px-4 py-1.5 text-xs font-semibold text-[#FC8019] hover:bg-[#FC8019]/20 transition shadow-lg shadow-[#FC8019]/10"
         >
-          <span>Skip to Login</span>
+          <span>Skip to Subscription</span>
           <ArrowRight size={13} />
         </button>
       </div>

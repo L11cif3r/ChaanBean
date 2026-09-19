@@ -33,7 +33,11 @@ yarn-error.log*
 *.db
 *.db-journal
 *.sqlite
+!prisma/seed.db
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel
+.env*

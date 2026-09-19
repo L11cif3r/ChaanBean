@@ -28,6 +28,10 @@ model Company {
   walletLedger     WalletUsageLedger[]
   deals            Deal[]
   reportedDefaults CommunityDefault[]
+  monitoringAlerts MonitoringAlert[]
+  reconciliations  PaymentReconciliation[]
+  erpSyncConfigs   ErpSyncConfig[]
+  aiDecisionLogs   AiDecisionLog[]
 }
 
 model BuyerDebtor {
@@ -48,6 +52,9 @@ model BuyerDebtor {
   creditAccounts CreditAccount[]
   riskFlags      RiskFlag[]
   calls          Call[]
+  invoices       Invoice[]
+  monitoringAlerts MonitoringAlert[]
+  promisesToPay  PromiseToPay[]
 
   @@index([companyId])
 }
@@ -69,6 +76,12 @@ model CreditAccount {
   escalationStates  EscalationState[]
   legalNotices      LegalNotice[]
   arbitrationCases  ArbitrationCase[]
+  invoices          Invoice[]
+  creditHolds       CreditHold[]
+  promisesToPay     PromiseToPay[]
+  paymentLinks      PaymentLink[]
+  evidencePacks     LegalEvidencePack[]
+  reconciliations   PaymentReconciliation[]
 
   @@index([buyerId])
 }
@@ -256,6 +269,7 @@ model ArbitrationCase {
   caseNumber         String   @unique @default(cuid())
   status             String   @default("open") // open | hearing_scheduled | settlement_pending | award_passed | closed
   assignedLegalOwner String?
+  assignedAdvisorId  String?
   claimantName       String?
   respondentName     String?
   principalAmount    Float    @default(0)
@@ -271,7 +285,10 @@ model ArbitrationCase {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  creditAccount      CreditAccount @relation(fields: [creditAccountId], references: [id])
+  creditAccount      CreditAccount        @relation(fields: [creditAccountId], references: [id])
+  assignedAdvisor    LegalAdvisor?        @relation(fields: [assignedAdvisorId], references: [id])
+  evidencePacks      LegalEvidencePack[]
+  feeLedgers         LegalFeeLedger[]
 }
 
 model WalletUsageLedger {
@@ -720,4 +737,231 @@ model BizAuditLog {
   @@index([businessId])
   @@index([businessId, eventType])
 }
+
+// -------------------------------------------------------------
+// POST-CREDIT MONITORING & INVOICE EXPOSURE
+// -------------------------------------------------------------
+
+model Invoice {
+  id              String   @id @default(cuid())
+  creditAccountId String
+  buyerId         String
+  invoiceNumber   String
+  invoiceDate     DateTime
+  dueDate         DateTime
+  amount          Float
+  paidAmount      Float    @default(0)
+  status          String   @default("unpaid") // unpaid | partial | paid | overdue | disputed
+  ageingBucket    String   @default("current") // current | 1-30 | 31-60 | 61-90 | 90+
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  creditAccount   CreditAccount @relation(fields: [creditAccountId], references: [id])
+  buyer           BuyerDebtor   @relation(fields: [buyerId], references: [id])
+  paymentLinks    PaymentLink[]
+  reconciliations PaymentReconciliation[]
+
+  @@index([creditAccountId])
+  @@index([buyerId])
+  @@index([dueDate])
+}
+
+model MonitoringAlert {
+  id             String    @id @default(cuid())
+  companyId      String
+  buyerId        String
+  severity       String    @default("medium") // low | medium | high | critical
+  type           String    // credit_limit_breach | risk_downgrade | gst_cancelled | defaulter_reported | court_case_filed | overdue_spike
+  title          String
+  description    String
+  status         String    @default("active") // active | acknowledged | resolved | snoozed
+  acknowledgedBy String?
+  acknowledgedAt DateTime?
+  resolvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  company        Company     @relation(fields: [companyId], references: [id])
+  buyer          BuyerDebtor @relation(fields: [buyerId], references: [id])
+
+  @@index([companyId])
+  @@index([buyerId])
+  @@index([status])
+}
+
+model CreditHold {
+  id              String    @id @default(cuid())
+  creditAccountId String
+  reason          String
+  status          String    @default("active") // active | revoked
+  placedBy        String?   @default("Risk Engine")
+  revokedBy       String?
+  revokedAt       DateTime?
+  createdAt       DateTime  @default(now())
+
+  creditAccount   CreditAccount @relation(fields: [creditAccountId], references: [id])
+
+  @@index([creditAccountId])
+}
+
+// -------------------------------------------------------------
+// PAYMENT AUTOMATION, COLLECTIONS & RECONCILIATION
+// -------------------------------------------------------------
+
+model PromiseToPay {
+  id              String    @id @default(cuid())
+  creditAccountId String
+  buyerId         String
+  amount          Float
+  promisedDate    DateTime
+  status          String    @default("pending") // pending | fulfilled | broken | cancelled
+  paymentMode     String?   @default("NEFT/RTGS")
+  notes           String?
+  recordedBy      String?   @default("Agent")
+  fulfilledAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  creditAccount   CreditAccount @relation(fields: [creditAccountId], references: [id])
+  buyer           BuyerDebtor   @relation(fields: [buyerId], references: [id])
+
+  @@index([creditAccountId])
+  @@index([buyerId])
+  @@index([promisedDate])
+}
+
+model PaymentLink {
+  id              String    @id @default(cuid())
+  creditAccountId String
+  invoiceId       String?
+  amount          Float
+  linkUrl         String
+  status          String    @default("active") // active | paid | expired
+  expiresAt       DateTime
+  paidAt          DateTime?
+  paymentRef      String?
+  createdAt       DateTime  @default(now())
+
+  creditAccount   CreditAccount @relation(fields: [creditAccountId], references: [id])
+  invoice         Invoice?      @relation(fields: [invoiceId], references: [id])
+
+  @@index([creditAccountId])
+}
+
+model PaymentReconciliation {
+  id              String    @id @default(cuid())
+  companyId       String
+  creditAccountId String?
+  invoiceId       String?
+  amountPaid      Float
+  paymentMode     String    @default("bank_transfer") // bank_transfer | upi | cheque | auto_debit
+  referenceNo     String
+  status          String    @default("matched") // matched | partial | unmatched | exception
+  reconciledAt    DateTime  @default(now())
+  notes           String?
+
+  company         Company        @relation(fields: [companyId], references: [id])
+  creditAccount   CreditAccount? @relation(fields: [creditAccountId], references: [id])
+  invoice         Invoice?       @relation(fields: [invoiceId], references: [id])
+
+  @@index([companyId])
+  @@index([referenceNo])
+}
+
+// -------------------------------------------------------------
+// LEGAL RECOVERY & ADVISOR INFRASTRUCTURE
+// -------------------------------------------------------------
+
+model LegalAdvisor {
+  id                String   @id @default(cuid())
+  name              String
+  firmName          String?
+  barCouncilNo      String   @unique
+  specialization    String   // MSMED Act Arbitration | Section 138 NI Act | IBC Insolvency | Commercial Recovery
+  jurisdiction      String   // e.g. Mumbai, Delhi, Bengaluru, Chennai, All-India
+  status            String   @default("verified") // verified | pending | suspended
+  contactEmail      String
+  phone             String
+  activeCasesCount  Int      @default(0)
+  successRate       Float    @default(92.0)
+  createdAt         DateTime @default(now())
+
+  cases             ArbitrationCase[]
+  feeLedgers        LegalFeeLedger[]
+}
+
+model LegalEvidencePack {
+  id                String   @id @default(cuid())
+  creditAccountId   String
+  arbitrationCaseId String?
+  title             String
+  bundleUrl         String?
+  documentsList     String   // JSON list of indexed evidence
+  status            String   @default("draft") // draft | certified | shared | admitted
+  generatedBy       String   @default("Legal Desk")
+  certifiedAt       DateTime @default(now())
+
+  creditAccount     CreditAccount    @relation(fields: [creditAccountId], references: [id])
+  arbitrationCase   ArbitrationCase? @relation(fields: [arbitrationCaseId], references: [id])
+
+  @@index([creditAccountId])
+}
+
+model LegalFeeLedger {
+  id                String   @id @default(cuid())
+  arbitrationCaseId String
+  advisorId         String
+  feeType           String   // legal_notice_fee | filing_fee | hearing_fee | success_fee
+  amount            Float
+  paymentStatus     String   @default("escrowed") // pending | escrowed | disbursed
+  transactionRef    String?
+  createdAt         DateTime @default(now())
+
+  arbitrationCase   ArbitrationCase @relation(fields: [arbitrationCaseId], references: [id])
+  advisor           LegalAdvisor    @relation(fields: [advisorId], references: [id])
+
+  @@index([arbitrationCaseId])
+  @@index([advisorId])
+}
+
+// -------------------------------------------------------------
+// AI GOVERNANCE & ERP INTEGRATION
+// -------------------------------------------------------------
+
+model AiDecisionLog {
+  id                     String   @id @default(cuid())
+  companyId              String
+  module                 String   // risk_scoring | response_classification | credit_recommendation | call_scripting
+  promptHash             String
+  modelUsed              String   @default("gemini-2.0-flash")
+  confidenceScore        Float    @default(0.95)
+  flaggedForHumanReview  Boolean  @default(false)
+  decisionSummary        String
+  rawResponse            String?  // JSON
+  reviewedBy             String?
+  reviewAction           String?  // accepted | overridden
+  createdAt              DateTime @default(now())
+
+  company                Company  @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@index([module])
+}
+
+model ErpSyncConfig {
+  id            String    @id @default(cuid())
+  companyId     String
+  provider      String    // tally | zoho | busy | sap | quickbooks
+  apiEndpoint   String?
+  lastSyncAt    DateTime?
+  syncStatus    String    @default("ready") // ready | syncing | failed
+  recordsSynced Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  company       Company   @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+}
+
 
