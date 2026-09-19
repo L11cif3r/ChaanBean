@@ -4,9 +4,9 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Always display the subscription page first when opening the platform at root "/"
+  // Always display the intro page first when opening the platform at root "/"
   if (pathname === "/") {
-    return NextResponse.redirect(new URL("/subscription", request.url));
+    return NextResponse.redirect(new URL("/intro", request.url));
   }
 
   // Protect /dashboard and ensure active subscription or session
