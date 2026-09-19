@@ -15,6 +15,10 @@ import { TrustHubScreen } from "./src/screens/TrustHubScreen";
 import { AdminOSScreen } from "./src/screens/AdminOSScreen";
 import { SettingsScreen } from "./src/screens/SettingsScreen";
 import { SubscriptionScreen } from "./src/screens/SubscriptionScreen";
+import { MonitoringScreen } from "./src/screens/MonitoringScreen";
+import { CollectionsScreen } from "./src/screens/CollectionsScreen";
+import { LegalAdvisorsScreen } from "./src/screens/LegalAdvisorsScreen";
+import { ReportsScreen } from "./src/screens/ReportsScreen";
 
 function MainApp() {
   const { theme, isDark } = useTheme();
@@ -45,6 +49,18 @@ function MainApp() {
   if (activeSubscreen === "subscription") {
     headerTitle = "Subscription Gateway";
     headerSub = "3-Step Enterprise Onboarding";
+  } else if (activeSubscreen === "monitoring") {
+    headerTitle = "Continuous Radar";
+    headerSub = "Post-Credit Security & EWS Signals";
+  } else if (activeSubscreen === "collections") {
+    headerTitle = "Collections Desk";
+    headerSub = "Virtual Accounts & Invoicing Desk";
+  } else if (activeSubscreen === "legal") {
+    headerTitle = "Empanelled Counsel";
+    headerSub = "High Court Recovery & Evidence Packs";
+  } else if (activeSubscreen === "reports") {
+    headerTitle = "Executive Audit";
+    headerSub = "Debtor Aging & Recovery Velocity";
   } else if (activeSubscreen === "debtors") {
     headerTitle = "Debtors Portfolio";
     headerSub = "Green / Amber / Red Underwriting";
@@ -109,6 +125,24 @@ function MainApp() {
               setActiveSubscreen(null);
             }}
           />
+        )}
+        {activeSubscreen === "monitoring" && (
+          <MonitoringScreen
+            onClose={() => setActiveSubscreen(null)}
+            onSelectBuyer={(buyerId) => {
+              setTargetBuyerId(buyerId);
+              setActiveSubscreen("debtors");
+            }}
+          />
+        )}
+        {activeSubscreen === "collections" && (
+          <CollectionsScreen onClose={() => setActiveSubscreen(null)} />
+        )}
+        {activeSubscreen === "legal" && (
+          <LegalAdvisorsScreen onClose={() => setActiveSubscreen(null)} />
+        )}
+        {activeSubscreen === "reports" && (
+          <ReportsScreen onClose={() => setActiveSubscreen(null)} />
         )}
         {activeSubscreen === "debtors" && (
           <DebtorsScreen
