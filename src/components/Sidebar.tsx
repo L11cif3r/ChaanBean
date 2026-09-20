@@ -112,9 +112,9 @@ export function Sidebar() {
       id: "loans",
       href: "/loans",
       label: "Loans",
-      subtitle: "Working Capital & Credit Lines",
+      subtitle: "Home, Personal, Gold & Business",
       icon: Landmark,
-      badge: "Credit Line",
+      badge: "4 Options",
     },
   ];
 
