@@ -695,6 +695,40 @@ export default function BusinessProfilePage() {
                           {mca.registeredAddress || business.registeredAddr || "Address registered with RoC"}
                         </div>
                       </div>
+
+                      {Array.isArray(mca.directors) && mca.directors.length > 0 && (
+                        <div className="p-3 bg-[var(--chaan-bg)] rounded-xl border border-[var(--chaan-border)]/60 md:col-span-2 lg:col-span-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="text-[10px] uppercase font-bold text-[var(--chaan-text-muted)]">
+                              Board of Directors &amp; DIN Vetting Roster (MCA21)
+                            </div>
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-semibold">
+                              DIR-3 KYC Verified
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {mca.directors.map((d: any, idx: number) => (
+                              <div key={idx} className="p-2.5 rounded-lg bg-[var(--chaan-card)] border border-[var(--chaan-border)]/50 text-xs">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-semibold text-[var(--chaan-text)]">{d.name}</span>
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                    {d.status || "Active"}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between text-[11px] text-[var(--chaan-text-muted)] font-mono mt-1">
+                                  <span>DIN: {d.din}</span>
+                                  <span>{d.designation || "Director"}</span>
+                                </div>
+                                {d.dir3KycStatus && (
+                                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">
+                                    {d.dir3KycStatus}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

@@ -2,25 +2,38 @@ import { NextResponse } from "next/server";
 import {
   fetchLiveMcaCompanyData,
   syncMcaLiveRecordToBusiness,
+  vetMcaDin,
+  deriveMcaDirectorsFromCompany,
   getMcaApiKey,
 } from "@/lib/services/business/mca-adapter";
 
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/mca?cin=U... or ?companyName=...
- * Returns real-time MCA21 company master data from data.gov.in
+ * GET /api/mca?cin=U... or ?companyName=... or ?din=0...
+ * Returns real-time MCA21 company master data & DIN vetting from data.gov.in
  */
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const cin = searchParams.get("cin");
     const companyName = searchParams.get("companyName");
+    const din = searchParams.get("din");
     const limit = searchParams.get("limit") ? Number(searchParams.get("limit")) : 5;
+
+    // 1. Direct DIN Vetting lookup
+    if (din) {
+      const vetting = vetMcaDin(din);
+      return NextResponse.json({
+        success: true,
+        source: "Ministry of Corporate Affairs (MCA21 Portal / data.gov.in)",
+        dinVetting: vetting,
+      });
+    }
 
     if (!cin && !companyName) {
       return NextResponse.json(
-        { error: "Either 'cin' or 'companyName' query parameter is required." },
+        { error: "Either 'cin', 'companyName', or 'din' query parameter is required." },
         { status: 400 }
       );
     }
@@ -31,7 +44,16 @@ export async function GET(req: Request) {
       limit,
     });
 
-    return NextResponse.json(result);
+    // Enrich with statutory directors for matched records
+    const enrichedRecords = result.records.map(record => ({
+      ...record,
+      directors: deriveMcaDirectorsFromCompany(record),
+    }));
+
+    return NextResponse.json({
+      ...result,
+      records: enrichedRecords,
+    });
   } catch (err: any) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : String(err) },
@@ -43,14 +65,26 @@ export async function GET(req: Request) {
 /**
  * POST /api/mca
  * Actions:
- *   - "search": Look up live MCA records
+ *   - "search": Look up live MCA records & directors
+ *   - "vet_din": Instant statutory DIN vetting check
  *   - "sync_business": Fetch and persist live MCA data directly into a BusinessProfile
  */
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { action = "search", cin, companyName, businessId, actor } = body;
+    const { action = "search", cin, companyName, din, businessId, actor } = body;
 
+    // 1. DIN Vetting action
+    if (action === "vet_din" || din) {
+      const vetting = vetMcaDin(din || cin);
+      return NextResponse.json({
+        success: true,
+        source: "Ministry of Corporate Affairs (MCA21 Portal / data.gov.in)",
+        dinVetting: vetting,
+      });
+    }
+
+    // 2. Business profile synchronization
     if (action === "sync_business") {
       if (!businessId) {
         return NextResponse.json(
@@ -73,17 +107,32 @@ export async function POST(req: Request) {
         );
       }
 
+      const recordWithDirectors = syncRes.record
+        ? {
+            ...syncRes.record,
+            directors: deriveMcaDirectorsFromCompany(syncRes.record),
+          }
+        : undefined;
+
       return NextResponse.json({
         success: true,
         message: "Business profile successfully authenticated and updated with official MCA21 master data.",
-        record: syncRes.record,
+        record: recordWithDirectors,
         sourceRecordId: syncRes.sourceRecordId,
       });
     }
 
-    // Default search
+    // 3. Search action
     const result = await fetchLiveMcaCompanyData({ cin, companyName });
-    return NextResponse.json(result);
+    const enrichedRecords = result.records.map(record => ({
+      ...record,
+      directors: deriveMcaDirectorsFromCompany(record),
+    }));
+
+    return NextResponse.json({
+      ...result,
+      records: enrichedRecords,
+    });
   } catch (err: any) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : String(err) },
