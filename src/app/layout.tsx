@@ -27,8 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   localStorage.setItem("chaanbean_theme", urlTheme);
                 }
                 const saved = localStorage.getItem("chaanbean_theme");
-                const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-                if (saved === "dark" || (!saved && prefersDark)) {
+                if (saved === "dark") {
                   document.documentElement.classList.remove("light");
                   document.documentElement.classList.add("dark");
                 } else {

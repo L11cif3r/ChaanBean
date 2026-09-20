@@ -15,8 +15,7 @@ export function ThemeToggle() {
       localStorage.setItem("chaanbean_theme", urlTheme);
     }
     const savedTheme = localStorage.getItem("chaanbean_theme") as "dark" | "light" | null;
-    const prefersDark = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const activeTheme = savedTheme || (prefersDark ? "dark" : "light");
+    const activeTheme = savedTheme === "dark" ? "dark" : "light";
     setTheme(activeTheme);
     applyTheme(activeTheme);
   }, []);
