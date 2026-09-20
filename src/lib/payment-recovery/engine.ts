@@ -107,6 +107,23 @@ export async function runRecoveryTick(creditAccountId: string): Promise<Recovery
     }
   );
 
+  // Deduct ₹1 from company's subscription wallet if voice call is picked up
+  if (decision.channel === "voice" && (delivery.details as any)?.status === "answered") {
+    const comp =
+      (await prisma.company.findUnique({
+        where: { id: account.buyer.companyId },
+      })) || (await prisma.company.findFirst());
+    if (comp && comp.walletBalance >= 1) {
+      await prisma.company.update({
+        where: { id: comp.id },
+        data: {
+          walletBalance: { decrement: 1 },
+          lastActiveAt: new Date(),
+        },
+      });
+    }
+  }
+
   const newHistory = [
     ...history,
     {

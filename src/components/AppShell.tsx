@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
@@ -10,7 +11,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const isAdmin = pathname.startsWith("/admin");
-  const isAuthOrIntro = pathname === "/intro" || pathname === "/login" || pathname === "/subscription";
+  const isAuthOrIntro = pathname === "/intro" || pathname === "/login" || pathname === "/subscription" || pathname === "/landing";
 
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const [mounted, setMounted] = useState<boolean>(false);
@@ -45,7 +46,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] dark:bg-[#090D16]">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#FC8019] border-t-transparent" />
+          <div className="relative h-12 w-16 animate-pulse">
+            <Image src="/logo.png" alt="ChaanBean Logo" fill className="object-contain" priority />
+          </div>
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#FC8019] border-t-transparent" />
           <span className="text-xs font-mono text-slate-500 dark:text-slate-400">Launching ChaanBean...</span>
         </div>
       </div>

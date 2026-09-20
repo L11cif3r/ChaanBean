@@ -18,6 +18,7 @@ model Company {
   healthScore      String   @default("Healthy") // Healthy | At-Risk | Churned
   signupDate       DateTime @default(now())
   lastActiveAt     DateTime @default(now())
+  subscriptionExpiresAt DateTime?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -32,6 +33,7 @@ model Company {
   reconciliations  PaymentReconciliation[]
   erpSyncConfigs   ErpSyncConfig[]
   aiDecisionLogs   AiDecisionLog[]
+  reportLibrary    UserReportLibrary[]
 }
 
 model BuyerDebtor {
@@ -101,6 +103,25 @@ model VerificationReport {
 
   @@index([subjectType, subjectId, reportType])
   @@index([cachedUntil])
+}
+
+model UserReportLibrary {
+  id           String    @id @default(cuid())
+  companyId    String?
+  subjectId    String
+  subjectName  String
+  subjectType  String    @default("business") // business | individual
+  reportType   String
+  reportTitle  String
+  costPaid     Float     @default(0)
+  reportData   String    // JSON payload
+  downloadedAt DateTime?
+  createdAt    DateTime  @default(now())
+
+  company      Company?  @relation(fields: [companyId], references: [id])
+
+  @@index([companyId, subjectId])
+  @@index([companyId, reportType])
 }
 
 model RiskFlag {

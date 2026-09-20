@@ -32,78 +32,169 @@ interface PlanTier {
   name: string;
   tagline: string;
   defaultPrice: number;
+  grossPrice?: number;
   popular?: boolean;
   features: string[];
   ctaText: string;
   badge?: string;
+  isAlaCarte?: boolean;
+  validityText?: string;
+  validityDays?: number;
+  validityMonths?: number;
+  callsCount?: number;
 }
+
+interface CallPackageOption {
+  id: string;
+  calls: number;
+  callsFormatted: string;
+  price: number;
+  validity: string;
+  validityMonths: number;
+  validityDays: number;
+  perCallRate: string;
+  popular?: boolean;
+}
+
+const ALACARTE_OPTIONS: CallPackageOption[] = [
+  {
+    id: "alacarte_3k",
+    calls: 3000,
+    callsFormatted: "3,000 Calls",
+    price: 4500,
+    validity: "3 Months Validity",
+    validityMonths: 3,
+    validityDays: 90,
+    perCallRate: "₹1.50/call",
+  },
+  {
+    id: "alacarte_8k",
+    calls: 8000,
+    callsFormatted: "8,000 Calls",
+    price: 10000,
+    validity: "6 Months Validity",
+    validityMonths: 6,
+    validityDays: 180,
+    perCallRate: "₹1.25/call",
+    popular: true,
+  },
+  {
+    id: "alacarte_14k",
+    calls: 14000,
+    callsFormatted: "14,000 Calls",
+    price: 15000,
+    validity: "9 Months Validity",
+    validityMonths: 9,
+    validityDays: 270,
+    perCallRate: "₹1.07/call",
+  },
+  {
+    id: "alacarte_19k",
+    calls: 19000,
+    callsFormatted: "19,000 Calls",
+    price: 20000,
+    validity: "1 Year Validity",
+    validityMonths: 12,
+    validityDays: 365,
+    perCallRate: "₹1.05/call",
+  },
+];
 
 const PLANS: PlanTier[] = [
   {
-    id: "starter",
-    priceKey: "starter_subscription",
-    name: "Starter Plan",
-    tagline: "Essential credit scoring and statutory debt recovery for single-proprietor MSMEs.",
-    defaultPrice: 4999,
-    features: [
-      "1 User Seat included",
-      "50 Business Background Checks / month",
-      "Standard Outbound Voice Recovery",
-      "Statutory MSME Samadhaan Filing",
-      "Basic Trade Credit Risk Radar",
-      "Email & In-App Support",
-    ],
-    ctaText: "Select Starter Plan",
-  },
-  {
     id: "growth",
     priceKey: "growth_subscription",
-    name: "Growth Plan",
-    tagline: "Full-scale corporate credit underwriting, deep skip-tracing, and multi-channel recovery.",
-    defaultPrice: 14999,
+    name: "Retail Plan (Growth)",
+    tagline: "High-accuracy statutory credit underwriting, DIN vetting, and multi-cadence automated voice recovery.",
+    defaultPrice: 9899,
+    grossPrice: 49200,
     popular: true,
-    badge: "Recommended for Enterprises",
+    badge: "3 Months Validity · 80% Discount · 100% Wallet Credit",
+    validityText: "3 Months Validity",
+    validityDays: 90,
+    validityMonths: 3,
     features: [
-      "5 User Seats included (Feature #17)",
-      "250 Background Checks / month across all 18 adapters",
-      "Find Someone (OmniTrace 360™) 100 Skip-Trace Lookups",
-      "CALL All Time (1m, 2m, 5m, 30m, 1h emergency cadences)",
-      "Statutory Legal Notices (Income Tax §43B(h) & GST §16(4))",
-      "Dispute Resolution Center fast-track decree docket",
-      "Add Additional Company Name support (₹1,500 Addon)",
-      "Dedicated Account Manager",
+      "10 Director Details (DIN KYC & Disqualification Check)",
+      "10 MSME Reports (Udyam Classification & Standing)",
+      "40 GST Slabs & Statutory Tax Bracket Checks",
+      "40 GST Exact Turnovers Filed (GSTR-3B & GSTR-9)",
+      "40 GST Monthly Filing Calendars (Free Included)",
+      "40 Mobile to PAN Identity Resolutions",
+      "10 Mobile Identity (All Alternate Numbers & Multi-SIM)",
+      "30 Court Case History – FIR Reports (e-Courts & CCTNS)",
+      "40 Import Export Reports (DGFT IEC & Customs Clearances)",
+      "40 PAN to GST Nationwide Multi-State Lookups",
+      "3,500 Default Payments Voice Calls (₹5,000 value)",
+      "5 Statutory Legal Notices (§43B(h) / DRC-01A / MSMED)",
+      "500 Delayed Payments Follow-Ups (PTP & Aging)",
+      "3 User Access Seats Included (₹0 Additional Charge)",
+      "1 Additional Company Name Profile Included (₹1,500 value)",
     ],
-    ctaText: "Subscribe to Growth Plan",
+    ctaText: "Subscribe to Retail Plan (₹9,899)",
   },
   {
     id: "enterprise",
     priceKey: "enterprise_subscription",
     name: "Enterprise Plan",
-    tagline: "Institutional volume, unlimited seats, custom integrations, and dedicated arbitrator desk.",
-    defaultPrice: 39999,
+    tagline: "Expanded corporate volume, higher verification quotas, priority API, and dedicated legal chamber desk.",
+    defaultPrice: 17599,
+    grossPrice: 85950,
+    validityText: "3 Months Validity",
+    validityDays: 90,
+    validityMonths: 3,
+    badge: "Enterprise Quotas · 80% Discount · 100% Wallet Credit",
     features: [
-      "Unlimited Concurrent User Seats",
-      "Unlimited Business Background Verifications",
-      "Unlimited OmniTrace 360™ Skip-Tracing",
-      "Dedicated Fast-Track Arbitrator Chamber",
-      "Direct API & Webhook ERP Integration (SAP, Tally, Zoho)",
-      "White-Glove Legal Recovery Team & On-Ground Notice Servers",
-      "Statutory 20.25% Compound Interest Computation Engine",
-      "24/7 SLA Priority Legal Desk",
+      "20 Director Details (DIN KYC & Disqualification Check)",
+      "20 MSME Reports (Udyam Classification & Standing)",
+      "65 GST Slabs & Statutory Tax Bracket Checks",
+      "65 GST Exact Turnovers Filed (GSTR-3B & GSTR-9)",
+      "65 GST Monthly Filing Calendars (Free Included)",
+      "65 Mobile to PAN Identity Resolutions",
+      "25 Mobile Identity (All Alternate Numbers & Multi-SIM)",
+      "50 Court Case History – FIR Reports (e-Courts & CCTNS)",
+      "65 Import Export Reports (DGFT IEC & Customs Clearances)",
+      "65 PAN to GST Nationwide Multi-State Lookups",
+      "6,000 Default Payments Voice Calls (₹7,500 value)",
+      "10 Statutory Legal Notices (§43B(h) / DRC-01A / MSMED)",
+      "1,000 Delayed Payments Follow-Ups (PTP & Aging)",
+      "5 User Access Seats Included (₹0 Additional Charge)",
+      "1 Additional Company Name Profile Included (₹1,500 value)",
     ],
-    ctaText: "Choose Enterprise Plan",
+    ctaText: "Choose Enterprise Plan (₹17,599)",
   },
+];
+
+const STATUTORY_FEATURE_BREAKDOWN = [
+  { num: "1", name: "Director Details (DIN)", retailQty: 10, unitPrice: 200, retailGross: 2000, entPrice: 200, entQty: 20, entGross: 4000 },
+  { num: "2", name: "MSME Report (Udyam)", retailQty: 10, unitPrice: 200, retailGross: 2000, entPrice: 200, entQty: 20, entGross: 4000 },
+  { num: "3", name: "GST Slab", retailQty: 40, unitPrice: 15, retailGross: 600, entPrice: 15, entQty: 65, entGross: 975 },
+  { num: "4", name: "GST Exact Turn over filed", retailQty: 40, unitPrice: 200, retailGross: 8000, entPrice: 200, entQty: 65, entGross: 13000 },
+  { num: "5", name: "GST Filling on month basis", retailQty: 40, unitPriceText: "Free", retailGross: 0, entPriceText: "Free", entQty: 65, entGross: 0 },
+  { num: "6", name: "Mobile to Pan", retailQty: 40, unitPrice: 50, retailGross: 2000, entPrice: 50, entQty: 65, entGross: 3250 },
+  { num: "7", name: "Mobile Identity For all alternate numbers", retailQty: 10, unitPrice: 200, retailGross: 2000, entPrice: 200, entQty: 25, entGross: 5000 },
+  { num: "8", name: "Court Case History – FIR Report", retailQty: 30, unitPrice: 250, retailGross: 7500, entPrice: 250, entQty: 50, entGross: 12500 },
+  { num: "09", name: "Import Export Report", retailQty: 40, unitPrice: 250, retailGross: 10000, entPrice: 250, entQty: 65, entGross: 16250 },
+  { num: "10", name: "Pan to GST Number", retailQty: 40, unitPrice: 15, retailGross: 600, entPrice: 15, entQty: 65, entGross: 975 },
+  { num: "11", name: "Default Payments Voice Calls (1m, 2m, 5m, 30m, 1h)", retailQty: 3500, unitPriceText: "₹1/call", retailGross: 5000, entPriceText: "₹1/call", entQty: 6000, entGross: 7500 },
+  { num: "12", name: "Legal Notices - GST, MSME, INCOME TAX, & Demand", retailQty: 5, unitPrice: 1500, retailGross: 7500, entPrice: 1500, entQty: 10, entGross: 15000 },
+  { num: "13", name: "Delayed Payments Follow UP", retailQty: 500, unitPrice: 1, retailGross: 500, entPrice: 1, entQty: 1000, entGross: 2000 },
+  { num: "14", name: "User access per subscription", retailQty: 3, unitPriceText: "Free (3 Seats)", retailGross: 0, entPriceText: "Free (5 Seats)", entQty: 5, entGross: 0 },
+  { num: "15", name: "Add additional Company name", retailQty: 1, unitPrice: 1500, retailGross: 1500, entPrice: 1500, entQty: 1, entGross: 1500 },
 ];
 
 export default function SubscriptionPage() {
   const router = useRouter();
   const [pricingMap, setPricingMap] = useState<Record<string, number>>({
-    starter_subscription: 4999,
-    growth_subscription: 14999,
-    enterprise_subscription: 39999,
+    growth_subscription: 9899,
+    enterprise_subscription: 17599,
+    alacarte_3k: 4500,
+    alacarte_8k: 10000,
+    alacarte_14k: 15000,
+    alacarte_19k: 20000,
   });
 
-  const [selectedPlan, setSelectedPlan] = useState<PlanTier>(PLANS[1]);
+  const [selectedPlan, setSelectedPlan] = useState<PlanTier>(PLANS[0]);
+  const [selectedAlaCarteOption, setSelectedAlaCarteOption] = useState<CallPackageOption>(ALACARTE_OPTIONS[1]);
   const [customerInput, setCustomerInput] = useState<string>("");
   const [gatewayOpen, setGatewayOpen] = useState(false);
   const [paymentTab, setPaymentTab] = useState<"upi" | "card" | "netbanking" | "neft">("upi");
@@ -163,15 +254,15 @@ export default function SubscriptionPage() {
           JSON.stringify({
             active: true,
             planId: "growth",
-            planName: "Growth Plan (Verified Customer)",
-            paidAmount: 14999,
+            planName: "Retail Plan (Growth)",
+            paidAmount: 9899,
             txnId: "CUSTOMER-LOGIN-ACTIVE",
             paidAt: new Date().toISOString(),
           })
         );
       }
       setLoginModalOpen(false);
-      router.push("/dashboard");
+      router.push("/background-check");
     } catch (err: any) {
       // Offline / fallback demo login so testing is seamless
       if (typeof window !== "undefined") {
@@ -195,15 +286,15 @@ export default function SubscriptionPage() {
           JSON.stringify({
             active: true,
             planId: "growth",
-            planName: "Growth Plan (Verified Customer)",
-            paidAmount: 14999,
+            planName: "Retail Plan (Growth)",
+            paidAmount: 9899,
             txnId: "CUSTOMER-LOGIN-ACTIVE",
             paidAt: new Date().toISOString(),
           })
         );
       }
       setLoginModalOpen(false);
-      router.push("/dashboard");
+      router.push("/background-check");
     } finally {
       setModalLoading(false);
     }
@@ -212,7 +303,7 @@ export default function SubscriptionPage() {
   const handleQuickDemoLogin = () => {
     if (typeof window !== "undefined") {
       document.cookie = "chaanbean_session=client; path=/; max-age=86400";
-      document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
+      document.cookie = "chaanbean_subscription=active; path=/; max-age=7776000";
       sessionStorage.setItem("chaanbean_session_active", "true");
       localStorage.setItem(
         "chaanbean_auth",
@@ -231,14 +322,14 @@ export default function SubscriptionPage() {
         JSON.stringify({
           active: true,
           planId: "growth",
-          planName: "Growth Plan (Verified Customer)",
-          paidAmount: 14999,
+          planName: "Retail Plan (Growth)",
+          paidAmount: 9899,
           txnId: "CUSTOMER-LOGIN-ACTIVE",
           paidAt: new Date().toISOString(),
         })
       );
     }
-    router.push("/dashboard");
+    router.push("/background-check");
   };
 
   // Fetch dynamic pricing from backend engine so owner modifications immediately take effect
@@ -271,29 +362,82 @@ export default function SubscriptionPage() {
     setPaymentSuccess(false);
   };
 
-  const handleAuthorizePayment = () => {
+  const handleOpenAlaCarteGateway = (option: CallPackageOption) => {
+    const alaCartePlan: PlanTier = {
+      id: option.id,
+      priceKey: option.id,
+      name: `À La Carte (${option.callsFormatted})`,
+      tagline: `Dedicated Call Service · ${option.validity}`,
+      defaultPrice: option.price,
+      isAlaCarte: true,
+      validityText: option.validity,
+      validityDays: option.validityDays,
+      validityMonths: option.validityMonths,
+      callsCount: option.calls,
+      badge: "Call Service Only · 100% Wallet Credit",
+      features: [
+        "Dedicated to Call Service Only (Automated Payment Recovery)",
+        `${option.callsFormatted} automated recovery voice calls included`,
+        `Strict ${option.validity} (${option.validityDays} Days Active Period)`,
+        "₹1 charged only per picked-up / answered call",
+        "Multilingual AI Voice Engine (EN, HI, ML, TA, TU)",
+        "Automated Cadences (1m, 2m, 5m, 30m, 1h emergency cadences)",
+        "Debtor Intake & Mandatory Invoice Verification System",
+      ],
+      ctaText: `Subscribe to À La Carte (${option.callsFormatted})`,
+    };
+    setSelectedPlan(alaCartePlan);
+    setGatewayOpen(true);
+    setPaymentSuccess(false);
+  };
+
+  const handleAuthorizePayment = async () => {
     setIsProcessing(true);
-    setTimeout(() => {
+    const txnId = `TXN-CB-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
+    const timestamp = new Date().toISOString();
+    const paidAmount = getPlanPrice(selectedPlan);
+    const validityDays = selectedPlan.validityDays || 90;
+    const validityMonths = selectedPlan.validityMonths || 3;
+    const isAlaCarte = Boolean(selectedPlan.isAlaCarte || selectedPlan.id.startsWith("alacarte"));
+
+    try {
+      // Activate on backend: adds 100% of amount to wallet and sets strict validity
+      const res = await fetch("/api/subscription/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId: selectedPlan.id,
+          planName: selectedPlan.name,
+          paidAmount,
+          validityDays,
+          validityMonths,
+          callsCount: selectedPlan.callsCount,
+          isAlaCarte,
+          txnId,
+        }),
+      });
+      const data = await res.json();
+
       setIsProcessing(false);
-      const txnId = `TXN-CB-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
-      const timestamp = new Date().toISOString();
       setTxnDetails({ txnId, timestamp });
       setPaymentSuccess(true);
 
-      // Save active subscription and authenticated session in localStorage and cookie
+      const expiresAt = data.subscription?.expiresAt || new Date(Date.now() + validityDays * 24 * 60 * 60 * 1000).toISOString();
+      const cookieMaxAge = validityDays * 86400;
+
       if (typeof window !== "undefined") {
-        document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
-        document.cookie = "chaanbean_session=client; path=/; max-age=86400";
+        document.cookie = `chaanbean_subscription=active; path=/; max-age=${cookieMaxAge}`;
+        document.cookie = `chaanbean_session=client; path=/; max-age=${cookieMaxAge}`;
         sessionStorage.setItem("chaanbean_session_active", "true");
         localStorage.setItem(
           "chaanbean_auth",
           JSON.stringify({
             type: "client",
             user: {
-              id: "sub-user-active",
-              name: "Subscribed Enterprise Client",
+              id: data.company?.id || "sub-user-active",
+              name: data.company?.name || "Acme Traders Pvt Ltd",
               email: "operations@acmetraders.in",
-              companyName: "Acme Traders Pvt Ltd",
+              companyName: data.company?.name || "Acme Traders Pvt Ltd",
             },
           })
         );
@@ -303,18 +447,42 @@ export default function SubscriptionPage() {
             active: true,
             planId: selectedPlan.id,
             planName: selectedPlan.name,
-            paidAmount: getPlanPrice(selectedPlan),
+            paidAmount,
+            walletAdded: paidAmount,
+            validityMonths,
+            validityDays,
+            callsCount: selectedPlan.callsCount,
+            isAlaCarte,
+            expiresAt,
             txnId,
             paidAt: timestamp,
           })
         );
+
+        window.dispatchEvent(new CustomEvent("chaanbean:wallet-updated"));
       }
 
-      // Automatically forward to customer dashboard after 2 seconds
+      // Forward to Payment Recovery for À La Carte, or AI Credit Check for Growth/Enterprise
       setTimeout(() => {
-        router.push("/dashboard");
+        if (isAlaCarte) {
+          router.push("/payment-recovery");
+        } else {
+          router.push("/background-check");
+        }
       }, 1800);
-    }, 1200);
+    } catch (err) {
+      console.error("Subscription payment error:", err);
+      setIsProcessing(false);
+      setTxnDetails({ txnId, timestamp });
+      setPaymentSuccess(true);
+      setTimeout(() => {
+        if (isAlaCarte) {
+          router.push("/payment-recovery");
+        } else {
+          router.push("/background-check");
+        }
+      }, 1800);
+    }
   };
 
   const handleExploreBypass = () => {
@@ -334,14 +502,14 @@ export default function SubscriptionPage() {
         JSON.stringify({
           active: true,
           planId: "growth",
-          planName: "Growth Plan (Demo Mode)",
-          paidAmount: 14999,
+          planName: "Retail Plan (Demo Mode)",
+          paidAmount: 9899,
           txnId: "DEMO-EXPLORE-ACCESS",
           paidAt: new Date().toISOString(),
         })
       );
     }
-    router.push("/dashboard");
+    router.push("/background-check");
   };
 
   return (
@@ -485,8 +653,8 @@ export default function SubscriptionPage() {
           </div>
         </div>
 
-        {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+        {/* Pricing Cards Grid (Growth, Enterprise & À La Carte) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 max-w-7xl mx-auto gap-7 items-stretch">
           {PLANS.map((plan) => {
             const price = getPlanPrice(plan);
             const isPopular = plan.popular;
@@ -496,7 +664,7 @@ export default function SubscriptionPage() {
                 key={plan.id}
                 className={`relative rounded-2xl p-7 flex flex-col justify-between transition-all duration-200 ${
                   isPopular
-                    ? "bg-white dark:bg-slate-900 border-2 border-[#FC8019] shadow-xl shadow-orange-500/10 md:-translate-y-2"
+                    ? "bg-white dark:bg-slate-900 border-2 border-[#FC8019] shadow-xl shadow-orange-500/10 lg:-translate-y-2"
                     : "bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm"
                 }`}
               >
@@ -516,15 +684,29 @@ export default function SubscriptionPage() {
                     </p>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
+                    {plan.grossPrice && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-slate-400 line-through">
+                          ₹{plan.grossPrice.toLocaleString("en-IN")} Gross Value
+                        </span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 font-bold">
+                          Save ₹{(plan.grossPrice - price).toLocaleString("en-IN")} ({Math.round(((plan.grossPrice - price) / plan.grossPrice) * 100)}% Off)
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-baseline gap-1">
                       <span className="text-3xl font-black font-mono text-slate-900 dark:text-white">
                         ₹{price.toLocaleString("en-IN")}
                       </span>
-                      <span className="text-xs font-mono text-slate-500 dark:text-slate-400">/ month</span>
+                      <span className="text-xs font-mono text-[#FC8019] font-bold">/ 3 months validity</span>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
-                      + 18% GST Applicable (Input Credit Claimable)
+                    <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                      <CheckCircle2 size={12} className="shrink-0" />
+                      <span>₹{price.toLocaleString("en-IN")} credited 100% to Feature Wallet</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-mono block">
+                      Strict 90-day active validity · Features deduct per use · + 18% GST
                     </span>
                   </div>
 
@@ -561,6 +743,297 @@ export default function SubscriptionPage() {
               </div>
             );
           })}
+
+          {/* 3rd Option: À La Carte (Call Service Only) */}
+          <div className="relative rounded-2xl p-7 flex flex-col justify-between transition-all duration-200 bg-white dark:bg-slate-900 border-2 border-orange-500/40 dark:border-orange-500/40 shadow-xl shadow-orange-500/5 hover:border-[#FC8019]">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+              <span className="block whitespace-nowrap rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-3.5 py-1 text-[11px] font-bold text-white uppercase tracking-wider font-mono shadow-md">
+                À La Carte · Call Service Only
+              </span>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">À La Carte</h3>
+                  <span className="rounded bg-orange-100 dark:bg-orange-950/80 text-orange-700 dark:text-orange-300 text-[10px] font-mono px-2 py-0.5 font-bold">
+                    Voice Cadence
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                  Dedicated exclusively to the Automated Payment Recovery Call Hub. Choose a package tailored to your call volume.
+                </p>
+              </div>
+
+              {/* Call Package Selector (4 Options) */}
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                <span className="text-[11px] font-mono uppercase font-bold text-slate-500 dark:text-slate-400 block tracking-wider">
+                  Select Call Volume Pack:
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  {ALACARTE_OPTIONS.map((opt) => {
+                    const isSelected = selectedAlaCarteOption.id === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setSelectedAlaCarteOption(opt)}
+                        className={`p-2.5 rounded-xl border text-left transition relative ${
+                          isSelected
+                            ? "border-[#FC8019] bg-orange-50/90 dark:bg-orange-500/15 ring-2 ring-[#FC8019]/40 shadow-sm"
+                            : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 hover:border-slate-300 dark:hover:border-slate-700"
+                        }`}
+                      >
+                        {opt.popular && (
+                          <span className="absolute -top-2 right-2 text-[8px] bg-[#FC8019] text-white px-1.5 py-0.2 rounded font-mono font-bold shadow-xs">
+                            POPULAR
+                          </span>
+                        )}
+                        <div className="text-xs font-black font-mono text-slate-900 dark:text-white">
+                          ₹{opt.price.toLocaleString("en-IN")}
+                        </div>
+                        <div className="text-[11px] font-bold text-[#FC8019] leading-tight">
+                          {opt.callsFormatted}
+                        </div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                          {opt.validity.replace(" Validity", "")}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Dynamic Price Display */}
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black font-mono text-slate-900 dark:text-white">
+                    ₹{selectedAlaCarteOption.price.toLocaleString("en-IN")}
+                  </span>
+                  <span className="text-xs font-mono text-[#FC8019] font-bold">
+                    / {selectedAlaCarteOption.validity.toLowerCase()}
+                  </span>
+                </div>
+                <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                  <CheckCircle2 size={12} className="shrink-0" />
+                  <span>
+                    ₹{selectedAlaCarteOption.price.toLocaleString("en-IN")} credited (covers {selectedAlaCarteOption.callsFormatted})
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-400 font-mono block">
+                  Strict {selectedAlaCarteOption.validityDays}-day active validity · ₹1/call picked up · + 18% GST
+                </span>
+              </div>
+
+              {/* Feature Checklist */}
+              <div className="space-y-2.5 pt-2">
+                <span className="text-[11px] font-mono uppercase font-bold text-slate-400 block tracking-wider">
+                  Included Call Capabilities:
+                </span>
+                <div className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
+                  <div className="flex items-start gap-2.5">
+                    <div className="rounded-full p-0.5 bg-orange-100 dark:bg-orange-950/80 text-[#FC8019] mt-0.5 shrink-0">
+                      <PhoneCall size={12} strokeWidth={2.5} />
+                    </div>
+                    <span className="leading-tight font-semibold text-slate-900 dark:text-white">
+                      Dedicated to Call Service Only (Automated Payment Recovery)
+                    </span>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                      <Check size={12} strokeWidth={3} />
+                    </div>
+                    <span className="leading-tight">
+                      <strong>{selectedAlaCarteOption.callsFormatted}</strong> automated recovery voice calls
+                    </span>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                      <Check size={12} strokeWidth={3} />
+                    </div>
+                    <span className="leading-tight">
+                      <strong>{selectedAlaCarteOption.validity}</strong> ({selectedAlaCarteOption.validityDays} days active window)
+                    </span>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                      <Check size={12} strokeWidth={3} />
+                    </div>
+                    <span className="leading-tight">
+                      ₹1 charged <em>only</em> per picked-up / connected call
+                    </span>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                      <Check size={12} strokeWidth={3} />
+                    </div>
+                    <span className="leading-tight">
+                      Multilingual AI Voice: English, Hindi, Malayalam, Tamil, Tulu
+                    </span>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                      <Check size={12} strokeWidth={3} />
+                    </div>
+                    <span className="leading-tight">
+                      5 Cadences (1m, 2m, 5m, 30m, 1h emergency cadences)
+                    </span>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                      <Check size={12} strokeWidth={3} />
+                    </div>
+                    <span className="leading-tight">
+                      Debtor Intake &amp; Mandatory Invoice Matching System
+                    </span>
+                  </div>
+
+                  <div className="flex items-start gap-2 text-[11px] text-amber-600 dark:text-amber-400 pt-1 border-t border-slate-100 dark:border-slate-800/80">
+                    <span className="font-mono">ℹ</span>
+                    <span className="leading-tight">
+                      Note: Excludes statutory AI Credit Check reports &amp; Legal Docket.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => handleOpenAlaCarteGateway(selectedAlaCarteOption)}
+                className="w-full py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-md bg-[#FC8019] hover:bg-[#E26D0A] text-white shadow-orange-500/20"
+              >
+                <span>Subscribe to À La Carte ({selectedAlaCarteOption.callsFormatted})</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Full Comparative Pricing & Quota Breakdown Table */}
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-md">
+          <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/15 text-[#FC8019] text-[10px] font-mono font-bold uppercase tracking-wider mb-1">
+                Official Plan Schedule
+              </div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                Detailed Feature Quotas &amp; Statutory Pricing Breakdown
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Exact feature quotas, unit rates, gross value, and discounted subscription totals.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-mono px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-400 font-semibold">
+                100% Subscription Credited to Feature Wallet
+              </span>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-mono text-[11px] uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
+                <tr>
+                  <th className="py-3 px-4 w-12 text-center">#</th>
+                  <th className="py-3 px-4 font-bold">Feature Name</th>
+                  <th className="py-3 px-3 text-center bg-orange-50/50 dark:bg-orange-950/20 text-[#FC8019]">Retail Qty</th>
+                  <th className="py-3 px-3 text-right bg-orange-50/50 dark:bg-orange-950/20 text-[#FC8019]">Unit Price</th>
+                  <th className="py-3 px-4 text-right bg-orange-50/50 dark:bg-orange-950/20 text-[#FC8019] font-bold">Retail Value</th>
+                  <th className="py-3 px-3 text-right bg-blue-50/50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400">Unit Price</th>
+                  <th className="py-3 px-3 text-center bg-blue-50/50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400">Enterprise Qty</th>
+                  <th className="py-3 px-4 text-right bg-blue-50/50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 font-bold">Enterprise Value</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-xs">
+                {STATUTORY_FEATURE_BREAKDOWN.map((row) => (
+                  <tr key={row.num} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition">
+                    <td className="py-2.5 px-4 text-center text-slate-400">{row.num}</td>
+                    <td className="py-2.5 px-4 font-sans font-medium text-slate-900 dark:text-white">
+                      {row.name}
+                    </td>
+                    <td className="py-2.5 px-3 text-center font-bold text-slate-800 dark:text-slate-200 bg-orange-50/20 dark:bg-orange-950/10">
+                      {row.retailQty.toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-2.5 px-3 text-right text-slate-600 dark:text-slate-400 bg-orange-50/20 dark:bg-orange-950/10">
+                      {row.unitPriceText ? row.unitPriceText : `₹${row.unitPrice}`}
+                    </td>
+                    <td className="py-2.5 px-4 text-right font-bold text-slate-900 dark:text-white bg-orange-50/20 dark:bg-orange-950/10">
+                      {row.retailGross > 0 ? `₹${row.retailGross.toLocaleString("en-IN")}` : "Free"}
+                    </td>
+                    <td className="py-2.5 px-3 text-right text-slate-600 dark:text-slate-400 bg-blue-50/20 dark:bg-blue-950/10">
+                      {row.entPriceText ? row.entPriceText : `₹${row.entPrice}`}
+                    </td>
+                    <td className="py-2.5 px-3 text-center font-bold text-slate-800 dark:text-slate-200 bg-blue-50/20 dark:bg-blue-950/10">
+                      {row.entQty.toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-2.5 px-4 text-right font-bold text-slate-900 dark:text-white bg-blue-50/20 dark:bg-blue-950/10">
+                      {row.entGross > 0 ? `₹${row.entGross.toLocaleString("en-IN")}` : "Free"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="border-t-2 border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 font-mono">
+                {/* Gross Totals Row */}
+                <tr className="border-b border-slate-200 dark:border-slate-700 text-xs">
+                  <td colSpan={2} className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 uppercase">
+                    Total Gross Value
+                  </td>
+                  <td colSpan={2} className="py-3 px-3 text-right text-slate-500 font-semibold bg-orange-50/30 dark:bg-orange-950/20">
+                    Gross:
+                  </td>
+                  <td className="py-3 px-4 text-right font-black text-slate-500 line-through bg-orange-50/30 dark:bg-orange-950/20">
+                    ₹49,200
+                  </td>
+                  <td colSpan={2} className="py-3 px-3 text-right text-slate-500 font-semibold bg-blue-50/30 dark:bg-blue-950/20">
+                    Gross:
+                  </td>
+                  <td className="py-3 px-4 text-right font-black text-slate-500 line-through bg-blue-50/30 dark:bg-blue-950/20">
+                    ₹85,950
+                  </td>
+                </tr>
+
+                {/* Discounted Subscription Price Row */}
+                <tr className="text-sm bg-orange-50/60 dark:bg-orange-950/40">
+                  <td colSpan={2} className="py-3.5 px-4 font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                    Plan Subscription Fee (After Discount)
+                  </td>
+                  <td colSpan={2} className="py-3.5 px-3 text-right font-bold text-[#FC8019] text-xs">
+                    Retail Plan:
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-black text-xl text-[#FC8019]">
+                    ₹9,899
+                  </td>
+                  <td colSpan={2} className="py-3.5 px-3 text-right font-bold text-blue-600 dark:text-blue-400 text-xs">
+                    Enterprise Plan:
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-black text-xl text-blue-600 dark:text-blue-400">
+                    ₹17,599
+                  </td>
+                </tr>
+
+                {/* Net Savings & 100% Wallet Credit */}
+                <tr className="text-[11px] text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/30">
+                  <td colSpan={2} className="py-2.5 px-4 font-semibold">
+                    Net Client Savings / 100% Wallet Allocation
+                  </td>
+                  <td colSpan={3} className="py-2.5 px-4 text-right font-bold">
+                    Save ₹39,301 · ₹9,899 Credited 100% to Wallet
+                  </td>
+                  <td colSpan={3} className="py-2.5 px-4 text-right font-bold">
+                    Save ₹68,351 · ₹17,599 Credited 100% to Wallet
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
 
         {/* Security & Statutory Seals */}
@@ -615,7 +1088,9 @@ export default function SubscriptionPage() {
                 <div>
                   <h4 className="text-lg font-bold text-slate-900 dark:text-white">Payment Authorized &amp; Active!</h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Welcome to ChaanBean. Forwarding to your Credit &amp; Recovery Hub...
+                    {selectedPlan.isAlaCarte || selectedPlan.id.startsWith("alacarte")
+                      ? "Welcome to ChaanBean. Forwarding to your Payment Automation Hub..."
+                      : "Welcome to ChaanBean. Forwarding to your Credit & Recovery Hub..."}
                   </p>
                 </div>
 
@@ -629,6 +1104,10 @@ export default function SubscriptionPage() {
                     <span className="text-[#FC8019] font-bold">{selectedPlan.name}</span>
                   </div>
                   <div className="text-slate-500 flex justify-between">
+                    <span>Validity Window:</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-semibold">{selectedPlan.validityText || "3 Months Validity"}</span>
+                  </div>
+                  <div className="text-slate-500 flex justify-between">
                     <span>Amount Charged:</span>
                     <span className="text-emerald-500 font-bold">₹{(getPlanPrice(selectedPlan) * 1.18).toLocaleString("en-IN")}</span>
                   </div>
@@ -637,7 +1116,11 @@ export default function SubscriptionPage() {
                 <div className="flex justify-center">
                   <div className="inline-flex items-center gap-2 text-xs text-slate-400">
                     <div className="h-3 w-3 rounded-full border-2 border-[#FC8019] border-t-transparent animate-spin" />
-                    <span>Launching platform dashboard...</span>
+                    <span>
+                      {selectedPlan.isAlaCarte || selectedPlan.id.startsWith("alacarte")
+                        ? "Launching Payment Automation Hub..."
+                        : "Launching platform dashboard..."}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -648,12 +1131,18 @@ export default function SubscriptionPage() {
                   <div>
                     <span className="text-slate-500 dark:text-slate-400 uppercase text-[10px]">Selected Subscription:</span>
                     <div className="font-bold text-slate-900 dark:text-white text-sm">{selectedPlan.name}</div>
+                    {selectedPlan.validityText && (
+                      <div className="text-[10px] text-[#FC8019] font-semibold mt-0.5">
+                        {selectedPlan.validityText} · {selectedPlan.isAlaCarte ? "Dedicated Call Service" : "100% Wallet Credit"}
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
                     <span className="text-slate-500 dark:text-slate-400 uppercase text-[10px]">Total with GST (18%):</span>
                     <div className="text-base font-black text-[#FC8019]">
                       ₹{(getPlanPrice(selectedPlan) * 1.18).toLocaleString("en-IN")}
                     </div>
+                    <span className="text-[10px] text-slate-400 font-mono block">Base: ₹{getPlanPrice(selectedPlan).toLocaleString("en-IN")}</span>
                   </div>
                 </div>
 
@@ -807,7 +1296,11 @@ export default function SubscriptionPage() {
                   <Lock size={14} />
                   {isProcessing
                     ? "Securing Transaction & Authorizing..."
-                    : `Pay ₹${(getPlanPrice(selectedPlan) * 1.18).toLocaleString("en-IN")} & Launch Hub`}
+                    : `Pay ₹${(getPlanPrice(selectedPlan) * 1.18).toLocaleString("en-IN")} & ${
+                        selectedPlan.isAlaCarte || selectedPlan.id.startsWith("alacarte")
+                          ? "Launch Call Hub"
+                          : "Launch Hub"
+                      }`}
                 </button>
               </div>
             )}

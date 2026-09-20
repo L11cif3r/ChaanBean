@@ -112,6 +112,12 @@ export default async function PaymentRecoveryPage() {
             <Radio size={13} className="text-emerald-400 animate-pulse" />
             <span className="text-slate-300">Voice Window: 09:00–18:00 IST (TRAI)</span>
           </div>
+          {company?.plan?.startsWith("alacarte") && (
+            <div className="flex items-center gap-1.5 rounded-xl bg-orange-950/60 px-3 py-1.5 text-xs font-mono border border-orange-700/60 text-orange-400 font-bold">
+              <Phone size={13} className="text-[#FC8019]" />
+              <span>À La Carte Plan Active (₹1/Connected Call)</span>
+            </div>
+          )}
           <div className="flex items-center gap-1.5 rounded-xl bg-amber-950/60 px-3 py-1.5 text-xs font-mono border border-amber-800/60 text-amber-400">
             <ShieldCheck size={13} />
             <span>BSA 2023 §63 Evidence Certificate</span>
@@ -119,76 +125,7 @@ export default async function PaymentRecoveryPage() {
         </div>
       </div>
 
-      {/* Futuristic 4-Stage Omnichannel Recovery Escalation Ladder */}
-      <section className="rounded-2xl border border-chaan-border bg-chaan-card p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-chaan-border pb-3">
-          <div className="flex items-center gap-2">
-            <Activity size={16} className="text-[#FC8019]" />
-            <h2 className="text-sm font-semibold text-white tracking-tight">
-              Statutory 4-Stage Escalation Pipeline — Self-Explaining Progression
-            </h2>
-          </div>
-          <span className="text-[11px] font-mono text-slate-400">Deterministic Policy Ladder</span>
-        </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Stage 1 */}
-          <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="rounded bg-sky-950/80 text-sky-400 border border-sky-800/60 px-2 py-0.5 text-[10px] font-mono font-bold">
-                STAGE 1 · DAYS 1–15
-              </span>
-              <Send size={13} className="text-sky-400" />
-            </div>
-            <h3 className="font-semibold text-white text-xs">L1 Polite Reminders</h3>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              Automated WhatsApp &amp; Email ledger statement with instant 1-click UPI/NEFT payment link. Friendly tone without penal charges.
-            </p>
-          </div>
-
-          {/* Stage 2 */}
-          <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="rounded bg-amber-950/80 text-amber-400 border border-amber-800/60 px-2 py-0.5 text-[10px] font-mono font-bold">
-                STAGE 2 · DAYS 16–30
-              </span>
-              <Volume2 size={13} className="text-amber-400" />
-            </div>
-            <h3 className="font-semibold text-white text-xs">L2 Firm Engagement</h3>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              Asterisk/Vobiz automated one-way voice bot in debtor&apos;s native dialect. Verbal reminder with formal promise-to-pay commitment.
-            </p>
-          </div>
-
-          {/* Stage 3 */}
-          <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="rounded bg-rose-950/80 text-rose-400 border border-rose-800/60 px-2 py-0.5 text-[10px] font-mono font-bold">
-                STAGE 3 · DAYS 31–45
-              </span>
-              <FileText size={13} className="text-rose-400" />
-            </div>
-            <h3 className="font-semibold text-white text-xs">L3 Statutory Demand</h3>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              Formal legal demand notice registered with Government Reference ID under MSMED §16 &amp; Negotiable Instruments Act §138.
-            </p>
-          </div>
-
-          {/* Stage 4 */}
-          <div className="rounded-xl border border-[#FC8019]/30 bg-[#FC8019]/10 p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="rounded bg-[#FC8019]/20 text-[#FC8019] border border-[#FC8019]/40 px-2 py-0.5 text-[10px] font-mono font-bold">
-                STAGE 4 · DAYS 45+
-              </span>
-              <Gavel size={13} className="text-[#FC8019]" />
-            </div>
-            <h3 className="font-semibold text-white text-xs">In-House Arbitration</h3>
-            <p className="text-[11px] text-slate-300 leading-relaxed">
-              Automatic escalation to institutional dispute desk. 20.25% compound interest computation &amp; enforceable Aadhaar e-Sign settlement.
-            </p>
-          </div>
-        </div>
-      </section>
 
       {/* Self-Explained Executive Operations Metric Strip */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">

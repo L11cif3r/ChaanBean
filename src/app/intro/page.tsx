@@ -24,7 +24,7 @@ export default function IntroPage() {
     }, 100);
 
     const timer = setTimeout(() => {
-      router.push("/subscription");
+      router.push("/landing");
     }, 3000);
 
     return () => {
@@ -34,7 +34,7 @@ export default function IntroPage() {
   }, [router, animationKey]);
 
   const handleSkip = () => {
-    router.push("/subscription");
+    router.push("/landing");
   };
 
   const handleReplay = () => {
@@ -69,69 +69,22 @@ export default function IntroPage() {
           onClick={handleSkip}
           className="flex items-center gap-1.5 rounded-full border border-[#FC8019]/40 bg-[#FC8019]/10 px-4 py-1.5 text-xs font-semibold text-[#FC8019] hover:bg-[#FC8019]/20 transition shadow-lg shadow-[#FC8019]/10"
         >
-          <span>Skip to Subscription</span>
+          <span>Skip to Overview</span>
           <ArrowRight size={13} />
         </button>
       </div>
 
       {/* Center Stage: Multi-Part Animated Logo Assembly */}
       <div key={animationKey} className="relative z-10 flex flex-col items-center text-center px-4">
-        {/* Animated Logo Container: 1024x742 aspect ratio */}
+        {/* Official Animated Logo Container: 1024x742 aspect ratio */}
         <div className="relative h-44 w-60 sm:h-56 sm:w-76 md:h-64 md:w-88 animate-logo-bloom">
-          {/* 1. The 'C' Element: Comes smoothly from the Left */}
-          <div className="absolute inset-0 animate-fly-in-left">
-            <Image
-              src="/brand/logo_c.png"
-              alt="ChaanBean C"
-              fill
-              priority
-              className="object-contain"
-            />
-          </div>
-
-          {/* 2. The 'B' Body Element: Comes smoothly from the Right */}
-          <div className="absolute inset-0 animate-fly-in-right">
-            <Image
-              src="/brand/logo_b.png"
-              alt="ChaanBean B"
-              fill
-              priority
-              className="object-contain"
-            />
-          </div>
-
-          {/* 3. Bar 1 (Leftmost on top of B): Drops from top */}
-          <div className="absolute inset-0 animate-drop-in-top-1">
-            <Image
-              src="/brand/logo_bar1.png"
-              alt="ChaanBean Bar 1"
-              fill
-              priority
-              className="object-contain"
-            />
-          </div>
-
-          {/* 4. Bar 2 (Middle on top of B): Drops from top with delay */}
-          <div className="absolute inset-0 animate-drop-in-top-2">
-            <Image
-              src="/brand/logo_bar2.png"
-              alt="ChaanBean Bar 2"
-              fill
-              priority
-              className="object-contain"
-            />
-          </div>
-
-          {/* 5. Bar 3 (Rightmost on top of B): Drops from top with delay */}
-          <div className="absolute inset-0 animate-drop-in-top-3">
-            <Image
-              src="/brand/logo_bar3.png"
-              alt="ChaanBean Bar 3"
-              fill
-              priority
-              className="object-contain"
-            />
-          </div>
+          <Image
+            src="/logo.png"
+            alt="ChaanBean Logo"
+            fill
+            priority
+            className="object-contain drop-shadow-[0_10px_35px_rgba(252,128,25,0.35)]"
+          />
         </div>
 
         {/* Wordmark & Brand Mission fading in after assembly */}

@@ -220,6 +220,19 @@ export function OneWayCallModal({
         return;
       }
 
+      // If call is answered and ₹1 was deducted, dispatch wallet update
+      if (typeof window !== "undefined" && typeof callResponse.newBalance === "number") {
+        window.dispatchEvent(
+          new CustomEvent("chaanbean:wallet-updated", {
+            detail: {
+              newBalance: callResponse.newBalance,
+              deduction: 1,
+              reason: "Payment Recovery Voice Call (Answered)",
+            },
+          })
+        );
+      }
+
       const sipId = callResponse.callResult?.sipSessionId || `SIP-VOBIZ-${Date.now().toString(36).toUpperCase()}`;
       setSipCallId(sipId);
 
@@ -307,6 +320,9 @@ export function OneWayCallModal({
                 Asterisk / Vobiz One-Way Voice Recovery Console
                 <span className="rounded bg-emerald-950 px-2 py-0.5 text-[10px] font-mono font-bold text-emerald-400 border border-emerald-800">
                   TRAI COMPLIANT
+                </span>
+                <span className="rounded bg-orange-950/80 px-2 py-0.5 text-[10px] font-mono font-bold text-[#FC8019] border border-orange-800/60">
+                  ₹1 / Picked-Up Call
                 </span>
               </h2>
               <p className="text-xs text-slate-400">

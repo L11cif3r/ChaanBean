@@ -94,12 +94,12 @@ export default function LoginPage() {
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || "Login failed");
 
-          setSuccessMsg(`Welcome back, ${data.user?.name || "Client"}! Redirecting to Dashboard...`);
+          setSuccessMsg(`Welcome back, ${data.user?.name || "Client"}! Redirecting to AI Credit Check...`);
           sessionStorage.setItem("chaanbean_session_active", "true");
           localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "client", user: data.user }));
           document.cookie = "chaanbean_session=client; path=/; max-age=86400";
-          document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
-          setTimeout(() => router.push("/dashboard"), 700);
+          document.cookie = "chaanbean_subscription=active; path=/; max-age=7776000";
+          setTimeout(() => router.push("/background-check"), 700);
         } else {
           // Register client
           const res = await fetch("/api/auth", {
@@ -119,12 +119,12 @@ export default function LoginPage() {
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || "Registration failed");
 
-          setSuccessMsg("Enterprise account registered successfully! Entering console...");
+          setSuccessMsg("Enterprise account registered successfully! Entering AI Credit Check...");
           sessionStorage.setItem("chaanbean_session_active", "true");
           localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "client", user: data.user }));
           document.cookie = "chaanbean_session=client; path=/; max-age=86400";
-          document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
-          setTimeout(() => router.push("/dashboard"), 700);
+          document.cookie = "chaanbean_subscription=active; path=/; max-age=7776000";
+          setTimeout(() => router.push("/background-check"), 700);
         }
       } else {
         // Admin portal

@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/db";
 import { getFeaturePrice } from "@/lib/pricing/pricing-engine";
+import { findKnowledgeEntity } from "@/lib/knowledge-source";
 
 export interface ProviderCallResult<T> {
   success: boolean;
@@ -114,23 +115,33 @@ export async function lookupDatabaseEntity(subjectId: string): Promise<DatabaseE
   };
   const jurisdiction = stateJurisdictionMap[stateCode] || "Maharashtra (State Ward 04)";
 
-  let name = cleanId.length > 4 && !upper.startsWith("27") && !upper.startsWith("29") ? cleanId : "Acme Industrial Traders Pvt Ltd";
-  let pan = upper.length === 10 ? upper : upper.length === 15 ? upper.slice(2, 12) : "AAECG1234H";
-  let gstin = upper.length === 15 ? upper : `${stateCode}${pan}1Z5`;
-  let mobile = "9876543210";
-  let email = "accounts@chaanbean-partner.in";
-  let address = `${jurisdiction}, Industrial MIDC Hub, India`;
+  // 5. Query Centralized Knowledge Source
+  const knowledge = findKnowledgeEntity(cleanId);
+
+  let name = knowledge ? knowledge.legalName : (cleanId.length > 4 && !upper.startsWith("27") && !upper.startsWith("29") ? cleanId : "Acme Industrial Traders Pvt Ltd");
+  let pan = knowledge ? knowledge.pan : (upper.length === 10 ? upper : upper.length === 15 ? upper.slice(2, 12) : "AAECG1234H");
+  let gstin = knowledge ? knowledge.gstin : (upper.length === 15 ? upper : `${stateCode}${pan}1Z5`);
+  let mobile = knowledge ? knowledge.phone : "9876543210";
+  let email = knowledge ? knowledge.email : "accounts@chaanbean-partner.in";
+  let address = knowledge ? knowledge.registeredAddress : `${jurisdiction}, Industrial MIDC Hub, India`;
   let outstandingAmount = 0;
-  let creditLimit = 1500000;
-  let isOverdue = false;
-  let isDefaulted = hasCommunityDefault;
-  let cin = "U74999MH2018PTC312345";
-  const udyamNumber = `UDYAM-${stateCode === "29" ? "KR" : stateCode === "32" ? "KL" : "MH"}-03-0048291`;
-  let category = "Small Enterprise";
-  let directors: Array<{ din: string; name: string; designation?: string; status: string }> = [
-    { din: "02847192", name: "Rajeshwar Rao Deshmukh", designation: "Managing Director", status: isRed ? "disqualified" : "active" },
-    { din: "07891234", name: "Sunita Deshmukh", designation: "Director", status: "active" },
-  ];
+  let creditLimit = knowledge ? knowledge.recommendedCreditLimit : 1500000;
+  let isOverdue = knowledge ? knowledge.daysBeyondTerms > 30 : false;
+  let isDefaulted = knowledge ? (knowledge.riskFlag === "RED" || hasCommunityDefault) : hasCommunityDefault;
+  let cin = knowledge ? knowledge.cin : "U74999MH2018PTC312345";
+  const udyamNumber = knowledge ? knowledge.udyamNo : `UDYAM-${stateCode === "29" ? "KR" : stateCode === "32" ? "KL" : "MH"}-03-0048291`;
+  let category = knowledge ? `${knowledge.udyamCategory} Enterprise` : "Small Enterprise";
+  let directors: Array<{ din: string; name: string; designation?: string; status: string }> = knowledge
+    ? knowledge.directors.map((d) => ({
+        din: d.din,
+        name: d.name,
+        designation: d.designation,
+        status: d.dinStatus.toLowerCase(),
+      }))
+    : [
+        { din: "02847192", name: "Rajeshwar Rao Deshmukh", designation: "Managing Director", status: isRed ? "disqualified" : "active" },
+        { din: "07891234", name: "Sunita Deshmukh", designation: "Director", status: "active" },
+      ];
 
   if (buyer) {
     name = buyer.name;

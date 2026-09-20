@@ -122,6 +122,9 @@ export default function BusinessCheckPage() {
         return;
       }
 
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("chaanbean:wallet-updated"));
+      }
       router.push(`/business-check/${data.business.id}`);
     } catch {
       setError("Network error. Please try again.");

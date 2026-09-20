@@ -88,10 +88,10 @@ export function RiskRadarExpandable({
               Synthesizes 17 statutory verification signals into instant, explainable credit recommendations with zero black-box scoring. Review the differentiating criteria and mandatory credit policies below:
             </p>
             <Link
-              href="/debtors"
+              href="/business-check"
               className="text-xs font-semibold text-[#FC8019] hover:underline flex items-center gap-1"
             >
-              Inspect Full Portfolio →
+              Inspect AI Business Security →
             </Link>
           </div>
 

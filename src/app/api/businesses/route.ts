@@ -65,6 +65,22 @@ export async function POST(req: Request) {
       }
     }
 
+    const company = await prisma.company.findFirst();
+    const checkFee = 299;
+    if (company && company.walletBalance < checkFee) {
+      return NextResponse.json(
+        {
+          error: `Insufficient wallet balance. AI Business Security Check costs ₹${checkFee}, but current balance is ₹${company.walletBalance.toLocaleString(
+            "en-IN"
+          )}.`,
+          insufficientBalance: true,
+          required: checkFee,
+          currentBalance: company.walletBalance,
+        },
+        { status: 402 }
+      );
+    }
+
     // Create business profile
     const business = await prisma.businessProfile.create({
       data: {
@@ -110,7 +126,52 @@ export async function POST(req: Request) {
     // Kick off verification orchestrator (non-blocking)
     runBusinessVerification(business.id).catch(console.error);
 
-    return NextResponse.json({ success: true, business }, { status: 201 });
+    // Debit fee from wallet & record in UserReportLibrary
+    if (company) {
+      await prisma.company.update({
+        where: { id: company.id },
+        data: {
+          walletBalance: { decrement: checkFee },
+          lastActiveAt: new Date(),
+        },
+      });
+
+      await prisma.walletUsageLedger.upsert({
+        where: { companyId_reportType: { companyId: company.id, reportType: "business_security_check" } },
+        create: {
+          companyId: company.id,
+          reportType: "business_security_check",
+          timesUsed: 1,
+          available: 99,
+          cost: checkFee,
+        },
+        update: {
+          timesUsed: { increment: 1 },
+          available: { decrement: 1 },
+        },
+      });
+
+      await prisma.userReportLibrary.create({
+        data: {
+          companyId: company.id,
+          subjectId: data.gstin || data.pan || data.cin || business.id,
+          subjectName: data.companyName,
+          subjectType: "business",
+          reportType: "ai_business_security",
+          reportTitle: "AI Business Security & Credit Underwriting",
+          costPaid: checkFee,
+          reportData: JSON.stringify({
+            businessId: business.id,
+            companyName: data.companyName,
+            gstin: data.gstin,
+            pan: data.pan,
+            cin: data.cin,
+          }),
+        },
+      }).catch(() => {});
+    }
+
+    return NextResponse.json({ success: true, business, feeDeducted: checkFee }, { status: 201 });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }

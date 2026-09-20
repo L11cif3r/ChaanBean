@@ -417,6 +417,9 @@ export function AdapterCard({
       } else if (data.reports?.length) {
         const rep = data.reports[0];
         setCurrentReport(rep);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("chaanbean:wallet-updated"));
+        }
         if (onReportGenerated) onReportGenerated(rep);
       }
     } catch {

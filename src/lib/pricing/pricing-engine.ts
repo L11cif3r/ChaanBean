@@ -11,46 +11,46 @@ export interface FeaturePriceItem {
 }
 
 export const DEFAULT_PRICING: Record<string, FeaturePriceItem> = {
-  // 18 Features under Business Background Check & Add-ons
+  // 15 Core Features from Statutory Pricing Schedule
   director_details: {
     key: "director_details",
     name: "Director Details (DIN)",
     category: "background_check",
-    price: 149,
-    defaultPrice: 149,
-    description: "MCA21 director KYC, DIN status, and past disqualifications check.",
+    price: 200,
+    defaultPrice: 200,
+    description: "MCA21 director KYC, DIN status, active directorships, and past disqualifications check.",
   },
   msme_report: {
     key: "msme_report",
     name: "MSME Report (Udyam)",
     category: "background_check",
-    price: 99,
-    defaultPrice: 99,
-    description: "Udyam registration validation and enterprise category standing.",
+    price: 200,
+    defaultPrice: 200,
+    description: "Udyam registration validation, classification (Micro/Small/Medium), and enterprise standing.",
   },
   gst_slab: {
     key: "gst_slab",
     name: "GST Slab",
     category: "background_check",
-    price: 49,
-    defaultPrice: 49,
+    price: 15,
+    defaultPrice: 15,
     description: "Statutory tax bracket and enterprise scale qualification.",
   },
   gst_exact_turnover: {
     key: "gst_exact_turnover",
     name: "GST Exact Turnover Filed",
     category: "background_check",
-    price: 199,
-    defaultPrice: 199,
-    description: "Aggregate historical annual turnovers declared to GSTN.",
+    price: 200,
+    defaultPrice: 200,
+    description: "Aggregate historical annual turnovers declared to GSTN (GSTR-3B & 9).",
   },
   gst_filing_month_basis: {
     key: "gst_filing_month_basis",
     name: "GST Filing on Month Basis",
     category: "background_check",
-    price: 149,
-    defaultPrice: 149,
-    description: "Monthly GSTR-3B and GSTR-1 on-time filing regularity timeline.",
+    price: 0,
+    defaultPrice: 0,
+    description: "Monthly GSTR-3B and GSTR-1 on-time filing regularity timeline (Free).",
   },
   gst_supreme_report: {
     key: "gst_supreme_report",
@@ -64,89 +64,89 @@ export const DEFAULT_PRICING: Record<string, FeaturePriceItem> = {
     key: "trust_hub_id",
     name: "Trust Network & Trust ID",
     category: "background_check",
-    price: 499,
-    defaultPrice: 499,
+    price: 99,
+    defaultPrice: 99,
     description: "Verified counterparty credibility certificate and Trust ID assignment.",
   },
   mobile_to_pan: {
     key: "mobile_to_pan",
     name: "Mobile to PAN",
     category: "background_check",
-    price: 79,
-    defaultPrice: 79,
+    price: 50,
+    defaultPrice: 50,
     description: "Reverse telecom subscriber link to verified Income Tax PAN.",
   },
   mobile_identity: {
     key: "mobile_identity",
     name: "Mobile Identity (All Alternate Numbers)",
     category: "background_check",
-    price: 129,
-    defaultPrice: 129,
+    price: 200,
+    defaultPrice: 200,
     description: "E-commerce and telecom KYC multi-SIM cross-correlation.",
   },
   court_case_history: {
     key: "court_case_history",
     name: "Court Case History – FIR Report",
     category: "background_check",
-    price: 249,
-    defaultPrice: 249,
-    description: "e-Courts civil/commercial lawsuits and CCTNS criminal FIR screening.",
+    price: 250,
+    defaultPrice: 250,
+    description: "e-Courts civil/commercial lawsuits, Section 138 NI Act, and CCTNS criminal FIR screening.",
   },
   import_export_report: {
     key: "import_export_report",
     name: "Import Export Report (DGFT IEC)",
     category: "background_check",
-    price: 199,
-    defaultPrice: 199,
+    price: 250,
+    defaultPrice: 250,
     description: "DGFT Importer-Exporter Code and overseas trade customs clearance.",
   },
   marksheets_10_12: {
     key: "marksheets_10_12",
     name: "10th & 12th Marksheets",
     category: "background_check",
-    price: 149,
-    defaultPrice: 149,
+    price: 89,
+    defaultPrice: 89,
     description: "DigiLocker/CBSE credential check for key promoters.",
   },
   pan_to_gst: {
     key: "pan_to_gst",
     name: "PAN to GST Number",
     category: "background_check",
-    price: 79,
-    defaultPrice: 79,
+    price: 15,
+    defaultPrice: 15,
     description: "Discovers all nationwide multi-state GSTINs linked to a PAN.",
   },
   default_payment_voice_calls: {
     key: "default_payment_voice_calls",
     name: "Default Payments Voice Calls (1m, 2m, 5m, 30m, 1h)",
     category: "background_check",
-    price: 399,
-    defaultPrice: 399,
-    description: "Automated Asterisk multi-cadence multilingual phone recovery.",
+    price: 1,
+    defaultPrice: 1,
+    description: "Automated Asterisk multi-cadence multilingual phone recovery (₹1/call answered).",
   },
   legal_notices: {
     key: "legal_notices",
     name: "Legal Notices (GST, MSME, Income Tax & Demand)",
     category: "background_check",
-    price: 499,
-    defaultPrice: 499,
-    description: "Statutory demand notice suite with regulatory reporting.",
+    price: 1500,
+    defaultPrice: 1500,
+    description: "Statutory demand notice suite with regulatory reporting (§43B(h) / DRC-01A).",
   },
   delayed_payments_followup: {
     key: "delayed_payments_followup",
     name: "Delayed Payments Follow UP",
     category: "background_check",
-    price: 299,
-    defaultPrice: 299,
+    price: 1,
+    defaultPrice: 1,
     description: "Promise-to-pay tracking calendar and aging ledger automation.",
   },
   user_seat: {
     key: "user_seat",
-    name: "User Access (Per Seat Add-On)",
+    name: "User Access (Seats Included)",
     category: "addon",
-    price: 999,
-    defaultPrice: 999,
-    description: "Additional concurrent operator seat beyond base allocation.",
+    price: 0,
+    defaultPrice: 0,
+    description: "User team access seats (3 included on Retail, 5 on Enterprise).",
   },
   additional_company: {
     key: "additional_company",
@@ -154,7 +154,7 @@ export const DEFAULT_PRICING: Record<string, FeaturePriceItem> = {
     category: "addon",
     price: 1500,
     defaultPrice: 1500,
-    description: "Onboards an additional trade name or subsidiary under single subscription.",
+    description: "Onboards an additional trade name or subsidiary under subscription (₹1,500).",
   },
 
   // Highlight Features
@@ -178,20 +178,69 @@ export const DEFAULT_PRICING: Record<string, FeaturePriceItem> = {
   },
   growth_subscription: {
     key: "growth_subscription",
-    name: "Growth Plan (Monthly)",
+    name: "Retail Plan (Growth)",
     category: "subscription",
-    price: 14999,
-    defaultPrice: 14999,
-    description: "5 Seats, 250 Checks, OmniTrace 360, and Dispute Resolution Center.",
+    price: 9899,
+    defaultPrice: 9899,
+    description: "Retail Plan (3 Mos) - ₹49,200 Gross Value discounted to ₹9,899. 10 Director, 10 MSME, 40 GST Slabs, 40 Turnovers, 3500 Calls, 5 Legal Notices, 3 Seats.",
   },
   enterprise_subscription: {
     key: "enterprise_subscription",
-    name: "Enterprise Plan (Monthly)",
+    name: "Enterprise Plan",
     category: "subscription",
-    price: 39999,
-    defaultPrice: 39999,
-    description: "Unlimited seats & checks, dedicated arbitrator, and priority API access.",
+    price: 17599,
+    defaultPrice: 17599,
+    description: "Enterprise Plan (3 Mos) - ₹85,950 Gross Value discounted to ₹17,599. 20 Director, 20 MSME, 65 GST Slabs, 65 Turnovers, 6000 Calls, 10 Legal Notices, 5 Seats.",
   },
+  alacarte_3k: {
+    key: "alacarte_3k",
+    name: "À La Carte - 3,000 Calls (3 Mos)",
+    category: "subscription",
+    price: 4500,
+    defaultPrice: 4500,
+    description: "3,000 automated recovery calls with 3 months validity.",
+  },
+  alacarte_8k: {
+    key: "alacarte_8k",
+    name: "À La Carte - 8,000 Calls (6 Mos)",
+    category: "subscription",
+    price: 10000,
+    defaultPrice: 10000,
+    description: "8,000 automated recovery calls with 6 months validity.",
+  },
+  alacarte_14k: {
+    key: "alacarte_14k",
+    name: "À La Carte - 14,000 Calls (9 Mos)",
+    category: "subscription",
+    price: 15000,
+    defaultPrice: 15000,
+    description: "14,000 automated recovery calls with 9 months validity.",
+  },
+  alacarte_19k: {
+    key: "alacarte_19k",
+    name: "À La Carte - 19,000 Calls (1 Yr)",
+    category: "subscription",
+    price: 20000,
+    defaultPrice: 20000,
+    description: "19,000 automated recovery calls with 1 year validity.",
+  },
+};
+
+export const FEATURE_KEY_ALIASES: Record<string, string> = {
+  gst_slab_check: "gst_slab",
+  gst_monthly_filings: "gst_filing_month_basis",
+  trust_hub_verification: "trust_hub_id",
+  fir_check: "court_case_history",
+  education_marksheet_check: "marksheets_10_12",
+  voice_call_cadence: "default_payment_voice_calls",
+  legal_notice_suite: "legal_notices",
+  delayed_payment_followup: "delayed_payments_followup",
+  subscription_seats: "user_seat",
+  additional_company_addon: "additional_company",
+  retail_subscription: "growth_subscription",
+  growth_plan: "growth_subscription",
+  retail_plan: "growth_subscription",
+  enterprise_plan: "enterprise_subscription",
 };
 
 const PRICING_STORE_PATH = path.join(process.cwd(), "pricing-config.json");
@@ -226,14 +275,26 @@ function savePricingToDisk(pricing: Record<string, FeaturePriceItem>) {
   }
 }
 
+export function resolveFeatureKey(featureKey: string): string {
+  return FEATURE_KEY_ALIASES[featureKey] || featureKey;
+}
+
 /**
  * Get dynamic price for any feature key.
  * This is queried directly by payment gateways, add-on checkout, and invoice calculations.
  */
 export function getFeaturePrice(featureKey: string): number {
+  const canonicalKey = resolveFeatureKey(featureKey);
   const pricing = loadPricingFromDisk();
-  const item = pricing[featureKey];
-  return item ? item.price : (DEFAULT_PRICING[featureKey]?.price ?? 50);
+  const item = pricing[canonicalKey] ?? pricing[featureKey];
+  if (item && typeof item.price === "number") {
+    return item.price;
+  }
+  const fallback = DEFAULT_PRICING[canonicalKey] ?? DEFAULT_PRICING[featureKey];
+  if (fallback && typeof fallback.price === "number") {
+    return fallback.price;
+  }
+  return 50;
 }
 
 /**
@@ -253,29 +314,33 @@ export function updateFeaturePrice(featureKey: string, newPrice: number): { succ
     return { success: false };
   }
 
+  const canonicalKey = resolveFeatureKey(featureKey);
   const pricing = loadPricingFromDisk();
-  if (!pricing[featureKey]) {
-    if (DEFAULT_PRICING[featureKey]) {
-      pricing[featureKey] = { ...DEFAULT_PRICING[featureKey] };
+  const targetKey = pricing[canonicalKey] ? canonicalKey : (DEFAULT_PRICING[canonicalKey] ? canonicalKey : featureKey);
+
+  if (!pricing[targetKey]) {
+    if (DEFAULT_PRICING[targetKey]) {
+      pricing[targetKey] = { ...DEFAULT_PRICING[targetKey] };
     } else {
       return { success: false };
     }
   }
 
-  pricing[featureKey] = {
-    ...pricing[featureKey],
+  pricing[targetKey] = {
+    ...pricing[targetKey],
     price: newPrice,
   };
 
   savePricingToDisk(pricing);
-  return { success: true, item: pricing[featureKey] };
+  return { success: true, item: pricing[targetKey] };
 }
 
 /**
  * Reset a feature price to factory default.
  */
 export function resetFeaturePrice(featureKey: string): { success: boolean; item?: FeaturePriceItem } {
-  const def = DEFAULT_PRICING[featureKey];
+  const canonicalKey = resolveFeatureKey(featureKey);
+  const def = DEFAULT_PRICING[canonicalKey] ?? DEFAULT_PRICING[featureKey];
   if (!def) return { success: false };
-  return updateFeaturePrice(featureKey, def.defaultPrice);
+  return updateFeaturePrice(canonicalKey, def.defaultPrice);
 }

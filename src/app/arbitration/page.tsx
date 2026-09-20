@@ -405,11 +405,11 @@ export default async function ArbitrationPage() {
                     </Link>
 
                     <Link
-                      href="/find-someone"
+                      href="/background-check"
                       className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-200 transition"
                     >
                       <Sparkles size={13} className="text-amber-400" />
-                      <span>Find Someone (Skip-Trace)</span>
+                      <span>AI Credit Check (Skip-Trace)</span>
                       <ArrowUpRight size={12} className="text-slate-400" />
                     </Link>
                   </div>

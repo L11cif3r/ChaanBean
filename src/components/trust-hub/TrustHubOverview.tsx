@@ -224,8 +224,8 @@ export function TrustHubOverview({
             <Building2 size={18} className="text-[#FC8019]" />
             <h2 className="text-base font-semibold text-white">Trust Network Verified Counterparties</h2>
           </div>
-          <Link href="/vendors" className="text-xs text-[#FC8019] hover:underline">
-            Register New Vendor →
+          <Link href="/background-check" className="text-xs text-[#FC8019] hover:underline">
+            AI Credit Check Gateways →
           </Link>
         </div>
 

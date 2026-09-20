@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   REPORT_LABELS,
   REPORT_CACHE_TTL_HOURS,
@@ -9,8 +9,10 @@ import {
   type SubjectType,
   type NormalizedReport,
 } from "@/lib/verification-gateway/types";
-import { AdapterCard } from "./verification/AdapterCard";
+import { FeatureBlockCard } from "./verification/FeatureBlockCard";
+import { FeatureRunnerModal } from "./verification/FeatureRunnerModal";
 import { ReportResultView } from "./verification/ReportResultView";
+import { ReportLibraryView } from "./ReportLibraryView";
 import {
   Search,
   Zap,
@@ -24,7 +26,6 @@ import {
   Layers,
   Sparkles,
   CheckCircle2,
-  Filter,
   Calendar,
   GraduationCap,
   Globe,
@@ -35,12 +36,12 @@ import {
   PhoneForwarded,
   FileWarning,
   Building,
-  ChevronLeft,
-  ChevronRight,
   Clock,
   Coins,
   Gavel,
-  Check,
+  X,
+  Target,
+  Filter,
 } from "lucide-react";
 
 interface VerificationRunnerProps {
@@ -49,262 +50,349 @@ interface VerificationRunnerProps {
   sampleEntities?: Array<{ name: string; id: string; type: "debtor" | "vendor" }>;
 }
 
-export type FeatureTabKey =
-  | "all"
-  | "director_details"          // 1
-  | "msme_report"               // 2
-  | "gst_slab_check"            // 3
-  | "gst_exact_turnover"        // 4
-  | "gst_monthly_filings"       // 5
-  | "gst_supreme_report"        // 6
-  | "trust_hub_verification"    // 7
-  | "mobile_to_pan"             // 8
-  | "mobile_identity"           // 9
-  | "court_case_history"        // 10
-  | "import_export_report"      // 11
-  | "education_marksheet_check" // 12
-  | "pan_to_gst"                // 13
-  | "voice_call_cadence"        // 14
-  | "legal_notice_suite"        // 15
-  | "delayed_payment_followup"  // 16
-  | "subscription_seats"        // 17
-  | "additional_company_addon"  // 18
-  | "bundle";
+export type FeatureCategory =
+  | "All"
+  | "Corporate & Identity"
+  | "Tax & GST"
+  | "Judicial & Legal";
 
-export interface FeatureTabDef {
-  key: FeatureTabKey;
+export interface FeatureItem {
+  key: string;
   num: number;
   label: string;
   shortLabel: string;
   reportTypes: ReportType[];
-  category: "Corporate & Identity" | "Tax & GST" | "Judicial & Legal" | "Recovery & Governance";
+  category: "Corporate & Identity" | "Tax & GST" | "Judicial & Legal";
+  statute: string;
   description: string;
-  badge?: string;
+  purpose: string;
+  useCase: string;
+  capabilities: string[];
+  cost: number;
+  primaryInputLabel: string;
+  primaryPlaceholder: string;
+  defaultId: string;
+  secondaryInputLabel?: string;
+  secondaryPlaceholder?: string;
+  defaultSecondary?: string;
+  subjectType: "business" | "individual";
+  keywords: string[];
   icon: React.ComponentType<{ size?: number; className?: string }>;
 }
 
-export const ALL_18_FEATURE_TABS: FeatureTabDef[] = [
+export const ALL_18_FEATURES: FeatureItem[] = [
   {
     key: "director_details",
     num: 1,
-    label: "Director Details",
+    label: "Director Details & DIN Vetting",
     shortLabel: "Director Details",
     reportTypes: ["director_details"],
     category: "Corporate & Identity",
+    statute: "MCA21 · Ministry of Corporate Affairs",
     description: "MCA21 DIN profile, active directorships, appointment dates, shareholding stakes, and Companies Act §164(2) disqualification vetting.",
+    purpose: "Verifies Director Identification Number (DIN), active and historical directorships, equity stakes, and checks for disqualification under Section 164(2) of the Companies Act before extending trade credit.",
+    useCase: "Detect shell corporations, serial disqualified directors, and undisclosed sister entities before extending high-value trade credit.",
+    capabilities: ["MCA21 DIN Lookup", "Active Directorships", "Section 164(2) Disqualification", "Shareholding Profile"],
+    cost: 200,
+    primaryInputLabel: "Director DIN (8 Digits) or Corporate CIN",
+    primaryPlaceholder: "e.g. 01234567 or U72900MH2020PTC123456",
+    defaultId: "01234567",
+    subjectType: "individual",
+    keywords: ["director", "din", "mca", "mca21", "companies act", "disqualification", "section 164", "board", "promoter", "stakeholder", "shareholding", "shell company", "governance"],
     icon: UserCheck,
   },
   {
     key: "msme_report",
     num: 2,
-    label: "MSME Report",
+    label: "MSME Registration & Udyam Report",
     shortLabel: "MSME Report",
     reportTypes: ["msme_report"],
     category: "Corporate & Identity",
+    statute: "Ministry of MSME · Udyam Registration Portal",
     description: "Official Udyam registration certificate verification, enterprise classification (Micro/Small/Medium), NIC 5-digit codes, and registered operational units.",
+    purpose: "Authenticates official Udyam Registration Certificate, micro/small/medium enterprise classification, major operational activities (Manufacturing vs Services), NIC 5-digit trade codes, and registered industrial units.",
+    useCase: "Verify if a buyer or vendor qualifies under MSMED Act 2006 for statutory 45-day payment deadlines (§15) and Section 43B(h) income tax deduction disallowances.",
+    capabilities: ["Udyam Certificate Auth", "Micro/Small/Medium Tier", "NIC 5-Digit Codes", "Section 43B(h) MSME Status"],
+    cost: 200,
+    primaryInputLabel: "Udyam Registration Number or Business GSTIN",
+    primaryPlaceholder: "e.g. UDYAM-MH-12-0012345 or 27AAECG1234H1Z5",
+    defaultId: "UDYAM-MH-12-0012345",
+    subjectType: "business",
+    keywords: ["msme", "udyam", "small business", "enterprise", "classification", "nic code", "manufacturing", "services", "section 43b(h)", "45 days payment", "msmed act", "micro enterprise"],
     icon: Award,
   },
   {
     key: "gst_slab_check",
     num: 3,
-    label: "GST Slab",
-    shortLabel: "GST Slab",
+    label: "GST Slab & Tax Bracket Check",
+    shortLabel: "GST Slab Check",
     reportTypes: ["gst_slab_check"],
     category: "Tax & GST",
+    statute: "GSTN & CBIC Direct Gateway",
     description: "Turnover bracket, applicable tax liability slab, active return filing cadence, and regular vs. composition scheme classification.",
+    purpose: "Retrieves official aggregate turnover bracket, applicable tax liability slab, active return filing cadence, and regular vs. composition scheme classification directly from the GST registry.",
+    useCase: "Quickly assess the statutory scale and tax band of a customer or supplier without requesting confidential internal P&L statements.",
+    capabilities: ["Turnover Bracket Slabs", "Regular vs Composition", "Jurisdiction Ward", "Registration Validation"],
+    cost: 15,
+    primaryInputLabel: "Target GSTIN or PAN",
+    primaryPlaceholder: "e.g. 27AAECG1234H1Z5 or AAECG1234H",
+    defaultId: "27AAECG1234H1Z5",
+    subjectType: "business",
+    keywords: ["gst slab", "tax bracket", "turnover bracket", "composition scheme", "regular taxpayer", "tax liability", "gstin status", "business scale", "cbic", "tax ward"],
     icon: Scale,
   },
   {
     key: "gst_exact_turnover",
     num: 4,
-    label: "GST Exact Turnover Filed",
+    label: "GST Exact Turnover Filed (GSTR-3B / 9)",
     shortLabel: "GST Exact Turnover",
     reportTypes: ["gst_exact_turnover"],
     category: "Tax & GST",
+    statute: "GSTN APIsetu Audited Returns (GSTR-3B & 9)",
     description: "Audited GSTR-3B and GSTR-9 multi-year exact aggregate & taxable turnover filed with YoY growth analysis.",
+    purpose: "Extracts exact audited aggregate and taxable turnover figures as declared on monthly GSTR-3B and annual GSTR-9 returns with multi-year YoY revenue trend analysis.",
+    useCase: "Underwrite trade credit limits, determine purchasing power, and detect revenue inflation or declining business trajectory before issuing credit.",
+    capabilities: ["Exact Taxable Turnover", "GSTR-3B Multi-Year", "YoY Revenue Trend", "Gross Margin Analysis"],
+    cost: 200,
+    primaryInputLabel: "Target GSTIN (15 characters)",
+    primaryPlaceholder: "e.g. 27AAECG1234H1Z5",
+    secondaryInputLabel: "Financial Year Bracket",
+    secondaryPlaceholder: "FY 2023-24",
+    defaultId: "27AAECG1234H1Z5",
+    defaultSecondary: "FY 2023-24",
+    subjectType: "business",
+    keywords: ["turnover", "exact turnover", "revenue", "gstr-3b", "gstr-9", "sales turnover", "audited sales", "annual revenue", "growth trend", "credit limit underwriting", "financial capacity", "balance sheet"],
     icon: Coins,
   },
   {
     key: "gst_monthly_filings",
     num: 5,
-    label: "GST Filing on Month Basis",
+    label: "GST Filing Regularity (12 Months)",
     shortLabel: "GST Monthly Filings",
     reportTypes: ["gst_monthly_filings"],
     category: "Tax & GST",
+    statute: "Goods and Services Tax Network (GSTN)",
     description: "12-month compliance calendar with GSTR-1 and GSTR-3B ARN numbers, filing dates, turnover filed, and tax paid.",
+    purpose: "Compiles a 12-month return filing regularity calendar with exact GSTR-1 and GSTR-3B ARN numbers, filing dates, turnover declared, and tax paid to spot delays, non-filing, or return gaps.",
+    useCase: "Spot defaulting counterparties and cash-flow distress early before their GST registration gets suspended or cancelled by authorities.",
+    capabilities: ["12-Month Calendar", "GSTR-1 & 3B ARNs", "Filing Punctuality Score", "Tax Paid Reconciliation"],
+    cost: 0,
+    primaryInputLabel: "Target GSTIN",
+    primaryPlaceholder: "e.g. 27AAECG1234H1Z5",
+    secondaryInputLabel: "Financial Year Bracket",
+    secondaryPlaceholder: "FY 2024-25",
+    defaultId: "27AAECG1234H1Z5",
+    defaultSecondary: "FY 2024-25",
+    subjectType: "business",
+    keywords: ["monthly filings", "filing calendar", "gstr-1", "gstr-3b", "arn number", "filing regularity", "compliance calendar", "return delay", "non filing", "tax default", "suspended gstin"],
     icon: Calendar,
   },
   {
     key: "gst_supreme_report",
     num: 6,
-    label: "GST Supreme Report (Purchase & Sales)",
-    shortLabel: "GST Supreme Report",
+    label: "GST Supreme Audit (Purchases & Sales)",
+    shortLabel: "GST Supreme Audit",
     reportTypes: ["gst_supreme_report"],
     category: "Tax & GST",
+    statute: "Authorized 2-Step OTP Portal Gateway",
     description: "PAN-level all purchase and sales reconciliation, counterparty ITC mismatch detection, and top vendor risk vectors.",
+    purpose: "PAN-level reconciliation of all purchase and sales transactions, counterparty ITC (Input Tax Credit) mismatch detection, circular trading red flags, and top vendor risk exposures via authorized 2-step OTP.",
+    useCase: "Protect your firm from GST Section 16(4) / DRC-01A ITC disallowances and heavy tax penalties caused by fraudulent or non-compliant suppliers.",
+    capabilities: ["ITC Mismatch Detection", "Purchase vs Sales Reconciliation", "Counterparty Risk Vectors", "Circular Trading Red Flags"],
+    cost: 299,
+    primaryInputLabel: "Target GSTIN",
+    primaryPlaceholder: "e.g. 27AAECG1234H1Z5",
+    secondaryInputLabel: "Authorized Signatory Mobile (+91)",
+    secondaryPlaceholder: "e.g. 9876543210",
+    defaultId: "27AAECG1234H1Z5",
+    defaultSecondary: "9876543210",
+    subjectType: "business",
+    keywords: ["supreme report", "itc mismatch", "input tax credit", "purchase reconciliation", "sales audit", "fake invoice", "circular trading", "section 16(4)", "drc-01a", "vendor risk", "tax penalty", "otp audit"],
     icon: Layers,
   },
   {
     key: "trust_hub_verification",
     num: 7,
-    label: "Trust Network and Trust ID",
+    label: "Trust Network & Digital Trust ID",
     shortLabel: "Trust Network & ID",
     reportTypes: ["trust_hub_verification"],
     category: "Corporate & Identity",
+    statute: "ChaanBean Trust Network & Default Registry",
     description: "Digital Trust ID certificate (TRUST-CB-XXXX), credibility score (0–1000), compliance seals, and peer default registry check.",
+    purpose: "Generates a certified Digital Trust ID (TRUST-CB-XXXX), calculating a dynamic 0–1000 credibility score based on peer trade experiences, payment punctuality, and default registry queries.",
+    useCase: "Benchmark counterparty credibility and commercial trustworthiness against hundreds of verified businesses in the ChaanBean ecosystem.",
+    capabilities: ["Digital Trust ID", "0–1000 Credibility Score", "Peer Default Registry", "Compliance Badges"],
+    cost: 99,
+    primaryInputLabel: "Target GSTIN / Trust ID / PAN",
+    primaryPlaceholder: "e.g. 27AAECG1234H1Z5 or TRUST-CB-1029",
+    defaultId: "27AAECG1234H1Z5",
+    subjectType: "business",
+    keywords: ["trust id", "trust score", "credibility score", "peer review", "default registry", "trade reference", "reputation", "trust badge", "supplier vetting"],
     icon: ShieldCheck,
   },
   {
     key: "mobile_to_pan",
     num: 8,
-    label: "Mobile to PAN",
+    label: "Mobile to PAN Identity Resolution",
     shortLabel: "Mobile to PAN",
     reportTypes: ["mobile_to_pan"],
     category: "Corporate & Identity",
+    statute: "NSDL / Income Tax Department KYC Gateway",
     description: "Resolves 10-digit mobile number to verified PAN cardholder name and identity status via NSDL/Income Tax Department KYC registry.",
+    purpose: "Resolves any 10-digit Indian mobile number to verified PAN cardholder name, status, and linked identity records in the official tax authority database.",
+    useCase: "Authenticate the true identity of buyers, sales agents, or representatives who only provide a mobile number during sales discussions.",
+    capabilities: ["NSDL Mobile-PAN Bridge", "PAN Name Match", "Identity Verification", "Taxpayer Status Check"],
+    cost: 50,
+    primaryInputLabel: "10-Digit Mobile Number",
+    primaryPlaceholder: "e.g. 9876543210",
+    defaultId: "9876543210",
+    subjectType: "individual",
+    keywords: ["mobile to pan", "phone to pan", "nsdl", "income tax", "pan verification", "cardholder name", "phone lookup", "identity check", "kyc name"],
     icon: CreditCard,
   },
   {
     key: "mobile_identity",
     num: 9,
-    label: "Mobile Identity For All Alternate Numbers",
-    shortLabel: "Mobile Identity (Alternate #)",
+    label: "Mobile Identity & Alternate Numbers",
+    shortLabel: "Mobile Identity",
     reportTypes: ["mobile_identity"],
     category: "Corporate & Identity",
+    statute: "Department of Telecommunications (DoT) & Operators",
     description: "Telecom KYC verification across all associated alternate numbers with carrier circle, SIM tenure, and linkages.",
+    purpose: "Conducts telecom KYC verification across primary and alternate contact numbers, uncovering telecom circle, SIM card tenure, carrier network, and linked phone linkages.",
+    useCase: "Detect newly registered burner SIM cards used by fraudulent debtors to evade collection calls and avoid debt recovery.",
+    capabilities: ["Telecom KYC Status", "SIM Card Tenure", "Carrier Network & Circle", "Alternate Contacts Mapping"],
+    cost: 200,
+    primaryInputLabel: "Primary Mobile Number (+91)",
+    primaryPlaceholder: "e.g. 9876543210",
+    defaultId: "9876543210",
+    subjectType: "individual",
+    keywords: ["mobile identity", "alternate numbers", "telecom kyc", "sim tenure", "burner phone", "carrier circle", "airtel", "jio", "vodafone vi", "phone history", "contact tracing"],
     icon: PhoneCall,
   },
   {
     key: "court_case_history",
     num: 10,
-    label: "Court Case History – FIR Report",
+    label: "Court Case History & Police FIRs",
     shortLabel: "Court Case & FIR",
     reportTypes: ["court_case_history", "fir_check"],
     category: "Judicial & Legal",
+    statute: "e-Courts National Judicial Grid, NCLT & State CCTNS",
     description: "e-Courts commercial litigation, Section 138 NI Act cheque dishonor cases, NCLT insolvency proceedings, and State CCTNS police FIR records.",
+    purpose: "Comprehensive judicial search for commercial litigation, Section 138 Negotiable Instruments Act (cheque bounce) cases, NCLT corporate insolvency/bankruptcy proceedings, and police FIR records.",
+    useCase: "Prevent disastrous credit exposure to chronic serial defaulters, bankrupt entities, or promoters facing criminal or insolvency proceedings.",
+    capabilities: ["Section 138 Cheque Bounce", "NCLT Insolvency Scan", "e-Courts Civil & Commercial", "Police FIR Records"],
+    cost: 250,
+    primaryInputLabel: "Entity Name, PAN or Director Name",
+    primaryPlaceholder: "e.g. Acme Retailers Pvt Ltd or AAECG1234H",
+    defaultId: "AAECG1234H",
+    subjectType: "business",
+    keywords: ["court case", "litigation", "cheque bounce", "section 138", "dishonour of cheque", "nclt", "insolvency", "bankruptcy", "police fir", "cctns", "criminal", "high court", "district court", "commercial dispute", "lawsuit", "defaulter"],
     icon: Gavel,
   },
   {
     key: "import_export_report",
     num: 11,
-    label: "Import Export Report",
+    label: "Import Export Profile & Customs (IEC)",
     shortLabel: "Import Export Report",
     reportTypes: ["import_export_report"],
     category: "Corporate & Identity",
+    statute: "DGFT & ICEGATE Customs Clearance Gateway",
     description: "DGFT Importer-Exporter Code (IEC), ICEGATE customs clearances, export EPCG authorizations, and major sea/air ports.",
+    purpose: "Verifies Importer-Exporter Code (IEC) status, foreign trade authorizations, EPCG licenses, export/import volume trends, and active customs port registrations.",
+    useCase: "Validate overseas logistics capabilities, shipping activity, and customs credentials of cross-border trading partners and freight clients.",
+    capabilities: ["DGFT IEC Verification", "ICEGATE Customs Clearances", "Port Registrations", "Foreign Trade Authorizations"],
+    cost: 250,
+    primaryInputLabel: "10-Digit IEC Code or Corporate PAN",
+    primaryPlaceholder: "e.g. 0388012345 or AAECG1234H",
+    defaultId: "0388012345",
+    subjectType: "business",
+    keywords: ["import export", "iec", "dgft", "icegate", "customs", "shipping", "export licenses", "foreign trade", "port clearance", "cross border", "cargo"],
     icon: Globe,
   },
   {
     key: "education_marksheet_check",
     num: 12,
-    label: "10th and 12th Marksheets",
+    label: "10th & 12th Marksheet Verification",
     shortLabel: "10th & 12th Marksheets",
     reportTypes: ["education_marksheet_check"],
     category: "Corporate & Identity",
+    statute: "National Academic Depository (NAD) & CBSE Central Registry",
     description: "National Academic Depository (NAD) & CBSE marksheet verification with roll number, passing year, marks, and SHA-256 hash.",
+    purpose: "Cryptographically verifies secondary and senior secondary school marksheets, candidate name, roll number, school code, passing year, and marks via official national repositories.",
+    useCase: "Essential background verification for key employees, warehouse managers, cashiers, sales agents, and authorized corporate signatories.",
+    capabilities: ["CBSE & State Board Auth", "NAD Central Repository", "Cryptographic Hash Validation", "Subject-Wise Score Records"],
+    cost: 89,
+    primaryInputLabel: "Roll Number / Academic Certificate ID",
+    primaryPlaceholder: "e.g. 11223344",
+    secondaryInputLabel: "Year & Board Bracket",
+    secondaryPlaceholder: "CBSE - 2021",
+    defaultId: "11223344",
+    defaultSecondary: "CBSE - 2021",
+    subjectType: "individual",
+    keywords: ["education", "marksheet", "10th", "12th", "cbse", "nad", "academic verification", "roll number", "school certificate", "employee background check", "degree", "qualification"],
     icon: GraduationCap,
   },
   {
     key: "pan_to_gst",
     num: 13,
-    label: "PAN to GST Number",
+    label: "PAN to All-India GSTIN Directory",
     shortLabel: "PAN to GST Directory",
     reportTypes: ["pan_to_gst"],
     category: "Tax & GST",
+    statute: "GSTN National Master Directory",
     description: "Comprehensive multi-state GSTIN directory linking all state branch registrations under a single parent PAN.",
+    purpose: "Discovers all state GSTIN branch registrations, union territory registrations, and trade names registered across India under a single corporate or proprietor PAN.",
+    useCase: "Map the full multi-state business footprint of a corporate buyer to discover solvent operating branches or attach assets across state borders.",
+    capabilities: ["Multi-State Branch Mapping", "All Associated GSTINs", "State Tax Jurisdictions", "Trade Name Discovery"],
+    cost: 15,
+    primaryInputLabel: "10-Character Corporate PAN",
+    primaryPlaceholder: "e.g. AAECG1234H",
+    defaultId: "AAECG1234H",
+    subjectType: "business",
+    keywords: ["pan to gst", "all gstins", "state branches", "multi-state directory", "sister branches", "corporate hierarchy", "state registrations", "nationwide footprint", "gst search"],
     icon: Building,
   },
   {
-    key: "voice_call_cadence",
-    num: 14,
-    label: "Default Payments Voice Calls (1m, 2m, 5m, 30m, 1h)",
-    shortLabel: "Voice Calls Cadence",
-    reportTypes: ["voice_call_cadence"],
-    category: "Recovery & Governance",
-    description: "Asterisk/Vobiz automated outbound telephony cadence scheduler (1 min, 2 mins, 5 mins, 30 mins, 1 hour) with emergency 24/7 override.",
-    icon: PhoneForwarded,
-  },
-  {
     key: "legal_notice_suite",
-    num: 15,
-    label: "Legal Notices - GST, MSME, Income Tax & Demand",
+    num: 14,
+    label: "Statutory Legal Notices Suite (§43B(h) / DRC-01A)",
     shortLabel: "Legal Notices Suite",
     reportTypes: ["legal_notice_suite"],
     category: "Judicial & Legal",
+    statute: "Advocate Bar Council & Statutory Formats",
     description: "4 statutory notices with official Government Reference Numbers reported to the Income Tax Department (§43B(h)) and GST Department (§16(4) / DRC-01A).",
+    purpose: "Generates and issues legally binding statutory demand notices referencing Section 43B(h) of Income Tax Act, Section 16(4) / DRC-01A of GST Act, and Section 18 of MSMED Act with official reference numbers.",
+    useCase: "Apply maximum legal leverage on recalcitrant debtors before launching costly court litigation or filing NCLT insolvency petitions.",
+    capabilities: ["Income Tax §43B(h) Notice", "GST §16(4) / DRC-01A Warning", "MSMED Act §18 Demand", "Official Govt Reference Numbers"],
+    cost: 1500,
+    primaryInputLabel: "Target Debtor Name or GSTIN",
+    primaryPlaceholder: "e.g. 27AAECG1234H1Z5",
+    secondaryInputLabel: "Outstanding Invoice Amount (₹)",
+    secondaryPlaceholder: "e.g. ₹5,40,000",
+    defaultId: "27AAECG1234H1Z5",
+    defaultSecondary: "₹5,40,000",
+    subjectType: "business",
+    keywords: ["legal notice", "demand notice", "statutory notice", "section 43b(h)", "income tax warning", "drc-01a", "msmed notice", "advocate notice", "overdue demand", "legal action", "recovery notice"],
     icon: FileWarning,
-  },
-  {
-    key: "delayed_payment_followup",
-    num: 16,
-    label: "Delayed Payments Follow UP",
-    shortLabel: "Delayed Payments Follow UP",
-    reportTypes: ["delayed_payment_followup"],
-    category: "Recovery & Governance",
-    description: "Temporal payment aging schedule (1–15, 16–30, 31–45, 45+ days), promise-to-pay tracker, and payment reconciliation timeline.",
-    icon: Clock,
-  },
-  {
-    key: "subscription_seats",
-    num: 17,
-    label: "User Access 5 per Subscription",
-    shortLabel: "5 User Access Seats",
-    reportTypes: ["subscription_seats"],
-    category: "Recovery & Governance",
-    description: "5 organization team access seats included per standard subscription at ₹0 additional charge with role-based governance.",
-    icon: Users,
-  },
-  {
-    key: "additional_company_addon",
-    num: 18,
-    label: "Add Additional Company Name for ₹1,500",
-    shortLabel: "Add Company (₹1,500)",
-    reportTypes: ["additional_company_addon"],
-    category: "Recovery & Governance",
-    description: "Multi-entity corporate profile addition at flat ₹1,500 add-on fee with consolidated multi-company risk view.",
-    icon: PlusCircle,
   },
 ];
 
-const ALL_REPORT_TYPES: ReportType[] = [
-  "director_details",
-  "msme_report",
-  "gst_slab_check",
-  "gst_exact_turnover",
-  "gst_monthly_filings",
-  "gst_supreme_report",
-  "trust_hub_verification",
-  "mobile_to_pan",
-  "mobile_identity",
-  "court_case_history",
-  "fir_check",
-  "import_export_report",
-  "education_marksheet_check",
-  "pan_to_gst",
-  "voice_call_cadence",
-  "legal_notice_suite",
-  "delayed_payment_followup",
-  "subscription_seats",
-  "additional_company_addon",
-  "find_someone",
-  "bureau_report",
-  "payment_behaviour",
-  "company_supreme_report",
-  "mobile_to_address",
-  "pan_to_mobile_email",
-  "address_enrichment",
-];
+export const ALL_AI_CREDIT_FEATURES = ALL_18_FEATURES;
 
 export function VerificationRunner({
   companyId,
   ledgerMap,
   sampleEntities = [],
 }: VerificationRunnerProps) {
-  // Default to Tab 1: Director Details or "all"
-  const [activeTab, setActiveTab] = useState<FeatureTabKey>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("All");
-  const [searchFilter, setSearchFilter] = useState("");
+  // Main Navigation Modes: "blocks" | "bundle" | "library"
+  const [viewMode, setViewMode] = useState<"blocks" | "bundle" | "library">("blocks");
+  const [selectedCategory, setSelectedCategory] = useState<FeatureCategory>("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const [reportsMap, setReportsMap] = useState<Partial<Record<ReportType, NormalizedReport>>>({});
+
+  // Active Runner Modal State
+  const [activeModalFeature, setActiveModalFeature] = useState<FeatureItem | null>(null);
 
   // Bundle Fan-Out Tab State
   const [bundleSubjectId, setBundleSubjectId] = useState("27AAECG1234H1Z5");
@@ -343,6 +431,9 @@ export function VerificationRunner({
           nextMap[rep.reportType as ReportType] = rep;
         }
         setReportsMap(nextMap);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("chaanbean:wallet-updated"));
+        }
         setBundleProgress(`Completed! ${data.reports.length} reports compiled into dossier.`);
       } else {
         setBundleProgress(data.error || "Bundle execution failed");
@@ -354,303 +445,282 @@ export function VerificationRunner({
     }
   };
 
-  // Find currently active feature definition (if one of the 18 is selected)
-  const currentFeatureTab = ALL_18_FEATURE_TABS.find((f) => f.key === activeTab);
-  const currentFeatureIndex = currentFeatureTab ? ALL_18_FEATURE_TABS.indexOf(currentFeatureTab) : -1;
-  const prevFeature = currentFeatureIndex > 0 ? ALL_18_FEATURE_TABS[currentFeatureIndex - 1] : null;
-  const nextFeature =
-    currentFeatureIndex >= 0 && currentFeatureIndex < ALL_18_FEATURE_TABS.length - 1
-      ? ALL_18_FEATURE_TABS[currentFeatureIndex + 1]
-      : null;
+  // Intelligent Search and Category Filtering
+  // Works on: Label, Short Label, Category, Statute, Description, Purpose, Use Case, Capabilities, and Keywords
+  const filteredFeatures = useMemo(() => {
+    return ALL_18_FEATURES.filter((feat) => {
+      // 1. Category check
+      if (selectedCategory !== "All" && feat.category !== selectedCategory) {
+        return false;
+      }
 
-  // Filtered feature tabs based on category filter
-  const displayedFeatureTabs = ALL_18_FEATURE_TABS.filter((tab) => {
-    if (categoryFilter === "All") return true;
-    return tab.category === categoryFilter;
-  });
+      // 2. Search check (searches name, purpose, use case, statute, keywords, and capabilities)
+      if (!searchQuery.trim()) return true;
 
-  // Filter adapters when in "all" overview
-  const getVisibleAdaptersInAll = (): ReportType[] => {
-    const list = ALL_REPORT_TYPES;
-    if (!searchFilter.trim()) return list;
-    const q = searchFilter.toLowerCase();
-    return list.filter((rt) => {
-      const label = (REPORT_LABELS[rt] || "").toLowerCase();
-      const code = rt.toLowerCase();
-      return label.includes(q) || code.includes(q);
+      const q = searchQuery.toLowerCase().trim();
+      const matchInLabel = feat.label.toLowerCase().includes(q);
+      const matchInShort = feat.shortLabel.toLowerCase().includes(q);
+      const matchInStatute = feat.statute.toLowerCase().includes(q);
+      const matchInPurpose = feat.purpose.toLowerCase().includes(q);
+      const matchInUseCase = feat.useCase.toLowerCase().includes(q);
+      const matchInDescription = feat.description.toLowerCase().includes(q);
+      const matchInKeywords = feat.keywords.some((k) => k.toLowerCase().includes(q));
+      const matchInCapabilities = feat.capabilities.some((c) => c.toLowerCase().includes(q));
+      const matchInReportTypes = feat.reportTypes.some((rt) => rt.toLowerCase().includes(q));
+
+      return (
+        matchInLabel ||
+        matchInShort ||
+        matchInStatute ||
+        matchInPurpose ||
+        matchInUseCase ||
+        matchInDescription ||
+        matchInKeywords ||
+        matchInCapabilities ||
+        matchInReportTypes
+      );
     });
+  }, [selectedCategory, searchQuery]);
+
+  const categories: FeatureCategory[] = [
+    "All",
+    "Corporate & Identity",
+    "Tax & GST",
+    "Judicial & Legal",
+  ];
+
+  const getCategoryCount = (cat: FeatureCategory) => {
+    if (cat === "All") return ALL_18_FEATURES.length;
+    return ALL_18_FEATURES.filter((f) => f.category === cat).length;
   };
 
-  const visibleAllAdapters = getVisibleAdaptersInAll();
   const generatedCount = Object.keys(reportsMap).length;
 
   return (
     <div className="space-y-6">
-      {/* 18-FEATURE DEDICATED TAB CONTROLS */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4 shadow-sm">
-        {/* Top Header Strip: Quick Switcher & Modes */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <Sparkles className="text-chaan-brand" size={18} />
-              <h2 className="text-sm font-bold text-slate-900 tracking-tight uppercase font-mono">
-                18 Dedicated Feature Tabs
-              </h2>
+      {/* ------------------------------------------------------------- */}
+      {/* UNIFIED, CLEAN CONTROL BAR (Search + Category Filter + Modes) */}
+      {/* ------------------------------------------------------------- */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-sm">
+        {/* Top Row: Search Input (Left/Center) & Primary Mode Switcher (Right) */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Smart Search Bar with Purpose Matching */}
+          <div className="relative flex-1 max-w-2xl">
+            <div className="relative">
+              <Search className="absolute left-3.5 top-3 text-slate-400 dark:text-slate-500" size={16} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by feature name, purpose, statute or use-case (e.g. 'turnover', 'cheque bounce', 'director')..."
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 pl-10 pr-9 py-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-chaan-brand focus:bg-white dark:focus:bg-slate-900 shadow-sm transition"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded-full"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
-            <p className="mt-0.5 text-xs text-slate-500">
-              Select any feature tab below for an isolated parameter card, autofill chips, and formatted visual dossier.
-            </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {/* View All Grid Button */}
+          {/* Clean View Mode Switcher */}
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 shrink-0 self-start lg:self-auto">
             <button
-              onClick={() => setActiveTab("all")}
+              onClick={() => setViewMode("blocks")}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
-                activeTab === "all"
-                  ? "bg-chaan-brand text-white shadow-sm shadow-orange-500/30 font-bold"
-                  : "bg-white border border-slate-200 text-slate-700 hover:text-[#FC8019] hover:border-orange-200"
+                viewMode === "blocks"
+                  ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm font-bold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <Layers size={13} />
-              <span>All 18 Overview Grid</span>
+              <Layers size={13} className="text-[#FC8019]" />
+              <span>Feature Blocks ({ALL_AI_CREDIT_FEATURES.length})</span>
             </button>
 
-            {/* 360 Bundle Dossier Button */}
             <button
-              onClick={() => setActiveTab("bundle")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-chaan-brand/50 ${
-                activeTab === "bundle"
-                  ? "bg-chaan-brand text-white shadow-sm shadow-orange-500/30 font-bold"
-                  : "text-chaan-brand hover:bg-orange-50 bg-white"
+              onClick={() => setViewMode("bundle")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
+                viewMode === "bundle"
+                  ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm font-bold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <Zap size={13} />
+              <Zap size={13} className="text-[#FC8019]" />
               <span>360° Parallel Bundle</span>
             </button>
-          </div>
-        </div>
 
-        {/* Category Pill Filters to easily navigate the 18 tabs */}
-        <div className="flex flex-wrap items-center gap-1.5 text-xs">
-          <span className="text-[11px] font-mono text-slate-500 mr-1 flex items-center gap-1">
-            <Filter size={12} /> Filter Tabs:
-          </span>
-          {["All", "Tax & GST", "Corporate & Identity", "Judicial & Legal", "Recovery & Governance"].map((cat) => (
             <button
-              key={cat}
-              onClick={() => setCategoryFilter(cat)}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-mono transition ${
-                categoryFilter === cat
-                  ? "bg-orange-50 text-[#FC8019] font-bold border border-orange-200 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+              onClick={() => setViewMode("library")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
+                viewMode === "library"
+                  ? "bg-emerald-600 text-white shadow-sm font-bold"
+                  : "text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
               }`}
             >
-              {cat}
+              <FileText size={13} />
+              <span>Report Library</span>
             </button>
-          ))}
+          </div>
         </div>
 
-        {/* The 18 Dedicated Tabs Rail */}
-        <div className="overflow-x-auto pb-2 -mx-1 px-1">
-          <div className="flex flex-nowrap sm:flex-wrap gap-2 min-w-max sm:min-w-0">
-            {displayedFeatureTabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.key;
-              const hasCachedReport = tab.reportTypes.some((rt) => !!reportsMap[rt]);
+        {/* Bottom Row: Clean, Consistent Category Segmented Filter */}
+        {viewMode === "blocks" && (
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {categories.map((cat) => {
+                const isSelected = selectedCategory === cat;
+                const count = getCategoryCount(cat);
 
-              return (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs transition border text-left shrink-0 ${
-                    isActive
-                      ? "bg-chaan-brand text-white border-chaan-brand shadow-md shadow-orange-500/25 font-bold"
-                      : "bg-white border-slate-200 text-slate-700 hover:text-[#FC8019] hover:bg-orange-50 hover:border-orange-200"
-                  }`}
-                >
-                  <span
-                    className={`h-5 w-5 rounded-md flex items-center justify-center text-[10px] font-mono font-bold shrink-0 ${
-                      isActive
-                        ? "bg-black/20 text-white"
-                        : "bg-orange-50 text-[#FC8019] border border-orange-200"
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                      isSelected
+                        ? "bg-orange-50 dark:bg-orange-500/20 text-[#FC8019] border border-orange-200 dark:border-orange-500/40 font-bold shadow-sm"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
                     }`}
                   >
-                    {tab.num < 10 ? `0${tab.num}` : tab.num}
-                  </span>
-                  <Icon size={14} className={isActive ? "text-white" : "text-slate-500"} />
-                  <span className="whitespace-nowrap tracking-tight">{tab.shortLabel}</span>
-
-                  {hasCachedReport && (
+                    <span>{cat}</span>
                     <span
-                      title="Report generated and available in dossier"
-                      className={`h-2 w-2 rounded-full shrink-0 ${
-                        isActive ? "bg-white" : "bg-emerald-500 animate-pulse"
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                        isSelected
+                          ? "bg-[#FC8019] text-white"
+                          : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
                       }`}
-                    />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* DEDICATED TAB VIEW: Single feature selected from the 18 */}
-      {currentFeatureTab && activeTab !== "all" && activeTab !== "bundle" && (
-        <div className="space-y-6">
-          {/* Feature Focus Banner */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="rounded bg-orange-50 text-[#FC8019] border border-orange-200 px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider">
-                    Feature #{currentFeatureTab.num} of 18 · {currentFeatureTab.category}
-                  </span>
-                  {currentFeatureTab.reportTypes.some((rt) => !!reportsMap[rt]) && (
-                    <span className="inline-flex items-center gap-1 rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-mono text-emerald-700">
-                      <CheckCircle2 size={11} />
-                      Report Cached &amp; Ready
+                    >
+                      {count}
                     </span>
-                  )}
-                </div>
-                <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5 pt-1">
-                  <currentFeatureTab.icon size={20} className="text-chaan-brand" />
-                  <span>
-                    {currentFeatureTab.num}. {currentFeatureTab.label}
-                  </span>
-                </h2>
-                <p className="text-xs text-slate-600 max-w-3xl leading-relaxed">
-                  {currentFeatureTab.description}
-                </p>
-              </div>
-
-              {/* Prev / Next Feature Quick Navigation Buttons */}
-              <div className="flex items-center gap-2 shrink-0">
-                {prevFeature && (
-                  <button
-                    onClick={() => setActiveTab(prevFeature.key)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 hover:text-slate-900 hover:border-slate-300 transition shadow-sm"
-                  >
-                    <ChevronLeft size={14} />
-                    <span>#{prevFeature.num} Prev</span>
                   </button>
-                )}
-                {nextFeature && (
-                  <button
-                    onClick={() => setActiveTab(nextFeature.key)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-orange-200 bg-orange-50 text-xs text-[#FC8019] hover:bg-orange-100 transition font-medium shadow-sm"
-                  >
-                    <span>Next #{nextFeature.num}</span>
-                    <ChevronRight size={14} />
-                  </button>
-                )}
-              </div>
+                );
+              })}
             </div>
-          </div>
 
-          {/* Render the Dedicated Adapter Card(s) for this Feature Tab */}
-          <div className="space-y-4">
-            {currentFeatureTab.reportTypes.map((rt) => {
-              const entry = ledgerMap[rt];
-              const cached = reportsMap[rt] || null;
-
-              return (
-                <AdapterCard
-                  key={`${rt}-${activeTab}`}
-                  reportType={rt}
-                  companyId={companyId}
-                  ledger={entry}
-                  sampleEntities={sampleEntities}
-                  cachedReport={cached}
-                  onReportGenerated={handleReportGenerated}
-                  isExpandedDefault={true}
-                />
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ALL 18 FEATURES OVERVIEW GRID */}
-      {activeTab === "all" && (
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-3 px-1">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-700">
-                Displaying <strong>{visibleAllAdapters.length}</strong> statutory adapter blocks across all 18 features
+            {/* Live Match Summary Indicator */}
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono">
+              <span>
+                Showing <strong>{filteredFeatures.length}</strong> of {ALL_18_FEATURES.length} features
               </span>
-              {generatedCount > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-mono text-emerald-700">
-                  <CheckCircle2 size={12} />
-                  {generatedCount} Available in Dossier Cache
+              {searchQuery && (
+                <span className="text-[#FC8019] font-medium">
+                  matching &quot;{searchQuery}&quot;
                 </span>
               )}
             </div>
+          </div>
+        )}
+      </div>
 
-            {/* Search Filter */}
-            <div className="relative w-72">
-              <Search className="absolute left-3 top-2.5 text-slate-400" size={14} />
-              <input
-                type="text"
-                value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
-                placeholder="Search feature by name, statute or code..."
-                className="w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 py-1.5 text-xs text-slate-800 outline-none focus:border-chaan-brand shadow-sm"
-              />
+      {/* ------------------------------------------------------------- */}
+      {/* MODE 1: INTERACTIVE BLOCK-BY-BLOCK FEATURE GRID */}
+      {/* ------------------------------------------------------------- */}
+      {viewMode === "blocks" && (
+        <div className="space-y-6">
+          {filteredFeatures.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredFeatures.map((feat) => {
+                const hasCachedReport = feat.reportTypes.some((rt) => Boolean(reportsMap[rt]));
+                const cachedReport = feat.reportTypes
+                  .map((rt) => reportsMap[rt])
+                  .find((r) => Boolean(r)) || null;
+
+                return (
+                  <FeatureBlockCard
+                    key={feat.key}
+                    feature={feat}
+                    hasCachedReport={hasCachedReport}
+                    cost={ledgerMap[feat.reportTypes[0]]?.cost ?? feat.cost}
+                    searchQuery={searchQuery}
+                    onOpenRunner={() => setActiveModalFeature(feat)}
+                    onViewDossier={() => setActiveModalFeature(feat)}
+                  />
+                );
+              })}
             </div>
-          </div>
+          ) : (
+            /* Empty Search State with Useful Suggestion Chips */
+            <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center space-y-4">
+              <Target size={32} className="mx-auto text-slate-300 dark:text-slate-600" />
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  No features matched &quot;{searchQuery}&quot;
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                  Try searching by commercial purpose, statutory keyword, or common risk vectors.
+                </p>
+              </div>
 
-          <div className="grid gap-4 sm:grid-cols-1">
-            {visibleAllAdapters.map((rt) => {
-              const entry = ledgerMap[rt];
-              const cached = reportsMap[rt] || null;
+              <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
+                <span className="text-xs text-slate-400 font-mono">Popular searches:</span>
+                {[
+                  "cheque bounce",
+                  "exact turnover",
+                  "director details",
+                  "udyam msme",
+                  "telecom kyc",
+                  "legal notices",
+                  "import export",
+                ].map((term) => (
+                  <button
+                    key={term}
+                    type="button"
+                    onClick={() => setSearchQuery(term)}
+                    className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 hover:border-orange-300 hover:text-[#FC8019] transition"
+                  >
+                    {term}
+                  </button>
+                ))}
+              </div>
 
-              return (
-                <AdapterCard
-                  key={rt}
-                  reportType={rt}
-                  companyId={companyId}
-                  ledger={entry}
-                  sampleEntities={sampleEntities}
-                  cachedReport={cached}
-                  onReportGenerated={handleReportGenerated}
-                  isExpandedDefault={false}
-                />
-              );
-            })}
-          </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedCategory("All");
+                }}
+                className="mt-2 inline-flex items-center gap-1.5 text-xs text-[#FC8019] font-bold hover:underline"
+              >
+                Reset all filters
+              </button>
+            </div>
+          )}
         </div>
       )}
 
-      {/* TAB: Multi-Adapter Fan-Out Bundle */}
-      {activeTab === "bundle" && (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 space-y-6 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
+      {/* ------------------------------------------------------------- */}
+      {/* MODE 2: 360° PARALLEL MULTI-ADAPTER FAN-OUT BUNDLE */}
+      {/* ------------------------------------------------------------- */}
+      {viewMode === "bundle" && (
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-6 shadow-sm">
+          <div className="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
               <div className="flex items-center gap-2">
                 <Zap className="text-chaan-brand" size={22} />
-                <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                   Parallel Multi-Adapter Fan-Out Execution
                 </h2>
               </div>
-              <p className="mt-1 text-xs text-slate-600 max-w-2xl">
-                Executes all foundational verification adapters (GST turnover, Supreme filing audit, Commercial Bureau score, e-Courts litigation history, MSME Udyam, MCA21 directorships, Telecom KYC, and address delivery graphs) in parallel under a single unified call.
+              <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 max-w-2xl">
+                Executes all foundational statutory verification adapters (GST turnover, Supreme filing audit, e-Courts litigation, MSME Udyam, MCA21 directorships, Telecom KYC, and trade references) simultaneously in parallel under a single unified call.
               </p>
             </div>
 
-            <span className="px-3 py-1 rounded-lg bg-orange-50 border border-orange-200 text-[#FC8019] font-mono text-xs font-bold shrink-0">
-              18 Gateways Fan-Out
+            <span className="px-3 py-1 rounded-lg bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 text-[#FC8019] font-mono text-xs font-bold shrink-0">
+              {ALL_AI_CREDIT_FEATURES.length} Gateways Fan-Out
             </span>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-orange-50/20 p-5 space-y-4">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-orange-50/20 dark:bg-orange-950/10 p-5 space-y-4">
             <div className="grid gap-4 sm:grid-cols-12 items-end">
               <div className="sm:col-span-3">
-                <label className="block text-xs font-medium text-slate-700 mb-1.5 uppercase font-mono">
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 uppercase font-mono">
                   Subject Type
                 </label>
-                <div className="grid grid-cols-2 rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
+                <div className="grid grid-cols-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 shadow-sm">
                   <button
                     type="button"
                     onClick={() => {
@@ -660,7 +730,7 @@ export function VerificationRunner({
                     className={`rounded py-1 text-xs font-semibold transition ${
                       bundleSubjectType === "business"
                         ? "bg-chaan-brand text-white shadow-sm"
-                        : "text-slate-500 hover:text-slate-900"
+                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900"
                     }`}
                   >
                     Business
@@ -674,7 +744,7 @@ export function VerificationRunner({
                     className={`rounded py-1 text-xs font-semibold transition ${
                       bundleSubjectType === "individual"
                         ? "bg-chaan-brand text-white shadow-sm"
-                        : "text-slate-500 hover:text-slate-900"
+                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900"
                     }`}
                   >
                     Individual
@@ -683,7 +753,7 @@ export function VerificationRunner({
               </div>
 
               <div className="sm:col-span-6">
-                <label className="block text-xs font-medium text-slate-700 mb-1.5 uppercase font-mono">
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 uppercase font-mono">
                   Target Identifier (GSTIN / PAN / CIN)
                 </label>
                 <input
@@ -691,7 +761,7 @@ export function VerificationRunner({
                   value={bundleSubjectId}
                   onChange={(e) => setBundleSubjectId(e.target.value)}
                   placeholder="Enter GSTIN e.g. 27AAECG1234H1Z5"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-mono text-slate-900 uppercase tracking-wider outline-none focus:border-chaan-brand shadow-sm"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-mono text-slate-900 dark:text-white uppercase tracking-wider outline-none focus:border-chaan-brand shadow-sm"
                 />
               </div>
 
@@ -703,14 +773,14 @@ export function VerificationRunner({
                   className="w-full flex items-center justify-center gap-2 rounded-lg bg-chaan-brand px-4 py-2 text-xs font-bold text-white hover:bg-chaan-brandDark transition disabled:opacity-50 shadow-md shadow-orange-500/25"
                 >
                   <Zap size={15} />
-                  {bundleLoading ? "Fan-Out Executing..." : "Execute 18x Parallel Bundle"}
+                  {bundleLoading ? "Fan-Out Executing..." : `Execute ${ALL_AI_CREDIT_FEATURES.length}x Parallel Bundle`}
                 </button>
               </div>
             </div>
 
             {/* Quick Autofill Chips */}
             {sampleEntities.length > 0 && (
-              <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-slate-200">
+              <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-slate-200 dark:border-slate-800">
                 <span className="text-[11px] text-slate-500 font-medium">Autofill from Live Database:</span>
                 {sampleEntities.map((ent) => (
                   <button
@@ -722,8 +792,8 @@ export function VerificationRunner({
                     }}
                     className={`text-[11px] px-2.5 py-1 rounded-lg border transition font-mono ${
                       bundleSubjectId === ent.id
-                        ? "bg-orange-50 text-[#FC8019] border-orange-300 font-bold"
-                        : "bg-white text-slate-700 border-slate-200 hover:bg-orange-50 hover:text-[#FC8019] hover:border-orange-200"
+                        ? "bg-orange-50 dark:bg-orange-500/20 text-[#FC8019] border-orange-300 dark:border-orange-500 font-bold"
+                        : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-[#FC8019]"
                     }`}
                   >
                     <span className="font-sans font-medium">{ent.name}</span>{" "}
@@ -734,7 +804,7 @@ export function VerificationRunner({
             )}
 
             {bundleProgress && (
-              <div className="rounded-lg bg-orange-50 p-3 text-xs font-mono border border-orange-200 text-[#FC8019] flex items-center gap-2">
+              <div className="rounded-lg bg-orange-50 dark:bg-orange-950/40 p-3 text-xs font-mono border border-orange-200 dark:border-orange-800 text-[#FC8019] flex items-center gap-2">
                 <Sparkles size={14} className="text-chaan-brand" />
                 <span>{bundleProgress}</span>
               </div>
@@ -743,8 +813,8 @@ export function VerificationRunner({
 
           {/* Compiled Bundle Reports Preview */}
           {generatedCount > 0 && (
-            <div className="space-y-4 pt-4 border-t border-slate-200">
-              <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                 <CheckCircle2 className="text-emerald-400" size={16} />
                 Compiled Parallel Dossier Reports ({generatedCount} Available)
               </h3>
@@ -753,7 +823,7 @@ export function VerificationRunner({
                   .filter((r): r is NormalizedReport => Boolean(r))
                   .map((rep) => (
                     <div key={rep.reportType} className="space-y-1">
-                      <h4 className="text-xs font-bold text-slate-300 uppercase font-mono pl-1">
+                      <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase font-mono pl-1">
                         {REPORT_LABELS[rep.reportType]}
                       </h4>
                       <ReportResultView report={rep} />
@@ -763,6 +833,41 @@ export function VerificationRunner({
             </div>
           )}
         </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODE 3: PERMANENT REPORT LIBRARY VIEW */}
+      {/* ------------------------------------------------------------- */}
+      {viewMode === "library" && (
+        <ReportLibraryView
+          onSelectFeatureTab={(k) => {
+            const found = ALL_18_FEATURES.find((f) => f.key === k);
+            if (found) {
+              setActiveModalFeature(found);
+            }
+            setViewMode("blocks");
+          }}
+        />
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* INTERACTIVE FEATURE RUNNER / DOSSIER MODAL */}
+      {/* ------------------------------------------------------------- */}
+      {activeModalFeature && (
+        <FeatureRunnerModal
+          isOpen={Boolean(activeModalFeature)}
+          onClose={() => setActiveModalFeature(null)}
+          feature={activeModalFeature}
+          companyId={companyId}
+          ledger={ledgerMap[activeModalFeature.reportTypes[0]]}
+          sampleEntities={sampleEntities}
+          cachedReport={
+            activeModalFeature.reportTypes
+              .map((rt) => reportsMap[rt])
+              .find((r) => Boolean(r)) || null
+          }
+          onReportGenerated={handleReportGenerated}
+        />
       )}
     </div>
   );

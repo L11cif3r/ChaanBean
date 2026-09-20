@@ -47,7 +47,7 @@ export const TRANSLATIONS: Record<"en" | "hi" | "ml" | "ta", Translations> = {
     dashboard: "Dashboard",
     trustHub: "Trust Network",
     vendors: "Vendor Registration",
-    backgroundCheck: "Business Background Check",
+    backgroundCheck: "AI Credit Check",
     paymentRecovery: "Payment Recovery",
     debtors: "Debtors & Risk Flags",
     arbitrationCenter: "Dispute Resolution Center",

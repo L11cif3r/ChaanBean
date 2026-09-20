@@ -45,11 +45,11 @@ export default async function BuyerProfilePage({ params }: { params: Promise<{ i
       {/* Back button */}
       <div>
         <Link
-          href="/debtors"
+          href="/business-check"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition"
         >
           <ArrowLeft size={14} />
-          Back to Debtors Portfolio
+          Back to AI Business Security
         </Link>
       </div>
 

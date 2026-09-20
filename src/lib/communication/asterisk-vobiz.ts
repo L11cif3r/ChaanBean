@@ -51,7 +51,9 @@ export async function placeOutboundPlaybackCall(
   // Normal calls are guaranteed to get through ("answered") as required.
   // Unreachable / Busy triggers if explicitly simulated or test number used.
   let outcome: CallOutcome = "answered";
-  if (request.simulateOutcome === "busy") {
+  if (request.simulateOutcome === "connected") {
+    outcome = "answered";
+  } else if (request.simulateOutcome === "busy") {
     outcome = "busy";
   } else if (request.simulateOutcome === "unreachable" || request.simulateOutcome === "no_answer") {
     outcome = "no_answer";

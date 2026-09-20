@@ -107,16 +107,161 @@ export async function POST(req: Request) {
       callerDid,
       simulateOutcome,
       targetPhone,
+      companyName,
+      mobileNumber,
+      gstin,
+      pan,
+      amountDue,
+      monthsDelayed,
+      callFrequency,
+      language,
+      invoiceFileName,
+      invoiceFileSize,
+      invoiceVerified,
     } = body as {
-      creditAccountId: string;
-      action?: "tick" | "legal_notice" | "direct_voice_call" | "settle_payment" | "shoot_government_notices";
+      creditAccountId?: string;
+      action?: "tick" | "legal_notice" | "direct_voice_call" | "settle_payment" | "shoot_government_notices" | "create_case";
       paymentAmount?: number;
       paymentMode?: string;
       utrNumber?: string;
       callerDid?: string;
       simulateOutcome?: "connected" | "busy" | "unreachable" | "no_answer";
       targetPhone?: string;
+      companyName?: string;
+      mobileNumber?: string;
+      gstin?: string;
+      pan?: string;
+      amountDue?: number;
+      monthsDelayed?: number;
+      callFrequency?: string;
+      language?: string;
+      invoiceFileName?: string | null;
+      invoiceFileSize?: number | null;
+      invoiceVerified?: boolean;
     };
+
+    // 0. Handle Debtor Case Creation (Intake)
+    if (action === "create_case") {
+      if (!companyName || !mobileNumber || !gstin || !pan) {
+        return NextResponse.json(
+          { error: "Company Name, Mobile Number, GSTIN, and PAN are mandatory for debtor intake." },
+          { status: 400 }
+        );
+      }
+
+      const numAmount = Number(amountDue);
+      if (!numAmount || isNaN(numAmount) || numAmount < 5000) {
+        return NextResponse.json(
+          { error: "Total amount due must be at least ₹5,000 for automated recovery engagement." },
+          { status: 400 }
+        );
+      }
+
+      if (!invoiceVerified) {
+        return NextResponse.json(
+          { error: "Valid Bill/Invoice copy must be uploaded and verified before automated recovery initiates. Process halted." },
+          { status: 400 }
+        );
+      }
+
+      // Find or create company
+      let company = await prisma.company.findFirst();
+      if (!company) {
+        company = await prisma.company.create({
+          data: {
+            name: "Enterprise Account",
+            plan: "growth",
+            walletBalance: 100000,
+          },
+        });
+      }
+
+      // Create BuyerDebtor
+      const buyer = await prisma.buyerDebtor.create({
+        data: {
+          companyId: company.id,
+          name: companyName.trim(),
+          mobileNumbers: JSON.stringify([mobileNumber.trim()]),
+          gstin: gstin.trim().toUpperCase(),
+          pan: pan.trim().toUpperCase(),
+          language: language || "en",
+        },
+      });
+
+      // Calculate overdue dueDate based on months delayed
+      const delayMonths = Number(monthsDelayed) || 1;
+      const dueDate = new Date(Date.now() - delayMonths * 30 * 24 * 60 * 60 * 1000);
+
+      // Create CreditAccount
+      const creditAccount = await prisma.creditAccount.create({
+        data: {
+          buyerId: buyer.id,
+          outstandingAmount: numAmount,
+          dueDate,
+          overdueStatus: "overdue",
+          penalInterestRate: 18.0,
+        },
+      });
+
+      // Create Invoice record
+      const invoiceNum = `INV-${Date.now().toString().slice(-6)}`;
+      await prisma.invoice.create({
+        data: {
+          creditAccountId: creditAccount.id,
+          buyerId: buyer.id,
+          invoiceNumber: invoiceNum,
+          invoiceDate: new Date(dueDate.getTime() - 30 * 24 * 60 * 60 * 1000),
+          dueDate,
+          amount: numAmount,
+          status: "overdue",
+          ageingBucket: delayMonths >= 3 ? "90+" : delayMonths >= 2 ? "61-90" : "31-60",
+          notes: JSON.stringify({
+            invoiceFileName: invoiceFileName || "Invoice.pdf",
+            invoiceFileSize: invoiceFileSize || 1024,
+            callFrequency: callFrequency || "daily",
+            invoiceVerified: true,
+            onboardedAt: new Date().toISOString(),
+          }),
+        },
+      });
+
+      // Initialize Escalation state
+      const initialLevel = delayMonths >= 3 ? "L3" : delayMonths >= 2 ? "L2" : "L1";
+      await prisma.escalationState.create({
+        data: {
+          creditAccountId: creditAccount.id,
+          currentLevel: initialLevel,
+          history: JSON.stringify([
+            {
+              level: initialLevel,
+              action: "case_created",
+              channel: "system",
+              ruleId: "RULE-DEBTOR-INTAKE",
+              explanation: `Debtor case registered for ₹${numAmount.toLocaleString("en-IN")} (${delayMonths} months delayed). Verified invoice attached. Frequency: ${callFrequency || "daily"}. Language: ${language || "en"}.`,
+              at: new Date().toISOString(),
+            },
+          ]),
+          nextActionAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: "Debtor case successfully created and recovery engine initiated.",
+        account: {
+          id: creditAccount.id,
+          buyerId: buyer.id,
+          buyerName: buyer.name,
+          phone: mobileNumber.trim(),
+          email: buyer.email || "",
+          language: buyer.language,
+          outstandingAmount: creditAccount.outstandingAmount,
+          dueDate: creditAccount.dueDate,
+          status: creditAccount.overdueStatus,
+          currentLevel: initialLevel,
+        },
+      });
+    }
 
     if (!creditAccountId) {
       return NextResponse.json({ error: "creditAccountId required" }, { status: 400 });
@@ -143,6 +288,22 @@ export async function POST(req: Request) {
 
     // 1. Direct Voice Outbound Call Execution
     if (action === "direct_voice_call") {
+      // Find company owning this debtor to check and deduct wallet balance
+      const company = (await prisma.company.findUnique({
+        where: { id: account.buyer.companyId },
+      })) || (await prisma.company.findFirst());
+
+      if (company && company.walletBalance < 1) {
+        return NextResponse.json(
+          {
+            error: `Insufficient subscription wallet balance. Connected voice recovery calls require ₹1 per picked-up call, but your current balance is ₹${company.walletBalance.toLocaleString("en-IN")}. Please recharge your subscription plan.`,
+            currentBalance: company.walletBalance,
+            required: 1,
+          },
+          { status: 400 }
+        );
+      }
+
       const lang = account.buyer.language || "en";
       const templateId = "l2_voice_reminder_v1";
 
@@ -183,6 +344,38 @@ export async function POST(req: Request) {
         simulateOutcome,
       });
 
+      // DEDUCT ₹1 ONLY IF THE CALL IS PICKED UP ("answered")
+      let callFee = 0;
+      let newBalance = company?.walletBalance ?? 0;
+
+      if (callResult.status === "answered" && company) {
+        callFee = 1;
+        const updatedCompany = await prisma.company.update({
+          where: { id: company.id },
+          data: {
+            walletBalance: { decrement: callFee },
+            lastActiveAt: new Date(),
+          },
+        });
+        newBalance = updatedCompany.walletBalance;
+
+        if (callResult.callId) {
+          await prisma.call.update({
+            where: { id: callResult.callId },
+            data: {
+              outcomeNotes: `Call picked up by debtor. ₹1 deducted from subscription wallet. New balance: ₹${newBalance.toLocaleString("en-IN")}. SIP Session: ${callResult.sipSessionId}`,
+            },
+          });
+        }
+      } else if (company && callResult.callId) {
+        await prisma.call.update({
+          where: { id: callResult.callId },
+          data: {
+            outcomeNotes: `Call ${callResult.status || "unanswered"}. Debtor did not pick up. ₹0 charged.`,
+          },
+        });
+      }
+
       // Update escalation state to L2
       const state = await prisma.escalationState.findFirst({
         where: { creditAccountId },
@@ -194,12 +387,16 @@ export async function POST(req: Request) {
         action: "direct_voice_announcement",
         channel: "voice",
         ruleId: "POL-L2-MANUAL",
-        explanation: `Manual one-way voice recovery call executed via Asterisk PBX / Vobiz SIP Trunk (${callResult.sipSessionId}).`,
+        explanation:
+          callFee > 0
+            ? `Voice recovery call answered & picked up by debtor. ₹1 deducted from subscription wallet (Balance: ₹${newBalance.toLocaleString("en-IN")}). Asterisk/Vobiz SIP (${callResult.sipSessionId}).`
+            : `Voice recovery call attempted (${callResult.status}). Debtor did not pick up. ₹0 deducted. Asterisk/Vobiz SIP (${callResult.sipSessionId}).`,
         at: new Date().toISOString(),
         contentHash,
         audioRef: audio.s3Url,
         callStatus: callResult.status,
         durationSec: callResult.durationSec,
+        callFee,
       };
 
       if (state) {
@@ -226,11 +423,16 @@ export async function POST(req: Request) {
 
       return NextResponse.json({
         success: true,
-        message: `One-way call connected (${callResult.status}) · Duration: ${callResult.durationSec}s · SIP Session: ${callResult.sipSessionId}`,
+        message:
+          callFee > 0
+            ? `Call picked up (${callResult.status}) · Duration: ${callResult.durationSec}s · ₹1 deducted from subscription wallet (New balance: ₹${newBalance.toLocaleString("en-IN")})`
+            : `Call ended (${callResult.status}) · Not picked up · ₹0 deducted from wallet`,
         callResult,
         scriptText,
         audioUrl: audio.s3Url,
         contentHash,
+        callFee,
+        newBalance,
       });
     }
 
