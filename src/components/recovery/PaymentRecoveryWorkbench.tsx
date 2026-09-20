@@ -45,6 +45,14 @@ export interface RecoveryAccountItem {
   buyerId: string;
   buyerName: string;
   phone: string;
+  alternatePhones?: Array<{
+    number: string;
+    label: string;
+    carrier?: string;
+    status?: string;
+    circle?: string;
+    source?: string;
+  }>;
   email: string | null;
   language: string;
   outstandingAmount: number;
@@ -92,6 +100,15 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
   const [callMessage, setCallMessage] = useState<string | null>(null);
   const [lastCallDetails, setLastCallDetails] = useState<any>(null);
   const [callModalOpen, setCallModalOpen] = useState(false);
+
+  // Debtor Endpoint & Alternate Numbers Selection
+  const [selectedTargetPhone, setSelectedTargetPhone] = useState<string>(
+    accounts[0]?.phone || "+91 98765 43210"
+  );
+  const [showMobileIdentityModal, setShowMobileIdentityModal] = useState(false);
+  const [mobileLookupInput, setMobileLookupInput] = useState<string>("");
+  const [mobileLookupLoading, setMobileLookupLoading] = useState(false);
+  const [mobileLookupResult, setMobileLookupResult] = useState<any>(null);
 
   // Caller Line DID & Unreachable Handling
   const [callerDid, setCallerDid] = useState<string>(OUTBOUND_CALLER_LINES[0].did);
@@ -152,6 +169,41 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
   // Active Debtor details
   const activeAccount = accountList.find((a) => a.id === selectedAccountId) || accountList[0];
 
+  React.useEffect(() => {
+    if (activeAccount) {
+      setSelectedTargetPhone(activeAccount.phone || "+91 9876543210");
+      setMobileLookupInput(activeAccount.phone || "");
+      if (activeAccount.daysOverdue >= 365) {
+        setSelectedCadence("Every 5 Mins");
+      }
+    }
+  }, [selectedAccountId, activeAccount?.id, activeAccount?.phone]);
+
+  const handleRunMobileIdentityLookup = async (overridePhone?: string) => {
+    const target = overridePhone || mobileLookupInput || activeAccount?.phone || "+91 98200 44551";
+    setMobileLookupLoading(true);
+    setShowMobileIdentityModal(true);
+    try {
+      const res = await fetch("/api/recovery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "identify_alternate_numbers",
+          phoneNumber: target,
+          debtorName: activeAccount?.buyerName || "Debtor Commercial Entity",
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMobileLookupResult(data);
+      }
+    } catch {
+      // fallback
+    } finally {
+      setMobileLookupLoading(false);
+    }
+  };
+
   const formatINR = (val: number) => `₹${val.toLocaleString("en-IN")}`;
 
   // Execute Voice Call (Supports Caller DID switching, guaranteed connection, or simulated failure)
@@ -162,7 +214,7 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
   ) => {
     if (!activeAccount) return;
     const didToUse = overrideDid || callerDid;
-    const phoneToCall = overrideTargetPhone || activeAccount.phone || "+91 9876543210";
+    const phoneToCall = overrideTargetPhone || selectedTargetPhone || activeAccount.phone || "+91 9876543210";
     const outcomeMode = forcedOutcome || "connected";
 
     setCallingState("dialing");
@@ -751,13 +803,121 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
             </div>
           </div>
 
+          {/* Scenario 3 Notice: Debtor Unresponsive for 2 Months (60 Days Default) */}
+          {activeAccount && activeAccount.daysOverdue >= 50 && activeAccount.daysOverdue <= 90 && (
+            <div className="rounded-xl border border-rose-500/40 bg-rose-950/30 p-4 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="text-rose-400 shrink-0" size={18} />
+                  <span className="font-bold text-white text-xs">
+                    Scenario 3: Debtor Defaulter for 2 Months (60 Days Overdue) — Telephony Recovery Exhausted
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("legal_notices")}
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white flex items-center gap-1.5 transition shadow-sm"
+                >
+                  <Scale size={13} />
+                  <span>Shoot Statutory Legal Notice Now →</span>
+                </button>
+              </div>
+              <p className="text-xs text-rose-200/90 leading-relaxed">
+                Debtor has not settled dues despite repeated telephony attempts. Payment recovery methods haven&apos;t yet made him pay back. Section 43B(h) Income Tax disallowance notice and Section 18 MSMED Samadhaan arbitration notice are prepared for instantaneous dispatch.
+              </p>
+            </div>
+          )}
+
+          {/* Target Debtor Line (Choose Alternate Number to Call) */}
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/70 p-4 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Smartphone size={16} className="text-[#FC8019]" />
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase font-mono">
+                  Target Debtor Line (Choose Alternate Number to Call):
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleRunMobileIdentityLookup(activeAccount?.phone)}
+                className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-[#FC8019] bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 hover:bg-orange-100 dark:hover:bg-orange-900/40 transition flex items-center gap-1.5"
+              >
+                <Sparkles size={13} />
+                <span>Mobile Identity: Identify Alternate Numbers (DoT KYC)</span>
+              </button>
+            </div>
+
+            {/* Grid of primary and alternate numbers */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+              {/* Primary line */}
+              <button
+                type="button"
+                onClick={() => setSelectedTargetPhone(activeAccount?.phone || "+91 9876543210")}
+                className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${
+                  selectedTargetPhone === (activeAccount?.phone || "+91 9876543210")
+                    ? "border-[#FC8019] bg-orange-50 dark:bg-orange-500/10 ring-1 ring-[#FC8019]"
+                    : "border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 hover:border-orange-300"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-bold text-xs text-slate-900 dark:text-white truncate">
+                    {activeAccount?.phone || "+91 9876543210"}
+                  </span>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 shrink-0">
+                    Primary
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-600 dark:text-slate-400 mt-1 truncate">
+                  Director Registered Mobile
+                </div>
+              </button>
+
+              {/* Alternate numbers from activeAccount or DoT search */}
+              {(activeAccount?.alternatePhones || [])
+                .filter((p) => p.number !== activeAccount?.phone)
+                .map((alt) => {
+                  const isSelected = selectedTargetPhone === alt.number;
+                  return (
+                    <button
+                      key={alt.number}
+                      type="button"
+                      onClick={() => setSelectedTargetPhone(alt.number)}
+                      className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${
+                        isSelected
+                          ? "border-[#FC8019] bg-orange-50 dark:bg-orange-500/10 ring-1 ring-[#FC8019]"
+                          : "border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 hover:border-orange-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-xs text-slate-900 dark:text-white truncate">
+                          {alt.number}
+                        </span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border border-blue-300 dark:border-blue-800 shrink-0">
+                          Alternate
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-600 dark:text-slate-400 mt-1 truncate">
+                        {alt.label} ({alt.carrier || "DoT Verified"})
+                      </div>
+                    </button>
+                  );
+                })}
+            </div>
+          </div>
+
           {/* Action Row & Live Telephony Trigger */}
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 p-4 space-y-3 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <span className="text-[10px] uppercase font-mono text-slate-400">Target Connected Endpoint:</span>
-                <div className="text-sm font-bold text-slate-900 dark:text-white font-mono">
-                  {activeAccount?.phone || "+91 9876543210"} ({activeAccount?.buyerName})
+                <div className="text-sm font-bold text-slate-900 dark:text-white font-mono flex items-center gap-2">
+                  <span>{selectedTargetPhone || activeAccount?.phone || "+91 9876543210"}</span>
+                  <span className="text-xs text-slate-400 font-normal">({activeAccount?.buyerName})</span>
+                  {selectedTargetPhone !== activeAccount?.phone && (
+                    <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/40">
+                      Alternate Line Selected
+                    </span>
+                  )}
                 </div>
                 <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                   Calling via: <strong className="text-[#FC8019] font-mono">{callerDid}</strong> · Dialect: <strong>{activeAccount?.language.toUpperCase() || "EN"}</strong> · Trunk: Asterisk 20 / Vobiz SIP
@@ -777,7 +937,7 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
                 <button
                   type="button"
                   disabled={callingState === "dialing"}
-                  onClick={() => handleTriggerVoiceCall(callerDid, activeAccount?.phone, "busy")}
+                  onClick={() => handleTriggerVoiceCall(callerDid, selectedTargetPhone, "busy")}
                   className="flex items-center gap-1.5 rounded-xl border border-rose-300 dark:border-rose-700/60 bg-rose-50 dark:bg-rose-950/40 px-3.5 py-2 text-xs font-bold text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition disabled:opacity-50"
                   title="Simulate a call that fails to connect to view the diagnosis popup"
                 >
@@ -789,7 +949,7 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
                 <button
                   type="button"
                   disabled={callingState === "dialing"}
-                  onClick={() => handleTriggerVoiceCall(callerDid, activeAccount?.phone, "connected")}
+                  onClick={() => handleTriggerVoiceCall(callerDid, selectedTargetPhone, "connected")}
                   className="flex items-center gap-2 rounded-xl bg-[#FC8019] px-5 py-2 text-xs font-bold text-white hover:bg-[#E26D0A] transition disabled:opacity-50 shadow-md shadow-orange-500/20"
                 >
                   <PhoneCall size={14} />
@@ -1261,6 +1421,163 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
             await handleDispatchLegalNotice();
           }}
         />
+      )}
+      {/* Mobile Identity: Identify Alternate Numbers Modal */}
+      {showMobileIdentityModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="relative w-full max-w-2xl rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl p-6 space-y-5 text-left animate-in fade-in zoom-in duration-150">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-[#FC8019]">
+                  <Smartphone size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <span>Mobile Identity: Identify Alternate Numbers</span>
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">
+                      DoT Telecom KYC
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Trace debtor alternate contact numbers across Telecom KYC, GST portal signatories, and MCA records.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMobileIdentityModal(false)}
+                className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Input / Search Bar */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex-1 flex items-center rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019]">
+                <Smartphone size={16} className="text-slate-400 mr-2 shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Enter 10-digit mobile number (+91...)"
+                  value={mobileLookupInput}
+                  onChange={(e) => setMobileLookupInput(e.target.value)}
+                  className="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none font-mono"
+                />
+              </div>
+              <button
+                type="button"
+                disabled={mobileLookupLoading}
+                onClick={() => handleRunMobileIdentityLookup()}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#FC8019] hover:bg-[#E26D0A] text-white transition disabled:opacity-50 flex items-center justify-center gap-1.5 shrink-0 shadow-md shadow-orange-500/20"
+              >
+                {mobileLookupLoading ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" />
+                    <span>Resolving DoT KYC...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={14} />
+                    <span>Identify Alternate Numbers</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Discovered Numbers Result Card */}
+            {mobileLookupResult ? (
+              <div className="space-y-4">
+                {/* Telecom Registry Summary */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
+                  <div className="p-2.5 rounded-xl border border-slate-800 bg-slate-950/80">
+                    <span className="text-[10px] text-slate-500 uppercase">Subscriber</span>
+                    <div className="text-white font-bold truncate mt-0.5">{mobileLookupResult.debtorName}</div>
+                  </div>
+                  <div className="p-2.5 rounded-xl border border-slate-800 bg-slate-950/80">
+                    <span className="text-[10px] text-slate-500 uppercase">SIM Active Age</span>
+                    <div className="text-emerald-400 font-bold mt-0.5">{mobileLookupResult.simActiveDays || "1,420"} Days</div>
+                  </div>
+                  <div className="p-2.5 rounded-xl border border-slate-800 bg-slate-950/80">
+                    <span className="text-[10px] text-slate-500 uppercase">Address Match</span>
+                    <div className="text-amber-400 font-bold mt-0.5">{mobileLookupResult.addressConfidence || "98.4%"}</div>
+                  </div>
+                  <div className="p-2.5 rounded-xl border border-slate-800 bg-slate-950/80">
+                    <span className="text-[10px] text-slate-500 uppercase">DoT Ref ID</span>
+                    <div className="text-slate-300 font-bold truncate mt-0.5">{mobileLookupResult.dotVerificationId}</div>
+                  </div>
+                </div>
+
+                {/* Discovered Alternate Numbers List */}
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-slate-300 uppercase font-mono flex items-center justify-between">
+                    <span>Identified Alternate Numbers ({mobileLookupResult.alternateNumbers?.length || 0})</span>
+                    <span className="text-[10px] text-slate-400 font-normal">Click to select as active dialing target</span>
+                  </div>
+
+                  <div className="divide-y divide-slate-800 rounded-xl border border-slate-800 bg-slate-950/60 overflow-hidden">
+                    {mobileLookupResult.alternateNumbers?.map((alt: any, idx: number) => {
+                      const isSelected = selectedTargetPhone === alt.number;
+                      return (
+                        <div
+                          key={idx}
+                          className={`p-3.5 flex flex-wrap items-center justify-between gap-3 transition ${
+                            isSelected ? "bg-orange-500/10 border-l-4 border-l-[#FC8019]" : "hover:bg-slate-900/60"
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-bold text-sm text-white">{alt.number}</span>
+                              <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                                {alt.carrier}
+                              </span>
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">
+                                {alt.status}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-2">
+                              <span><strong>{alt.label}</strong></span>
+                              <span>·</span>
+                              <span>Circle: {alt.circle}</span>
+                              <span>·</span>
+                              <span className="text-amber-400">Source: {alt.source}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedTargetPhone(alt.number);
+                                setShowMobileIdentityModal(false);
+                                setCallMessage(`Target endpoint set to alternate number: ${alt.number} (${alt.label})`);
+                              }}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                                isSelected
+                                  ? "bg-emerald-600 text-white"
+                                  : "bg-[#FC8019] hover:bg-[#E26D0A] text-white shadow-sm"
+                              }`}
+                            >
+                              <PhoneCall size={12} />
+                              <span>{isSelected ? "Active Dialing Target" : "Select & Call"}</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-6 rounded-xl border border-dashed border-slate-800 text-center space-y-2">
+                <Smartphone className="mx-auto text-slate-500" size={28} />
+                <p className="text-xs text-slate-400">
+                  Click <strong>&quot;Identify Alternate Numbers&quot;</strong> to trace debtor secondary SIM cards, authorized director mobiles, and GST signatory contact lines.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

@@ -9,14 +9,24 @@ export async function POST(req: Request) {
     // 1. CLIENT LOGIN
     if (action === "login_client") {
       const { email, companyName } = body;
-      let company = await prisma.company.findFirst({
-        where: {
-          OR: [
-            companyName ? { name: { contains: companyName } } : {},
-            { name: "Acme Traders Pvt Ltd" },
-          ],
-        },
-      });
+      const emailLower = (email || "").toLowerCase();
+      const compLower = (companyName || "").toLowerCase();
+
+      let company = null;
+
+      if (emailLower.includes("abc") || compLower.includes("abc")) {
+        company = await prisma.company.findFirst({
+          where: { name: { contains: "ABC Industry" } },
+        });
+      } else if (compLower && !compLower.includes("acme")) {
+        company = await prisma.company.findFirst({
+          where: { name: { contains: companyName } },
+        });
+      } else {
+        company = await prisma.company.findFirst({
+          where: { name: "Acme Traders Pvt Ltd" },
+        });
+      }
 
       if (!company) {
         company = await prisma.company.findFirst();
@@ -29,19 +39,36 @@ export async function POST(req: Request) {
         );
       }
 
-      return NextResponse.json({
+      const res = NextResponse.json({
         success: true,
         type: "client",
         user: {
           id: company.id,
           name: company.name,
-          email: email || "trade.operations@acmetraders.in",
+          email:
+            email ||
+            (company.name.includes("ABC")
+              ? "enterprise@abcindustry.in"
+              : "trade.ops@acmetraders.in"),
           role: "client_admin",
           companyId: company.id,
           plan: company.plan,
           walletBalance: company.walletBalance,
         },
       });
+
+      res.cookies.set("chaanbean_company_id", company.id, {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax",
+      });
+      res.cookies.set("chaanbean_company_name", encodeURIComponent(company.name), {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax",
+      });
+
+      return res;
     }
 
     // 2. CLIENT REGISTRATION

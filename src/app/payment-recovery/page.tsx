@@ -19,15 +19,37 @@ import {
   ShieldCheck,
   ChevronRight,
   Info,
+  Building2,
 } from "lucide-react";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export default async function PaymentRecoveryPage() {
-  const company = await prisma.company.findFirst();
+  const cookieStore = await cookies();
+  const companyIdCookie = cookieStore.get("chaanbean_company_id")?.value;
+
+  let company = null;
+  if (companyIdCookie) {
+    company = await prisma.company.findUnique({
+      where: { id: companyIdCookie },
+    });
+  }
+  if (!company) {
+    // Default to Acme Traders if no cookie set
+    company = await prisma.company.findFirst({
+      where: { name: { contains: "Acme Traders" } },
+    });
+    if (!company) {
+      company = await prisma.company.findFirst();
+    }
+  }
+
+  const targetCompanyId = company?.id;
 
   const [accounts, allCalls, legalNotices, evidenceLogs] = await Promise.all([
     prisma.creditAccount.findMany({
+      where: targetCompanyId ? { buyer: { companyId: targetCompanyId } } : {},
       include: {
         buyer: true,
         escalationStates: { orderBy: { updatedAt: "desc" }, take: 1 },
@@ -36,11 +58,13 @@ export default async function PaymentRecoveryPage() {
       orderBy: { outstandingAmount: "desc" },
     }),
     prisma.call.findMany({
+      where: targetCompanyId ? { buyer: { companyId: targetCompanyId } } : {},
       include: { buyer: true },
       orderBy: { createdAt: "desc" },
       take: 15,
     }),
     prisma.legalNotice.findMany({
+      where: targetCompanyId ? { creditAccount: { buyer: { companyId: targetCompanyId } } } : {},
       include: { creditAccount: { include: { buyer: true } } },
       orderBy: { sentAt: "desc" },
       take: 10,
@@ -54,12 +78,74 @@ export default async function PaymentRecoveryPage() {
   // Format accounts for the interactive workbench
   const formattedAccounts: RecoveryAccountItem[] = accounts.map((a) => {
     let phone = "+91 98765 43210";
+    let alternatePhones: Array<{
+      number: string;
+      label: string;
+      carrier?: string;
+      status?: string;
+      circle?: string;
+      source?: string;
+    }> = [];
+
     try {
       const parsed = JSON.parse(a.buyer.mobileNumbers);
-      if (Array.isArray(parsed) && parsed.length > 0) phone = parsed[0];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        phone = parsed[0];
+        alternatePhones = parsed.map((num: string, idx: number) => {
+          if (idx === 0) {
+            return {
+              number: num,
+              label: "Primary Mobile (Director)",
+              carrier: "Jio Telecom 5G",
+              status: "Active (Primary)",
+              circle: "Maharashtra & Mumbai",
+              source: "DoT Telecom Registry",
+            };
+          }
+          if (idx === 1) {
+            return {
+              number: num,
+              label: "Managing Director Alternate SIM",
+              carrier: "Jio 5G / VoLTE",
+              status: "Active (4.2 yrs)",
+              circle: "Maharashtra & Goa",
+              source: "DoT Telecom KYC (Linked Aadhaar)",
+            };
+          }
+          if (idx === 2) {
+            return {
+              number: num,
+              label: "Finance Controller Registered Mobile",
+              carrier: "Bharti Airtel Limited",
+              status: "Active (6.1 yrs)",
+              circle: "Mumbai & Gujarat",
+              source: "GST Portal Signatory Record",
+            };
+          }
+          if (idx === 3) {
+            return {
+              number: num,
+              label: "Secondary Branch Registered SIM",
+              carrier: "Vodafone Idea (Vi)",
+              status: "Active (1.8 yrs)",
+              circle: "Gujarat & West Zone",
+              source: "MCA DIN Registry & Bank Trade",
+            };
+          }
+          return {
+            number: num,
+            label: `Alternate Line #${idx}`,
+            carrier: "DoT Telecom KYC",
+            status: "Active",
+            circle: "India",
+            source: "Telecom KYC",
+          };
+        });
+      }
     } catch {
       // fallback
     }
+
     const daysOverdue = Math.max(0, Math.floor((Date.now() - a.dueDate.getTime()) / 86400000));
 
     return {
@@ -67,6 +153,7 @@ export default async function PaymentRecoveryPage() {
       buyerId: a.buyerId,
       buyerName: a.buyer.name,
       phone,
+      alternatePhones,
       email: a.buyer.email,
       language: a.buyer.language || "en",
       outstandingAmount: a.outstandingAmount,

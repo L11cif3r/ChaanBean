@@ -17,6 +17,7 @@ import {
   AlertCircle,
   KeyRound,
   Briefcase,
+  Sparkles,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -67,6 +68,12 @@ export default function LoginPage() {
     setCompanyName("Acme Traders Pvt Ltd");
   };
 
+  const fillEnterpriseClient = () => {
+    setClientEmail("enterprise@abcindustry.in");
+    setClientPassword("ABCIndustry@Enterprise2026!");
+    setCompanyName("ABC Industry");
+  };
+
   const fillSampleAdmin = () => {
     setAdminEmail("owner@chaanbean.in");
     setAdminPassword("RootOwnerKey2026!");
@@ -94,11 +101,17 @@ export default function LoginPage() {
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || "Login failed");
 
-          setSuccessMsg(`Welcome back, ${data.user?.name || "Client"}! Redirecting to AI Credit Check...`);
+          setSuccessMsg(`Welcome back, ${data.user?.name || "Client"}! Redirecting...`);
           sessionStorage.setItem("chaanbean_session_active", "true");
           localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "client", user: data.user }));
           document.cookie = "chaanbean_session=client; path=/; max-age=86400";
           document.cookie = "chaanbean_subscription=active; path=/; max-age=7776000";
+          if (data.user?.companyId) {
+            document.cookie = `chaanbean_company_id=${data.user.companyId}; path=/; max-age=86400`;
+          }
+          if (data.user?.name) {
+            document.cookie = `chaanbean_company_name=${encodeURIComponent(data.user.name)}; path=/; max-age=86400`;
+          }
           setTimeout(() => router.push("/background-check"), 700);
         } else {
           // Register client
@@ -354,13 +367,21 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={fillEnterpriseClient}
+                  className="text-[11px] font-bold text-amber-500 hover:text-amber-400 hover:underline transition flex items-center gap-1"
+                >
+                  <Sparkles size={12} />
+                  <span>ABC Industry (Enterprise Plan · 3 Scenarios)</span>
+                </button>
                 <button
                   type="button"
                   onClick={fillSampleClient}
-                  className="text-[11px] font-semibold text-[#FC8019] hover:text-[#E26D0A] hover:underline transition"
+                  className="text-[11px] font-semibold text-slate-400 hover:text-slate-200 hover:underline transition"
                 >
-                  Fill Sample Client Credentials (Acme Traders)
+                  Acme Traders (Clean First-Time Login)
                 </button>
               </div>
             </>

@@ -17,7 +17,12 @@ const CreateBusinessSchema = z.object({
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const createdBy = searchParams.get("createdBy");
+    let createdBy = searchParams.get("createdBy");
+    if (!createdBy) {
+      const cookieHeader = req.headers.get("cookie") || "";
+      const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+      if (match) createdBy = decodeURIComponent(match[1]);
+    }
     const flag = searchParams.get("flag");
 
     const where: Record<string, unknown> = {};

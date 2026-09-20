@@ -7,7 +7,13 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const companyId = searchParams.get("companyId");
+    let companyId = searchParams.get("companyId");
+
+    if (!companyId) {
+      const cookieHeader = req.headers.get("cookie") || "";
+      const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+      if (match) companyId = decodeURIComponent(match[1]);
+    }
 
     let company = null;
     if (companyId) {
@@ -18,8 +24,14 @@ export async function GET(req: Request) {
     }
     if (!company) {
       company = await prisma.company.findFirst({
+        where: { name: { contains: "Acme Traders" } },
         include: { walletLedger: true },
       });
+      if (!company) {
+        company = await prisma.company.findFirst({
+          include: { walletLedger: true },
+        });
+      }
     }
 
     if (!company) {

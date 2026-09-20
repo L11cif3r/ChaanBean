@@ -3,11 +3,29 @@ import Link from "next/link";
 import { VerificationRunner } from "@/components/VerificationRunner";
 import { Search, ShieldAlert, Cpu } from "lucide-react";
 import { getAllKnowledgeEntities } from "@/lib/knowledge-source";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export default async function BackgroundCheckPage() {
-  const company = await prisma.company.findFirst();
+  const cookieStore = await cookies();
+  const companyIdCookie = cookieStore.get("chaanbean_company_id")?.value;
+
+  let company = null;
+  if (companyIdCookie) {
+    company = await prisma.company.findUnique({
+      where: { id: companyIdCookie },
+    });
+  }
+  if (!company) {
+    company = await prisma.company.findFirst({
+      where: { name: { contains: "Acme Traders" } },
+    });
+    if (!company) {
+      company = await prisma.company.findFirst();
+    }
+  }
+
   const ledger = company
     ? await prisma.walletUsageLedger.findMany({ where: { companyId: company.id } })
     : [];
@@ -19,7 +37,7 @@ export default async function BackgroundCheckPage() {
     ])
   );
 
-  // Fetch actual buyers and vendors from database (if any created by user)
+  // Fetch actual buyers and vendors from database
   const buyers = await prisma.buyerDebtor.findMany({
     where: { companyId: company?.id },
     select: { name: true, pan: true, gstin: true },
@@ -31,17 +49,14 @@ export default async function BackgroundCheckPage() {
     take: 4,
   });
 
-  const knowledgeEntities = getAllKnowledgeEntities().map((k) => ({
-    name: k.legalName,
-    id: k.gstin,
-    type: "debtor" as const,
-  }));
+  const isCleanAcme = company?.name?.includes("Acme Traders") || (buyers.length === 0 && vendors.length === 0);
 
-  const entities = [
-    ...buyers.map((b) => ({ name: b.name, id: b.gstin || b.pan || b.name, type: "debtor" as const })),
-    ...vendors.map((v) => ({ name: v.name, id: v.gstin || v.pan || v.name, type: "vendor" as const })),
-    ...knowledgeEntities,
-  ];
+  const entities = isCleanAcme
+    ? []
+    : [
+        ...buyers.map((b) => ({ name: b.name, id: b.gstin || b.pan || b.name, type: "debtor" as const })),
+        ...vendors.map((v) => ({ name: v.name, id: v.gstin || v.pan || v.name, type: "vendor" as const })),
+      ];
 
   return (
     <div className="p-8 space-y-8">
