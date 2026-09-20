@@ -607,14 +607,36 @@ export async function callKycAggregator(
   }
 
   if (type === "director_details") {
+    // Query live MCA21 data.gov.in API
+    let liveMcaRecord: any = null;
+    try {
+      const { fetchLiveMcaCompanyData } = await import("@/lib/services/business/mca-adapter");
+      const cinToQuery = entity.cin || (subjectId.startsWith("U") || subjectId.startsWith("L") ? subjectId : null);
+      const nameToQuery = entity.name || (!subjectId.startsWith("0") && subjectId.length > 4 ? subjectId : null);
+      const mcaRes = await fetchLiveMcaCompanyData({ cin: cinToQuery, companyName: nameToQuery, limit: 1 });
+      if (mcaRes.success && mcaRes.records.length > 0) {
+        liveMcaRecord = mcaRes.records[0];
+      }
+    } catch {
+      // fallback
+    }
+
     return {
       success: true,
-      provider: "MCA21 Corporate Registry Gateway",
-      isSandbox: true,
+      provider: liveMcaRecord
+        ? "MCA21 Ministry of Corporate Affairs (data.gov.in Live Gateway)"
+        : "MCA21 Corporate Registry Gateway",
+      isSandbox: !liveMcaRecord,
       status: "completed",
       latencyMs: Date.now() - start + 100,
       data: {
         directors: entity.directors,
+        mcaLiveRecord: liveMcaRecord,
+        cin: liveMcaRecord?.cin || entity.cin,
+        roc: liveMcaRecord?.roc,
+        authorizedCapital: liveMcaRecord?.authorizedCapital,
+        paidUpCapital: liveMcaRecord?.paidUpCapital,
+        companyStatus: liveMcaRecord?.status || "Active",
       },
     };
   }
@@ -639,17 +661,33 @@ export async function callKycAggregator(
   }
 
   // Company supreme report
+  let liveMcaRecord: any = null;
+  try {
+    const { fetchLiveMcaCompanyData } = await import("@/lib/services/business/mca-adapter");
+    const mcaRes = await fetchLiveMcaCompanyData({ cin: entity.cin, companyName: entity.name, limit: 1 });
+    if (mcaRes.success && mcaRes.records.length > 0) {
+      liveMcaRecord = mcaRes.records[0];
+    }
+  } catch {
+    // fallback
+  }
+
   return {
     success: true,
-    provider: "MCA21 & Financial Aggregator Gateway",
-    isSandbox: true,
+    provider: liveMcaRecord
+      ? "MCA21 Ministry of Corporate Affairs (data.gov.in Live Gateway)"
+      : "MCA21 & Financial Aggregator Gateway",
+    isSandbox: !liveMcaRecord,
     status: "completed",
     latencyMs: Date.now() - start + 110,
     data: {
-      cin: entity.cin || "U74999MH2018PTC312345",
-      status: "Active",
-      paidUpCapital: 10000000,
-      authorizedCapital: 25000000,
+      cin: liveMcaRecord?.cin || entity.cin || "U74999MH2018PTC312345",
+      status: liveMcaRecord?.status || "Active",
+      roc: liveMcaRecord?.roc,
+      companyClass: liveMcaRecord?.companyClass,
+      registeredAddress: liveMcaRecord?.registeredAddress,
+      paidUpCapital: liveMcaRecord?.paidUpCapital || 10000000,
+      authorizedCapital: liveMcaRecord?.authorizedCapital || 25000000,
       financialsAvailable: true,
       netWorth: entity.isDefaulted ? 12000000 : 38500000,
       ebitdaMarginPct: entity.isDefaulted ? 6.2 : 16.4,

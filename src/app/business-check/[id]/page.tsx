@@ -255,6 +255,9 @@ export default function BusinessProfilePage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
   const [rerunning, setRerunning] = useState(false);
+  const [syncingMca, setSyncingMca] = useState(false);
+  const [mcaSyncMsg, setMcaSyncMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [mcaSearchCin, setMcaSearchCin] = useState("");
 
   const fetchBusiness = useCallback(async () => {
     try {
@@ -273,6 +276,44 @@ export default function BusinessProfilePage() {
     setRerunning(true);
     await fetch(`/api/businesses/${id}/verify`, { method: "POST" });
     setTimeout(() => { fetchBusiness(); setRerunning(false); }, 2000);
+  };
+
+  const handleSyncMca = async (customCin?: string) => {
+    setSyncingMca(true);
+    setMcaSyncMsg(null);
+    try {
+      const cinToUse = (customCin !== undefined ? customCin : (mcaSearchCin || business?.cin || "")).trim();
+      const res = await fetch("/api/mca", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "sync_business",
+          businessId: id,
+          cin: cinToUse || undefined,
+          companyName: !cinToUse ? business?.companyName : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.record) {
+        setMcaSyncMsg({
+          type: "success",
+          text: `Verified with MCA data.gov.in: ${data.record.companyName} (${data.record.cin}) — RoC: ${data.record.roc}, Status: ${data.record.status}`,
+        });
+        await fetchBusiness();
+      } else {
+        setMcaSyncMsg({
+          type: "error",
+          text: data.error || "No matching corporate record found in MCA registry (data.gov.in).",
+        });
+      }
+    } catch (err: any) {
+      setMcaSyncMsg({
+        type: "error",
+        text: err.message || "Failed to reach Ministry of Corporate Affairs API.",
+      });
+    } finally {
+      setSyncingMca(false);
+    }
   };
 
   if (loading) {
@@ -313,6 +354,15 @@ export default function BusinessProfilePage() {
             <ChevronLeft className="w-4 h-4" /> All Businesses
           </Link>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleSyncMca()}
+              disabled={syncingMca}
+              className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-60 shadow-sm"
+              title="Fetch official company records directly from Ministry of Corporate Affairs (data.gov.in)"
+            >
+              <Building2 className={`w-4 h-4 ${syncingMca ? "animate-bounce" : ""}`} />
+              {syncingMca ? "Connecting MCA..." : "Fetch Live MCA"}
+            </button>
             <Link
               href={`/business-check/${id}/documents`}
               className="flex items-center gap-2 px-4 py-2 text-sm border border-[var(--chaan-brand)] text-[var(--chaan-brand)] rounded-lg hover:bg-[var(--chaan-brand)] hover:text-white transition-colors"
@@ -329,6 +379,32 @@ export default function BusinessProfilePage() {
             </button>
           </div>
         </div>
+
+        {/* MCA Sync Feedback Notification */}
+        {mcaSyncMsg && (
+          <div
+            className={`mb-4 p-4 rounded-xl flex items-center justify-between text-sm shadow-sm ${
+              mcaSyncMsg.type === "success"
+                ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800"
+                : "bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-300 dark:border-red-800"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              {mcaSyncMsg.type === "success" ? (
+                <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+              ) : (
+                <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
+              )}
+              <span className="font-medium">{mcaSyncMsg.text}</span>
+            </div>
+            <button
+              onClick={() => setMcaSyncMsg(null)}
+              className="text-xs underline hover:opacity-80 ml-4 font-semibold shrink-0"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         <div className="space-y-4">
 
@@ -453,49 +529,24 @@ export default function BusinessProfilePage() {
             )}
           </SectionCard>
 
-          {/* ── Sections 4-6: GST, MCA, Udyam ── */}
-          {[
-            {
-              title: "GST Verification",
-              icon: <FileText className="w-5 h-5" />,
-              taskType: "GST",
-              record: gstRecord,
-              portalUrl: "https://services.gst.gov.in/services/searchtp",
-              portalLabel: "Open GST Portal",
-            },
-            {
-              title: "MCA Details",
-              icon: <Building2 className="w-5 h-5" />,
-              taskType: "MCA",
-              record: mcaRecord,
-              portalUrl: "https://www.mca.gov.in/content/mca/global/en/mca/master-data/MDS.html",
-              portalLabel: "Open MCA21 Portal",
-            },
-            {
-              title: "Udyam / MSME",
-              icon: <Award className="w-5 h-5" />,
-              taskType: "UDYAM",
-              record: udyamRecord,
-              portalUrl: "https://udyamregistration.gov.in/UdyamVerifyRegistration/UdyamVerifyRegistration.aspx",
-              portalLabel: "Open Udyam Portal",
-            },
-          ].map(sec => {
-            const taskStatus = verifyTaskMap[sec.taskType] || "PENDING";
-            const parsed = sec.record?.parsedFields ? JSON.parse(sec.record.parsedFields) : null;
+          {/* ── Section 4: GST Verification ── */}
+          {(() => {
+            const taskStatus = verifyTaskMap["GST"] || "PENDING";
+            const parsed = gstRecord?.parsedFields ? JSON.parse(gstRecord.parsedFields) : null;
             return (
-              <SectionCard key={sec.title} title={sec.title} icon={sec.icon} defaultOpen={false}>
+              <SectionCard title="GST Verification" icon={<FileText className="w-5 h-5" />} defaultOpen={false}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <SourceBadge status={sec.record?.sourceStatus || "UNAVAILABLE"} />
+                    <SourceBadge status={gstRecord?.sourceStatus || "UNAVAILABLE"} />
                     <span className="text-xs text-[var(--chaan-text-muted)]">Task: {taskStatus}</span>
                   </div>
                   <a
-                    href={sec.portalUrl}
+                    href="https://services.gst.gov.in/services/searchtp"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-[var(--chaan-brand)] text-[var(--chaan-brand)] rounded-lg hover:bg-[var(--chaan-brand)] hover:text-white transition-colors"
                   >
-                    <ExternalLink className="w-3 h-3" /> {sec.portalLabel}
+                    <ExternalLink className="w-3 h-3" /> Open GST Portal
                   </a>
                 </div>
                 {parsed ? (
@@ -514,7 +565,207 @@ export default function BusinessProfilePage() {
                 )}
               </SectionCard>
             );
-          })}
+          })()}
+
+          {/* ── Section 5: MCA Details (Live data.gov.in API) ── */}
+          <SectionCard
+            title="MCA Details — Ministry of Corporate Affairs"
+            icon={<Building2 className="w-5 h-5" />}
+            defaultOpen={Boolean(mcaRecord)}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-[var(--chaan-border)]">
+              <div className="flex items-center gap-2 flex-wrap">
+                <SourceBadge status={mcaRecord?.sourceStatus || "UNAVAILABLE"} />
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                  <Shield className="w-3 h-3 text-blue-600" /> data.gov.in MCA21 Verified
+                </span>
+                <span className="text-xs text-[var(--chaan-text-muted)]">
+                  Task: {verifyTaskMap["MCA"] || "PENDING"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleSyncMca()}
+                  disabled={syncingMca}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-60"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${syncingMca ? "animate-spin" : ""}`} />
+                  {syncingMca ? "Syncing..." : "Sync Live MCA"}
+                </button>
+                <a
+                  href={
+                    business.cin
+                      ? `https://www.mca.gov.in/mcafoportal/viewCompanyMasterData.do?cin=${encodeURIComponent(business.cin)}`
+                      : "https://www.mca.gov.in/content/mca/global/en/mca/master-data/MDS.html"
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-[var(--chaan-border)] text-[var(--chaan-text-muted)] hover:text-[var(--chaan-text)] rounded-lg transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" /> MCA Portal
+                </a>
+              </div>
+            </div>
+
+            {mcaRecord?.parsedFields ? (
+              (() => {
+                let mca: any = {};
+                try {
+                  mca = JSON.parse(mcaRecord.parsedFields);
+                } catch {
+                  mca = {};
+                }
+                return (
+                  <div className="space-y-4">
+                    <div className="bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
+                        <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span className="font-semibold">Official RoC Master Record from data.gov.in (MCA21)</span>
+                        <span className="text-[var(--chaan-text-muted)]">({mca.companyName || business.companyName})</span>
+                      </div>
+                      <span className="font-mono text-[11px] text-emerald-700 dark:text-emerald-400 font-bold bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                        CIN: {mca.cin || business.cin || "—"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <div className="p-3 bg-[var(--chaan-bg)] rounded-xl border border-[var(--chaan-border)]/60">
+                        <div className="text-[10px] uppercase font-bold text-[var(--chaan-text-muted)] mb-1">Company Class &amp; Category</div>
+                        <div className="text-sm font-semibold text-[var(--chaan-text)]">
+                          {mca.companyClass || "—"} {mca.companyCategory ? `· ${mca.companyCategory}` : ""}
+                        </div>
+                        {mca.companySubCategory && (
+                          <div className="text-xs text-[var(--chaan-text-muted)] mt-0.5">{mca.companySubCategory}</div>
+                        )}
+                      </div>
+
+                      <div className="p-3 bg-[var(--chaan-bg)] rounded-xl border border-[var(--chaan-border)]/60">
+                        <div className="text-[10px] uppercase font-bold text-[var(--chaan-text-muted)] mb-1">Registrar of Companies (RoC)</div>
+                        <div className="text-sm font-semibold text-[var(--chaan-text)]">
+                          {mca.roc || "RoC India"} {mca.stateCode ? `(${mca.stateCode})` : ""}
+                        </div>
+                        <div className="text-xs text-[var(--chaan-text-muted)] mt-0.5">
+                          Status: <span className="font-semibold text-emerald-600 dark:text-emerald-400">{mca.status || "Active"}</span>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-[var(--chaan-bg)] rounded-xl border border-[var(--chaan-border)]/60">
+                        <div className="text-[10px] uppercase font-bold text-[var(--chaan-text-muted)] mb-1">Incorporation Date</div>
+                        <div className="text-sm font-semibold text-[var(--chaan-text)]">
+                          {mca.incorporationDate || "—"}
+                        </div>
+                        <div className="text-xs text-[var(--chaan-text-muted)] mt-0.5">
+                          Listing: <span className="font-medium">{mca.listingStatus || "Unlisted"}</span>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-[var(--chaan-bg)] rounded-xl border border-[var(--chaan-border)]/60">
+                        <div className="text-[10px] uppercase font-bold text-[var(--chaan-text-muted)] mb-1">Authorized Share Capital</div>
+                        <div className="text-base font-bold text-[var(--chaan-text)]">
+                          {fmt(mca.authorizedCapital)}
+                        </div>
+                        <div className="text-xs text-[var(--chaan-text-muted)] mt-0.5 font-mono">
+                          ₹{Number(mca.authorizedCapital || 0).toLocaleString("en-IN")}
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-[var(--chaan-bg)] rounded-xl border border-[var(--chaan-border)]/60">
+                        <div className="text-[10px] uppercase font-bold text-[var(--chaan-text-muted)] mb-1">Paid-Up Capital</div>
+                        <div className="text-base font-bold text-emerald-600 dark:text-emerald-400">
+                          {fmt(mca.paidUpCapital)}
+                        </div>
+                        <div className="text-xs text-[var(--chaan-text-muted)] mt-0.5 font-mono">
+                          ₹{Number(mca.paidUpCapital || 0).toLocaleString("en-IN")}
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-[var(--chaan-bg)] rounded-xl border border-[var(--chaan-border)]/60">
+                        <div className="text-[10px] uppercase font-bold text-[var(--chaan-text-muted)] mb-1">Industry / NIC Code</div>
+                        <div className="text-sm font-medium text-[var(--chaan-text)] line-clamp-1" title={mca.industrialClassification || mca.nicCode}>
+                          {mca.industrialClassification || mca.nicCode || "Commercial Operations"}
+                        </div>
+                        {mca.nicCode && (
+                          <div className="text-xs text-[var(--chaan-text-muted)] mt-0.5 font-mono">NIC: {mca.nicCode}</div>
+                        )}
+                      </div>
+
+                      <div className="p-3 bg-[var(--chaan-bg)] rounded-xl border border-[var(--chaan-border)]/60 md:col-span-2 lg:col-span-3">
+                        <div className="text-[10px] uppercase font-bold text-[var(--chaan-text-muted)] mb-1">Registered Office Address</div>
+                        <div className="text-xs text-[var(--chaan-text)] font-sans leading-relaxed">
+                          {mca.registeredAddress || business.registeredAddr || "Address registered with RoC"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()
+            ) : (
+              <div className="space-y-4">
+                <div className="p-4 bg-[var(--chaan-bg)] rounded-xl border border-[var(--chaan-border)]">
+                  <h4 className="text-sm font-semibold text-[var(--chaan-text)] mb-1">
+                    Live MCA Registry Search (data.gov.in)
+                  </h4>
+                  <p className="text-xs text-[var(--chaan-text-muted)] mb-3">
+                    Query over 3.67 million registered corporate entities using official Ministry of Corporate Affairs RoC Master Data.
+                  </p>
+                  <div className="flex items-center gap-2 max-w-lg">
+                    <input
+                      type="text"
+                      value={mcaSearchCin}
+                      onChange={e => setMcaSearchCin(e.target.value.toUpperCase())}
+                      placeholder={business.cin || "Enter 21-digit CIN (e.g. U52100HR2015OPC056314)"}
+                      className="flex-1 text-xs font-mono px-3 py-2 rounded-lg border border-[var(--chaan-border)] bg-[var(--chaan-card)] text-[var(--chaan-text)] focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
+                    />
+                    <button
+                      onClick={() => handleSyncMca(mcaSearchCin || undefined)}
+                      disabled={syncingMca}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-60 shrink-0"
+                    >
+                      {syncingMca ? "Querying MCA..." : "Fetch from MCA"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </SectionCard>
+
+          {/* ── Section 6: Udyam / MSME Registration ── */}
+          {(() => {
+            const taskStatus = verifyTaskMap["UDYAM"] || "PENDING";
+            const parsed = udyamRecord?.parsedFields ? JSON.parse(udyamRecord.parsedFields) : null;
+            return (
+              <SectionCard title="Udyam / MSME" icon={<Award className="w-5 h-5" />} defaultOpen={false}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <SourceBadge status={udyamRecord?.sourceStatus || "UNAVAILABLE"} />
+                    <span className="text-xs text-[var(--chaan-text-muted)]">Task: {taskStatus}</span>
+                  </div>
+                  <a
+                    href="https://udyamregistration.gov.in/UdyamVerifyRegistration/UdyamVerifyRegistration.aspx"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-[var(--chaan-brand)] text-[var(--chaan-brand)] rounded-lg hover:bg-[var(--chaan-brand)] hover:text-white transition-colors"
+                  >
+                    <ExternalLink className="w-3 h-3" /> Open Udyam Portal
+                  </a>
+                </div>
+                {parsed ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.entries(parsed).filter(([, v]) => v && typeof v !== "object").map(([k, v]) => (
+                      <div key={k} className="p-2 bg-[var(--chaan-bg)] rounded-lg">
+                        <div className="text-[10px] text-[var(--chaan-text-muted)] uppercase tracking-wide">{k.replace(/([A-Z])/g, " $1")}</div>
+                        <div className="text-sm text-[var(--chaan-text)] font-medium">{String(v)}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-[var(--chaan-text-muted)] italic">
+                    No data yet. Open the portal above, look up the business, and use the manual verification form in the header to submit findings.
+                  </div>
+                )}
+              </SectionCard>
+            );
+          })()}
 
           {/* ── Section 7: Court Records ── */}
           <SectionCard title="Court Records" icon={<Scale className="w-5 h-5" />} defaultOpen={false}>

@@ -188,7 +188,12 @@ export default function BusinessCheckPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--chaan-text-muted)] mb-1">CIN</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium text-[var(--chaan-text-muted)]">CIN</label>
+                  <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded">
+                    MCA API Live
+                  </span>
+                </div>
                 <input
                   type="text"
                   value={form.cin}
