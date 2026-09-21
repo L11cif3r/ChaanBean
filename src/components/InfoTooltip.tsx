@@ -10,6 +10,7 @@ export interface InfoTooltipProps {
   align?: "auto" | "left" | "center" | "right";
   size?: number;
   className?: string;
+  iconClassName?: string;
 }
 
 export function InfoTooltip({
@@ -17,7 +18,9 @@ export function InfoTooltip({
   title,
   position = "auto",
   align = "auto",
+  size = 13.5,
   className = "",
+  iconClassName = "text-slate-400 hover:text-[#FC8019] dark:text-slate-500 dark:hover:text-[#FC8019]",
 }: InfoTooltipProps) {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLSpanElement>(null);
@@ -99,10 +102,10 @@ export function InfoTooltip({
       role="button"
       aria-label="Information note"
     >
-      {/* High-visibility circular badge with subtle pulse on hover */}
-      <span className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/35 dark:border-orange-500/50 text-[#FC8019] group-hover:bg-[#FC8019] group-hover:text-white group-hover:border-[#FC8019] transition-all duration-150 shadow-xs">
-        <Info size={10} className="stroke-[2.5]" />
-      </span>
+      <Info
+        size={size}
+        className={`shrink-0 transition-colors ${iconClassName}`}
+      />
 
       {/* Floating Tooltip Balloon */}
       <div
