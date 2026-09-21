@@ -502,9 +502,9 @@ export default function SubscriptionPage() {
         JSON.stringify({
           active: true,
           planId: "growth",
-          planName: "Retail Plan (Demo Mode)",
+          planName: "Retail Evaluation Plan",
           paidAmount: 9899,
-          txnId: "DEMO-EXPLORE-ACCESS",
+          txnId: "EVAL-EXPLORE-ACCESS",
           paidAt: new Date().toISOString(),
         })
       );
@@ -635,13 +635,13 @@ export default function SubscriptionPage() {
 
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
                 <div className="flex items-center justify-between text-[11px] font-mono">
-                  <span className="text-slate-500 dark:text-slate-400">Sample Account:</span>
+                  <span className="text-slate-500 dark:text-slate-400">Instant Evaluation:</span>
                   <button
                     type="button"
                     onClick={handleQuickDemoLogin}
                     className="text-[#FC8019] font-bold hover:underline flex items-center gap-1"
                   >
-                    <span>1-Click Demo Login</span>
+                    <span>1-Click Instant Access</span>
                     <ArrowRight size={11} />
                   </button>
                 </div>
@@ -1389,14 +1389,14 @@ export default function SubscriptionPage() {
             {/* Quick Demo & Full Portal Links */}
             <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 dark:text-slate-400 font-mono text-[11px]">Instant testing:</span>
+                <span className="text-slate-500 dark:text-slate-400 font-mono text-[11px]">Instant access:</span>
                 <button
                   type="button"
                   onClick={handleQuickDemoLogin}
                   className="text-[#FC8019] font-bold hover:underline flex items-center gap-1 font-mono text-[11px]"
                 >
                   <Sparkles size={12} />
-                  <span>1-Click Demo Login (Acme Traders)</span>
+                  <span>1-Click Instant Access (Acme Traders)</span>
                 </button>
               </div>
 

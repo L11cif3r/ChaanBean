@@ -231,7 +231,7 @@ export function DebtorIntakeForm({ onCaseCreated, onCancel }: DebtorIntakeFormPr
       {/* Quick Autofill Chips from Knowledge Source */}
       <div className="p-3 rounded-xl bg-orange-50/40 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/40 flex flex-wrap items-center gap-2 text-xs">
         <span className="text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1">
-          <Sparkles size={12} className="text-[#FC8019]" /> Quick Fill Sample Debtor:
+          <Sparkles size={12} className="text-[#FC8019]" /> Prefill Verified Debtor:
         </span>
         {sampleDebtors.map((s) => (
           <button

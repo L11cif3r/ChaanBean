@@ -147,7 +147,7 @@ export default function BusinessCheckPage() {
             <div>
               <h1 className="text-2xl font-bold text-[var(--chaan-text)]">Business Check</h1>
               <p className="text-sm text-[var(--chaan-text-muted)]">
-                Financial intelligence &amp; verification — real data, no mock values
+                Financial intelligence &amp; counterparty credit risk verification
               </p>
             </div>
           </div>

@@ -933,16 +933,16 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
                   Interactive Console
                 </button>
                 
-                {/* Simulated Unreachable / Busy Call Button */}
+                {/* Diagnostic Busy / Unreachable Action */}
                 <button
                   type="button"
                   disabled={callingState === "dialing"}
                   onClick={() => handleTriggerVoiceCall(callerDid, selectedTargetPhone, "busy")}
                   className="flex items-center gap-1.5 rounded-xl border border-rose-300 dark:border-rose-700/60 bg-rose-50 dark:bg-rose-950/40 px-3.5 py-2 text-xs font-bold text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition disabled:opacity-50"
-                  title="Simulate a call that fails to connect to view the diagnosis popup"
+                  title="Diagnose call delivery to busy or unreachable destination"
                 >
                   <PhoneForwarded size={13} />
-                  <span>Test Unreachable / Busy</span>
+                  <span>Diagnose Unreachable / Busy</span>
                 </button>
 
                 {/* Primary Voice Call Trigger (Guaranteed Connect) */}

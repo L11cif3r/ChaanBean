@@ -106,7 +106,7 @@ export function DashboardGatedView({
           className="flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-[#FC8019] hover:text-[#FC8019] transition shadow-sm"
         >
           <Unlock size={14} className="text-[#FC8019]" />
-          <span>Instant Demo Unlock</span>
+          <span>Instant Preview Unlock</span>
         </Link>
       </div>
 

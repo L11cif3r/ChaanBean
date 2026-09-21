@@ -129,7 +129,7 @@ export function RiskRadarModal({
                 <span>Zero Black-Box Scoring Principle</span>
               </div>
               <p className="text-slate-500 dark:text-slate-400 text-[11px]">
-                Every flag is 100% deterministically calculated from authentic government registries (MCA21, GSTN, e-Courts, MSME Udyam) and verified financial documents. No synthetic or randomized values.
+                Every flag is 100% deterministically calculated from authentic government registries (MCA21, GSTN, e-Courts, MSME Udyam) and verified financial documents.
               </p>
             </div>
 

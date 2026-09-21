@@ -147,10 +147,10 @@ export function VerifyBusinessView({ initialTrustId = "" }: VerifyBusinessViewPr
           </button>
         </form>
 
-        {/* Quick Sample Chips */}
+        {/* Quick Example Chips */}
         <div className="pt-2 border-t border-slate-800/80 text-left">
           <span className="text-[11px] text-slate-400 block mb-1.5 font-medium">
-            Quick verified test samples:
+            Quick search examples:
           </span>
           <div className="flex flex-wrap gap-1.5">
             {["TRUST-CB-ACME-001", "VTID-1000", "VTID-1001", "VTID-2004"].map((chip) => (

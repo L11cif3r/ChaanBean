@@ -99,7 +99,7 @@ function SourceBadge({ status }: { status: string }) {
     USER_PROVIDED: "bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300",
     MANUAL_VERIFICATION: "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300",
     UNAVAILABLE: "bg-slate-100 dark:bg-slate-800 text-slate-500",
-    DEMO: "bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300",
+    INTERNAL_RECORD: "bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300",
     PENDING: "bg-slate-100 dark:bg-slate-800 text-slate-500",
   };
   return (
