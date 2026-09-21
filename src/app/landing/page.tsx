@@ -37,7 +37,6 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
-  HeroMinimalIllustration,
   CreditCheckMinimalIllustration,
   RiskSecurityMinimalIllustration,
   PaymentCadenceMinimalIllustration,
@@ -506,11 +505,6 @@ export default function LandingPage() {
               <CheckCircle2 size={16} className="text-emerald-500" />
               <span>100% Safe & Confidential</span>
             </div>
-          </div>
-
-          {/* Minimalist Visual Illustration */}
-          <div className="pt-6 sm:pt-10">
-            <HeroMinimalIllustration />
           </div>
         </div>
       </section>
