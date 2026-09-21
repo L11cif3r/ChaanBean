@@ -138,7 +138,7 @@ export function Header() {
           </select>
         </div>
 
-        {/* Portal Login / Switch */}
+        {/* Sign Out / Logout */}
         <Link
           href="/login"
           onClick={() => {
@@ -148,11 +148,11 @@ export function Header() {
             document.cookie = "chaanbean_session=; path=/; max-age=0";
             document.cookie = "chaanbean_subscription=; path=/; max-age=0";
           }}
-          className="flex items-center gap-1.5 rounded-lg border border-[#FC8019]/40 bg-orange-50 dark:bg-orange-500/15 px-3 py-1.5 text-xs font-semibold text-[#FC8019] hover:bg-orange-100 dark:hover:bg-orange-500/25 transition shadow-sm"
-          title="Switch User or Admin Account"
+          className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/90 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-red-300 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50/60 dark:hover:bg-red-950/30 transition shadow-sm"
+          title="Sign Out of Your Account"
         >
           <LogOut size={13} />
-          <span className="hidden sm:inline">Auth</span>
+          <span>Sign Out</span>
         </Link>
       </div>
     </header>
