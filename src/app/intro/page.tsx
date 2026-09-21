@@ -3,12 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ArrowRight, RotateCcw } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function IntroPage() {
   const router = useRouter();
-  const [animationKey, setAnimationKey] = useState(0);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -31,15 +30,10 @@ export default function IntroPage() {
       clearInterval(interval);
       clearTimeout(timer);
     };
-  }, [router, animationKey]);
+  }, [router]);
 
   const handleSkip = () => {
     router.push("/landing");
-  };
-
-  const handleReplay = () => {
-    setProgress(0);
-    setAnimationKey((k) => k + 1);
   };
 
   return (
@@ -58,14 +52,6 @@ export default function IntroPage() {
       <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
         <ThemeToggle />
         <button
-          onClick={handleReplay}
-          className="flex items-center gap-1.5 rounded-full border border-slate-300 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 text-xs text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-white transition shadow-sm"
-          title="Replay intro animation"
-        >
-          <RotateCcw size={13} />
-          <span>Replay</span>
-        </button>
-        <button
           onClick={handleSkip}
           className="flex items-center gap-1.5 rounded-full border border-[#FC8019]/40 bg-[#FC8019]/10 px-4 py-1.5 text-xs font-semibold text-[#FC8019] hover:bg-[#FC8019]/20 transition shadow-lg shadow-[#FC8019]/10"
         >
@@ -75,7 +61,7 @@ export default function IntroPage() {
       </div>
 
       {/* Center Stage: Multi-Part Animated Logo Assembly */}
-      <div key={animationKey} className="relative z-10 flex flex-col items-center text-center px-4">
+      <div className="relative z-10 flex flex-col items-center text-center px-4">
         {/* Official Animated Logo Container: 1024x742 aspect ratio */}
         <div className="relative h-44 w-60 sm:h-56 sm:w-76 md:h-64 md:w-88 animate-logo-bloom">
           <Image
