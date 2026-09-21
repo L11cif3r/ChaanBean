@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -8,10 +8,22 @@ import {
   CheckCircle2,
   Lock,
   Zap,
+  Menu,
+  X,
+  Phone,
+  Mail,
+  MapPin,
+  Clock,
+  ShieldCheck,
+  Scale,
+  Target,
+  Compass,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function LandingPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [contactSent, setContactSent] = useState(false);
   const pillars = [
     {
       id: "ai-credit-check",
@@ -131,12 +143,28 @@ export default function LandingPage() {
             </div>
           </Link>
 
+          {/* Desktop Navigation Menu Bar */}
+          <nav className="hidden md:flex items-center gap-7 text-sm font-bold text-slate-700 dark:text-slate-200">
+            <a href="#about" className="hover:text-[#FC8019] transition-colors">
+              About Us
+            </a>
+            <a href="#mission" className="hover:text-[#FC8019] transition-colors">
+              Mission
+            </a>
+            <a href="#vision" className="hover:text-[#FC8019] transition-colors">
+              Vision
+            </a>
+            <a href="#contact" className="hover:text-[#FC8019] transition-colors">
+              Contact Us
+            </a>
+          </nav>
+
           {/* Action CTAs */}
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <Link
               href="/login"
-              className="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/80 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-[#FC8019] hover:text-[#FC8019] dark:hover:border-[#FC8019] dark:hover:text-[#FC8019] transition shadow-sm"
+              className="hidden sm:inline-flex rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/80 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-[#FC8019] hover:text-[#FC8019] dark:hover:border-[#FC8019] dark:hover:text-[#FC8019] transition shadow-sm"
             >
               Already a Customer? Log In
             </Link>
@@ -147,8 +175,59 @@ export default function LandingPage() {
               <span>Explore Plans</span>
               <ArrowRight size={14} />
             </Link>
+            {/* Mobile Menu Toggle Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Dropdown Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F17] px-6 py-4 space-y-3">
+            <a
+              href="#about"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
+            >
+              About Us
+            </a>
+            <a
+              href="#mission"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
+            >
+              Mission
+            </a>
+            <a
+              href="#vision"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
+            >
+              Vision
+            </a>
+            <a
+              href="#contact"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
+            >
+              Contact Us
+            </a>
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
+              >
+                Customer Log In →
+              </Link>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Hero Section */}
@@ -308,83 +387,289 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Interactive Workflow Section */}
-      <section className="relative overflow-hidden px-6 py-20 border-t border-slate-200 dark:border-slate-800">
-        {/* Workflow Giant Center Watermark Logo */}
-        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] sm:w-[720px] h-[520px] sm:h-[720px] select-none opacity-[0.025] dark:opacity-[0.045] rotate-6 z-0">
-          <Image src="/logo.png" alt="" fill className="object-contain" priority={false} />
-        </div>
-        {/* Flank Watermarks */}
-        <div className="pointer-events-none absolute -top-12 -right-12 w-64 sm:w-80 h-64 sm:h-80 select-none opacity-[0.03] dark:opacity-[0.055] -rotate-12 z-0">
-          <Image src="/logo.png" alt="" fill className="object-contain" priority={false} />
-        </div>
-        <div className="pointer-events-none absolute -bottom-16 -left-12 w-72 sm:w-96 h-72 sm:h-96 select-none opacity-[0.03] dark:opacity-[0.055] rotate-15 z-0">
-          <Image src="/logo.png" alt="" fill className="object-contain" priority={false} />
-        </div>
-
-        {/* Workflow Typographic Watermark Ribbon */}
-        <div className="pointer-events-none absolute bottom-3 left-0 right-0 overflow-hidden select-none opacity-[0.025] dark:opacity-[0.04] z-0 rotate-1">
-          <div className="flex whitespace-nowrap text-[10px] sm:text-xs font-mono tracking-[0.3em] uppercase font-bold text-[#FC8019]">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <span key={i} className="mx-8">
-                CHAANBEAN PIPELINE · UNDERWRITING · ASTERISK VOICE CADENCE · LEGAL DECREE ·
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="relative mx-auto max-w-6xl z-10">
-          <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+      {/* About Us Section */}
+      <section id="about" className="relative overflow-hidden px-6 py-20 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F17]/60 scroll-mt-16">
+        <div className="relative mx-auto max-w-5xl z-10">
+          <div className="text-center max-w-3xl mx-auto mb-14 space-y-3">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#FC8019]">
-              How the Process Works
+              About ChaanBean
             </span>
             <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
-              From Verification to Safe Recovery
+              Protecting India&apos;s MSMEs from Trade Credit Defaults
             </h2>
-            <p className="text-base text-slate-700 dark:text-slate-300 font-medium">
-              ChaanBean handles the complete process from the day you meet a buyer until final payment.
+            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+              Every month, thousands of manufacturers, suppliers, and distributors across India face severe working capital loss due to delayed payments and untraceable buyers. ChaanBean was created to give MSME business owners the same institutional-grade credit intelligence and recovery infrastructure used by large commercial banks.
             </p>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-3 shadow-sm">
-              <span className="inline-block rounded-lg bg-orange-100 dark:bg-orange-950/60 px-2.5 py-1 text-xs font-bold text-[#FC8019]">
-                Step 1
-              </span>
-              <h4 className="font-extrabold text-base text-slate-900 dark:text-white">AI Credit Check</h4>
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
-                Check company registration, GST status, and court cases before supplying goods on credit.
+          <div className="grid gap-6 sm:grid-cols-3">
+            <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-6 space-y-3">
+              <div className="h-10 w-10 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center font-bold">
+                <ShieldCheck size={22} />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">100% Statutory Verification</h3>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                Direct government records from MCA, GST, e-Courts, and Udyam to ensure you only deal with authentic, verified businesses.
               </p>
             </div>
 
-            <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-3 shadow-sm">
-              <span className="inline-block rounded-lg bg-orange-100 dark:bg-orange-950/60 px-2.5 py-1 text-xs font-bold text-[#FC8019]">
-                Step 2
-              </span>
-              <h4 className="font-extrabold text-base text-slate-900 dark:text-white">AI Business Security</h4>
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
-                Get clear Green, Yellow, or Red risk signals and know exactly how much credit is safe to give.
+            <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-6 space-y-3">
+              <div className="h-10 w-10 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center font-bold">
+                <Clock size={22} />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">45-Day Payment Discipline</h3>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                Automated reminders and statutory notices under MSMED Act §15-18 ensure payments arrive on time without awkward personal friction.
               </p>
             </div>
 
-            <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-3 shadow-sm">
-              <span className="inline-block rounded-lg bg-orange-100 dark:bg-orange-950/60 px-2.5 py-1 text-xs font-bold text-[#FC8019]">
-                Step 3
-              </span>
-              <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Payment Automation</h4>
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
-                Send polite reminder phone calls in local languages and WhatsApp links for fast payment.
+            <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-6 space-y-3">
+              <div className="h-10 w-10 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center font-bold">
+                <Scale size={22} />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Lawful Dispute Resolution</h3>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                If a counterparty refuses to pay, get automatic compound interest calculation at 3x RBI bank rate and legal arbitration backing.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-3 shadow-sm">
-              <span className="inline-block rounded-lg bg-orange-100 dark:bg-orange-950/60 px-2.5 py-1 text-xs font-bold text-[#FC8019]">
-                Step 4
-              </span>
-              <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Legal Infrastructure</h4>
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
-                Calculate 3x compound penal interest and file MSME claims if a party delays or refuses payment.
+      {/* Mission & Vision Section */}
+      <section className="relative overflow-hidden px-6 py-20 border-t border-slate-200 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-900/40">
+        <div className="relative mx-auto max-w-5xl z-10 space-y-12">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#FC8019]">
+              Purpose &amp; Direction
+            </span>
+            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
+              Our Mission &amp; Vision
+            </h2>
+            <p className="text-base text-slate-700 dark:text-slate-300 font-medium">
+              Committed to creating a secure, transparent commercial credit ecosystem for India.
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2">
+            {/* Mission Card */}
+            <div id="mission" className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 space-y-4 shadow-md scroll-mt-24">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-2xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center font-bold">
+                  <Target size={24} />
+                </div>
+                <div>
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#FC8019]">Our Mission</span>
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white">Zero Bad Debts for Every MSME</h3>
+                </div>
+              </div>
+              <p className="text-base font-medium text-slate-700 dark:text-slate-200 leading-relaxed">
+                To eliminate trade credit defaults across Indian commercial supply chains. We give every small and medium business owner the intelligence to assess buyers upfront, the tools to recover money politely, and the legal power to enforce statutory rights without expensive lawyer fees.
               </p>
+              <ul className="space-y-2.5 pt-4 border-t border-slate-200 dark:border-slate-800 text-sm font-semibold text-slate-800 dark:text-slate-200">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                  <span>Protect business working capital and avoid liquidity crunches</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                  <span>Provide bank-grade risk assessment to small enterprises</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                  <span>Restore certainty and trust in B2B credit commerce</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Vision Card */}
+            <div id="vision" className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 space-y-4 shadow-md scroll-mt-24">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-2xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center font-bold">
+                  <Compass size={24} />
+                </div>
+                <div>
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#FC8019]">Our Vision</span>
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white">A Reliable &amp; Disciplined Trade Economy</h3>
+                </div>
+              </div>
+              <p className="text-base font-medium text-slate-700 dark:text-slate-200 leading-relaxed">
+                To build India&apos;s most trusted trade network where payment discipline is the national norm, 45-day MSME statutory deadlines are universally respected, and honest entrepreneurs can expand their businesses with complete peace of mind.
+              </p>
+              <ul className="space-y-2.5 pt-4 border-t border-slate-200 dark:border-slate-800 text-sm font-semibold text-slate-800 dark:text-slate-200">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                  <span>100% adherence to statutory 45-day payment rules</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                  <span>Make deliberate payment defaults practically impossible</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                  <span>Empower India&apos;s 63M+ MSMEs to scale without fear of unpaid bills</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Us Section */}
+      <section id="contact" className="relative overflow-hidden px-6 py-20 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F17]/60 scroll-mt-16">
+        <div className="relative mx-auto max-w-5xl z-10 space-y-12">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#FC8019]">
+              Get In Touch
+            </span>
+            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
+              Contact Us
+            </h2>
+            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 font-medium">
+              Have questions about verifying a buyer or recovering unpaid dues? Our team is here to assist you.
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2">
+            {/* Contact Details Card */}
+            <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-8 space-y-6">
+              <h3 className="text-xl font-black text-slate-900 dark:text-white">Reach Our Helpline</h3>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                Connect directly with our credit verification and recovery advisory team. We assist businesses across all Indian states.
+              </p>
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="h-10 w-10 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center shrink-0">
+                    <Phone size={18} />
+                  </div>
+                  <div>
+                    <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Phone &amp; WhatsApp</span>
+                    <a href="tel:+919820012345" className="text-base font-bold text-slate-900 dark:text-white hover:text-[#FC8019] transition">
+                      +91 (022) 4893 2100 / +91 98200 12345
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3.5">
+                  <div className="h-10 w-10 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center shrink-0">
+                    <Mail size={18} />
+                  </div>
+                  <div>
+                    <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Email Support</span>
+                    <a href="mailto:support@chaanbean.in" className="text-base font-bold text-slate-900 dark:text-white hover:text-[#FC8019] transition">
+                      support@chaanbean.in
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3.5">
+                  <div className="h-10 w-10 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center shrink-0">
+                    <MapPin size={18} />
+                  </div>
+                  <div>
+                    <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Registered Corporate Desk</span>
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                      ChaanBean Credit OS · Nariman Point &amp; Connaught Place, India
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3.5">
+                  <div className="h-10 w-10 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center shrink-0">
+                    <Clock size={18} />
+                  </div>
+                  <div>
+                    <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Operating Hours</span>
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                      Monday to Saturday · 9:30 AM – 6:30 PM IST
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Contact Form */}
+            <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-md">
+              <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">Send Us a Direct Message</h3>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-6">
+                Fill in your details and an advisor will contact you within 2 business hours.
+              </p>
+
+              {contactSent ? (
+                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/30 p-6 text-center space-y-2">
+                  <div className="inline-flex h-12 w-12 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 items-center justify-center">
+                    <CheckCircle2 size={24} />
+                  </div>
+                  <h4 className="font-bold text-base text-slate-900 dark:text-white">Message Received!</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    Thank you. Our recovery and verification team will reach out to you shortly.
+                  </p>
+                </div>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    setContactSent(true);
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                      Your Name / Business Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Ramesh Kumar (Agro Traders)"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#FC8019] focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                        Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="+91 98XXX XXXXX"
+                        className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#FC8019] focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="you@company.in"
+                        className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#FC8019] focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                      How Can We Help You?
+                    </label>
+                    <textarea
+                      rows={3}
+                      required
+                      placeholder="e.g. Need help running credit checks on buyers or recovering overdue receivables..."
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#FC8019] focus:outline-none"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full rounded-xl bg-[#FC8019] py-3 text-sm font-bold text-white shadow-md shadow-[#FC8019]/25 hover:bg-[#E26D0A] transition"
+                  >
+                    Submit Inquiry
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </div>
@@ -445,12 +730,18 @@ export default function LandingPage() {
             </div>
             <p>© {new Date().getFullYear()} ChaanBean OS. Statutory B2B Credit Risk & Recovery Platform.</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 text-xs">
+            <a href="#about" className="hover:text-[#FC8019] transition">About Us</a>
+            <span>·</span>
+            <a href="#mission" className="hover:text-[#FC8019] transition">Mission</a>
+            <span>·</span>
+            <a href="#vision" className="hover:text-[#FC8019] transition">Vision</a>
+            <span>·</span>
+            <a href="#contact" className="hover:text-[#FC8019] transition">Contact Us</a>
+            <span>·</span>
             <Link href="/subscription" className="hover:text-[#FC8019] transition">Subscription Plans</Link>
             <span>·</span>
-            <Link href="/login" className="hover:text-[#FC8019] transition">Customer Login</Link>
-            <span>·</span>
-            <span>MSMED Act 2006 Compliant</span>
+            <Link href="/login" className="hover:text-[#FC8019] transition">Client Login</Link>
           </div>
         </div>
       </footer>
