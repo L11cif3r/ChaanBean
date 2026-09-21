@@ -26,12 +26,30 @@ import {
   TrendingUp,
   Award,
   BadgeCheck,
+  ChevronDown,
+  ChevronUp,
+  HelpCircle,
+  BookOpen,
+  FileText,
+  Facebook,
+  Linkedin,
+  Instagram,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  HeroMinimalIllustration,
+  CreditCheckMinimalIllustration,
+  RiskSecurityMinimalIllustration,
+  PaymentCadenceMinimalIllustration,
+  LegalDocketMinimalIllustration,
+} from "@/components/LandingIllustrations";
+import { FooterModals, ModalType } from "@/components/FooterModals";
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [contactSent, setContactSent] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [activeModal, setActiveModal] = useState<ModalType>(null);
 
   const milestones = [
     {
@@ -220,6 +238,39 @@ export default function LandingPage() {
     },
   ];
 
+  const faqs = [
+    {
+      question: "What is the MSME 45-day payment rule under Indian law?",
+      answer:
+        "Under Section 15 of the MSMED Act 2006 and Income Tax Section 43B(h), buyers must clear dues to MSME suppliers within the agreed credit period or within a statutory maximum of 45 days. If a buyer fails to pay within 45 days, they are legally liable to pay compound interest with monthly rests at three times the RBI Bank Rate, and the buyer cannot claim the unpaid invoice as a business tax deduction.",
+    },
+    {
+      question: "How does ChaanBean verify whether a buyer is safe before I give credit?",
+      answer:
+        "ChaanBean audits multiple public and judicial registries in seconds: MCA21 corporate filings, GST return regularity, court litigations and cheque bounce dockets, and national commercial credit records. The platform synthesizes these into a simple Green, Amber, or Red safety badge along with an exact safe rupee credit limit recommendation.",
+    },
+    {
+      question: "Will automated reminders damage my personal relationship with buyers?",
+      answer:
+        "No. ChaanBean's automated calls and WhatsApp reminders are crafted with courteous, professional language in Hindi, English, and regional Indian languages. They frame payment follow-ups around mutual statutory accounting and Section 43B(h) compliance, preserving healthy commercial relationships while ensuring timely receivables.",
+    },
+    {
+      question: "How does the legal arbitration process work if a buyer refuses to pay?",
+      answer:
+        "When an invoice becomes persistently overdue, ChaanBean automatically builds an admissible digital evidence docket with your e-invoices, e-way bills, proof of delivery, and communication history. You can then issue statutory legal notices and submit claims to institutional MSMED Section 18 fast-track arbitration councils without spending months or heavy fees in traditional civil courts.",
+    },
+    {
+      question: "How can I apply for the Business Loans and Invoice Financing on ChaanBean?",
+      answer:
+        "Registered ChaanBean clients can apply directly from their portal. Because your counterparty verifications and sales ledgers are already validated on our platform, our partner banks and NBFCs can disburse working capital and invoice advances within 24 to 48 hours with minimal documentation.",
+    },
+    {
+      question: "Is my business, buyer, and ledger data secure and confidential?",
+      answer:
+        "Yes, absolutely. All client records are secured with bank-grade AES-256 encryption at rest and TLS 1.3 in transit, hosted on ISO 27001-certified Indian cloud infrastructure. We strictly abide by the Digital Personal Data Protection (DPDP) Act 2023 and never share or monetize your private ledger data.",
+    },
+  ];
+
   return (
     <div className="min-h-screen relative overflow-x-hidden bg-slate-50 dark:bg-[#0B0F17] text-slate-900 dark:text-white transition-colors duration-200">
       {/* Micro-dot Watermark Security Matrix */}
@@ -293,6 +344,9 @@ export default function LandingPage() {
             <a href="#about" className="hover:text-[#FC8019] transition-colors">
               About Us
             </a>
+            <a href="#faqs" className="hover:text-[#FC8019] transition-colors">
+              FAQs
+            </a>
             <a href="#contact" className="hover:text-[#FC8019] transition-colors">
               Contact Us
             </a>
@@ -362,6 +416,13 @@ export default function LandingPage() {
               className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
             >
               About Us
+            </a>
+            <a
+              href="#faqs"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
+            >
+              FAQs
             </a>
             <a
               href="#contact"
@@ -445,6 +506,11 @@ export default function LandingPage() {
               <CheckCircle2 size={16} className="text-emerald-500" />
               <span>100% Safe & Confidential</span>
             </div>
+          </div>
+
+          {/* Minimalist Visual Illustration */}
+          <div className="pt-6 sm:pt-10">
+            <HeroMinimalIllustration />
           </div>
         </div>
       </section>
@@ -559,6 +625,14 @@ export default function LandingPage() {
                     <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
                       {pillar.badge}
                     </span>
+                  </div>
+
+                  {/* Minimal Illustration Accent */}
+                  <div className="py-2.5 px-3 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/70 dark:border-slate-800">
+                    {pillar.id === "ai-credit-check" && <CreditCheckMinimalIllustration />}
+                    {pillar.id === "business-security" && <RiskSecurityMinimalIllustration />}
+                    {pillar.id === "payment-automation" && <PaymentCadenceMinimalIllustration />}
+                    {pillar.id === "legal-infrastructure" && <LegalDocketMinimalIllustration />}
                   </div>
 
                   {/* Title & Tagline */}
@@ -1070,6 +1144,51 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* FAQs Section */}
+      <section id="faqs" className="relative overflow-hidden px-6 py-20 border-t border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#0B0F17]/70 scroll-mt-16">
+        <div className="relative mx-auto max-w-4xl z-10 space-y-10">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] border border-orange-200 dark:border-orange-800">
+              <HelpCircle size={14} />
+              <span>Answers &amp; Clarity</span>
+            </span>
+            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 font-medium">
+              Everything you need to know about checking buyer risk, MSMED statutory rights, and automated debt recovery.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {faqs.map((faq, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div
+                  key={idx}
+                  className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-all duration-200 overflow-hidden shadow-sm hover:border-[#FC8019]"
+                >
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    className="w-full flex items-center justify-between p-5 text-left font-bold text-base sm:text-lg text-slate-900 dark:text-white hover:text-[#FC8019] transition"
+                  >
+                    <span>{faq.question}</span>
+                    <span className="ml-4 p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 shrink-0">
+                      {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div className="px-5 pb-5 pt-1 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800/60">
+                      {faq.answer}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* Bottom CTA Card */}
       <section className="relative overflow-hidden px-6 py-16 border-t border-slate-200 dark:border-slate-800 bg-gradient-to-b from-transparent to-orange-50/50 dark:to-orange-950/10">
         {/* Section Watermark Logos */}
@@ -1116,34 +1235,263 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 py-8 px-6 text-center text-xs text-slate-500 dark:text-slate-400 font-mono">
-        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="relative h-6 w-8 shrink-0">
-              <Image src="/logo.png" alt="ChaanBean Logo" fill className="object-contain" />
+      {/* Comprehensive Rich Footer */}
+      <footer className="border-t-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-[#070A0F] text-slate-600 dark:text-slate-400 pt-16 pb-12 px-6">
+        <div className="mx-auto max-w-7xl space-y-12">
+          {/* 5-Column Grid */}
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
+            {/* Col 1: Company Info */}
+            <div className="space-y-4 sm:col-span-2 lg:col-span-1">
+              <Link href="/landing" className="flex items-center gap-2.5">
+                <div className="relative h-8 w-10 shrink-0">
+                  <Image src="/logo.png" alt="ChaanBean Logo" fill className="object-contain" />
+                </div>
+                <div>
+                  <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
+                    Chaan<span className="text-[#FC8019]">Bean</span>
+                  </span>
+                  <span className="block text-[8px] font-mono uppercase tracking-widest text-slate-400">
+                    Credit &amp; Recovery OS
+                  </span>
+                </div>
+              </Link>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Autonomous trade credit underwriting, debtor verification, automated communication cadences, and statutory arbitration under MSMED Act §18.
+              </p>
+              <div className="pt-1 text-xs space-y-1 text-slate-500 dark:text-slate-400">
+                <p className="font-semibold text-slate-700 dark:text-slate-300">Registered Corporate Desk:</p>
+                <p>Nariman Point &amp; Connaught Place, India</p>
+                <p>CIN: U72900MH2022PTC384129</p>
+              </div>
             </div>
-            <p>© {new Date().getFullYear()} ChaanBean OS. Statutory B2B Credit Risk & Recovery Platform.</p>
+
+            {/* Col 2: Services Section */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                Services
+              </h4>
+              <ul className="space-y-2 text-xs font-medium">
+                <li>
+                  <a href="#services" className="hover:text-[#FC8019] transition">
+                    AI Credit Check
+                  </a>
+                </li>
+                <li>
+                  <a href="#services" className="hover:text-[#FC8019] transition">
+                    AI Business Security
+                  </a>
+                </li>
+                <li>
+                  <a href="#services" className="hover:text-[#FC8019] transition">
+                    Payment Automation
+                  </a>
+                </li>
+                <li>
+                  <a href="#services" className="hover:text-[#FC8019] transition">
+                    Legal Infrastructure
+                  </a>
+                </li>
+                <li>
+                  <a href="#services" className="hover:text-[#FC8019] transition">
+                    Skip-Tracing Intelligence
+                  </a>
+                </li>
+                <li>
+                  <a href="#services" className="hover:text-[#FC8019] transition">
+                    Arbitration Dockets
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 3: Solutions Section */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                Solutions
+              </h4>
+              <ul className="space-y-2 text-xs font-medium">
+                <li>
+                  <a href="#services" className="hover:text-[#FC8019] transition">
+                    For Manufacturers &amp; Mills
+                  </a>
+                </li>
+                <li>
+                  <a href="#services" className="hover:text-[#FC8019] transition">
+                    For Wholesalers &amp; Distributors
+                  </a>
+                </li>
+                <li>
+                  <a href="#services" className="hover:text-[#FC8019] transition">
+                    For B2B Traders &amp; Exporters
+                  </a>
+                </li>
+                <li>
+                  <a href="#services" className="hover:text-[#FC8019] transition">
+                    For MSME Vendors &amp; Suppliers
+                  </a>
+                </li>
+                <li>
+                  <a href="#loans" className="hover:text-[#FC8019] transition">
+                    Working Capital Loans
+                  </a>
+                </li>
+                <li>
+                  <a href="#loans" className="hover:text-[#FC8019] transition">
+                    Invoice Discounting &amp; Factoring
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 4: Other Pages Section */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                Other Pages &amp; Legal
+              </h4>
+              <ul className="space-y-2 text-xs font-medium">
+                <li>
+                  <button
+                    onClick={() => setActiveModal("terms")}
+                    className="hover:text-[#FC8019] transition text-left"
+                  >
+                    Terms and Conditions
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setActiveModal("privacy")}
+                    className="hover:text-[#FC8019] transition text-left"
+                  >
+                    Privacy Policy
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setActiveModal("manuals")}
+                    className="hover:text-[#FC8019] transition text-left"
+                  >
+                    User Manuals &amp; Guides
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setActiveModal("blogs")}
+                    className="hover:text-[#FC8019] transition text-left"
+                  >
+                    Our Blogs &amp; Case Studies
+                  </button>
+                </li>
+                <li>
+                  <a href="#faqs" className="hover:text-[#FC8019] transition">
+                    Frequently Asked Questions (FAQs)
+                  </a>
+                </li>
+                <li>
+                  <Link href="/subscription" className="hover:text-[#FC8019] transition">
+                    Enterprise Subscription Plans
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 5: Contact Us & Social Media */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                Contact Us &amp; Community
+              </h4>
+              <div className="space-y-2 text-xs">
+                <p className="flex items-center gap-2">
+                  <Phone size={13} className="text-[#FC8019] shrink-0" />
+                  <a href="tel:+919820012345" className="hover:text-[#FC8019] transition font-semibold">
+                    +91 98200 12345
+                  </a>
+                </p>
+                <p className="flex items-center gap-2">
+                  <Mail size={13} className="text-[#FC8019] shrink-0" />
+                  <a href="mailto:support@chaanbean.in" className="hover:text-[#FC8019] transition font-semibold">
+                    support@chaanbean.in
+                  </a>
+                </p>
+                <p className="flex items-center gap-2">
+                  <Clock size={13} className="text-[#FC8019] shrink-0" />
+                  <span>Mon – Sat: 9:30 AM – 6:30 PM</span>
+                </p>
+              </div>
+
+              {/* Social Media Options: Facebook, LinkedIn, X, Instagram */}
+              <div className="pt-2">
+                <span className="block text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">
+                  Follow Us
+                </span>
+                <div className="flex items-center gap-2.5">
+                  <a
+                    href="https://facebook.com/chaanbean"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Facebook"
+                    className="h-8 w-8 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#1877F2] hover:border-[#1877F2] transition"
+                  >
+                    <Facebook size={15} />
+                  </a>
+                  <a
+                    href="https://linkedin.com/company/chaanbean"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="LinkedIn"
+                    className="h-8 w-8 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#0A66C2] hover:border-[#0A66C2] transition"
+                  >
+                    <Linkedin size={15} />
+                  </a>
+                  <a
+                    href="https://x.com/chaanbean"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="X (formerly Twitter)"
+                    className="h-8 w-8 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-black dark:hover:text-white hover:border-black dark:hover:border-white transition"
+                  >
+                    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                  </a>
+                  <a
+                    href="https://instagram.com/chaanbean"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Instagram"
+                    className="h-8 w-8 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-[#E4405F] hover:border-[#E4405F] transition"
+                  >
+                    <Instagram size={15} />
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3.5 text-xs font-medium">
-            <a href="#services" className="hover:text-[#FC8019] transition">Services</a>
-            <span>·</span>
-            <a href="#milestones" className="hover:text-[#FC8019] transition">Track Record</a>
-            <span>·</span>
-            <a href="#loans" className="hover:text-[#FC8019] transition">Business Loans</a>
-            <span>·</span>
-            <a href="#testimonials" className="hover:text-[#FC8019] transition">Testimonials</a>
-            <span>·</span>
-            <a href="#about" className="hover:text-[#FC8019] transition">About Us</a>
-            <span>·</span>
-            <a href="#contact" className="hover:text-[#FC8019] transition">Contact Us</a>
-            <span>·</span>
-            <Link href="/subscription" className="hover:text-[#FC8019] transition">Plans</Link>
-            <span>·</span>
-            <Link href="/login" className="hover:text-[#FC8019] transition">Client Login</Link>
+
+          {/* Bottom Bar: Copyright & Compliance */}
+          <div className="pt-8 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <p>© 2026 ChaanBean Technologies Pvt Ltd. All rights reserved.</p>
+            <p className="text-center text-[11px] text-slate-400">
+              Statutory Compliance: MSMED Act 2006 · Section 43B(h) · RBI Fair Practices Code · DPDP Act 2023
+            </p>
+            <div className="flex items-center gap-4 text-xs">
+              <Link href="/login" className="hover:text-[#FC8019] transition">
+                Client Portal
+              </Link>
+              <span>·</span>
+              <Link href="/subscription" className="hover:text-[#FC8019] transition">
+                Plans
+              </Link>
+              <span>·</span>
+              <a href="#services" className="hover:text-[#FC8019] transition">
+                Back to Top ↑
+              </a>
+            </div>
           </div>
         </div>
       </footer>
+
+      {/* Footer Interactive Modal Dialogs */}
+      <FooterModals activeModal={activeModal} onClose={() => setActiveModal(null)} />
     </div>
   );
 }
