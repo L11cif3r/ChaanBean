@@ -11,7 +11,7 @@ import {
   User,
   Phone,
   ArrowRight,
-  RotateCcw,
+  ArrowLeft,
   CheckCircle2,
   AlertCircle,
   Sparkles,
@@ -129,17 +129,21 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 bg-slate-50 text-slate-900 dark:bg-[#0B0F17] dark:text-white transition-colors duration-200 font-sans">
-      {/* Top Right Header: Theme Switcher & Watch Intro */}
-      <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
-        <ThemeToggle />
+      {/* Top Left Header: Go Back */}
+      <div className="absolute top-6 left-6 z-20">
         <Link
           href="/intro"
-          className="flex items-center gap-1.5 rounded-full border border-slate-300 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 px-3.5 py-1.5 text-xs text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-white transition shadow-sm"
-          title="Watch Animated Intro"
+          className="flex items-center gap-1.5 rounded-full border border-slate-300 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 px-3.5 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-white transition shadow-sm backdrop-blur-sm"
+          title="Go Back"
         >
-          <RotateCcw size={13} />
-          <span>Watch Intro</span>
+          <ArrowLeft size={13} />
+          <span>Go Back</span>
         </Link>
+      </div>
+
+      {/* Top Right Header: Theme Switcher */}
+      <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
+        <ThemeToggle />
       </div>
 
       {/* Ambient Glow */}
@@ -436,8 +440,8 @@ export default function LoginPage() {
             href="/intro"
             className="flex items-center gap-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition"
           >
-            <RotateCcw size={12} />
-            <span>Watch Intro</span>
+            <ArrowLeft size={12} />
+            <span>Go Back</span>
           </Link>
         </div>
       </div>
