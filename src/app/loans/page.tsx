@@ -136,6 +136,24 @@ export default function LoansPage() {
   const totalRepayment = emi * totalMonths;
   const totalInterest = totalRepayment - amount;
 
+  const amountProgress = Math.min(
+    100,
+    Math.max(
+      0,
+      ((amount - currentLoan.minAmount) / (currentLoan.maxAmount - currentLoan.minAmount)) * 100
+    )
+  );
+
+  const tenureProgress = Math.min(
+    100,
+    Math.max(
+      0,
+      ((tenureYears - currentLoan.minTenureYears) /
+        (currentLoan.maxTenureYears - currentLoan.minTenureYears)) *
+        100
+    )
+  );
+
   const formatINR = (val: number) => `₹${val.toLocaleString("en-IN")}`;
 
   const handleSubmitApplication = (e: React.FormEvent) => {
@@ -273,48 +291,140 @@ export default function LoansPage() {
           {/* Sliders (7 Cols) */}
           <div className="lg:col-span-7 space-y-6">
             {/* Amount Slider */}
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-500 font-bold uppercase">Loan Amount</span>
-                <span className="text-base font-black text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">
+                <span className="text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">
+                  Loan Amount
+                </span>
+                <span className="text-base font-black text-[#FC8019] bg-orange-50 dark:bg-orange-950/50 border border-orange-200/80 dark:border-orange-800/80 px-3.5 py-1 rounded-xl shadow-xs">
                   {formatINR(amount)}
                 </span>
               </div>
-              <input
-                type="range"
-                min={currentLoan.minAmount}
-                max={currentLoan.maxAmount}
-                step={currentLoan.minAmount >= 500000 ? 50000 : 10000}
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
-                className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#FC8019]"
-              />
-              <div className="flex justify-between text-[10px] text-slate-400 font-mono">
-                <span>{formatINR(currentLoan.minAmount)}</span>
-                <span>{formatINR(currentLoan.maxAmount)}</span>
+
+              {/* Slider Track with Small, Lightly Visible Line */}
+              <div className="relative flex items-center w-full h-8 group">
+                {/* The lightly visible line over which the ball glides */}
+                <div className="absolute left-0 right-0 h-2 rounded-full bg-slate-200/90 dark:bg-slate-700/90 border border-slate-300 dark:border-slate-600 shadow-inner overflow-hidden pointer-events-none">
+                  {/* Active filled line portion in brand orange */}
+                  <div
+                    className="h-full bg-gradient-to-r from-orange-400 to-[#FC8019] rounded-full transition-all duration-75"
+                    style={{ width: `${amountProgress}%` }}
+                  />
+                </div>
+
+                {/* Range Input (Draggable Ball) */}
+                <input
+                  type="range"
+                  min={currentLoan.minAmount}
+                  max={currentLoan.maxAmount}
+                  step={currentLoan.minAmount >= 500000 ? 50000 : 10000}
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  className="emi-range-input relative z-10 w-full"
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                <span>Min: {formatINR(currentLoan.minAmount)}</span>
+                <span>Max: {formatINR(currentLoan.maxAmount)}</span>
+              </div>
+
+              {/* Quick Presets for Amount */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-[10px] uppercase font-mono text-slate-400 font-bold mr-1">Quick:</span>
+                {[
+                  currentLoan.minAmount,
+                  Math.round((currentLoan.maxAmount - currentLoan.minAmount) * 0.2 + currentLoan.minAmount),
+                  Math.round((currentLoan.maxAmount - currentLoan.minAmount) * 0.45 + currentLoan.minAmount),
+                  Math.round((currentLoan.maxAmount - currentLoan.minAmount) * 0.7 + currentLoan.minAmount),
+                  currentLoan.maxAmount,
+                ].map((val, i) => {
+                  const rounded = val >= 10000000 ? Math.round(val / 1000000) * 1000000 : Math.round(val / 500000) * 500000;
+                  const finalVal = Math.min(currentLoan.maxAmount, Math.max(currentLoan.minAmount, rounded));
+                  const isCurrent = Math.abs(amount - finalVal) < (currentLoan.maxAmount > 5000000 ? 250000 : 50000);
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setAmount(finalVal)}
+                      className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border transition ${
+                        isCurrent
+                          ? "bg-[#FC8019] text-white border-[#FC8019]"
+                          : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-[#FC8019]"
+                      }`}
+                    >
+                      {formatINR(finalVal)}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Tenure Slider */}
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-500 font-bold uppercase">Tenure</span>
-                <span className="text-base font-black text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">
+                <span className="text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">
+                  Tenure
+                </span>
+                <span className="text-base font-black text-[#FC8019] bg-orange-50 dark:bg-orange-950/50 border border-orange-200/80 dark:border-orange-800/80 px-3.5 py-1 rounded-xl shadow-xs">
                   {tenureYears} {tenureYears === 1 ? "Year" : "Years"} ({tenureYears * 12} Months)
                 </span>
               </div>
-              <input
-                type="range"
-                min={currentLoan.minTenureYears}
-                max={currentLoan.maxTenureYears}
-                step={1}
-                value={tenureYears}
-                onChange={(e) => setTenureYears(Number(e.target.value))}
-                className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#FC8019]"
-              />
-              <div className="flex justify-between text-[10px] text-slate-400 font-mono">
-                <span>{currentLoan.minTenureYears} Year</span>
-                <span>{currentLoan.maxTenureYears} Years</span>
+
+              {/* Slider Track with Small, Lightly Visible Line */}
+              <div className="relative flex items-center w-full h-8 group">
+                {/* The lightly visible line over which the ball glides */}
+                <div className="absolute left-0 right-0 h-2 rounded-full bg-slate-200/90 dark:bg-slate-700/90 border border-slate-300 dark:border-slate-600 shadow-inner overflow-hidden pointer-events-none">
+                  {/* Active filled line portion in brand orange */}
+                  <div
+                    className="h-full bg-gradient-to-r from-orange-400 to-[#FC8019] rounded-full transition-all duration-75"
+                    style={{ width: `${tenureProgress}%` }}
+                  />
+                </div>
+
+                {/* Range Input (Draggable Ball) */}
+                <input
+                  type="range"
+                  min={currentLoan.minTenureYears}
+                  max={currentLoan.maxTenureYears}
+                  step={1}
+                  value={tenureYears}
+                  onChange={(e) => setTenureYears(Number(e.target.value))}
+                  className="emi-range-input relative z-10 w-full"
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                <span>Min: {currentLoan.minTenureYears} {currentLoan.minTenureYears === 1 ? "Year" : "Years"}</span>
+                <span>Max: {currentLoan.maxTenureYears} Years</span>
+              </div>
+
+              {/* Quick Presets for Tenure */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-[10px] uppercase font-mono text-slate-400 font-bold mr-1">Quick:</span>
+                {[
+                  currentLoan.minTenureYears,
+                  Math.min(currentLoan.maxTenureYears, Math.max(currentLoan.minTenureYears, 5)),
+                  Math.min(currentLoan.maxTenureYears, Math.max(currentLoan.minTenureYears, 10)),
+                  Math.min(currentLoan.maxTenureYears, Math.max(currentLoan.minTenureYears, 15)),
+                  Math.min(currentLoan.maxTenureYears, Math.max(currentLoan.minTenureYears, 20)),
+                  currentLoan.maxTenureYears,
+                ]
+                  .filter((v, idx, arr) => arr.indexOf(v) === idx)
+                  .map((yr) => (
+                    <button
+                      key={yr}
+                      type="button"
+                      onClick={() => setTenureYears(yr)}
+                      className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border transition ${
+                        tenureYears === yr
+                          ? "bg-[#FC8019] text-white border-[#FC8019]"
+                          : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-[#FC8019]"
+                      }`}
+                    >
+                      {yr}Y
+                    </button>
+                  ))}
               </div>
             </div>
           </div>
