@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import { EscalationBadge } from "@/components/ui";
+import { EscalationBadge, InfoTooltip } from "@/components/ui";
 import { RecoveryActions } from "@/components/RecoveryActions";
 import { CallAudioPlayer } from "@/components/CallAudioPlayer";
 import { PaymentRecoveryWorkbench, type RecoveryAccountItem } from "@/components/recovery/PaymentRecoveryWorkbench";
@@ -184,12 +184,15 @@ export default async function PaymentRecoveryPage() {
               <Phone size={20} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">
-                Automated Payment Recovery Hub
-              </h1>
-              <p className="mt-0.5 text-xs text-slate-400">
-                Deterministic policy engine (L1/L2/L3) · TRAI-compliant Asterisk/Vobiz voice bot · Immutable SHA-256 evidence trail
-              </p>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-white tracking-tight">
+                  Automated Payment Recovery Hub
+                </h1>
+                <InfoTooltip
+                  text="Deterministic policy engine (L1/L2/L3) · TRAI-compliant voice bot · Immutable SHA-256 evidence trail"
+                  align="left"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -212,38 +215,46 @@ export default async function PaymentRecoveryPage() {
         </div>
       </div>
 
-
-
-      {/* Self-Explained Executive Operations Metric Strip */}
+      {/* Executive Operations Metric Strip */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1">
-          <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">Scheduled Calls</p>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">Scheduled Calls</p>
+            <InfoTooltip text="Due in next outbound dialing cycle" align="right" />
+          </div>
           <p className="text-2xl font-bold font-mono text-white">{callsScheduled}</p>
-          <p className="text-[10px] text-slate-400">Due in next outbound dialing cycle</p>
         </div>
 
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1">
-          <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">Completed Calls</p>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">Completed Calls</p>
+            <InfoTooltip text="Answered & recorded in audio ledger" align="right" />
+          </div>
           <p className="text-2xl font-bold font-mono text-emerald-400">{callsCompleted}</p>
-          <p className="text-[10px] text-slate-400">Answered &amp; recorded in audio ledger</p>
         </div>
 
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1">
-          <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">L1 Polite Reminders</p>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">L1 Reminders</p>
+            <InfoTooltip text="WhatsApp & Email ledger statements" align="right" />
+          </div>
           <p className="text-2xl font-bold font-mono text-sky-400">{l1Count}</p>
-          <p className="text-[10px] text-slate-400">WhatsApp &amp; Email ledger statements</p>
         </div>
 
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1">
-          <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">L2 Voice Notices</p>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">L2 Voice Notices</p>
+            <InfoTooltip text="Voice bot multi-lingual engagement" align="right" />
+          </div>
           <p className="text-2xl font-bold font-mono text-amber-400">{l2Count}</p>
-          <p className="text-[10px] text-slate-400">Voice bot multi-lingual engagement</p>
         </div>
 
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1">
-          <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">L3 Legal Demands</p>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">L3 Legal Demands</p>
+            <InfoTooltip text="Formal legal demands with Gov reference" align="right" />
+          </div>
           <p className="text-2xl font-bold font-mono text-rose-400">{l3Count}</p>
-          <p className="text-[10px] text-slate-400">Formal legal demands with Gov reference</p>
         </div>
       </section>
 
@@ -253,11 +264,12 @@ export default async function PaymentRecoveryPage() {
       {/* Debtor Escalation Accounts Table */}
       <section className="rounded-2xl border border-chaan-border bg-chaan-card p-6 space-y-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-chaan-border">
-          <div>
+          <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-white">Overdue Debtors &amp; Escalation Control</h2>
-            <p className="text-xs text-slate-400">
-              Real-time monitoring of overdue trade accounts with automated step-up actions.
-            </p>
+            <InfoTooltip
+              text="Real-time monitoring of overdue trade accounts with automated step-up actions."
+              align="left"
+            />
           </div>
           <span className="text-xs font-mono text-slate-400">{accounts.length} Monitored Accounts</span>
         </div>

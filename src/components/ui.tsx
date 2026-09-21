@@ -190,3 +190,5 @@ export function SummaryCard({
   }
   return inner;
 }
+
+export { InfoTooltip } from "@/components/InfoTooltip";

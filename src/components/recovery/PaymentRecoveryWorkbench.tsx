@@ -39,6 +39,7 @@ import { OneWayCallModal } from "@/components/OneWayCallModal";
 import { CallUnreachableModal, OUTBOUND_CALLER_LINES } from "@/components/recovery/CallUnreachableModal";
 import { DebtorIntakeForm } from "@/components/recovery/DebtorIntakeForm";
 import { HowPaymentRecoveryWorksModal } from "@/components/recovery/HowPaymentRecoveryWorksModal";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 export interface RecoveryAccountItem {
   id: string;
@@ -334,10 +335,11 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
               <span className="rounded bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 text-[10px] font-mono font-bold">
                 {accountList.length} Active Cases
               </span>
+              <InfoTooltip
+                text="Deterministic escalation ladder · Invoice-backed verification guard · Statutory regulator reporting"
+                align="left"
+              />
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Deterministic escalation ladder · Invoice-backed verification guard · Statutory regulator reporting
-            </p>
           </div>
         </div>
 
@@ -691,14 +693,13 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
       {activeTab === "call_all_time" && (
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-6 space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <Radio className="text-amber-400 animate-pulse" size={18} />
-                <h3 className="text-base font-bold text-white">Default Recovery Voice Call Cadence — CALL All Time Outbound Engine</h3>
-              </div>
-              <p className="mt-1 text-xs text-slate-400">
-                Outbound telephony engine for critical default recovery. Escalating automated voice call notifications at 1 min, 2 mins, 5 mins, 30 mins, and 1 hour intervals with emergency 24/7 recovery override.
-              </p>
+            <div className="flex items-center gap-2">
+              <Radio className="text-amber-400 animate-pulse" size={18} />
+              <h3 className="text-base font-bold text-white">Default Recovery Voice Call Cadence</h3>
+              <InfoTooltip
+                text="Outbound telephony engine for critical default recovery. Escalating automated voice call notifications at 1 min, 2 mins, 5 mins, 30 mins, and 1 hour intervals with emergency 24/7 recovery override."
+                align="left"
+              />
             </div>
 
             {/* Pricing Tag & Emergency Toggle */}
@@ -706,7 +707,10 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
               <div className="flex items-center gap-1.5 rounded-xl bg-orange-500/10 border border-orange-500/30 px-3 py-2 text-xs font-mono font-bold text-[#FC8019]">
                 <Zap size={14} className="animate-pulse" />
                 <span>₹1 / Picked-Up Call</span>
-                <span className="text-[10px] text-slate-400 font-normal hidden sm:inline">(Deducted from Subscription Wallet)</span>
+                <InfoTooltip
+                  text="Charges ₹1 per call deducted directly from subscription wallet only if the debtor answers. Unanswered, busy, or unreachable calls are 100% free (₹0 deducted)."
+                  align="right"
+                />
               </div>
 
               <div className="flex items-center gap-3 rounded-xl bg-slate-900/90 border border-slate-700 px-4 py-2">
@@ -726,19 +730,17 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
             </div>
           </div>
 
-          {/* Transparent Wallet-Linked Pricing Notice */}
-          <div className="flex items-center gap-3 p-3.5 rounded-xl bg-orange-500/5 border border-orange-500/20 text-xs text-slate-300">
-            <Info size={16} className="text-[#FC8019] shrink-0" />
-            <p className="leading-relaxed">
-              <strong>Wallet-Linked Pricing:</strong> For subscribers of Retail and Enterprise plans, this automated payment recovery service charges <strong>₹1 per call</strong>, deducted directly from your subscription plan wallet <strong>only if the debtor picks up</strong>. Unanswered, busy, or unreachable calls are <strong>100% free of charge (₹0 deducted)</strong>.
-            </p>
-          </div>
-
           {/* Cadence Selection (1m / 2m / 5m / 30m / 1h) */}
           <div className="space-y-2.5">
-            <label className="block text-xs font-semibold text-slate-300 uppercase font-mono">
-              Auto-Dialer Cadence Interval:
-            </label>
+            <div className="flex items-center gap-1.5">
+              <label className="block text-xs font-semibold text-slate-300 uppercase font-mono">
+                Auto-Dialer Cadence Interval:
+              </label>
+              <InfoTooltip
+                text="Select retry interval between automated redial attempts until connection or promise-to-pay is recorded."
+                align="left"
+              />
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
               {[
                 { label: "Every 1 Min", sub: "Critical Emergency" },
@@ -772,10 +774,8 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
                 <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase font-mono">
                   Outbound Calling Line (Caller DID):
                 </span>
+                <InfoTooltip text="Switch carrier lines to maximize connection rates and prevent debtor call-screening." />
               </div>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
-                Switch lines to prevent debtor call-screening
-              </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
@@ -805,26 +805,25 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
 
           {/* Scenario 3 Notice: Debtor Unresponsive for 2 Months (60 Days Default) */}
           {activeAccount && activeAccount.daysOverdue >= 50 && activeAccount.daysOverdue <= 90 && (
-            <div className="rounded-xl border border-rose-500/40 bg-rose-950/30 p-4 space-y-2">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <ShieldAlert className="text-rose-400 shrink-0" size={18} />
-                  <span className="font-bold text-white text-xs">
-                    Scenario 3: Debtor Defaulter for 2 Months (60 Days Overdue) — Telephony Recovery Exhausted
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("legal_notices")}
-                  className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white flex items-center gap-1.5 transition shadow-sm"
-                >
-                  <Scale size={13} />
-                  <span>Shoot Statutory Legal Notice Now →</span>
-                </button>
+            <div className="rounded-xl border border-rose-500/40 bg-rose-950/30 p-3.5 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="text-rose-400 shrink-0" size={16} />
+                <span className="font-bold text-white text-xs">
+                  60+ Days Overdue: Telephony Recovery Exhausted
+                </span>
+                <InfoTooltip
+                  text="Debtor has not settled dues despite repeated telephony attempts. Section 43B(h) Income Tax disallowance notice and Section 18 MSMED Samadhaan arbitration notice are prepared for instantaneous dispatch."
+                  align="left"
+                />
               </div>
-              <p className="text-xs text-rose-200/90 leading-relaxed">
-                Debtor has not settled dues despite repeated telephony attempts. Payment recovery methods haven&apos;t yet made him pay back. Section 43B(h) Income Tax disallowance notice and Section 18 MSMED Samadhaan arbitration notice are prepared for instantaneous dispatch.
-              </p>
+              <button
+                type="button"
+                onClick={() => setActiveTab("legal_notices")}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white flex items-center gap-1.5 transition shadow-sm"
+              >
+                <Scale size={13} />
+                <span>Shoot Statutory Legal Notice Now →</span>
+              </button>
             </div>
           )}
 
@@ -981,14 +980,13 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
       {activeTab === "legal_notices" && (
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-6 space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <Scale className="text-rose-400" size={18} />
-                <h3 className="text-base font-bold text-white">Statutory Legal Notice Suite — Income Tax &amp; GST Reporting</h3>
-              </div>
-              <p className="mt-1 text-xs text-slate-400">
-                Dispatches statutory demand notice while simultaneously reporting the trade default to the Income Tax Department (§43B(h)) and GST Network portal (§16(4)).
-              </p>
+            <div className="flex items-center gap-2">
+              <Scale className="text-rose-400" size={18} />
+              <h3 className="text-base font-bold text-white">Statutory Legal Notice Suite</h3>
+              <InfoTooltip
+                text="Dispatches statutory demand notice while simultaneously reporting the trade default to the Income Tax Department (§43B(h)) and GST Network portal (§16(4))."
+                align="left"
+              />
             </div>
 
             <button
@@ -1004,25 +1002,33 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
 
           {/* 4 Statutory Sections Reported */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-3.5 space-y-1.5">
-              <span className="text-[10px] font-mono font-bold text-rose-400 uppercase">GST Non-Compliance Notice</span>
-              <div className="font-bold text-white text-xs">CGST Act 2017 Section 16(4)</div>
-              <p className="text-[11px] text-slate-400">Forces Input Tax Credit (ITC) reversal and flags debtor&apos;s GSTIN delinquency.</p>
+            <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-3.5 space-y-1">
+              <span className="text-[10px] font-mono font-bold text-rose-400 uppercase">GST Non-Compliance</span>
+              <div className="flex items-center justify-between">
+                <div className="font-bold text-white text-xs">CGST Act §16(4)</div>
+                <InfoTooltip text="Forces Input Tax Credit (ITC) reversal and flags debtor's GSTIN delinquency on the tax portal." align="right" />
+              </div>
             </div>
-            <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-3.5 space-y-1.5">
+            <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-3.5 space-y-1">
               <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">Income Tax Disallowance</span>
-              <div className="font-bold text-white text-xs">Income Tax Act §43B(h)</div>
-              <p className="text-[11px] text-slate-400">Disallows trade payable deduction from debtor&apos;s taxable income for overdue MSME dues.</p>
+              <div className="flex items-center justify-between">
+                <div className="font-bold text-white text-xs">IT Act §43B(h)</div>
+                <InfoTooltip text="Disallows trade payable deduction from debtor's taxable income for overdue MSME trade balances." align="right" />
+              </div>
             </div>
-            <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-3.5 space-y-1.5">
+            <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-3.5 space-y-1">
               <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase">MSMED Statutory Interest</span>
-              <div className="font-bold text-white text-xs">MSMED Act 2006 Section 16</div>
-              <p className="text-[11px] text-slate-400">Applies 20.25% p.a. compound monthly penal interest (3x RBI repo rate).</p>
+              <div className="flex items-center justify-between">
+                <div className="font-bold text-white text-xs">MSMED Act §16</div>
+                <InfoTooltip text="Applies 20.25% p.a. compound monthly penal interest (3x RBI repo rate) mandatory under law." align="right" />
+              </div>
             </div>
-            <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-3.5 space-y-1.5">
-              <span className="text-[10px] font-mono font-bold text-sky-400 uppercase">Commercial Demand Notice</span>
-              <div className="font-bold text-white text-xs">Section 138 NI Act &amp; Order 37</div>
-              <p className="text-[11px] text-slate-400">Formal legal demand for summary recovery suit before Chief Judicial Magistrate.</p>
+            <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-3.5 space-y-1">
+              <span className="text-[10px] font-mono font-bold text-sky-400 uppercase">Commercial Demand</span>
+              <div className="flex items-center justify-between">
+                <div className="font-bold text-white text-xs">NI Act §138 / O.37</div>
+                <InfoTooltip text="Formal legal demand for summary recovery suit before Chief Judicial Magistrate." align="right" />
+              </div>
             </div>
           </div>
 
@@ -1081,14 +1087,13 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
       {activeTab === "transaction_followup" && (
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-6 space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <Clock className="text-chaan-brand" size={18} />
-                <h3 className="text-base font-bold text-white">Delayed Payments Aging &amp; Follow-Up (Receivables Aging Engine)</h3>
-              </div>
-              <p className="mt-1 text-xs text-slate-400">
-                Temporal payment aging schedule (1–15, 16–30, 31–45, 45+ days), promise-to-pay (PTP) calendar, automated debtor touchpoints, and payment reconciliation timeline.
-              </p>
+            <div className="flex items-center gap-2">
+              <Clock className="text-[#FC8019]" size={18} />
+              <h3 className="text-base font-bold text-white">Delayed Payments Aging &amp; Follow-Up</h3>
+              <InfoTooltip
+                text="Temporal payment aging schedule (1–15, 16–30, 31–45, 45+ days), promise-to-pay (PTP) calendar, automated debtor touchpoints, and payment reconciliation timeline."
+                align="left"
+              />
             </div>
             <div className="rounded-xl bg-slate-900 px-3.5 py-1.5 text-xs font-mono text-slate-300 border border-slate-700">
               Assigned Lead: <strong>Rajesh Nair (Senior Collections)</strong>
@@ -1151,17 +1156,16 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
       {activeTab === "omnitrace_360" && (
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-6 space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <Sparkles className="text-amber-400" size={18} />
-                <h3 className="text-base font-bold text-white">OmniTrace 360™ — Deep Skip Tracing &amp; Financial Graph</h3>
-              </div>
-              <p className="mt-1 text-xs text-slate-400">
-                Pinpoints debtor&apos;s physical address, remitting bank accounts, delivery app mobile numbers, alternate telecom lines, and tri-bureau commercial credit scores.
-              </p>
+            <div className="flex items-center gap-2">
+              <Sparkles className="text-amber-400" size={18} />
+              <h3 className="text-base font-bold text-white">OmniTrace 360™ — Deep Skip Tracing</h3>
+              <InfoTooltip
+                text="Pinpoints debtor's physical address, remitting bank accounts, delivery app mobile numbers, alternate telecom lines, and tri-bureau commercial credit scores."
+                align="left"
+              />
             </div>
             <span className="px-3 py-1 rounded-lg bg-emerald-950/80 border border-emerald-800/60 text-emerald-400 text-xs font-mono font-bold">
-              High Traceability Index: 96%
+              Traceability Index: 96%
             </span>
           </div>
 
@@ -1342,14 +1346,13 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
       {activeTab === "lawsuits_legal_team" && (
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-6 space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <Gavel className="text-chaan-brand" size={18} />
-                <h3 className="text-base font-bold text-white">In-House Legal Team &amp; Arbitration Settlement Desk</h3>
-              </div>
-              <p className="mt-1 text-xs text-slate-400">
-                Out-of-court dispute resolution under MSMED Act 2006 §16/18 with statutory 20.25% compound interest and Section 138 / Order 37 summary recovery filings.
-              </p>
+            <div className="flex items-center gap-2">
+              <Gavel className="text-chaan-brand" size={18} />
+              <h3 className="text-base font-bold text-white">In-House Legal Team &amp; Arbitration Desk</h3>
+              <InfoTooltip
+                text="Out-of-court dispute resolution under MSMED Act 2006 §16/18 with statutory 20.25% compound interest and Section 138 / Order 37 summary recovery filings."
+                align="left"
+              />
             </div>
             <Link
               href="/arbitration"
@@ -1361,25 +1364,31 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-4 space-y-2">
+            <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-4 space-y-1.5">
               <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase">Panel Legal Counsel</span>
-              <div className="font-bold text-white text-sm">Adv. Harish Parekh</div>
-              <p className="text-[11px] text-slate-400">High Court Advocate &amp; Certified Commercial Arbitrator. Available for emergency pre-litigation injunctions.</p>
-              <div className="pt-2 text-[11px] font-mono text-slate-300">Email: legal@chaanbean.com</div>
+              <div className="flex items-center justify-between">
+                <div className="font-bold text-white text-sm">Adv. Harish Parekh</div>
+                <InfoTooltip text="High Court Advocate &amp; Certified Commercial Arbitrator. Available for emergency pre-litigation injunctions." align="right" />
+              </div>
+              <div className="text-[11px] font-mono text-slate-400">Email: legal@chaanbean.com</div>
             </div>
 
-            <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-4 space-y-2">
+            <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-4 space-y-1.5">
               <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">MSME Statutory Interest Claim</span>
-              <div className="font-bold text-white text-sm">20.25% Compound Interest</div>
-              <p className="text-[11px] text-slate-400">Statutory 3x RBI bank rate with monthly compounding under Section 16 of MSMED Act 2006.</p>
-              <div className="pt-2 text-[11px] font-mono text-emerald-400 font-bold">Mandatory by Law</div>
+              <div className="flex items-center justify-between">
+                <div className="font-bold text-white text-sm">20.25% Compound Interest</div>
+                <InfoTooltip text="Statutory 3x RBI bank rate with monthly compounding under Section 16 of MSMED Act 2006." align="right" />
+              </div>
+              <div className="text-[11px] font-mono text-emerald-400 font-bold">Mandatory by Law</div>
             </div>
 
-            <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-4 space-y-2">
+            <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-4 space-y-1.5">
               <span className="text-[10px] font-mono font-bold text-rose-400 uppercase">Summary Judicial Recourse</span>
-              <div className="font-bold text-white text-sm">Order 37 CPC / Section 138 NI</div>
-              <p className="text-[11px] text-slate-400">Criminal and civil summary trials for dishonoured negotiable instruments and unpaid trade debts.</p>
-              <div className="pt-2 text-[11px] font-mono text-slate-300">Decree Enforceable under §36</div>
+              <div className="flex items-center justify-between">
+                <div className="font-bold text-white text-sm">Order 37 CPC / Section 138 NI</div>
+                <InfoTooltip text="Criminal and civil summary trials for dishonoured negotiable instruments and unpaid trade debts." align="right" />
+              </div>
+              <div className="text-[11px] font-mono text-slate-400">Decree Enforceable under §36</div>
             </div>
           </div>
         </div>

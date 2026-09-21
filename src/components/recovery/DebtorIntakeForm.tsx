@@ -14,11 +14,11 @@ import {
   CheckCircle2,
   AlertTriangle,
   Zap,
-  Sparkles,
   Info,
   X,
   FileCheck2,
 } from "lucide-react";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 export interface DebtorIntakeFormProps {
   onCaseCreated: (account: any) => void;
@@ -102,34 +102,6 @@ export function DebtorIntakeForm({ onCaseCreated, onCancel }: DebtorIntakeFormPr
     }, 700);
   };
 
-  // Sample Autofill Entities for testing
-  const sampleDebtors = [
-    { name: "Apex Steel & Alloys Pvt Ltd", gstin: "27AAECG1234H1Z5", pan: "AAECG1234H", mobile: "+91 98450 12345", amount: 85000, months: 2, lang: "hi" },
-    { name: "Mangalore Coastal Marine Exports", gstin: "29AABCM5678J1Z9", pan: "AABCM5678J", mobile: "+91 98860 54321", amount: 145000, months: 3, lang: "tu" },
-    { name: "Kochi Marine Logistics Ltd", gstin: "32AAECK9012L1Z3", pan: "AAECK9012L", mobile: "+91 97440 98765", amount: 62000, months: 1, lang: "ml" },
-    { name: "Chennai Engineering Works", gstin: "33AAECC3456N1Z7", pan: "AAECC3456N", mobile: "+91 94440 11223", amount: 110000, months: 4, lang: "ta" },
-  ];
-
-  const handleApplySample = (s: typeof sampleDebtors[0]) => {
-    setCompanyName(s.name);
-    setGstin(s.gstin);
-    setPan(s.pan);
-    setMobileNumber(s.mobile);
-    setAmountDue(s.amount);
-    setMonthsDelayed(s.months);
-    setLanguage(s.lang);
-
-    // Auto-simulate matching invoice
-    setInvoiceFile({
-      name: `Invoice_${s.gstin.substring(0, 8)}_Signed.pdf`,
-      size: 428000,
-      type: "application/pdf",
-      uploadedAt: new Date().toISOString(),
-    });
-    setInvoiceVerified(true);
-    setInvoiceMatchScore(100);
-  };
-
   const isAmountValid = typeof amountDue === "number" && amountDue >= 5000;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -199,7 +171,7 @@ export function DebtorIntakeForm({ onCaseCreated, onCancel }: DebtorIntakeFormPr
   return (
     <div className="rounded-2xl border-2 border-[#FC8019]/40 bg-white dark:bg-[#111827] p-6 sm:p-8 space-y-6 shadow-xl">
       {/* Form Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-orange-50 dark:bg-orange-500/10 text-[#FC8019] border border-orange-200 dark:border-orange-500/30">
@@ -209,12 +181,15 @@ export function DebtorIntakeForm({ onCaseCreated, onCancel }: DebtorIntakeFormPr
               Min. ₹5,000 · Mandatory Invoice Verification
             </span>
           </div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mt-1 tracking-tight">
-            Initiate Automated Payment Recovery Case
-          </h2>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
-            Provide the debtor&apos;s statutory identity, overdue schedule, dialect preferences, and upload the matching bill/invoice copy to arm autonomous outbound voice recovery cadences.
-          </p>
+          <div className="flex items-center gap-2 mt-1.5">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Initiate Automated Payment Recovery Case
+            </h2>
+            <InfoTooltip
+              text="Provide debtor's statutory identity, overdue schedule, dialect preferences, and upload the matching bill/invoice copy to arm autonomous outbound voice recovery cadences."
+              align="left"
+            />
+          </div>
         </div>
 
         {onCancel && (
@@ -226,23 +201,6 @@ export function DebtorIntakeForm({ onCaseCreated, onCancel }: DebtorIntakeFormPr
             <X size={18} />
           </button>
         )}
-      </div>
-
-      {/* Quick Autofill Chips from Knowledge Source */}
-      <div className="p-3 rounded-xl bg-orange-50/40 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/40 flex flex-wrap items-center gap-2 text-xs">
-        <span className="text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1">
-          <Sparkles size={12} className="text-[#FC8019]" /> Prefill Verified Debtor:
-        </span>
-        {sampleDebtors.map((s) => (
-          <button
-            key={s.gstin}
-            type="button"
-            onClick={() => handleApplySample(s)}
-            className="text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-[#FC8019] hover:text-[#FC8019] transition font-medium font-mono"
-          >
-            {s.name.split(" ")[0]} · ₹{s.amount.toLocaleString("en-IN")} ({s.lang.toUpperCase()})
-          </button>
-        ))}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -419,16 +377,15 @@ export function DebtorIntakeForm({ onCaseCreated, onCancel }: DebtorIntakeFormPr
         {/* 9. BILL OR INVOICE COPY UPLOAD & AUTOMATIC STOP SAFEGUARD */}
         <div className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900/40 p-5 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                <FileCheck2 className="text-[#FC8019]" size={18} />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white font-mono">
-                  Bill or Invoice Copy Upload &amp; Document Match Guard <span className="text-rose-500">*</span>
-                </h3>
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                An authenticated bill/invoice copy is strictly required. The document must match debtor&apos;s company name, GSTIN, and amount due.
-              </p>
+            <div className="flex items-center gap-2">
+              <FileCheck2 className="text-[#FC8019]" size={18} />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white font-mono">
+                Bill or Invoice Copy Upload <span className="text-rose-500">*</span>
+              </h3>
+              <InfoTooltip
+                text="An authenticated bill/invoice copy is strictly required. The document must match debtor's company name, GSTIN, and amount due."
+                align="left"
+              />
             </div>
 
             {invoiceVerified ? (
@@ -439,7 +396,7 @@ export function DebtorIntakeForm({ onCaseCreated, onCancel }: DebtorIntakeFormPr
             ) : (
               <span className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 font-mono text-xs font-bold">
                 <AlertTriangle size={14} />
-                Invoice Missing: System Will Stop Automatically
+                Invoice Required
               </span>
             )}
           </div>
@@ -489,30 +446,28 @@ export function DebtorIntakeForm({ onCaseCreated, onCancel }: DebtorIntakeFormPr
             )}
           </div>
 
-          {/* SYSTEM AUTOMATIC STOP WARNING */}
+          {/* SYSTEM AUTOMATIC STOP STATUS / AUTHORIZATION */}
           {!invoiceVerified ? (
-            <div className="p-3.5 rounded-xl border border-rose-300 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/30 flex items-start gap-3">
-              <AlertTriangle className="text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" size={16} />
-              <div className="space-y-0.5 text-xs text-rose-700 dark:text-rose-300">
-                <div className="font-bold font-mono">
-                  Automated Payment System Will Stop Automatically If Invoice is Not Uploaded
-                </div>
-                <p className="text-[11px] leading-relaxed text-rose-600/90 dark:text-rose-300/90">
-                  To prevent unauthorized harassment and maintain strict adherence to RBI/TRAI debt collection standards, the automated outbound voice bot and regulatory notice dispatch are paused automatically until a matching invoice copy is attached.
-                </p>
+            <div className="p-3 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/70 dark:bg-rose-950/20 flex items-center justify-between gap-3 text-xs text-rose-700 dark:text-rose-300">
+              <div className="flex items-center gap-2 font-medium">
+                <AlertTriangle className="text-rose-500 shrink-0" size={15} />
+                <span>Invoice upload required before automated dialing can begin</span>
               </div>
+              <InfoTooltip
+                align="right"
+                text="To prevent unauthorized harassment and maintain strict adherence to RBI/TRAI debt collection standards, the automated outbound voice bot and regulatory notice dispatch are paused automatically until a matching invoice copy is attached."
+              />
             </div>
           ) : (
-            <div className="p-3.5 rounded-xl border border-emerald-300 dark:border-emerald-900/60 bg-emerald-50 dark:bg-emerald-950/30 flex items-start gap-3">
-              <CheckCircle2 className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" size={16} />
-              <div className="space-y-0.5 text-xs text-emerald-700 dark:text-emerald-300">
-                <div className="font-bold font-mono">
-                  Automated Recovery System Authorized &amp; Armed
-                </div>
-                <p className="text-[11px] leading-relaxed text-emerald-600/90 dark:text-emerald-300/90">
-                  Invoice verified against entered debtor company name and amount due (₹{Number(amountDue || 0).toLocaleString("en-IN")}). Automated dialing sequences and multi-lingual voice calls are ready to deploy.
-                </p>
+            <div className="p-3 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/70 dark:bg-emerald-950/20 flex items-center justify-between gap-3 text-xs text-emerald-700 dark:text-emerald-300">
+              <div className="flex items-center gap-2 font-medium">
+                <CheckCircle2 className="text-emerald-500 shrink-0" size={15} />
+                <span>Invoice authenticated &amp; recovery engine armed</span>
               </div>
+              <InfoTooltip
+                align="right"
+                text={`Invoice verified against entered debtor company name and amount due (₹${Number(amountDue || 0).toLocaleString("en-IN")}). Automated dialing sequences and multi-lingual voice calls are ready to deploy.`}
+              />
             </div>
           )}
         </div>
@@ -527,8 +482,11 @@ export function DebtorIntakeForm({ onCaseCreated, onCancel }: DebtorIntakeFormPr
         {/* Submit Actions */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-200 dark:border-slate-800">
           <div className="text-xs text-slate-500 font-mono flex items-center gap-1.5">
-            <Info size={13} className="text-[#FC8019]" />
-            <span>Case is logged with SHA-256 evidence certificate upon activation.</span>
+            <span>SHA-256 Evidence Certificate</span>
+            <InfoTooltip
+              align="left"
+              text="Generates an immutable cryptographic hash admissible under Section 63 of Bharatiya Sakshya Adhiniyam, 2023 upon activation."
+            />
           </div>
 
           <div className="flex items-center gap-3">
