@@ -18,12 +18,145 @@ import {
   Scale,
   Target,
   Compass,
+  Star,
+  Quote,
+  Coins,
+  Briefcase,
+  Home,
+  TrendingUp,
+  Award,
+  BadgeCheck,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [contactSent, setContactSent] = useState(false);
+
+  const milestones = [
+    {
+      value: "4 Years",
+      label: "Years of Service",
+      subtext: "Protecting Indian MSMEs & trade credit since 2022",
+      icon: Clock,
+      color: "text-[#FC8019]",
+      bg: "bg-orange-50 dark:bg-orange-950/40 border-orange-200 dark:border-orange-800",
+    },
+    {
+      value: "₹1,500+ Cr",
+      label: "Crore Received",
+      subtext: "Overdue commercial capital credited directly into client bank accounts",
+      icon: TrendingUp,
+      color: "text-emerald-600 dark:text-emerald-400",
+      bg: "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800",
+    },
+    {
+      value: "2,000+",
+      label: "Recovered Cases",
+      subtext: "Delinquent payment defaults resolved without courtroom litigation",
+      icon: Award,
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800",
+    },
+    {
+      value: "100,000+",
+      label: "Company Data",
+      subtext: "Active corporate, GST, and MSME entity profiles continuously audited",
+      icon: ShieldCheck,
+      color: "text-purple-600 dark:text-purple-400",
+      bg: "bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800",
+    },
+  ];
+
+  const loanProducts = [
+    {
+      title: "Business & Working Capital Loan",
+      badge: "Fast MSME Disbursal",
+      amount: "Up to ₹50 Lakhs",
+      rate: "From 12.60% p.a.",
+      description:
+        "Collateral-free working capital loan for manufacturers, traders, and service providers. Fuel inventory purchase, machinery expansion, and raw materials.",
+      highlights: ["100% paperless approval", "Disbursal within 24-48 hours", "Flexible tenure 1 to 5 years"],
+      icon: Briefcase,
+    },
+    {
+      title: "Invoice & Trade Financing",
+      badge: "Instant Liquidity",
+      amount: "Up to 90% Invoice Value",
+      rate: "Competitive Trade Rates",
+      description:
+        "Don't wait 45 to 90 days for buyers to pay your bills. Get an immediate cash advance against your verified trade invoices and keep cash flow uninterrupted.",
+      highlights: ["Cash advance against unpaid bills", "Zero impact on balance sheet", "Repaid when buyer settles"],
+      icon: TrendingUp,
+    },
+    {
+      title: "Gold Loan for Enterprise",
+      badge: "Zero Income Proof",
+      amount: "Up to ₹1.5 Crore",
+      rate: "From 9.50% p.a. (0.79%/mo)",
+      description:
+        "Unlock immediate business capital against gold jewellery with highest per-gram valuation and bank-grade secure vault storage.",
+      highlights: ["Same-day bank disbursal", "No ITR or balance sheet needed", "Free insured vault protection"],
+      icon: Coins,
+    },
+    {
+      title: "Commercial & Property Loan",
+      badge: "Lowest Interest Rate",
+      amount: "Up to ₹5 Crore",
+      rate: "From 8.35% p.a.",
+      description:
+        "Finance factory purchase, commercial office space, or transfer your existing high-cost business loan at significantly lower EMIs.",
+      highlights: ["Tenure up to 30 years", "Low processing fees", "Balance transfer savings"],
+      icon: Home,
+    },
+  ];
+
+  const testimonials = [
+    {
+      quote:
+        "A garment distributor in Delhi owed our textile mill ₹42.8 Lakhs for over 14 months and stopped answering our calls. After enrolling on ChaanBean, their automated multilingual voice follow-ups and MSMED §18 notice docket brought the buyer to the table. The full principal plus interest was credited within 35 days without stepping into court.",
+      name: "Kishore Mehra",
+      role: "Managing Partner",
+      company: "Shree Balaji Fabrics & Textiles",
+      location: "Surat, Gujarat",
+      recoveredAmount: "₹42.8 Lakhs Recovered",
+      timeline: "Settled in 35 Days",
+      rating: 5,
+    },
+    {
+      quote:
+        "In the auto component industry, delayed payments kill cash flow. When two tier-2 vendors delayed payments citing liquidity, ChaanBean automatically computed the 3x compound penal interest and generated ready-to-file legal evidence packs. The buyers quickly settled ₹64.5 Lakhs to avoid legal blacklisting under MSMED Act.",
+      name: "Sunil Kulkarni",
+      role: "Founder & Managing Director",
+      company: "Apex Precision Tooling & Dies",
+      location: "Pune, Maharashtra",
+      recoveredAmount: "₹64.5 Lakhs Recovered",
+      timeline: "3 Delinquent Accounts Cleared",
+      rating: 5,
+    },
+    {
+      quote:
+        "We were about to dispatch two truckloads of agricultural chemicals on 60-day credit to a new buyer. ChaanBean's AI Credit Check revealed three active cheque-bounce cases and court disputes against the directors. We immediately insisted on 100% advance payment, saving our business from an ₹85 Lakh catastrophic default.",
+      name: "Dinesh Patidar",
+      role: "Director",
+      company: "Rameshwar Agro & Chemicals",
+      location: "Indore, Madhya Pradesh",
+      recoveredAmount: "₹85 Lakhs Loss Prevented",
+      timeline: "Instant 1-Click Verification",
+      rating: 5,
+    },
+    {
+      quote:
+        "The automated WhatsApp reminders and polite voice calls remove all personal awkwardness between old business friends. Our buyers receive clear invoice summaries with payment links and 45-day statutory deadline alerts. Over 90% of our invoices are now cleared on time.",
+      name: "Venkatesh Rao",
+      role: "Chief Financial Officer",
+      company: "Kalyani Polychem Industries",
+      location: "Hyderabad, Telangana",
+      recoveredAmount: "₹27.3 Lakhs Recovered",
+      timeline: "Average Collection Down to 21 Days",
+      rating: 5,
+    },
+  ];
   const pillars = [
     {
       id: "ai-credit-check",
@@ -144,15 +277,21 @@ export default function LandingPage() {
           </Link>
 
           {/* Desktop Navigation Menu Bar */}
-          <nav className="hidden md:flex items-center gap-7 text-sm font-bold text-slate-700 dark:text-slate-200">
+          <nav className="hidden xl:flex items-center gap-6 text-sm font-bold text-slate-700 dark:text-slate-200">
+            <a href="#services" className="hover:text-[#FC8019] transition-colors">
+              Services
+            </a>
+            <a href="#milestones" className="hover:text-[#FC8019] transition-colors">
+              Track Record
+            </a>
+            <a href="#loans" className="hover:text-[#FC8019] transition-colors">
+              Loans
+            </a>
+            <a href="#testimonials" className="hover:text-[#FC8019] transition-colors">
+              Testimonials
+            </a>
             <a href="#about" className="hover:text-[#FC8019] transition-colors">
               About Us
-            </a>
-            <a href="#mission" className="hover:text-[#FC8019] transition-colors">
-              Mission
-            </a>
-            <a href="#vision" className="hover:text-[#FC8019] transition-colors">
-              Vision
             </a>
             <a href="#contact" className="hover:text-[#FC8019] transition-colors">
               Contact Us
@@ -178,7 +317,7 @@ export default function LandingPage() {
             {/* Mobile Menu Toggle Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+              className="xl:hidden p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -188,27 +327,41 @@ export default function LandingPage() {
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F17] px-6 py-4 space-y-3">
+          <div className="xl:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F17] px-6 py-4 space-y-3">
+            <a
+              href="#services"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
+            >
+              Services
+            </a>
+            <a
+              href="#milestones"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
+            >
+              Track Record & Proof
+            </a>
+            <a
+              href="#loans"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
+            >
+              Business & Working Capital Loans
+            </a>
+            <a
+              href="#testimonials"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
+            >
+              Client Testimonials
+            </a>
             <a
               href="#about"
               onClick={() => setMobileMenuOpen(false)}
               className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
             >
               About Us
-            </a>
-            <a
-              href="#mission"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
-            >
-              Mission
-            </a>
-            <a
-              href="#vision"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
-            >
-              Vision
             </a>
             <a
               href="#contact"
@@ -296,8 +449,66 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Proof & Milestones Section */}
+      <section id="milestones" className="relative overflow-hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F17]/90 px-6 py-16 scroll-mt-16 z-10">
+        <div className="relative mx-auto max-w-7xl z-10">
+          <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] border border-orange-200 dark:border-orange-800">
+              <BadgeCheck size={14} />
+              <span>Proven Track Record &amp; Capabilities</span>
+            </span>
+            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+              Real Numbers. Verified Recoveries.
+            </h2>
+            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 font-medium">
+              Over the last 4 years, ChaanBean has delivered decisive recovery outcomes and credit intelligence for Indian businesses.
+            </p>
+          </div>
+
+          {/* 4 Big Milestone Stat Cards */}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {milestones.map((m, idx) => {
+              const Icon = m.icon;
+              return (
+                <div
+                  key={idx}
+                  className={`relative rounded-3xl border-2 ${m.bg} p-6 sm:p-7 shadow-md hover:shadow-xl transition-all duration-300 group flex flex-col justify-between`}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className={`p-3 rounded-2xl bg-white dark:bg-slate-900 shadow-sm ${m.color}`}>
+                        <Icon size={24} />
+                      </div>
+                      <span className="text-xs font-mono font-bold text-slate-400 dark:text-slate-500 uppercase">
+                        Milestone 0{idx + 1}
+                      </span>
+                    </div>
+                    <div>
+                      <div className={`text-3xl sm:text-4xl font-black tracking-tight ${m.color}`}>
+                        {m.value}
+                      </div>
+                      <div className="text-base font-extrabold text-slate-900 dark:text-white mt-1">
+                        {m.label}
+                      </div>
+                    </div>
+                    <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {m.subtext}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 mt-4 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+                    <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                    <span>Verified Platform Metric</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* 4 Core Pillars Section */}
-      <section className="relative overflow-hidden border-t border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-900/30 px-6 py-20">
+      <section id="services" className="relative overflow-hidden border-t border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-900/30 px-6 py-20 scroll-mt-16">
         {/* Pillars Background Watermarks */}
         <div className="pointer-events-none absolute -top-24 -left-20 w-[380px] sm:w-[500px] h-[380px] sm:h-[500px] select-none opacity-[0.035] dark:opacity-[0.06] -rotate-12 z-0">
           <Image src="/logo.png" alt="" fill className="object-contain" priority={false} />
@@ -383,6 +594,190 @@ export default function LandingPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* MSME Loans & Credit Section */}
+      <section id="loans" className="relative overflow-hidden px-6 py-20 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F17]/80 scroll-mt-16">
+        <div className="relative mx-auto max-w-7xl z-10 space-y-12">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] border border-orange-200 dark:border-orange-800">
+              <Briefcase size={14} />
+              <span>MSME Financial Solutions</span>
+            </span>
+            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
+              Working Capital &amp; Business Loans
+            </h2>
+            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+              Never let delayed buyer payments stop your factory production or supply chain. Access collateral-free working capital, trade invoice discounting, and asset-backed credit with same-day approvals.
+            </p>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {loanProducts.map((loan, idx) => {
+              const Icon = loan.icon;
+              return (
+                <div
+                  key={idx}
+                  className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-6 sm:p-7 shadow-md hover:shadow-xl hover:border-[#FC8019] transition-all duration-300 group"
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="p-3 rounded-2xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019]">
+                        <Icon size={22} />
+                      </div>
+                      <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                        {loan.badge}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#FC8019] transition-colors">
+                        {loan.title}
+                      </h3>
+                      <div className="text-xl font-black text-[#FC8019] mt-1">
+                        {loan.amount}
+                      </div>
+                      <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        {loan.rate}
+                      </div>
+                    </div>
+
+                    <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {loan.description}
+                    </p>
+
+                    <ul className="space-y-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+                      {loan.highlights.map((h, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                          <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                          <span>{h}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="pt-5 mt-5 border-t border-slate-200 dark:border-slate-800">
+                    <Link
+                      href="/loans"
+                      className="flex items-center justify-center gap-1.5 w-full rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 hover:border-[#FC8019] hover:text-[#FC8019] transition shadow-sm"
+                    >
+                      <span>Check Eligibility &amp; Apply</span>
+                      <ArrowRight size={13} />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="rounded-3xl border-2 border-[#FC8019]/30 bg-gradient-to-r from-orange-50/80 via-white to-orange-50/80 dark:from-orange-950/20 dark:via-slate-900 dark:to-orange-950/20 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-md">
+            <div className="space-y-1 text-center sm:text-left">
+              <h4 className="text-xl font-black text-slate-900 dark:text-white">Need an Instant Working Capital or Machinery Loan?</h4>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                Use our interactive EMI calculator, compare rates, and submit an application with zero physical paperwork.
+              </p>
+            </div>
+            <Link
+              href="/loans"
+              className="shrink-0 flex items-center gap-2 rounded-2xl bg-[#FC8019] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#FC8019]/25 hover:bg-[#E26D0A] transition"
+            >
+              <span>Explore Loan Portal &amp; Calculator</span>
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section id="testimonials" className="relative overflow-hidden px-6 py-20 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 scroll-mt-16">
+        <div className="relative mx-auto max-w-7xl z-10 space-y-14">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] border border-orange-200 dark:border-orange-800">
+              <Star size={14} className="fill-[#FC8019]" />
+              <span>Verified Client Recoveries</span>
+            </span>
+            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
+              Trusted by 2,000+ Indian Businesses
+            </h2>
+            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 font-medium">
+              Read how MSME manufacturers, traders, and suppliers recovered crores in long-overdue receivables without courtroom friction.
+            </p>
+          </div>
+
+          {/* Testimonials Grid */}
+          <div className="grid gap-8 md:grid-cols-2">
+            {testimonials.map((t, idx) => (
+              <div
+                key={idx}
+                className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-md hover:shadow-xl hover:border-[#FC8019]/60 transition-all duration-300"
+              >
+                <div className="space-y-4">
+                  {/* Top Quote Icon & Recovery Badge */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: t.rating }).map((_, i) => (
+                        <Star key={i} size={16} className="text-amber-400 fill-amber-400" />
+                      ))}
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                      <CheckCircle2 size={12} />
+                      <span>{t.recoveredAmount}</span>
+                    </span>
+                  </div>
+
+                  {/* Quote Text */}
+                  <p className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200 leading-relaxed italic">
+                    &ldquo;{t.quote}&rdquo;
+                  </p>
+                </div>
+
+                {/* Author & Verification Card */}
+                <div className="pt-6 mt-6 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-11 w-11 rounded-full bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center font-black text-sm border border-orange-300/60 dark:border-orange-800">
+                      {t.name.split(" ").map((n) => n[0]).join("")}
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">
+                        {t.name}
+                      </h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {t.role}, <span className="font-semibold text-slate-700 dark:text-slate-300">{t.company}</span>
+                      </p>
+                      <p className="text-[11px] text-slate-400 font-mono">
+                        {t.location}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right hidden sm:block">
+                    <span className="inline-block text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                      {t.timeline}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Social Proof Trust Bar */}
+          <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 text-center space-y-4 shadow-sm">
+            <div className="flex flex-wrap items-center justify-center gap-8 text-sm font-bold text-slate-700 dark:text-slate-200">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-emerald-500" />
+                <span>4.9 / 5.0 Star Verified Rating</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-emerald-500" />
+                <span>₹1,500+ Cr Successfully Recovered</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-emerald-500" />
+                <span>100% MSMED Act §18 Compliant</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -730,16 +1125,20 @@ export default function LandingPage() {
             </div>
             <p>© {new Date().getFullYear()} ChaanBean OS. Statutory B2B Credit Risk & Recovery Platform.</p>
           </div>
-          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 text-xs">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3.5 text-xs font-medium">
+            <a href="#services" className="hover:text-[#FC8019] transition">Services</a>
+            <span>·</span>
+            <a href="#milestones" className="hover:text-[#FC8019] transition">Track Record</a>
+            <span>·</span>
+            <a href="#loans" className="hover:text-[#FC8019] transition">Business Loans</a>
+            <span>·</span>
+            <a href="#testimonials" className="hover:text-[#FC8019] transition">Testimonials</a>
+            <span>·</span>
             <a href="#about" className="hover:text-[#FC8019] transition">About Us</a>
-            <span>·</span>
-            <a href="#mission" className="hover:text-[#FC8019] transition">Mission</a>
-            <span>·</span>
-            <a href="#vision" className="hover:text-[#FC8019] transition">Vision</a>
             <span>·</span>
             <a href="#contact" className="hover:text-[#FC8019] transition">Contact Us</a>
             <span>·</span>
-            <Link href="/subscription" className="hover:text-[#FC8019] transition">Subscription Plans</Link>
+            <Link href="/subscription" className="hover:text-[#FC8019] transition">Plans</Link>
             <span>·</span>
             <Link href="/login" className="hover:text-[#FC8019] transition">Client Login</Link>
           </div>
