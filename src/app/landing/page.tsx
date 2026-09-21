@@ -4,21 +4,10 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ShieldCheck,
-  Building2,
-  Phone,
-  Scale,
-  Search,
   ArrowRight,
   CheckCircle2,
   Lock,
   Zap,
-  Award,
-  Users,
-  ChevronRight,
-  TrendingUp,
-  FileSpreadsheet,
-  AlertTriangle,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -27,70 +16,62 @@ export default function LandingPage() {
     {
       id: "ai-credit-check",
       title: "AI Credit Check",
-      tagline: "18+ Statutory Verification Gateways",
+      tagline: "Verify Any Buyer Before Giving Credit",
       description:
-        "Instantly evaluate counterparty legitimacy across MCA21 corporate filings, GSTIN return regularity, e-Courts litigation history, CCTNS FIR records, and Udyam MSME status.",
-      icon: Search,
-      badge: "Real-time Verification",
-      metrics: "18 Adapters Live",
+        "Check if a new or existing buyer is genuine before supplying goods on credit. In seconds, verify their official company registration, GST filing record, and whether they have any court disputes or police cases.",
+      badge: "Buyer Verification",
+      benefit: "Instant 1-Click Check",
       highlights: [
-        "MCA21 Director & Shareholding lookups",
-        "GSTIN active status & return filing compliance",
-        "Pan-India e-Courts civil/commercial cases",
-        "CCTNS police FIR & criminal verification",
+        "Verify real company & director details",
+        "Check active GST and on-time tax returns",
+        "Search court cases and dispute history",
+        "Confirm authentic address and registration",
       ],
-      color: "from-blue-500/10 to-indigo-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400",
     },
     {
       id: "business-security",
       title: "AI Business Security",
-      tagline: "Autonomous Credit Underwriting & Risk Radar",
+      tagline: "Know How Much Credit is Safe to Give",
       description:
-        "Deterministic 4-dimension scoring engine analyzing legitimacy, balance sheet health, payment behaviour, and statutory litigation to output recommended commercial credit limits.",
-      icon: Building2,
-      badge: "Financial Intelligence",
-      metrics: "Green / Amber / Red",
+        "Never get stuck with heavy unpaid bills. Get a simple Green, Yellow, or Red safety rating and a recommended credit limit so you know exactly how much credit is safe for each party.",
+      badge: "Credit Guidance",
+      benefit: "Safe Credit Limit",
       highlights: [
-        "Automated financial extraction & ratio checks",
-        "Debt capacity & 45-day MSME exposure limits",
-        "Balance sheet anomaly & fraud detection",
-        "Real-time counterparty credit flag radar",
+        "Simple Green, Yellow, or Red risk signal",
+        "Recommended safe credit amount for each buyer",
+        "Early warning if a party delays payments elsewhere",
+        "Protects your working capital from bad debts",
       ],
-      color: "from-amber-500/10 to-orange-500/10 border-amber-500/20 text-[#FC8019]",
     },
     {
       id: "payment-automation",
       title: "Payment Automation",
-      tagline: "Smart Omnichannel Voice & Cadence Recovery",
+      tagline: "Polite, Automatic Payment Follow-ups",
       description:
-        "High-efficiency automated collections dialer with scheduled cadences, regional Indian language support, WhatsApp reminders, and §43B(h) / §16(4) statutory notices.",
-      icon: Phone,
-      badge: "Collections Engine",
-      metrics: "Voice AI & WhatsApp",
+        "Stop running after buyers for payments. The system sends polite reminder phone calls in Hindi and regional languages, WhatsApp messages with quick pay links, and formal 45-day payment reminders.",
+      badge: "Payment Assistant",
+      benefit: "Calls & WhatsApp",
       highlights: [
-        "Automated outbound voice recovery cadences",
-        "Statutory Income Tax §43B(h) notices",
-        "GST §16(4) Input Tax Credit reversal alerts",
-        "Promise-to-pay tracking & automatic settlement",
+        "Automated polite reminder calls in local languages",
+        "Instant WhatsApp payment links sent to buyers",
+        "Official 45-day MSME payment due reminders",
+        "Records payment dates and agreements automatically",
       ],
-      color: "from-emerald-500/10 to-teal-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400",
     },
     {
       id: "legal-infrastructure",
       title: "Legal Infrastructure",
-      tagline: "Fast-Track MSMED §18 Dispute Docket",
+      tagline: "Recover Stuck Money Under MSME Law",
       description:
-        "End-to-end statutory legal enforcement computing 20.25% compound penal interest, generating digital evidence packs, and managing institutional arbitrator hearings.",
-      icon: Scale,
-      badge: "Statutory Recovery",
-      metrics: "3x RBI Bank Rate",
+        "If a buyer delays or refuses payment, take quick legal action. Easily calculate 3x compound interest under MSME rules, generate legal notice papers, and settle disputes through fast arbitration.",
+      badge: "Legal Protection",
+      benefit: "MSME Law Backed",
       highlights: [
-        "Automated MSMED §18 compound interest calculator",
-        "Tamper-evident SHA-256 digital evidence pack",
-        "Fast-track institutional arbitration chamber",
-        "Legally verified conciliation agreement templates",
+        "Calculate compound interest legally owed to you",
+        "Generate ready-to-sign legal demand notices",
+        "Collect digital proof of bills, delivery, and chats",
+        "Fast-track resolution through certified arbitrators",
       ],
-      color: "from-purple-500/10 to-violet-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400",
     },
   ];
 
@@ -215,22 +196,22 @@ export default function LandingPage() {
           </div>
 
           {/* Trust Highlights */}
-          <div className="flex flex-wrap items-center justify-center gap-6 pt-6 text-xs text-slate-500 dark:text-slate-400 font-mono">
+          <div className="flex flex-wrap items-center justify-center gap-6 pt-6 text-sm font-semibold text-slate-700 dark:text-slate-200">
             <div className="flex items-center gap-2">
-              <CheckCircle2 size={14} className="text-emerald-500" />
-              <span>MSMED Act §15-18 Grounded</span>
+              <CheckCircle2 size={16} className="text-emerald-500" />
+              <span>MSME Payment Protection</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 size={14} className="text-emerald-500" />
-              <span>Income Tax §43B(h) Alerts</span>
+              <CheckCircle2 size={16} className="text-emerald-500" />
+              <span>45-Day Payment Rule Compliance</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 size={14} className="text-emerald-500" />
-              <span>18 Statutory Gateway Adapters</span>
+              <CheckCircle2 size={16} className="text-emerald-500" />
+              <span>Official Government Records</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 size={14} className="text-emerald-500" />
-              <span>Cryptographic Audit Seals</span>
+              <CheckCircle2 size={16} className="text-emerald-500" />
+              <span>100% Safe & Confidential</span>
             </div>
           </div>
         </div>
@@ -254,7 +235,7 @@ export default function LandingPage() {
           <div className="flex whitespace-nowrap text-[11px] font-mono tracking-[0.3em] uppercase font-bold text-[#FC8019]">
             {Array.from({ length: 8 }).map((_, i) => (
               <span key={i} className="mx-8">
-                CHAANBEAN · 4 CORE STATIONS · STATUTORY LITIGATION DOCKET · 18 PUBLIC GATEWAYS ·
+                CHAANBEAN · CREDIT CHECK · BUSINESS SECURITY · PAYMENT RECOVERY · LEGAL RESOLUTION ·
               </span>
             ))}
           </div>
@@ -263,69 +244,66 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-7xl z-10">
           <div className="text-center max-w-3xl mx-auto mb-14 space-y-3">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#FC8019]">
-              The Four Core Pillars
+              How ChaanBean Protects Your Business
             </span>
             <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-              Engineered for Complete Credit & Debt Lifecycle
+              Four Easy Steps to Protect Your Money
             </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              Everything your enterprise needs on the left-hand console to ensure reliable cash flow, reduce credit default, and recover overdue commercial receivables.
+            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 font-medium">
+              Everything an MSME business needs to check buyers, give credit safely, and recover payments on time without hassle.
             </p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {pillars.map((pillar, idx) => {
-              const Icon = pillar.icon;
-              return (
-                <div
-                  key={pillar.id}
-                  className="relative flex flex-col justify-between rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-6 shadow-sm hover:shadow-xl hover:border-[#FC8019]/50 transition-all duration-300 group"
-                >
-                  <div className="space-y-4">
-                    {/* Top Icon & Badge */}
-                    <div className="flex items-center justify-between">
-                      <div className={`rounded-2xl border p-3.5 ${pillar.color} transition-transform group-hover:scale-110`}>
-                        <Icon size={24} />
-                      </div>
-                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                        0{idx + 1}
-                      </span>
-                    </div>
+            {pillars.map((pillar, idx) => (
+              <div
+                key={pillar.id}
+                className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-md hover:shadow-xl hover:border-[#FC8019] transition-all duration-300 group"
+              >
+                <div className="space-y-4">
+                  {/* Top Header: Step Indicator & Category Tag (No top-left icon) */}
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-orange-100 text-[#FC8019] dark:bg-orange-950/60 dark:text-orange-400 border border-orange-300/60 dark:border-orange-800">
+                      Step 0{idx + 1}
+                    </span>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+                      {pillar.badge}
+                    </span>
+                  </div>
 
-                    {/* Title & Tagline */}
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#FC8019] transition-colors">
-                        {pillar.title}
-                      </h3>
-                      <p className="text-xs font-semibold text-[#FC8019] mt-0.5">
-                        {pillar.tagline}
-                      </p>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                      {pillar.description}
+                  {/* Title & Tagline */}
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white group-hover:text-[#FC8019] transition-colors">
+                      {pillar.title}
+                    </h3>
+                    <p className="text-sm font-bold text-[#FC8019] mt-1">
+                      {pillar.tagline}
                     </p>
-
-                    {/* Bullet Highlights */}
-                    <ul className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                      {pillar.highlights.map((h, i) => (
-                        <li key={i} className="flex items-start gap-2 text-[11px] text-slate-700 dark:text-slate-300">
-                          <CheckCircle2 size={13} className="text-emerald-500 shrink-0 mt-0.5" />
-                          <span>{h}</span>
-                        </li>
-                      ))}
-                    </ul>
                   </div>
 
-                  {/* Bottom Metric Badge */}
-                  <div className="pt-5 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-mono">
-                    <span className="text-slate-400">{pillar.badge}</span>
-                    <span className="font-bold text-slate-900 dark:text-white">{pillar.metrics}</span>
-                  </div>
+                  {/* Description - High visibility & clear font */}
+                  <p className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200 leading-relaxed">
+                    {pillar.description}
+                  </p>
+
+                  {/* Bullet Highlights */}
+                  <ul className="space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
+                    {pillar.highlights.map((h, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                        <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                        <span>{h}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              );
-            })}
+
+                {/* Bottom Reassurance Benefit */}
+                <div className="pt-4 mt-5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs sm:text-sm font-bold">
+                  <span className="text-slate-500 dark:text-slate-400">{pillar.badge}</span>
+                  <span className="text-[#FC8019] dark:text-orange-400">{pillar.benefit}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -358,54 +336,54 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-6xl z-10">
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#FC8019]">
-              Sequential Workflow
+              How the Process Works
             </span>
-            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white">
-              From Counterparty Verification to Dispute Decree
+            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
+              From Verification to Safe Recovery
             </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              ChaanBean connects every phase into a deterministic operating chain.
+            <p className="text-base text-slate-700 dark:text-slate-300 font-medium">
+              ChaanBean handles the complete process from the day you meet a buyer until final payment.
             </p>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2">
-              <span className="inline-block rounded-lg bg-orange-50 dark:bg-orange-950/50 px-2 py-1 text-[10px] font-mono font-bold text-[#FC8019]">
+            <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-3 shadow-sm">
+              <span className="inline-block rounded-lg bg-orange-100 dark:bg-orange-950/60 px-2.5 py-1 text-xs font-bold text-[#FC8019]">
                 Step 1
               </span>
-              <h4 className="font-bold text-sm text-slate-900 dark:text-white">AI Credit Check</h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Run automated statutory lookups across MCA, GST, Courts, and Udyam to confirm entity legitimacy.
+              <h4 className="font-extrabold text-base text-slate-900 dark:text-white">AI Credit Check</h4>
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
+                Check company registration, GST status, and court cases before supplying goods on credit.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2">
-              <span className="inline-block rounded-lg bg-orange-50 dark:bg-orange-950/50 px-2 py-1 text-[10px] font-mono font-bold text-[#FC8019]">
+            <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-3 shadow-sm">
+              <span className="inline-block rounded-lg bg-orange-100 dark:bg-orange-950/60 px-2.5 py-1 text-xs font-bold text-[#FC8019]">
                 Step 2
               </span>
-              <h4 className="font-bold text-sm text-slate-900 dark:text-white">AI Business Security</h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Evaluate balance sheet capacity, consistency, and generate dynamic exposure caps with risk color codes.
+              <h4 className="font-extrabold text-base text-slate-900 dark:text-white">AI Business Security</h4>
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
+                Get clear Green, Yellow, or Red risk signals and know exactly how much credit is safe to give.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2">
-              <span className="inline-block rounded-lg bg-orange-50 dark:bg-orange-950/50 px-2 py-1 text-[10px] font-mono font-bold text-[#FC8019]">
+            <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-3 shadow-sm">
+              <span className="inline-block rounded-lg bg-orange-100 dark:bg-orange-950/60 px-2.5 py-1 text-xs font-bold text-[#FC8019]">
                 Step 3
               </span>
-              <h4 className="font-bold text-sm text-slate-900 dark:text-white">Payment Automation</h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Dispatch automated voice call cadences, WhatsApp payment links, and statutory overdue reminders.
+              <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Payment Automation</h4>
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
+                Send polite reminder phone calls in local languages and WhatsApp links for fast payment.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-2">
-              <span className="inline-block rounded-lg bg-orange-50 dark:bg-orange-950/50 px-2 py-1 text-[10px] font-mono font-bold text-[#FC8019]">
+            <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-3 shadow-sm">
+              <span className="inline-block rounded-lg bg-orange-100 dark:bg-orange-950/60 px-2.5 py-1 text-xs font-bold text-[#FC8019]">
                 Step 4
               </span>
-              <h4 className="font-bold text-sm text-slate-900 dark:text-white">Legal Infrastructure</h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                File statutory MSME §18 arbitration claims with auto-computed 20.25% compound interest and digital proof.
+              <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Legal Infrastructure</h4>
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
+                Calculate 3x compound penal interest and file MSME claims if a party delays or refuses payment.
               </p>
             </div>
           </div>
