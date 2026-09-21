@@ -187,6 +187,7 @@ export function DebtorIntakeForm({ onCaseCreated, onCancel }: DebtorIntakeFormPr
             </h2>
             <InfoTooltip
               text="Provide debtor's statutory identity, overdue schedule, dialect preferences, and upload the matching bill/invoice copy to arm autonomous outbound voice recovery cadences."
+              position="bottom"
               align="left"
             />
           </div>
@@ -384,6 +385,7 @@ export function DebtorIntakeForm({ onCaseCreated, onCancel }: DebtorIntakeFormPr
               </h3>
               <InfoTooltip
                 text="An authenticated bill/invoice copy is strictly required. The document must match debtor's company name, GSTIN, and amount due."
+                position="bottom"
                 align="left"
               />
             </div>

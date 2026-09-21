@@ -926,3 +926,31 @@ input[type="range"].emi-range-input::-moz-range-track {
   border: none;
 }
 
+/* =========================================================
+   CHAANBEAN HIGH-CONTRAST TOOLTIP ENGINE
+   Ensures 100% crystal-clear visibility and overrides any
+   light-mode cascade text color resets.
+   ========================================================= */
+.chaan-tooltip-bubble,
+html.light .chaan-tooltip-bubble,
+html.dark .chaan-tooltip-bubble {
+  background-color: #0b1120 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(252, 128, 25, 0.4) !important;
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.5), 0 0 16px rgba(252, 128, 25, 0.15) !important;
+  z-index: 99999 !important;
+}
+
+.chaan-tooltip-bubble *,
+html.light .chaan-tooltip-bubble *,
+html.dark .chaan-tooltip-bubble * {
+  color: #ffffff !important;
+}
+
+.chaan-tooltip-bubble .text-\[\#FC8019\],
+html.light .chaan-tooltip-bubble .text-\[\#FC8019\],
+html.dark .chaan-tooltip-bubble .text-\[\#FC8019\] {
+  color: #fc8019 !important;
+}
+
+

@@ -190,6 +190,7 @@ export default async function PaymentRecoveryPage() {
                 </h1>
                 <InfoTooltip
                   text="Deterministic policy engine (L1/L2/L3) · TRAI-compliant voice bot · Immutable SHA-256 evidence trail"
+                  position="bottom"
                   align="left"
                 />
               </div>
@@ -220,7 +221,7 @@ export default async function PaymentRecoveryPage() {
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1">
           <div className="flex items-center justify-between">
             <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">Scheduled Calls</p>
-            <InfoTooltip text="Due in next outbound dialing cycle" align="right" />
+            <InfoTooltip text="Due in next outbound dialing cycle" position="bottom" align="right" />
           </div>
           <p className="text-2xl font-bold font-mono text-white">{callsScheduled}</p>
         </div>
@@ -228,7 +229,7 @@ export default async function PaymentRecoveryPage() {
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1">
           <div className="flex items-center justify-between">
             <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">Completed Calls</p>
-            <InfoTooltip text="Answered & recorded in audio ledger" align="right" />
+            <InfoTooltip text="Answered & recorded in audio ledger" position="bottom" align="right" />
           </div>
           <p className="text-2xl font-bold font-mono text-emerald-400">{callsCompleted}</p>
         </div>
@@ -236,7 +237,7 @@ export default async function PaymentRecoveryPage() {
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1">
           <div className="flex items-center justify-between">
             <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">L1 Reminders</p>
-            <InfoTooltip text="WhatsApp & Email ledger statements" align="right" />
+            <InfoTooltip text="WhatsApp & Email ledger statements" position="bottom" align="right" />
           </div>
           <p className="text-2xl font-bold font-mono text-sky-400">{l1Count}</p>
         </div>
@@ -244,7 +245,7 @@ export default async function PaymentRecoveryPage() {
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1">
           <div className="flex items-center justify-between">
             <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">L2 Voice Notices</p>
-            <InfoTooltip text="Voice bot multi-lingual engagement" align="right" />
+            <InfoTooltip text="Voice bot multi-lingual engagement" position="bottom" align="right" />
           </div>
           <p className="text-2xl font-bold font-mono text-amber-400">{l2Count}</p>
         </div>
@@ -252,7 +253,7 @@ export default async function PaymentRecoveryPage() {
         <div className="rounded-2xl border border-chaan-border bg-chaan-card p-5 space-y-1">
           <div className="flex items-center justify-between">
             <p className="text-[11px] uppercase text-slate-400 font-mono font-semibold">L3 Legal Demands</p>
-            <InfoTooltip text="Formal legal demands with Gov reference" align="right" />
+            <InfoTooltip text="Formal legal demands with Gov reference" position="bottom" align="right" />
           </div>
           <p className="text-2xl font-bold font-mono text-rose-400">{l3Count}</p>
         </div>

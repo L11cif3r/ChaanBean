@@ -337,6 +337,7 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
               </span>
               <InfoTooltip
                 text="Deterministic escalation ladder · Invoice-backed verification guard · Statutory regulator reporting"
+                position="bottom"
                 align="left"
               />
             </div>
@@ -698,6 +699,7 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
               <h3 className="text-base font-bold text-white">Default Recovery Voice Call Cadence</h3>
               <InfoTooltip
                 text="Outbound telephony engine for critical default recovery. Escalating automated voice call notifications at 1 min, 2 mins, 5 mins, 30 mins, and 1 hour intervals with emergency 24/7 recovery override."
+                position="bottom"
                 align="left"
               />
             </div>
@@ -709,6 +711,7 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
                 <span>₹1 / Picked-Up Call</span>
                 <InfoTooltip
                   text="Charges ₹1 per call deducted directly from subscription wallet only if the debtor answers. Unanswered, busy, or unreachable calls are 100% free (₹0 deducted)."
+                  position="bottom"
                   align="right"
                 />
               </div>
@@ -985,6 +988,7 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
               <h3 className="text-base font-bold text-white">Statutory Legal Notice Suite</h3>
               <InfoTooltip
                 text="Dispatches statutory demand notice while simultaneously reporting the trade default to the Income Tax Department (§43B(h)) and GST Network portal (§16(4))."
+                position="bottom"
                 align="left"
               />
             </div>
@@ -1092,6 +1096,7 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
               <h3 className="text-base font-bold text-white">Delayed Payments Aging &amp; Follow-Up</h3>
               <InfoTooltip
                 text="Temporal payment aging schedule (1–15, 16–30, 31–45, 45+ days), promise-to-pay (PTP) calendar, automated debtor touchpoints, and payment reconciliation timeline."
+                position="bottom"
                 align="left"
               />
             </div>
@@ -1161,6 +1166,7 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
               <h3 className="text-base font-bold text-white">OmniTrace 360™ — Deep Skip Tracing</h3>
               <InfoTooltip
                 text="Pinpoints debtor's physical address, remitting bank accounts, delivery app mobile numbers, alternate telecom lines, and tri-bureau commercial credit scores."
+                position="bottom"
                 align="left"
               />
             </div>
@@ -1351,6 +1357,7 @@ export function PaymentRecoveryWorkbench({ accounts }: PaymentRecoveryWorkbenchP
               <h3 className="text-base font-bold text-white">In-House Legal Team &amp; Arbitration Desk</h3>
               <InfoTooltip
                 text="Out-of-court dispute resolution under MSMED Act 2006 §16/18 with statutory 20.25% compound interest and Section 138 / Order 37 summary recovery filings."
+                position="bottom"
                 align="left"
               />
             </div>
