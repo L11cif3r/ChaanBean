@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ShieldCheck,
   Building2,
   Lock,
   Mail,
@@ -15,8 +14,6 @@ import {
   RotateCcw,
   CheckCircle2,
   AlertCircle,
-  KeyRound,
-  Briefcase,
   Sparkles,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -24,8 +21,6 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 export default function LoginPage() {
   const router = useRouter();
 
-  // Portal tab: "client" | "admin"
-  const [portal, setPortal] = useState<"client" | "admin">("client");
   // Auth mode: "login" | "register"
   const [mode, setMode] = useState<"login" | "register">("login");
 
@@ -38,13 +33,6 @@ export default function LoginPage() {
   const [pan, setPan] = useState("");
   const [gstin, setGstin] = useState("");
   const [plan, setPlan] = useState("growth");
-
-  // Admin form state
-  const [adminEmail, setAdminEmail] = useState("");
-  const [adminPassword, setAdminPassword] = useState("");
-  const [adminName, setAdminName] = useState("");
-  const [securityKey, setSecurityKey] = useState("");
-  const [adminRole, setAdminRole] = useState("owner");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +49,7 @@ export default function LoginPage() {
     }
   }, []);
 
-  // Quick fill sample credentials
+  // Quick fill sample client credentials
   const fillSampleClient = () => {
     setClientEmail("trade.ops@acmetraders.in");
     setClientPassword("ChaanBeanPass2026!");
@@ -74,12 +62,6 @@ export default function LoginPage() {
     setCompanyName("ABC Industry");
   };
 
-  const fillSampleAdmin = () => {
-    setAdminEmail("owner@chaanbean.in");
-    setAdminPassword("RootOwnerKey2026!");
-    setSecurityKey("CHAANBEAN-ROOT-2026");
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -87,104 +69,56 @@ export default function LoginPage() {
     setSuccessMsg(null);
 
     try {
-      if (portal === "client") {
-        if (mode === "login") {
-          const res = await fetch("/api/auth", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action: "login_client",
-              email: clientEmail,
-              companyName,
-            }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Login failed");
+      if (mode === "login") {
+        const res = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "login_client",
+            email: clientEmail,
+            companyName,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Login failed");
 
-          setSuccessMsg(`Welcome back, ${data.user?.name || "Client"}! Redirecting...`);
-          sessionStorage.setItem("chaanbean_session_active", "true");
-          localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "client", user: data.user }));
-          document.cookie = "chaanbean_session=client; path=/; max-age=86400";
-          document.cookie = "chaanbean_subscription=active; path=/; max-age=7776000";
-          if (data.user?.companyId) {
-            document.cookie = `chaanbean_company_id=${data.user.companyId}; path=/; max-age=86400`;
-          }
-          if (data.user?.name) {
-            document.cookie = `chaanbean_company_name=${encodeURIComponent(data.user.name)}; path=/; max-age=86400`;
-          }
-          setTimeout(() => router.push("/background-check"), 700);
-        } else {
-          // Register client
-          const res = await fetch("/api/auth", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action: "register_client",
-              fullName,
-              companyName,
-              email: clientEmail,
-              phone,
-              pan,
-              gstin,
-              plan,
-            }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Registration failed");
-
-          setSuccessMsg("Enterprise account registered successfully! Entering AI Credit Check...");
-          sessionStorage.setItem("chaanbean_session_active", "true");
-          localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "client", user: data.user }));
-          document.cookie = "chaanbean_session=client; path=/; max-age=86400";
-          document.cookie = "chaanbean_subscription=active; path=/; max-age=7776000";
-          setTimeout(() => router.push("/background-check"), 700);
+        setSuccessMsg(`Welcome back, ${data.user?.name || "Client"}! Redirecting...`);
+        sessionStorage.setItem("chaanbean_session_active", "true");
+        localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "client", user: data.user }));
+        document.cookie = "chaanbean_session=client; path=/; max-age=86400";
+        document.cookie = "chaanbean_subscription=active; path=/; max-age=7776000";
+        if (data.user?.companyId) {
+          document.cookie = `chaanbean_company_id=${data.user.companyId}; path=/; max-age=86400`;
         }
+        if (data.user?.name) {
+          document.cookie = `chaanbean_company_name=${encodeURIComponent(data.user.name)}; path=/; max-age=86400`;
+        }
+        setTimeout(() => router.push("/background-check"), 600);
       } else {
-        // Admin portal
-        if (mode === "login") {
-          const res = await fetch("/api/auth", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action: "login_admin",
-              email: adminEmail,
-              password: adminPassword,
-            }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Admin login failed");
+        // Register client
+        const res = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "register_client",
+            fullName,
+            companyName,
+            email: clientEmail,
+            phone,
+            pan,
+            gstin,
+            plan,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Registration failed");
 
-          setSuccessMsg(`Authorized as Administrator (${data.user?.role}). Redirecting to Admin OS...`);
-          sessionStorage.setItem("chaanbean_session_active", "true");
-          localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "admin", user: data.user }));
-          localStorage.setItem("chaanbean_admin_role", data.user?.role || "owner");
-          document.cookie = "chaanbean_session=admin; path=/; max-age=86400";
-          document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
-          setTimeout(() => router.push("/admin"), 700);
-        } else {
-          // Register admin
-          const res = await fetch("/api/auth", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action: "register_admin",
-              name: adminName,
-              email: adminEmail,
-              securityKey: securityKey || "CHAANBEAN-ROOT-2026",
-              role: adminRole,
-            }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Admin registration failed");
-
-          setSuccessMsg("Administrator registered successfully! Entering Admin OS...");
-          sessionStorage.setItem("chaanbean_session_active", "true");
-          localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "admin", user: data.user }));
-          localStorage.setItem("chaanbean_admin_role", data.user?.role || "owner");
-          document.cookie = "chaanbean_session=admin; path=/; max-age=86400";
-          document.cookie = "chaanbean_subscription=active; path=/; max-age=2592000";
-          setTimeout(() => router.push("/admin"), 700);
-        }
+        setSuccessMsg("Enterprise account registered successfully! Entering AI Credit Check...");
+        sessionStorage.setItem("chaanbean_session_active", "true");
+        localStorage.setItem("chaanbean_auth", JSON.stringify({ type: "client", user: data.user }));
+        document.cookie = "chaanbean_session=client; path=/; max-age=86400";
+        document.cookie = "chaanbean_subscription=active; path=/; max-age=7776000";
+        setTimeout(() => router.push("/background-check"), 600);
       }
     } catch (err: any) {
       setError(err.message || "Authentication error occurred.");
@@ -194,7 +128,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 bg-slate-50 text-slate-900 dark:bg-[#0B0F17] dark:text-white transition-colors duration-200">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 bg-slate-50 text-slate-900 dark:bg-[#0B0F17] dark:text-white transition-colors duration-200 font-sans">
       {/* Top Right Header: Theme Switcher & Watch Intro */}
       <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
         <ThemeToggle />
@@ -208,7 +142,7 @@ export default function LoginPage() {
         </Link>
       </div>
 
-      {/* Ambient Crimson Glow */}
+      {/* Ambient Glow */}
       <div
         className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[500px] -translate-x-1/2 rounded-full blur-[140px] opacity-15 dark:opacity-25"
         style={{ background: "radial-gradient(circle, #FC8019 0%, rgba(252, 128, 25,0) 70%)" }}
@@ -232,7 +166,7 @@ export default function LoginPage() {
               <span className="text-[#FC8019]">Bean</span>
             </span>
             <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-mono tracking-wider uppercase">
-              B2B Credit Recovery & Verification
+              B2B Credit Recovery &amp; Verification
             </span>
           </div>
         </Link>
@@ -240,53 +174,18 @@ export default function LoginPage() {
 
       {/* Auth Card Container */}
       <div className="relative z-10 w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-6 lg:p-8 shadow-2xl backdrop-blur-md">
-        {/* Portal Switcher Tabs */}
-        <div className="grid grid-cols-2 gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-950 p-1 mb-6 border border-slate-200 dark:border-slate-800">
-          <button
-            type="button"
-            onClick={() => {
-              setPortal("client");
-              setError(null);
-            }}
-            className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold transition ${
-              portal === "client"
-                ? "bg-[#FC8019] text-white shadow-md shadow-[#FC8019]/20"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-            }`}
-          >
-            <Building2 size={15} />
-            <span>Client Portal</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setPortal("admin");
-              setError(null);
-            }}
-            className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold transition ${
-              portal === "admin"
-                ? "bg-[#FC8019] text-white shadow-md shadow-[#FC8019]/20"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-            }`}
-          >
-            <ShieldCheck size={15} />
-            <span>Admin Desk</span>
-          </button>
-        </div>
-
         {/* Sub-Mode Toggle: Sign In vs Register */}
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-5">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <button
               type="button"
               onClick={() => {
                 setMode("login");
                 setError(null);
               }}
-              className={`text-sm font-bold transition pb-1 border-b-2 ${
+              className={`text-sm font-bold transition pb-1.5 border-b-2 ${
                 mode === "login"
-                  ? "text-slate-900 dark:text-white border-[#FC8019]"
+                  ? "text-[#FC8019] border-[#FC8019]"
                   : "text-slate-500 border-transparent hover:text-slate-800 dark:hover:text-slate-300"
               }`}
             >
@@ -298,9 +197,9 @@ export default function LoginPage() {
                 setMode("register");
                 setError(null);
               }}
-              className={`text-sm font-bold transition pb-1 border-b-2 ${
+              className={`text-sm font-bold transition pb-1.5 border-b-2 ${
                 mode === "register"
-                  ? "text-slate-900 dark:text-white border-[#FC8019]"
+                  ? "text-[#FC8019] border-[#FC8019]"
                   : "text-slate-500 border-transparent hover:text-slate-800 dark:hover:text-slate-300"
               }`}
             >
@@ -309,7 +208,7 @@ export default function LoginPage() {
           </div>
 
           <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
-            {portal === "client" ? "Enterprise Client" : "Admin Operations"}
+            Client Access
           </span>
         </div>
 
@@ -330,8 +229,7 @@ export default function LoginPage() {
 
         {/* FORM BODY */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* ==================== CLIENT SIGN IN ==================== */}
-          {portal === "client" && mode === "login" && (
+          {mode === "login" ? (
             <>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
@@ -367,28 +265,26 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-2 pt-1">
+              {/* Quick Fill Demo Credentials */}
+              <div className="flex flex-col gap-1.5 pt-1">
                 <button
                   type="button"
                   onClick={fillEnterpriseClient}
-                  className="text-[11px] font-bold text-amber-500 hover:text-amber-400 hover:underline transition flex items-center gap-1"
+                  className="text-left text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline transition flex items-center gap-1.5"
                 >
-                  <Sparkles size={12} />
+                  <Sparkles size={12} className="text-amber-500 shrink-0" />
                   <span>ABC Industry (Enterprise Plan · 3 Scenarios)</span>
                 </button>
                 <button
                   type="button"
                   onClick={fillSampleClient}
-                  className="text-[11px] font-semibold text-slate-400 hover:text-slate-200 hover:underline transition"
+                  className="text-left text-[11px] font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 hover:underline transition"
                 >
                   Acme Traders (Clean First-Time Login)
                 </button>
               </div>
             </>
-          )}
-
-          {/* ==================== CLIENT REGISTRATION ==================== */}
-          {portal === "client" && mode === "register" && (
+          ) : (
             <>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -504,125 +400,6 @@ export default function LoginPage() {
             </>
           )}
 
-          {/* ==================== ADMIN SIGN IN ==================== */}
-          {portal === "admin" && mode === "login" && (
-            <>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Administrator Email
-                </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] transition">
-                  <Mail size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="owner@chaanbean.in"
-                    value={adminEmail}
-                    onChange={(e) => setAdminEmail(e.target.value)}
-                    className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Admin Passkey / Security Key
-                </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] transition">
-                  <KeyRound size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••••••"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={fillSampleAdmin}
-                  className="text-[11px] font-semibold text-[#FC8019] hover:text-[#E26D0A] hover:underline transition"
-                >
-                  Fill Sample Admin Credentials (Owner)
-                </button>
-              </div>
-            </>
-          )}
-
-          {/* ==================== ADMIN REGISTRATION ==================== */}
-          {portal === "admin" && mode === "register" && (
-            <>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Administrator Full Name *
-                </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] transition">
-                  <User size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Siddharth Verma"
-                    value={adminName}
-                    onChange={(e) => setAdminName(e.target.value)}
-                    className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Official Admin Email *
-                </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] transition">
-                  <Mail size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="officer@chaanbean.in"
-                    value={adminEmail}
-                    onChange={(e) => setAdminEmail(e.target.value)}
-                    className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Master Security Key *
-                </label>
-                <div className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2.5 focus-within:border-[#FC8019] transition">
-                  <KeyRound size={16} className="text-slate-400 dark:text-slate-500 mr-2 shrink-0" />
-                  <input
-                    type="text"
-                    required
-                    placeholder="CHAANBEAN-ROOT-2026"
-                    value={securityKey}
-                    onChange={(e) => setSecurityKey(e.target.value)}
-                    className="w-full bg-transparent text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Role Assignment
-                </label>
-                <select
-                  value={adminRole}
-                  onChange={(e) => setAdminRole(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-[#FC8019]"
-                >
-                  <option value="owner" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">System Owner (Full MRR & Pipeline Access)</option>
-                  <option value="team_member" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Team Member (CRM & Pipeline Operator)</option>
-                </select>
-              </div>
-            </>
-          )}
-
           {/* Submit Action Button */}
           <button
             type="submit"
@@ -632,18 +409,12 @@ export default function LoginPage() {
             {loading ? (
               <>
                 <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                <span>Authenticating with Prisma...</span>
+                <span>Authenticating with ChaanBean...</span>
               </>
             ) : (
               <>
                 <span>
-                  {mode === "login"
-                    ? portal === "client"
-                      ? "Sign In to Client Portal"
-                      : "Sign In to Admin OS"
-                    : portal === "client"
-                    ? "Register Enterprise Account"
-                    : "Register Admin Officer"}
+                  {mode === "login" ? "Sign In to Client Account" : "Register Enterprise Account"}
                 </span>
                 <ArrowRight size={15} />
               </>

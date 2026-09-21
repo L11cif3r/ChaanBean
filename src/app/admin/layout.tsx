@@ -3,35 +3,54 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   GitPullRequest,
   Users2,
   TrendingUp,
   DollarSign,
-  ArrowLeft,
-  ShieldAlert,
   UserCheck,
   Building,
-  RotateCcw,
   LogOut,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const pathname = usePathname();
   const [role, setRole] = useState<"owner" | "team_member">("owner");
+
+  useEffect(() => {
+    if (pathname === "/admin/login") return;
+    const auth =
+      sessionStorage.getItem("chaanbean_admin_auth") ||
+      localStorage.getItem("chaanbean_admin_role");
+    if (!auth) {
+      router.push("/admin/login");
+    }
+  }, [pathname, router]);
 
   useEffect(() => {
     const saved = localStorage.getItem("chaanbean_admin_role") as "owner" | "team_member" | null;
     if (saved) setRole(saved);
   }, []);
 
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
+
   const switchRole = (newRole: "owner" | "team_member") => {
     setRole(newRole);
     localStorage.setItem("chaanbean_admin_role", newRole);
     window.location.reload();
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("chaanbean_admin_auth");
+    localStorage.removeItem("chaanbean_admin_role");
+    document.cookie = "chaanbean_admin_session=; path=/; max-age=0";
+    router.push("/admin/login");
   };
 
   const navItems = [
@@ -63,7 +82,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
           {/* Active Role Selector (Owner vs Team Member) */}
           <div className="flex items-center gap-2 bg-slate-900 border border-slate-700/80 rounded-lg p-1 text-xs">
             <span className="text-slate-400 ml-1.5 flex items-center gap-1">
@@ -83,14 +102,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Theme Switcher (Dark Mode / Bright Mode) */}
           <ThemeToggle />
 
-          {/* Return to Customer Portal */}
-          <Link
-            href="/"
-            className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/80 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition"
+          {/* Sign Out from Admin Desk */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/80 px-3 py-1.5 text-xs font-semibold text-rose-400 hover:bg-rose-950/60 hover:text-rose-300 transition"
+            title="Sign Out of Admin Desk"
           >
-            <ArrowLeft size={14} />
-            Customer Portal
-          </Link>
+            <LogOut size={14} />
+            <span>Sign Out</span>
+          </button>
         </div>
       </header>
 
