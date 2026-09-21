@@ -57,7 +57,6 @@ export default function LandingPage() {
       subtext: "Protecting Indian MSMEs & trade credit since 2022",
       icon: Clock,
       color: "text-[#FC8019]",
-      bg: "bg-orange-50 dark:bg-orange-950/40 border-orange-200 dark:border-orange-800",
     },
     {
       value: "₹1,500+ Cr",
@@ -65,7 +64,6 @@ export default function LandingPage() {
       subtext: "Overdue commercial capital credited directly into client bank accounts",
       icon: TrendingUp,
       color: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800",
     },
     {
       value: "2,000+",
@@ -73,7 +71,6 @@ export default function LandingPage() {
       subtext: "Delinquent payment defaults resolved without courtroom litigation",
       icon: Award,
       color: "text-blue-600 dark:text-blue-400",
-      bg: "bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800",
     },
     {
       value: "100,000+",
@@ -81,7 +78,6 @@ export default function LandingPage() {
       subtext: "Active corporate, GST, and MSME entity profiles continuously audited",
       icon: ShieldCheck,
       color: "text-purple-600 dark:text-purple-400",
-      bg: "bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800",
     },
   ];
 
@@ -331,11 +327,11 @@ export default function LandingPage() {
             <a href="#services" className="hover:text-[#FC8019] transition-colors">
               Services
             </a>
-            <a href="#milestones" className="hover:text-[#FC8019] transition-colors">
-              Track Record
-            </a>
             <a href="#loans" className="hover:text-[#FC8019] transition-colors">
               Loans
+            </a>
+            <a href="#milestones" className="hover:text-[#FC8019] transition-colors">
+              Track Record
             </a>
             <a href="#testimonials" className="hover:text-[#FC8019] transition-colors">
               Testimonials
@@ -389,18 +385,18 @@ export default function LandingPage() {
               Services
             </a>
             <a
-              href="#milestones"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
-            >
-              Track Record & Proof
-            </a>
-            <a
               href="#loans"
               onClick={() => setMobileMenuOpen(false)}
               className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
             >
               Business & Working Capital Loans
+            </a>
+            <a
+              href="#milestones"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
+            >
+              Track Record & Proof
             </a>
             <a
               href="#testimonials"
@@ -505,64 +501,6 @@ export default function LandingPage() {
               <CheckCircle2 size={16} className="text-emerald-500" />
               <span>100% Safe & Confidential</span>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Proof & Milestones Section */}
-      <section id="milestones" className="relative overflow-hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F17]/90 px-6 py-16 scroll-mt-16 z-10">
-        <div className="relative mx-auto max-w-7xl z-10">
-          <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] border border-orange-200 dark:border-orange-800">
-              <BadgeCheck size={14} />
-              <span>Proven Track Record &amp; Capabilities</span>
-            </span>
-            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-              Real Numbers. Verified Recoveries.
-            </h2>
-            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 font-medium">
-              Over the last 4 years, ChaanBean has delivered decisive recovery outcomes and credit intelligence for Indian businesses.
-            </p>
-          </div>
-
-          {/* 4 Big Milestone Stat Cards */}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {milestones.map((m, idx) => {
-              const Icon = m.icon;
-              return (
-                <div
-                  key={idx}
-                  className={`relative rounded-3xl border-2 ${m.bg} p-6 sm:p-7 shadow-md hover:shadow-xl transition-all duration-300 group flex flex-col justify-between`}
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className={`p-3 rounded-2xl bg-white dark:bg-slate-900 shadow-sm ${m.color}`}>
-                        <Icon size={24} />
-                      </div>
-                      <span className="text-xs font-mono font-bold text-slate-400 dark:text-slate-500 uppercase">
-                        Milestone 0{idx + 1}
-                      </span>
-                    </div>
-                    <div>
-                      <div className={`text-3xl sm:text-4xl font-black tracking-tight ${m.color}`}>
-                        {m.value}
-                      </div>
-                      <div className="text-base font-extrabold text-slate-900 dark:text-white mt-1">
-                        {m.label}
-                      </div>
-                    </div>
-                    <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-                      {m.subtext}
-                    </p>
-                  </div>
-
-                  <div className="pt-4 mt-4 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-                    <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
-                    <span>Verified Platform Metric</span>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       </section>
@@ -754,6 +692,64 @@ export default function LandingPage() {
               <span>Explore Loan Portal &amp; Calculator</span>
               <ArrowRight size={16} />
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Proof & Milestones Section - Seamless On Page (No card/colored backgrounds) */}
+      <section id="milestones" className="relative overflow-hidden px-6 py-20 border-t border-slate-200 dark:border-slate-800 scroll-mt-16 z-10">
+        <div className="relative mx-auto max-w-7xl z-10 space-y-12">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] border border-orange-200 dark:border-orange-800">
+              <BadgeCheck size={14} />
+              <span>Proven Track Record &amp; Capabilities</span>
+            </span>
+            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+              Real Numbers. Verified Recoveries.
+            </h2>
+            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 font-medium">
+              Over the last 4 years, ChaanBean has delivered decisive recovery outcomes and credit intelligence for Indian businesses.
+            </p>
+          </div>
+
+          {/* 4 Big Milestone Stat Columns directly on the page without background cards */}
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-800">
+            {milestones.map((m, idx) => {
+              const Icon = m.icon;
+              return (
+                <div
+                  key={idx}
+                  className="pt-6 sm:pt-0 lg:px-6 first:lg:pl-0 last:lg:pr-0 flex flex-col justify-between space-y-4"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="p-2.5 rounded-xl bg-orange-100/70 dark:bg-orange-950/50 text-[#FC8019]">
+                        <Icon size={22} />
+                      </div>
+                      <span className="text-xs font-mono font-bold text-slate-400 dark:text-slate-500 uppercase">
+                        Milestone 0{idx + 1}
+                      </span>
+                    </div>
+                    <div>
+                      <div className={`text-3xl sm:text-4xl font-black tracking-tight ${m.color}`}>
+                        {m.value}
+                      </div>
+                      <div className="text-base font-extrabold text-slate-900 dark:text-white mt-1">
+                        {m.label}
+                      </div>
+                    </div>
+                    <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
+                      {m.subtext}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+                    <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                    <span>Verified Platform Metric</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
