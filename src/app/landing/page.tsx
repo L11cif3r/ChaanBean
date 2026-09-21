@@ -54,30 +54,18 @@ export default function LandingPage() {
     {
       value: "4 Years",
       label: "Years of Service",
-      subtext: "Protecting Indian MSMEs & trade credit since 2022",
-      icon: Clock,
-      color: "text-[#FC8019]",
     },
     {
-      value: "₹1,500+ Cr",
-      label: "Crore Received",
-      subtext: "Overdue commercial capital credited directly into client bank accounts",
-      icon: TrendingUp,
-      color: "text-emerald-600 dark:text-emerald-400",
+      value: "1,500 Cr",
+      label: "Received",
     },
     {
       value: "2,000+",
       label: "Recovered Cases",
-      subtext: "Delinquent payment defaults resolved without courtroom litigation",
-      icon: Award,
-      color: "text-blue-600 dark:text-blue-400",
     },
     {
-      value: "100,000+",
+      value: "100K+",
       label: "Company Data",
-      subtext: "Active corporate, GST, and MSME entity profiles continuously audited",
-      icon: ShieldCheck,
-      color: "text-purple-600 dark:text-purple-400",
     },
   ];
 
@@ -696,60 +684,20 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Proof & Milestones Section - Seamless On Page (No card/colored backgrounds) */}
-      <section id="milestones" className="relative overflow-hidden px-6 py-20 border-t border-slate-200 dark:border-slate-800 scroll-mt-16 z-10">
-        <div className="relative mx-auto max-w-7xl z-10 space-y-12">
-          <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] border border-orange-200 dark:border-orange-800">
-              <BadgeCheck size={14} />
-              <span>Proven Track Record &amp; Capabilities</span>
-            </span>
-            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-              Real Numbers. Verified Recoveries.
-            </h2>
-            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 font-medium">
-              Over the last 4 years, ChaanBean has delivered decisive recovery outcomes and credit intelligence for Indian businesses.
-            </p>
-          </div>
-
-          {/* 4 Big Milestone Stat Columns directly on the page without background cards */}
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-800">
-            {milestones.map((m, idx) => {
-              const Icon = m.icon;
-              return (
-                <div
-                  key={idx}
-                  className="pt-6 sm:pt-0 lg:px-6 first:lg:pl-0 last:lg:pr-0 flex flex-col justify-between space-y-4"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="p-2.5 rounded-xl bg-orange-100/70 dark:bg-orange-950/50 text-[#FC8019]">
-                        <Icon size={22} />
-                      </div>
-                      <span className="text-xs font-mono font-bold text-slate-400 dark:text-slate-500 uppercase">
-                        Milestone 0{idx + 1}
-                      </span>
-                    </div>
-                    <div>
-                      <div className={`text-3xl sm:text-4xl font-black tracking-tight ${m.color}`}>
-                        {m.value}
-                      </div>
-                      <div className="text-base font-extrabold text-slate-900 dark:text-white mt-1">
-                        {m.label}
-                      </div>
-                    </div>
-                    <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
-                      {m.subtext}
-                    </p>
-                  </div>
-
-                  <div className="pt-3 flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-                    <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
-                    <span>Verified Platform Metric</span>
-                  </div>
+      {/* Proof & Milestones Section - Pure Minimalist Stat Strip on Page Body (No background, all same orange) */}
+      <section id="milestones" className="relative px-6 py-14 border-t border-slate-200 dark:border-slate-800 scroll-mt-16 z-10">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            {milestones.map((m, idx) => (
+              <div key={idx} className="space-y-1.5">
+                <div className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[#FC8019]">
+                  {m.value}
                 </div>
-              );
-            })}
+                <div className="text-xs sm:text-sm lg:text-base font-bold text-slate-800 dark:text-slate-200">
+                  {m.label}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
