@@ -3,12 +3,14 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Globe, Wallet, ShieldCheck, LogOut, FileText, Clock } from "lucide-react";
+import { Globe, Wallet, ShieldCheck, LogOut, FileText, Clock, PanelLeftClose, PanelLeftOpen, Menu } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { useSidebar } from "./SidebarContext";
 
 export function Header() {
+  const { isCollapsed, toggleCollapse, toggleMobile } = useSidebar();
   const { language, setLanguage, t } = useLanguage();
   const [walletBalance, setWalletBalance] = useState<number>(100000);
   const [daysRemaining, setDaysRemaining] = useState<number>(90);
@@ -66,17 +68,30 @@ export function Header() {
   }, [refreshWallet]);
 
   return (
-    <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0D1322]/95 backdrop-blur-md px-6 flex items-center justify-between gap-4 text-sm text-slate-800 dark:text-slate-100 shrink-0 z-30">
-      {/* Left: Organization & KYC Status */}
-      <div className="flex items-center gap-3 shrink-0">
-        <Link href="/background-check" className="flex items-center gap-2 md:hidden">
-          <div className="relative h-7 w-9 shrink-0">
-            <Image src="/logo.png" alt="ChaanBean Logo" fill className="object-contain" priority />
-          </div>
-        </Link>
+    <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0D1322]/95 backdrop-blur-md px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-4 text-sm text-slate-800 dark:text-slate-100 shrink-0 z-30">
+      {/* Left: Sidebar Fold/Expand Toggle + Organization */}
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <button
+          type="button"
+          onClick={() => {
+            if (typeof window !== "undefined" && window.innerWidth < 1024) {
+              toggleMobile();
+            } else {
+              toggleCollapse();
+            }
+          }}
+          className="p-1.5 sm:p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-[#FC8019] hover:bg-orange-50 dark:hover:bg-orange-950/40 border border-slate-200 dark:border-slate-700 transition"
+          title={isCollapsed ? "Expand Core Operating Stations (Unfold)" : "Fold Core Operating Stations to Left"}
+          aria-label="Toggle Core Operating Stations"
+        >
+          {isCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+        </button>
+
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-900 dark:text-white tracking-tight">{companyName}</span>
-          <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 font-mono font-semibold">
+          <span className="font-semibold text-slate-900 dark:text-white tracking-tight truncate max-w-[90px] sm:max-w-[160px] md:max-w-none text-xs sm:text-sm">
+            {companyName}
+          </span>
+          <span className="hidden sm:flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 font-mono font-semibold">
             <ShieldCheck size={11} />
             KYC Verified
           </span>
@@ -84,21 +99,21 @@ export function Header() {
       </div>
 
       {/* Center: Prominent Global Database Search Bar */}
-      <div className="flex-1 max-w-xl mx-4">
+      <div className="flex-1 max-w-xl mx-2 sm:mx-4 min-w-0">
         <GlobalSearch />
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Wallet Balance Pill with 3-Month Validity Indicator */}
         <Link
           href="/subscription"
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-50/80 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 text-xs font-mono shadow-sm hover:border-[#FC8019] transition group"
+          className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-orange-50/80 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 text-xs font-mono shadow-sm hover:border-[#FC8019] transition group"
           title={`Wallet Balance: ₹${walletBalance.toLocaleString("en-IN")} · ${planName} (Valid for ${daysRemaining} days)`}
         >
-          <Wallet size={14} className="text-[#FC8019] group-hover:scale-110 transition-transform" />
-          <span className="text-slate-500 dark:text-slate-400 hidden sm:inline">{t.walletBalance}:</span>
-          <span className="font-bold text-[#FC8019]">₹{walletBalance.toLocaleString("en-IN")}</span>
+          <Wallet size={14} className="text-[#FC8019] group-hover:scale-110 transition-transform shrink-0" />
+          <span className="text-slate-500 dark:text-slate-400 hidden md:inline">{t.walletBalance}:</span>
+          <span className="font-bold text-[#FC8019] text-xs">₹{walletBalance.toLocaleString("en-IN")}</span>
           <span className="hidden xl:inline text-[10px] px-1.5 py-0.2 rounded bg-orange-100 dark:bg-orange-950/80 text-orange-700 dark:text-orange-300 font-sans font-semibold">
             {daysRemaining}d left
           </span>
@@ -107,11 +122,11 @@ export function Header() {
         {/* Report Library Direct Access */}
         <Link
           href="/reports"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-xs text-slate-700 dark:text-slate-200 hover:border-[#FC8019] hover:text-[#FC8019] transition shadow-sm font-semibold"
+          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-xs text-slate-700 dark:text-slate-200 hover:border-[#FC8019] hover:text-[#FC8019] transition shadow-sm font-semibold"
           title="Access Your Permanent Purchased Report Library"
         >
           <FileText size={13} className="text-[#FC8019]" />
-          <span className="hidden md:inline">Library</span>
+          <span>Library</span>
         </Link>
 
         {/* System Health Indicator */}
@@ -124,17 +139,17 @@ export function Header() {
         <ThemeToggle />
 
         {/* Language Switcher */}
-        <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg p-1">
+        <div className="hidden sm:flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg p-1">
           <Globe size={13} className="text-slate-500 dark:text-slate-400 ml-1.5" />
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as "en" | "hi" | "ml" | "ta")}
             className="bg-transparent text-xs text-slate-700 dark:text-slate-200 outline-none cursor-pointer pr-1 font-medium"
           >
-            <option value="en" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">English (EN)</option>
-            <option value="hi" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">हिंदी (HI)</option>
-            <option value="ml" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">മലയാളം (ML)</option>
-            <option value="ta" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">தமிழ் (TA)</option>
+            <option value="en" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">EN</option>
+            <option value="hi" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">HI</option>
+            <option value="ml" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">ML</option>
+            <option value="ta" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">TA</option>
           </select>
         </div>
 
@@ -148,11 +163,11 @@ export function Header() {
             document.cookie = "chaanbean_session=; path=/; max-age=0";
             document.cookie = "chaanbean_subscription=; path=/; max-age=0";
           }}
-          className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/90 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-red-300 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50/60 dark:hover:bg-red-950/30 transition shadow-sm"
+          className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/90 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-red-300 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50/60 dark:hover:bg-red-950/30 transition shadow-sm"
           title="Sign Out of Your Account"
         >
           <LogOut size={13} />
-          <span>Sign Out</span>
+          <span className="hidden sm:inline">Sign Out</span>
         </Link>
       </div>
     </header>
