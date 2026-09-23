@@ -3,14 +3,12 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Globe, Wallet, ShieldCheck, LogOut, FileText, Clock, PanelLeftClose, PanelLeftOpen, Menu } from "lucide-react";
+import { Globe, Wallet, ShieldCheck, LogOut, FileText, Clock } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { GlobalSearch } from "@/components/GlobalSearch";
-import { useSidebar } from "./SidebarContext";
 
 export function Header() {
-  const { isCollapsed, toggleCollapse, toggleMobile } = useSidebar();
   const { language, setLanguage, t } = useLanguage();
   const [walletBalance, setWalletBalance] = useState<number>(100000);
   const [daysRemaining, setDaysRemaining] = useState<number>(90);
@@ -69,26 +67,10 @@ export function Header() {
 
   return (
     <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0D1322]/95 backdrop-blur-md px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-4 text-sm text-slate-800 dark:text-slate-100 shrink-0 z-30">
-      {/* Left: Sidebar Fold/Expand Toggle + Organization */}
+      {/* Left: Active Organization / Tenant */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        <button
-          type="button"
-          onClick={() => {
-            if (typeof window !== "undefined" && window.innerWidth < 1024) {
-              toggleMobile();
-            } else {
-              toggleCollapse();
-            }
-          }}
-          className="p-1.5 sm:p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-[#FC8019] hover:bg-orange-50 dark:hover:bg-orange-950/40 border border-slate-200 dark:border-slate-700 transition"
-          title={isCollapsed ? "Expand Core Operating Stations (Unfold)" : "Fold Core Operating Stations to Left"}
-          aria-label="Toggle Core Operating Stations"
-        >
-          {isCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-        </button>
-
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-900 dark:text-white tracking-tight truncate max-w-[90px] sm:max-w-[160px] md:max-w-none text-xs sm:text-sm">
+          <span className="font-semibold text-slate-900 dark:text-white tracking-tight truncate max-w-[120px] sm:max-w-[200px] md:max-w-none text-xs sm:text-sm">
             {companyName}
           </span>
           <span className="hidden sm:flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 font-mono font-semibold">

@@ -26,9 +26,6 @@ import {
   LogOut,
   FileCheck2,
   Sparkles,
-  PanelLeftClose,
-  PanelLeftOpen,
-  X,
 } from "lucide-react";
 import { useSidebar } from "./SidebarContext";
 
@@ -174,11 +171,11 @@ export function Sidebar() {
               <button
                 type="button"
                 onClick={() => setIsMobileOpen(false)}
-                className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-[#FC8019] hover:bg-orange-50 dark:hover:bg-orange-950/50 border border-slate-200 dark:border-slate-700 transition flex items-center gap-1"
-                title="Fold Sidebar to Left"
+                className="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-[#FC8019] hover:bg-orange-50 dark:hover:bg-orange-950/50 border border-slate-200 dark:border-slate-700 transition shadow-xs"
+                title="Fold Sidebar"
+                aria-label="Fold Sidebar"
               >
                 <ChevronLeft size={16} />
-                <span className="text-[11px] font-bold pr-1">Fold</span>
               </button>
             </div>
 
@@ -324,22 +321,21 @@ export function Sidebar() {
             <button
               type="button"
               onClick={toggleCollapse}
-              className="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-50 dark:bg-orange-950/60 text-[#FC8019] border border-orange-200 dark:border-orange-800 hover:bg-[#FC8019] hover:text-white transition shadow-xs group"
-              title="Expand Core Operating Stations (Unfold)"
+              className="w-8 h-8 rounded-xl flex items-center justify-center bg-orange-50 dark:bg-orange-950/60 text-[#FC8019] border border-orange-200 dark:border-orange-800 hover:bg-[#FC8019] hover:text-white transition shadow-xs group"
+              title="Expand Core Operating Stations"
               aria-label="Expand Core Operating Stations"
             >
-              <ChevronRight size={18} className="group-hover:scale-110 transition-transform" />
+              <ChevronRight size={16} className="group-hover:scale-110 transition-transform" />
             </button>
           ) : (
             <button
               type="button"
               onClick={toggleCollapse}
-              className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-[#FC8019] hover:bg-orange-50 dark:hover:bg-orange-950/60 border border-slate-200 dark:border-slate-700 transition flex items-center gap-1 shadow-xs"
-              title="Fold Sidebar to Left Side"
-              aria-label="Fold Sidebar to Left Side"
+              className="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-[#FC8019] hover:bg-orange-50 dark:hover:bg-orange-950/60 border border-slate-200 dark:border-slate-700 transition shadow-xs"
+              title="Fold Sidebar"
+              aria-label="Fold Sidebar"
             >
               <ChevronLeft size={16} />
-              <span className="text-[11px] font-bold pr-1">Fold</span>
             </button>
           )}
         </div>
