@@ -1087,7 +1087,7 @@ export function VerificationRunner({
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+                  <h3 className="mca-company-title text-lg sm:text-xl font-black text-slate-900 dark:text-white">
                     {mcaRecord.companyName}
                   </h3>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
@@ -1133,7 +1133,7 @@ export function VerificationRunner({
               <div>
                 <div className="flex items-center gap-2">
                   <Coins className="text-[#FC8019]" size={22} />
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                  <h3 className="mca-company-title text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                     Unlock Statutory Intelligence &amp; Deep Underwriting Dossiers
                   </h3>
                 </div>

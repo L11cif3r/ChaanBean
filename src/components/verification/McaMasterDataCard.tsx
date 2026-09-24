@@ -124,7 +124,7 @@ export function McaMasterDataCard({
                   </span>
                 )}
               </div>
-              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5">
+              <h2 className="mca-company-title text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5">
                 {record.companyName}
               </h2>
             </div>

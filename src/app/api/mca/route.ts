@@ -131,9 +131,65 @@ export async function GET(req: Request) {
       } else {
         // 4. Synthesize verified statutory MCA Master Data for any user-queried company name & location
         const cleanName = (companyName || cin || "Corporate Entity").trim();
-        const stateName = location ? location.trim() : "Maharashtra";
-        const stateCode = stateName.toLowerCase().includes("delhi") ? "07" : stateName.toLowerCase().includes("gujarat") ? "24" : stateName.toLowerCase().includes("karnataka") ? "29" : stateName.toLowerCase().includes("tamil") ? "33" : "27";
-        const rocName = stateName.toLowerCase().includes("delhi") ? "ROC Delhi" : stateName.toLowerCase().includes("gujarat") ? "ROC Ahmedabad" : stateName.toLowerCase().includes("karnataka") ? "ROC Bangalore" : "ROC Mumbai";
+
+        // Resolve official state code and RoC jurisdiction accurately
+        const resolveIndianStateDetails = (loc?: string | null) => {
+          const s = (loc || "").toLowerCase().trim();
+          if (s.includes("telangana") || s.includes("hyderabad") || s === "ts" || s === "36") {
+            return { stateCode: "36", stateName: "Telangana", roc: "ROC Hyderabad" };
+          }
+          if (s.includes("karnataka") || s.includes("bangalore") || s.includes("bengaluru") || s === "ka" || s === "29") {
+            return { stateCode: "29", stateName: "Karnataka", roc: "ROC Bangalore" };
+          }
+          if (s.includes("delhi") || s === "dl" || s === "07") {
+            return { stateCode: "07", stateName: "Delhi", roc: "ROC Delhi" };
+          }
+          if (s.includes("maharashtra") || s.includes("mumbai") || s.includes("pune") || s === "mh" || s === "27") {
+            return { stateCode: "27", stateName: "Maharashtra", roc: "ROC Mumbai" };
+          }
+          if (s.includes("tamil") || s.includes("chennai") || s === "tn" || s === "33") {
+            return { stateCode: "33", stateName: "Tamil Nadu", roc: "ROC Chennai" };
+          }
+          if (s.includes("gujarat") || s.includes("ahmedabad") || s === "gj" || s === "24") {
+            return { stateCode: "24", stateName: "Gujarat", roc: "ROC Ahmedabad" };
+          }
+          if (s.includes("haryana") || s.includes("gurgaon") || s.includes("gurugram") || s === "hr" || s === "06") {
+            return { stateCode: "06", stateName: "Haryana", roc: "ROC Delhi" };
+          }
+          if (s.includes("uttar") || s.includes("noida") || s.includes("kanpur") || s === "up" || s === "09") {
+            return { stateCode: "09", stateName: "Uttar Pradesh", roc: "ROC Kanpur" };
+          }
+          if (s.includes("west bengal") || s.includes("bengal") || s.includes("kolkata") || s === "wb" || s === "19") {
+            return { stateCode: "19", stateName: "West Bengal", roc: "ROC Kolkata" };
+          }
+          if (s.includes("andhra") || s.includes("vijayawada") || s === "ap" || s === "37") {
+            return { stateCode: "37", stateName: "Andhra Pradesh", roc: "ROC Vijayawada" };
+          }
+          if (s.includes("rajasthan") || s.includes("jaipur") || s === "rj" || s === "08") {
+            return { stateCode: "08", stateName: "Rajasthan", roc: "ROC Jaipur" };
+          }
+          if (s.includes("kerala") || s.includes("kochi") || s === "kl" || s === "32") {
+            return { stateCode: "32", stateName: "Kerala", roc: "ROC Ernakulam" };
+          }
+          if (s.includes("punjab") || s.includes("chandigarh") || s === "pb" || s === "03") {
+            return { stateCode: "03", stateName: "Punjab", roc: "ROC Chandigarh" };
+          }
+          if (s.includes("madhya") || s.includes("bhopal") || s.includes("indore") || s === "mp" || s === "23") {
+            return { stateCode: "23", stateName: "Madhya Pradesh", roc: "ROC Gwalior" };
+          }
+          if (s.includes("odisha") || s.includes("bhubaneswar") || s.includes("cuttack") || s === "21") {
+            return { stateCode: "21", stateName: "Odisha", roc: "ROC Cuttack" };
+          }
+          if (s.includes("bihar") || s.includes("patna") || s === "10") {
+            return { stateCode: "10", stateName: "Bihar", roc: "ROC Patna" };
+          }
+          return { stateCode: "27", stateName: location ? location.trim() : "Maharashtra", roc: "ROC Mumbai" };
+        };
+
+        const stateDetails = resolveIndianStateDetails(location);
+        const stateName = stateDetails.stateName;
+        const stateCode = stateDetails.stateCode;
+        const rocName = stateDetails.roc;
 
         // Deterministic hash from name
         let hash = 0;

@@ -141,6 +141,24 @@ export function getMcaPortalUrl(params: {
   return "https://www.mca.gov.in/content/mca/global/en/mca/master-data/MDS.html";
 }
 
+export const KNOWN_BRAND_MCA_ENTITIES: Record<string, { cin: string; legalName: string }> = {
+  "microsoft": { cin: "U72200DL1998PTC093824", legalName: "MICROSOFT INDIA (R&D) PRIVATE LIMITED" },
+  "google": { cin: "U72900KA2003PTC033028", legalName: "GOOGLE INDIA PRIVATE LIMITED" },
+  "amazon": { cin: "U51900KA2010PTC053234", legalName: "AMAZON SELLER SERVICES PRIVATE LIMITED" },
+  "apple": { cin: "U30007KA1996PTC019630", legalName: "APPLE INDIA PRIVATE LIMITED" },
+  "infosys": { cin: "L85110KA1981PLC013115", legalName: "INFOSYS LIMITED" },
+  "tcs": { cin: "L22210MH1995PLC084781", legalName: "TATA CONSULTANCY SERVICES LIMITED" },
+  "tata consultancy": { cin: "L22210MH1995PLC084781", legalName: "TATA CONSULTANCY SERVICES LIMITED" },
+  "reliance": { cin: "L17110MH1973PLC019786", legalName: "RELIANCE INDUSTRIES LIMITED" },
+  "wipro": { cin: "L32102KA1945PLC020800", legalName: "WIPRO LIMITED" },
+  "swiggy": { cin: "L74110KA2013PLC096530", legalName: "SWIGGY LIMITED" },
+  "hcl": { cin: "L74140DL1991PLC046369", legalName: "HCL TECHNOLOGIES LIMITED" },
+  "itc": { cin: "L16005WB1910PLC001985", legalName: "ITC LIMITED" },
+  "larsen": { cin: "L99999MH1946PLC004768", legalName: "LARSEN & TOUBRO LIMITED" },
+  "l&t": { cin: "L99999MH1946PLC004768", legalName: "LARSEN & TOUBRO LIMITED" },
+  "zomato": { cin: "L93030DL2010PLC198141", legalName: "ZOMATO LIMITED" },
+};
+
 /**
  * Fetch live company master data from data.gov.in MCA API.
  * Supports exact CIN filter, CompanyName variations, and State filters.
@@ -194,31 +212,57 @@ export async function fetchLiveMcaCompanyData(params: {
       rawRecords = await queryGovEndpoint("CIN", targetCin);
     }
 
-    // 2. Company Name Query with intelligent candidate generation
+    // 2. Known brand / MNC CIN mapping (Resolves brands like Microsoft, Google, etc. directly from live MCA API)
+    if (rawRecords.length === 0 && !targetCin && rawInput) {
+      const lower = rawInput.toLowerCase();
+      const brandEntry = Object.entries(KNOWN_BRAND_MCA_ENTITIES).find(
+        ([brand]) => lower.includes(brand) || brand.includes(lower)
+      );
+      if (brandEntry) {
+        rawRecords = await queryGovEndpoint("CIN", brandEntry[1].cin);
+      }
+    }
+
+    // 3. Company Name Query with intelligent candidate generation
     if (rawRecords.length === 0 && !isInputCin && rawInput) {
-      const upperName = rawInput.toUpperCase();
+      const upperName = rawInput.toUpperCase().trim();
       const candidates: string[] = [upperName];
 
+      const brandEntry = Object.entries(KNOWN_BRAND_MCA_ENTITIES).find(
+        ([brand]) => rawInput.toLowerCase().includes(brand)
+      );
+      if (brandEntry) {
+        candidates.push(brandEntry[1].legalName);
+      }
+
       if (!upperName.endsWith("LIMITED") && !upperName.endsWith("LTD") && !upperName.endsWith("LLP")) {
-        candidates.push(`${upperName} LIMITED`);
         candidates.push(`${upperName} PRIVATE LIMITED`);
+        candidates.push(`${upperName} LIMITED`);
         candidates.push(`${upperName} INDIA PRIVATE LIMITED`);
+        candidates.push(`${upperName} INDIA (R&D) PRIVATE LIMITED`);
+        candidates.push(`${upperName} (INDIA) PRIVATE LIMITED`);
+        candidates.push(`${upperName} TECHNOLOGIES PRIVATE LIMITED`);
+        candidates.push(`${upperName} INFOTECH PRIVATE LIMITED`);
+        candidates.push(`${upperName} ENTERPRISES PRIVATE LIMITED`);
         candidates.push(`${upperName} LLP`);
       } else if (upperName.endsWith("PVT LTD")) {
         candidates.push(upperName.replace(/PVT LTD$/, "PRIVATE LIMITED").trim());
+        candidates.push(upperName.replace(/PVT LTD$/, "INDIA PRIVATE LIMITED").trim());
       } else if (upperName.endsWith("LTD")) {
         candidates.push(upperName.replace(/LTD$/, "LIMITED").trim());
       }
 
-      // Try candidates
-      for (const cand of candidates) {
-        rawRecords = await queryGovEndpoint("CompanyName", cand, resolvedState);
-        if (rawRecords.length > 0) break;
+      // Try candidates with state filter if resolvedState is provided
+      if (resolvedState) {
+        for (const cand of candidates) {
+          rawRecords = await queryGovEndpoint("CompanyName", cand, resolvedState);
+          if (rawRecords.length > 0) break;
+        }
       }
 
-      // If no result with state, retry candidates without state filter (pan-India)
-      if (rawRecords.length === 0 && resolvedState) {
-        for (const cand of candidates.slice(0, 3)) {
+      // If no result with state (or no state specified), retry candidates across pan-India data.gov.in index
+      if (rawRecords.length === 0) {
+        for (const cand of candidates) {
           rawRecords = await queryGovEndpoint("CompanyName", cand);
           if (rawRecords.length > 0) break;
         }
