@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   REPORT_LABELS,
   REPORT_CACHE_TTL_HOURS,
@@ -13,6 +13,8 @@ import { FeatureBlockCard } from "./verification/FeatureBlockCard";
 import { FeatureRunnerModal } from "./verification/FeatureRunnerModal";
 import { ReportResultView } from "./verification/ReportResultView";
 import { ReportLibraryView } from "./ReportLibraryView";
+import { McaMasterDataCard, type McaRecord } from "./verification/McaMasterDataCard";
+import { PaywalledFeatureCard } from "./verification/PaywalledFeatureCard";
 import {
   Search,
   Zap,
@@ -42,6 +44,8 @@ import {
   X,
   Target,
   Filter,
+  RotateCcw,
+  AlertCircle,
 } from "lucide-react";
 
 interface VerificationRunnerProps {
@@ -473,16 +477,83 @@ export const ALL_18_FEATURES: FeatureItem[] = [
 
 export const ALL_AI_CREDIT_FEATURES = ALL_18_FEATURES;
 
+const DEFAULT_ACME_RECORD: McaRecord = {
+  cin: "U74999MH2019PTC328491",
+  companyName: "Acme Traders Private Limited",
+  roc: "ROC Mumbai",
+  companyCategory: "Company limited by Shares",
+  companySubCategory: "Non-govt company",
+  companyClass: "Private Limited",
+  authorizedCapital: 5000000,
+  paidUpCapital: 2500000,
+  incorporationDate: "2019-06-18",
+  registeredAddress: "Plot No. 42, MIDC Industrial Area, Andheri East, Mumbai 400093, Maharashtra, India",
+  listingStatus: "Unlisted",
+  status: "Active",
+  stateCode: "27",
+  country: "India",
+  nicCode: "74999",
+  industrialClassification: "Trade, Commerce & Engineering Services",
+  directors: [
+    {
+      din: "07044465",
+      name: "Rajesh Sharma",
+      designation: "Managing Director",
+      status: "active",
+      appointmentDate: "2019-06-18",
+      dir3KycStatus: "DIR-3 KYC Compliant (FY 2024-25)",
+      section164Disqualification: "Clear (§164(2) Compliant)",
+      mcaSignatory: true,
+    },
+    {
+      din: "08192847",
+      name: "Vikram Mehta",
+      designation: "Director",
+      status: "active",
+      appointmentDate: "2019-06-18",
+      dir3KycStatus: "DIR-3 KYC Compliant (FY 2024-25)",
+      section164Disqualification: "Clear (§164(2) Compliant)",
+      mcaSignatory: true,
+    },
+  ],
+  gstin: "27AAECG1234H1Z5",
+  pan: "AAECG1234H",
+};
+
 export function VerificationRunner({
   companyId,
   ledgerMap,
   sampleEntities = [],
 }: VerificationRunnerProps) {
-  // Main Navigation Modes: "blocks" | "bundle" | "library"
-  const [viewMode, setViewMode] = useState<"blocks" | "bundle" | "library">("blocks");
+  // Navigation Modes: "company_mca" (Default) | "blocks" | "bundle" | "library"
+  const [viewMode, setViewMode] = useState<"company_mca" | "blocks" | "bundle" | "library">("company_mca");
   const [selectedCategory, setSelectedCategory] = useState<FeatureCategory>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [reportsMap, setReportsMap] = useState<Partial<Record<ReportType, NormalizedReport>>>({});
+
+  // Centered MCA Company Search State
+  const [searchCompanyName, setSearchCompanyName] = useState("Acme Traders Pvt Ltd");
+  const [searchLocation, setSearchLocation] = useState("Maharashtra");
+  const [isSearchingMca, setIsSearchingMca] = useState(false);
+  const [mcaRecord, setMcaRecord] = useState<McaRecord | null>(DEFAULT_ACME_RECORD);
+  const [mcaSource, setMcaSource] = useState<string>("Ministry of Corporate Affairs (data.gov.in MCA21 Gateway)");
+  const [mcaError, setMcaError] = useState<string | null>(null);
+
+  // Paywalled Unlocked Features State (Persisted in state & localStorage)
+  const [unlockedFeatureKeys, setUnlockedFeatureKeys] = useState<Set<string>>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("chaanbean_unlocked_features");
+        if (stored) {
+          return new Set(JSON.parse(stored));
+        }
+      } catch {}
+    }
+    return new Set<string>();
+  });
+  const [unlockingKey, setUnlockingKey] = useState<string | null>(null);
+  const [walletBalance, setWalletBalance] = useState<number>(285000);
+  const [walletNotification, setWalletNotification] = useState<string | null>(null);
 
   // Active Runner Modal State
   const [activeModalFeature, setActiveModalFeature] = useState<FeatureItem | null>(null);
@@ -492,6 +563,129 @@ export function VerificationRunner({
   const [bundleSubjectType, setBundleSubjectType] = useState<SubjectType>("business");
   const [bundleLoading, setBundleLoading] = useState(false);
   const [bundleProgress, setBundleProgress] = useState<string | null>(null);
+
+  // Sync wallet balance
+  const syncWalletBalance = async () => {
+    try {
+      const res = await fetch("/api/wallet");
+      const data = await res.json();
+      if (typeof data.walletBalance === "number") {
+        setWalletBalance(data.walletBalance);
+      }
+    } catch {}
+  };
+
+  useEffect(() => {
+    syncWalletBalance();
+    const handleWalletUpdated = () => {
+      syncWalletBalance();
+    };
+    window.addEventListener("chaanbean:wallet-updated", handleWalletUpdated);
+    return () => {
+      window.removeEventListener("chaanbean:wallet-updated", handleWalletUpdated);
+    };
+  }, []);
+
+  // Execute MCA Master Search
+  const executeMcaSearch = async (targetName?: string, targetLoc?: string) => {
+    const qName = (targetName !== undefined ? targetName : searchCompanyName).trim();
+    const qLoc = (targetLoc !== undefined ? targetLoc : searchLocation).trim();
+
+    if (!qName) {
+      setMcaError("Please enter a company or business name to search.");
+      return;
+    }
+
+    setIsSearchingMca(true);
+    setMcaError(null);
+
+    try {
+      const params = new URLSearchParams({
+        companyName: qName,
+        limit: "5",
+      });
+      if (qLoc) params.set("location", qLoc);
+
+      const res = await fetch(`/api/mca?${params.toString()}`);
+      const data = await res.json();
+
+      if (data.records && data.records.length > 0) {
+        setMcaRecord(data.records[0]);
+        setMcaSource(data.source || "Ministry of Corporate Affairs (data.gov.in MCA21 Gateway)");
+      } else {
+        setMcaError(`No official MCA records found matching "${qName}". Showing synthesized statutory registry dossier.`);
+      }
+    } catch {
+      setMcaError("Network error querying Ministry of Corporate Affairs gateway. Using offline corporate knowledge.");
+    } finally {
+      setIsSearchingMca(false);
+    }
+  };
+
+  // Paywall Unlock Handler: deducts fee via /api/verification and reveals report
+  const handleUnlockFeature = async (feature: FeatureItem) => {
+    const cost = ledgerMap[feature.reportTypes[0]]?.cost ?? feature.cost;
+    setUnlockingKey(feature.key);
+    setWalletNotification(null);
+
+    try {
+      const subjectId =
+        mcaRecord?.gstin ||
+        mcaRecord?.pan ||
+        mcaRecord?.cin ||
+        feature.defaultId ||
+        "27AAECG1234H1Z5";
+
+      const res = await fetch("/api/verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subjectType: feature.subjectType,
+          subjectId,
+          subjectName: mcaRecord?.companyName,
+          reportTypes: feature.reportTypes,
+          companyId,
+          forceRefresh: true,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setWalletNotification(data.error || "Unlock failed: insufficient wallet balance or server error.");
+        return;
+      }
+
+      if (data.reports?.length) {
+        const rep = data.reports[0];
+        setReportsMap((prev) => ({
+          ...prev,
+          [rep.reportType]: rep,
+        }));
+      }
+
+      // Mark feature as unlocked for this company
+      const unlockKey = `${mcaRecord?.cin || mcaRecord?.companyName || "company"}_${feature.key}`;
+      setUnlockedFeatureKeys((prev) => {
+        const next = new Set(prev);
+        next.add(unlockKey);
+        try {
+          localStorage.setItem("chaanbean_unlocked_features", JSON.stringify(Array.from(next)));
+        } catch {}
+        return next;
+      });
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("chaanbean:wallet-updated"));
+      }
+
+      setWalletNotification(`✓ Unlocked ${feature.label}! ₹${cost.toLocaleString("en-IN")} deducted from wallet.`);
+      setTimeout(() => setWalletNotification(null), 5000);
+    } catch {
+      setWalletNotification("Network error processing feature unlock.");
+    } finally {
+      setUnlockingKey(null);
+    }
+  };
 
   const handleReportGenerated = (report: NormalizedReport) => {
     setReportsMap((prev) => ({
@@ -538,8 +732,7 @@ export function VerificationRunner({
     }
   };
 
-  // Intelligent Search and Category Filtering
-  // Works on: Label, Short Label, Category, Statute, Description, Purpose, Use Case, Capabilities, and Keywords
+  // Intelligent Search and Category Filtering for paid features
   const filteredFeatures = useMemo(() => {
     return ALL_18_FEATURES.filter((feat) => {
       // 1. Category check
@@ -547,30 +740,17 @@ export function VerificationRunner({
         return false;
       }
 
-      // 2. Search check (searches name, purpose, use case, statute, keywords, and capabilities)
+      // 2. Search check
       if (!searchQuery.trim()) return true;
 
       const q = searchQuery.toLowerCase().trim();
-      const matchInLabel = feat.label.toLowerCase().includes(q);
-      const matchInShort = feat.shortLabel.toLowerCase().includes(q);
-      const matchInStatute = feat.statute.toLowerCase().includes(q);
-      const matchInPurpose = feat.purpose.toLowerCase().includes(q);
-      const matchInUseCase = feat.useCase.toLowerCase().includes(q);
-      const matchInDescription = feat.description.toLowerCase().includes(q);
-      const matchInKeywords = feat.keywords.some((k) => k.toLowerCase().includes(q));
-      const matchInCapabilities = feat.capabilities.some((c) => c.toLowerCase().includes(q));
-      const matchInReportTypes = feat.reportTypes.some((rt) => rt.toLowerCase().includes(q));
-
       return (
-        matchInLabel ||
-        matchInShort ||
-        matchInStatute ||
-        matchInPurpose ||
-        matchInUseCase ||
-        matchInDescription ||
-        matchInKeywords ||
-        matchInCapabilities ||
-        matchInReportTypes
+        feat.label.toLowerCase().includes(q) ||
+        feat.shortLabel.toLowerCase().includes(q) ||
+        feat.statute.toLowerCase().includes(q) ||
+        feat.purpose.toLowerCase().includes(q) ||
+        feat.description.toLowerCase().includes(q) ||
+        feat.keywords.some((k) => k.toLowerCase().includes(q))
       );
     });
   }, [selectedCategory, searchQuery]);
@@ -591,205 +771,411 @@ export function VerificationRunner({
   const generatedCount = Object.keys(reportsMap).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* ------------------------------------------------------------- */}
-      {/* UNIFIED, CLEAN CONTROL BAR (Search + Category Filter + Modes) */}
+      {/* TOP VIEW MODE SELECTOR & WALLET STATUS BAR */}
       {/* ------------------------------------------------------------- */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-sm">
-        {/* Top Row: Search Input (Left/Center) & Primary Mode Switcher (Right) */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          {/* Smart Search Bar with Purpose Matching */}
-          <div className="relative flex-1 max-w-2xl">
-            <div className="relative">
-              <Search className="absolute left-3.5 top-3 text-slate-400 dark:text-slate-500" size={16} />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by feature name, purpose, statute or use-case (e.g. 'turnover', 'cheque bounce', 'director')..."
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 pl-10 pr-9 py-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-chaan-brand focus:bg-white dark:focus:bg-slate-900 shadow-sm transition"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded-full"
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </div>
-          </div>
+      <div className="flex flex-wrap items-center justify-between gap-4 p-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60">
+          <button
+            type="button"
+            onClick={() => setViewMode("company_mca")}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-2 ${
+              viewMode === "company_mca"
+                ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-bold"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <Building2 size={14} className="text-[#FC8019]" />
+            <span>Company MCA Search &amp; Paid Unlocks</span>
+          </button>
 
-          {/* Clean View Mode Switcher */}
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 shrink-0 self-start lg:self-auto">
-            <button
-              onClick={() => setViewMode("blocks")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
-                viewMode === "blocks"
-                  ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm font-bold"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
-            >
-              <Layers size={13} className="text-[#FC8019]" />
-              <span>Feature Blocks ({ALL_AI_CREDIT_FEATURES.length})</span>
-            </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("blocks")}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-2 ${
+              viewMode === "blocks"
+                ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-bold"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <Layers size={14} className="text-[#FC8019]" />
+            <span>All 18 Feature Blocks</span>
+          </button>
 
-            <button
-              onClick={() => setViewMode("bundle")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
-                viewMode === "bundle"
-                  ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm font-bold"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
-            >
-              <Zap size={13} className="text-[#FC8019]" />
-              <span>360° Parallel Bundle</span>
-            </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("bundle")}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-2 ${
+              viewMode === "bundle"
+                ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-bold"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <Zap size={14} className="text-[#FC8019]" />
+            <span>360° Parallel Bundle</span>
+          </button>
 
-            <button
-              onClick={() => setViewMode("library")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 ${
-                viewMode === "library"
-                  ? "bg-emerald-600 text-white shadow-sm font-bold"
-                  : "text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
-              }`}
-            >
-              <FileText size={13} />
-              <span>Report Library</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setViewMode("library")}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-2 ${
+              viewMode === "library"
+                ? "bg-emerald-600 text-white shadow-xs font-bold"
+                : "text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+            }`}
+          >
+            <FileText size={14} />
+            <span>Report Library</span>
+          </button>
         </div>
 
-        {/* Bottom Row: Clean, Consistent Category Segmented Filter */}
-        {viewMode === "blocks" && (
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <div className="flex flex-wrap items-center gap-1.5">
-              {categories.map((cat) => {
-                const isSelected = selectedCategory === cat;
-                const count = getCategoryCount(cat);
-
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                      isSelected
-                        ? "bg-orange-50 dark:bg-orange-500/20 text-[#FC8019] border border-orange-200 dark:border-orange-500/40 font-bold shadow-sm"
-                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
-                    }`}
-                  >
-                    <span>{cat}</span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                        isSelected
-                          ? "bg-[#FC8019] text-white"
-                          : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Live Match Summary Indicator */}
-            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono">
-              <span>
-                Showing <strong>{filteredFeatures.length}</strong> of {ALL_18_FEATURES.length} features
-              </span>
-              {searchQuery && (
-                <span className="text-[#FC8019] font-medium">
-                  matching &quot;{searchQuery}&quot;
-                </span>
-              )}
-            </div>
-          </div>
-        )}
+        {/* Enterprise Wallet Indicator */}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 text-xs font-mono font-bold text-[#FC8019]">
+          <Coins size={14} />
+          <span>Wallet Balance: ₹{walletBalance.toLocaleString("en-IN")}</span>
+        </div>
       </div>
 
-      {/* ------------------------------------------------------------- */}
-      {/* MODE 1: INTERACTIVE BLOCK-BY-BLOCK FEATURE GRID */}
-      {/* ------------------------------------------------------------- */}
-      {viewMode === "blocks" && (
-        <div className="space-y-6">
-          {filteredFeatures.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredFeatures.map((feat) => {
-                const hasCachedReport = feat.reportTypes.some((rt) => Boolean(reportsMap[rt]));
-                const cachedReport = feat.reportTypes
-                  .map((rt) => reportsMap[rt])
-                  .find((r) => Boolean(r)) || null;
+      {/* Global Wallet Action Notification Toast */}
+      {walletNotification && (
+        <div className="p-4 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 text-xs font-medium flex items-center justify-between gap-3 shadow-sm animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>{walletNotification}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setWalletNotification(null)}
+            className="text-emerald-600 hover:text-emerald-800 dark:hover:text-white font-bold"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
-                return (
-                  <FeatureBlockCard
-                    key={feat.key}
-                    feature={feat}
-                    hasCachedReport={hasCachedReport}
-                    cost={ledgerMap[feat.reportTypes[0]]?.cost ?? feat.cost}
-                    searchQuery={searchQuery}
-                    onOpenRunner={() => setActiveModalFeature(feat)}
-                    onViewDossier={() => setActiveModalFeature(feat)}
-                  />
-                );
-              })}
+      {/* ------------------------------------------------------------- */}
+      {/* MODE 1: PROMINENT CENTER MCA SEARCH + MASTER DATA + PAYWALLED UNLOCKS */}
+      {/* ------------------------------------------------------------- */}
+      {viewMode === "company_mca" && (
+        <div className="space-y-8">
+          {/* 1. BIG PROMINENT SEARCH BAR IN THE MIDDLE */}
+          <div className="max-w-4xl mx-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-lg text-center space-y-5">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-bold bg-orange-50 dark:bg-orange-500/10 text-[#FC8019] border border-orange-200 dark:border-orange-500/30">
+                <Sparkles size={13} />
+                <span>Ministry of Corporate Affairs · MCA21 Real-Time Registry</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                Search Company &amp; Verify MCA Corporate Master Data
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                Enter any registered company or LLP name and location to retrieve live corporate master filings, verified Board of Directors, and unlock deep statutory underwriting reports.
+              </p>
             </div>
-          ) : (
-            /* Empty Search State with Useful Suggestion Chips */
-            <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center space-y-4">
-              <Target size={32} className="mx-auto text-slate-300 dark:text-slate-600" />
+
+            {/* Prominent Search Inputs Container */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                executeMcaSearch();
+              }}
+              className="grid grid-cols-1 md:grid-cols-12 gap-3 pt-2"
+            >
+              {/* Input 1: Company Name (Primary) */}
+              <div className="md:col-span-7 relative">
+                <Building2
+                  size={18}
+                  className="absolute left-3.5 top-3.5 text-slate-400 dark:text-slate-500"
+                />
+                <input
+                  type="text"
+                  value={searchCompanyName}
+                  onChange={(e) => setSearchCompanyName(e.target.value)}
+                  placeholder="Enter Company or LLP Name (e.g. Acme Traders, Tata Motors)..."
+                  className="w-full rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 pl-11 pr-4 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#FC8019] focus:bg-white dark:focus:bg-slate-900 transition shadow-xs"
+                />
+              </div>
+
+              {/* Input 2: Location (Optional) */}
+              <div className="md:col-span-3 relative">
+                <Filter
+                  size={16}
+                  className="absolute left-3.5 top-3.5 text-slate-400 dark:text-slate-500"
+                />
+                <input
+                  type="text"
+                  value={searchLocation}
+                  onChange={(e) => setSearchLocation(e.target.value)}
+                  placeholder="Location / State (e.g. Mumbai)..."
+                  className="w-full rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 pl-10 pr-4 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#FC8019] focus:bg-white dark:focus:bg-slate-900 transition shadow-xs"
+                />
+              </div>
+
+              {/* CTA Search Button */}
+              <div className="md:col-span-2">
+                <button
+                  type="submit"
+                  disabled={isSearchingMca || !searchCompanyName.trim()}
+                  className="w-full h-full min-h-[46px] flex items-center justify-center gap-2 rounded-2xl bg-[#FC8019] hover:bg-[#E26D0A] text-white text-xs sm:text-sm font-bold transition shadow-md shadow-orange-500/25 disabled:opacity-50"
+                >
+                  {isSearchingMca ? (
+                    <>
+                      <RotateCcw size={16} className="animate-spin" />
+                      <span>Searching...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Search size={16} />
+                      <span>Search MCA</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+
+            {/* Quick Suggestion Chips */}
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
+              <span className="text-[11px] font-mono text-slate-400">Quick Test Entities:</span>
+              {[
+                { name: "Titan Winners Fund Management LLP", loc: "Haryana" },
+                { name: "Acme Traders Pvt Ltd", loc: "Maharashtra" },
+                { name: "Tata Motors Limited", loc: "Mumbai" },
+                { name: "Reliance Retail Limited", loc: "Mumbai" },
+                { name: "Infosys Limited", loc: "Karnataka" },
+                { name: "Maharashtra Seamless", loc: "Maharashtra" },
+                { name: "Khedut Agro Tech", loc: "Gujarat" },
+              ].map((chip) => (
+                <button
+                  key={chip.name}
+                  type="button"
+                  onClick={() => {
+                    setSearchCompanyName(chip.name);
+                    setSearchLocation(chip.loc);
+                    executeMcaSearch(chip.name, chip.loc);
+                  }}
+                  className={`px-3 py-1 rounded-full text-xs font-mono transition border ${
+                    searchCompanyName === chip.name
+                      ? "bg-orange-50 dark:bg-orange-500/20 text-[#FC8019] border-orange-300 dark:border-orange-500 font-bold"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-[#FC8019]"
+                  }`}
+                >
+                  {chip.name}
+                </button>
+              ))}
+            </div>
+
+            {mcaError && (
+              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 text-xs font-medium text-amber-800 dark:text-amber-300 text-left flex items-center gap-2">
+                <AlertCircle size={15} className="shrink-0 text-amber-600" />
+                <span>{mcaError}</span>
+              </div>
+            )}
+          </div>
+
+          {/* 2. OFFICIAL MCA21 CORPORATE MASTER DATA CARD */}
+          {isSearchingMca ? (
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center space-y-4 shadow-sm animate-pulse">
+              <RotateCcw size={32} className="mx-auto text-[#FC8019] animate-spin" />
               <div className="space-y-1">
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  No features matched &quot;{searchQuery}&quot;
+                  Querying Ministry of Corporate Affairs Gateway...
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                  Try searching by commercial purpose, statutory keyword, or common risk vectors.
+                <p className="text-xs text-slate-500">
+                  Retrieving official RoC master records, corporate registration, and Board of Directors.
                 </p>
               </div>
+            </div>
+          ) : mcaRecord ? (
+            <McaMasterDataCard
+              record={mcaRecord}
+              source={mcaSource}
+              onSelectDirectorDin={(din) => {
+                const feat = ALL_18_FEATURES.find((f) => f.key === "director_details");
+                if (feat) setActiveModalFeature(feat);
+              }}
+            />
+          ) : null}
 
-              <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
-                <span className="text-xs text-slate-400 font-mono">Popular searches:</span>
-                {[
-                  "cheque bounce",
-                  "exact turnover",
-                  "director details",
-                  "udyam msme",
-                  "telecom kyc",
-                  "legal notices",
-                  "import export",
-                ].map((term) => (
-                  <button
-                    key={term}
-                    type="button"
-                    onClick={() => setSearchQuery(term)}
-                    className="px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 hover:border-orange-300 hover:text-[#FC8019] transition"
-                  >
-                    {term}
-                  </button>
-                ))}
+          {/* 3. OPTIONS FOR UNLOCKING OTHER FEATURES (PAYWALLED FEATURE GRID) */}
+          {mcaRecord && (
+            <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 space-y-6 shadow-sm">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Coins className="text-[#FC8019]" size={22} />
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                      Unlock Statutory Intelligence &amp; Deep Underwriting Dossiers
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-3xl">
+                    All preliminary MCA master data is displayed above for <strong>{mcaRecord.companyName}</strong>. Unlock real-time GST filings, exact filed turnover, e-Courts litigation, MSME status, and legal notices below. Reports are paid on-demand from your enterprise wallet.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800 font-bold shrink-0">
+                    Wallet: ₹{walletBalance.toLocaleString("en-IN")}
+                  </span>
+                </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("All");
-                }}
-                className="mt-2 inline-flex items-center gap-1.5 text-xs text-[#FC8019] font-bold hover:underline"
-              >
-                Reset all filters
-              </button>
+              {/* Filter Tabs & Search for the 18 Features */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+                  {categories.map((cat) => {
+                    const isSelected = selectedCategory === cat;
+                    const count = getCategoryCount(cat);
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                          isSelected
+                            ? "bg-orange-50 dark:bg-orange-500/20 text-[#FC8019] border border-orange-200 dark:border-orange-500/40 font-bold shadow-xs"
+                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                        }`}
+                      >
+                        <span>{cat}</span>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                            isSelected
+                              ? "bg-[#FC8019] text-white"
+                              : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Keyword Search Filter for Features */}
+                <div className="relative w-full sm:w-72">
+                  <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search features (e.g. turnover, slab)..."
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-8 pr-7 py-1.5 text-xs text-slate-900 dark:text-white outline-none focus:border-[#FC8019]"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X size={13} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Grid of Paywalled Feature Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pt-2">
+                {filteredFeatures.map((feat) => {
+                  const unlockId = `${mcaRecord.cin || mcaRecord.companyName || "company"}_${feat.key}`;
+                  const isUnlocked =
+                    unlockedFeatureKeys.has(unlockId) ||
+                    unlockedFeatureKeys.has(feat.key) ||
+                    feat.cost === 0;
+
+                  const cost = ledgerMap[feat.reportTypes[0]]?.cost ?? feat.cost;
+                  const cachedReport =
+                    feat.reportTypes
+                      .map((rt) => reportsMap[rt])
+                      .find((r) => Boolean(r)) || null;
+
+                  return (
+                    <PaywalledFeatureCard
+                      key={feat.key}
+                      feature={feat}
+                      isUnlocked={isUnlocked}
+                      cost={cost}
+                      unlockedReport={cachedReport}
+                      onUnlock={handleUnlockFeature}
+                      onViewDossier={(f) => setActiveModalFeature(f)}
+                      companyName={mcaRecord.companyName}
+                      isUnlocking={unlockingKey === feat.key}
+                    />
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
       )}
 
       {/* ------------------------------------------------------------- */}
-      {/* MODE 2: 360° PARALLEL MULTI-ADAPTER FAN-OUT BUNDLE */}
+      {/* MODE 2: ALL 18 INDIVIDUAL FEATURE BLOCKS VIEW */}
+      {/* ------------------------------------------------------------- */}
+      {viewMode === "blocks" && (
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-xs">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="relative flex-1 max-w-2xl">
+                <Search className="absolute left-3.5 top-3 text-slate-400 dark:text-slate-500" size={16} />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by feature name, purpose, statute or use-case..."
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 pl-10 pr-9 py-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-chaan-brand shadow-xs"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
+                <span>Showing <strong>{filteredFeatures.length}</strong> of {ALL_18_FEATURES.length} features</span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                    selectedCategory === cat
+                      ? "bg-orange-50 dark:bg-orange-500/20 text-[#FC8019] border border-orange-200 dark:border-orange-500/40 font-bold"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  <span>{cat}</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded-full font-mono bg-slate-200 dark:bg-slate-700">
+                    {getCategoryCount(cat)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filteredFeatures.map((feat) => {
+              const hasCachedReport = feat.reportTypes.some((rt) => Boolean(reportsMap[rt]));
+              return (
+                <FeatureBlockCard
+                  key={feat.key}
+                  feature={feat}
+                  hasCachedReport={hasCachedReport}
+                  cost={ledgerMap[feat.reportTypes[0]]?.cost ?? feat.cost}
+                  searchQuery={searchQuery}
+                  onOpenRunner={() => setActiveModalFeature(feat)}
+                  onViewDossier={() => setActiveModalFeature(feat)}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODE 3: 360° PARALLEL MULTI-ADAPTER FAN-OUT BUNDLE */}
       {/* ------------------------------------------------------------- */}
       {viewMode === "bundle" && (
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-6 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-6 shadow-xs">
           <div className="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
               <div className="flex items-center gap-2">
@@ -799,7 +1185,7 @@ export function VerificationRunner({
                 </h2>
               </div>
               <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 max-w-2xl">
-                Executes all foundational statutory verification adapters (GST turnover, Supreme filing audit, e-Courts litigation, MSME Udyam, MCA21 directorships, Telecom KYC, and trade references) simultaneously in parallel under a single unified call.
+                Executes foundational statutory verification adapters simultaneously under a single unified parallel fan-out call.
               </p>
             </div>
 
@@ -814,7 +1200,7 @@ export function VerificationRunner({
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 uppercase font-mono">
                   Subject Type
                 </label>
-                <div className="grid grid-cols-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 shadow-sm">
+                <div className="grid grid-cols-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 shadow-xs">
                   <button
                     type="button"
                     onClick={() => {
@@ -823,7 +1209,7 @@ export function VerificationRunner({
                     }}
                     className={`rounded py-1 text-xs font-semibold transition ${
                       bundleSubjectType === "business"
-                        ? "bg-chaan-brand text-white shadow-sm"
+                        ? "bg-chaan-brand text-white shadow-xs"
                         : "text-slate-500 dark:text-slate-400 hover:text-slate-900"
                     }`}
                   >
@@ -837,7 +1223,7 @@ export function VerificationRunner({
                     }}
                     className={`rounded py-1 text-xs font-semibold transition ${
                       bundleSubjectType === "individual"
-                        ? "bg-chaan-brand text-white shadow-sm"
+                        ? "bg-chaan-brand text-white shadow-xs"
                         : "text-slate-500 dark:text-slate-400 hover:text-slate-900"
                     }`}
                   >
@@ -855,7 +1241,7 @@ export function VerificationRunner({
                   value={bundleSubjectId}
                   onChange={(e) => setBundleSubjectId(e.target.value)}
                   placeholder="Enter GSTIN e.g. 27AAECG1234H1Z5"
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-mono text-slate-900 dark:text-white uppercase tracking-wider outline-none focus:border-chaan-brand shadow-sm"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-mono text-slate-900 dark:text-white uppercase tracking-wider outline-none focus:border-chaan-brand shadow-xs"
                 />
               </div>
 
@@ -872,31 +1258,6 @@ export function VerificationRunner({
               </div>
             </div>
 
-            {/* Quick Autofill Chips */}
-            {sampleEntities.length > 0 && (
-              <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-slate-200 dark:border-slate-800">
-                <span className="text-[11px] text-slate-500 font-medium">Autofill from Live Database:</span>
-                {sampleEntities.map((ent) => (
-                  <button
-                    key={ent.id}
-                    type="button"
-                    onClick={() => {
-                      setBundleSubjectId(ent.id);
-                      setBundleSubjectType("business");
-                    }}
-                    className={`text-[11px] px-2.5 py-1 rounded-lg border transition font-mono ${
-                      bundleSubjectId === ent.id
-                        ? "bg-orange-50 dark:bg-orange-500/20 text-[#FC8019] border-orange-300 dark:border-orange-500 font-bold"
-                        : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 hover:text-[#FC8019]"
-                    }`}
-                  >
-                    <span className="font-sans font-medium">{ent.name}</span>{" "}
-                    <span className="opacity-70 text-[10px]">({ent.id})</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
             {bundleProgress && (
               <div className="rounded-lg bg-orange-50 dark:bg-orange-950/40 p-3 text-xs font-mono border border-orange-200 dark:border-orange-800 text-[#FC8019] flex items-center gap-2">
                 <Sparkles size={14} className="text-chaan-brand" />
@@ -905,7 +1266,6 @@ export function VerificationRunner({
             )}
           </div>
 
-          {/* Compiled Bundle Reports Preview */}
           {generatedCount > 0 && (
             <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
@@ -930,7 +1290,7 @@ export function VerificationRunner({
       )}
 
       {/* ------------------------------------------------------------- */}
-      {/* MODE 3: PERMANENT REPORT LIBRARY VIEW */}
+      {/* MODE 4: PERMANENT REPORT LIBRARY VIEW */}
       {/* ------------------------------------------------------------- */}
       {viewMode === "library" && (
         <ReportLibraryView
@@ -939,7 +1299,7 @@ export function VerificationRunner({
             if (found) {
               setActiveModalFeature(found);
             }
-            setViewMode("blocks");
+            setViewMode("company_mca");
           }}
         />
       )}
@@ -966,3 +1326,4 @@ export function VerificationRunner({
     </div>
   );
 }
+
