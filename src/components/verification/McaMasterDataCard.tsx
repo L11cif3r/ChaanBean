@@ -100,10 +100,10 @@ export function McaMasterDataCard({
   return (
     <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden transition">
       {/* Official Government / MCA Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white p-5 sm:p-6 border-b border-slate-800">
+      <div className="bg-slate-50 dark:bg-slate-900/90 text-slate-900 dark:text-white p-5 sm:p-6 border-b border-slate-200 dark:border-slate-800">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-[#FC8019] shadow-inner shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-[#FC8019] shadow-xs shrink-0">
               <Building2 size={24} />
             </div>
             <div>
@@ -111,24 +111,24 @@ export function McaMasterDataCard({
                 <span className="text-[10px] font-mono uppercase tracking-widest text-[#FC8019] font-bold">
                   Government of India · MCA21 Portal
                 </span>
-                <span className="text-slate-500 text-xs">·</span>
-                <span className="text-[10px] font-mono text-slate-400">
+                <span className="text-slate-400 dark:text-slate-600 text-xs">·</span>
+                <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 font-semibold">
                   {record.roc || "ROC Registry"}
                 </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white mt-0.5">
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5">
                 {record.companyName}
               </h2>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>{record.status || "ACTIVE"}</span>
             </span>
 
-            <span className="px-3 py-1 rounded-full text-xs font-mono font-medium bg-slate-800 text-slate-300 border border-slate-700">
+            <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shadow-xs">
               {record.listingStatus || "Unlisted"}
             </span>
           </div>

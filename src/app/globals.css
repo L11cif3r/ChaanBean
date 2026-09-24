@@ -240,6 +240,22 @@ html.light .bg-chaan-accent,
   color: #ffffff !important;
 }
 
+/* Maintain white text on dark surfaces even in light mode */
+html.light .bg-slate-900 .text-white,
+html.light .bg-slate-950 .text-white,
+html.light .bg-slate-800 .text-white,
+html.light .bg-black .text-white,
+html.light [class*="bg-slate-900"] .text-white,
+html.light [class*="bg-slate-950"] .text-white,
+html.light [class*="bg-slate-900"] h1,
+html.light [class*="bg-slate-900"] h2,
+html.light [class*="bg-slate-900"] h3,
+html.light [class*="bg-slate-950"] h1,
+html.light [class*="bg-slate-950"] h2,
+html.light [class*="bg-slate-950"] h3 {
+  color: #ffffff !important;
+}
+
 html.light .bg-chaan-brand,
 .bg-chaan-brand,
 .bg-\[\#FC8019\],
