@@ -39,34 +39,48 @@ export async function GET(req: Request) {
       );
     }
 
+    const stateCode = searchParams.get("stateCode");
+    const allowFallback = searchParams.get("allowFallback") === "true";
+
     // 2. Query Live data.gov.in MCA API
     const liveResult = await fetchLiveMcaCompanyData({
       cin,
       companyName,
+      stateCode: stateCode || location,
+      location,
       limit,
     });
 
     let records: any[] = [];
-    let source = "Ministry of Corporate Affairs (data.gov.in MCA21 API)";
+    let source = liveResult.source || "Ministry of Corporate Affairs (data.gov.in MCA21 API)";
+    const isLiveApi = Boolean(liveResult.isLiveApi);
 
     if (liveResult.success && liveResult.records.length > 0) {
-      let filtered = liveResult.records;
-      if (location && location.trim()) {
-        const locLower = location.trim().toLowerCase();
-        const matched = filtered.filter(
-          r =>
-            r.stateCode.toLowerCase().includes(locLower) ||
-            r.registeredAddress.toLowerCase().includes(locLower) ||
-            r.roc.toLowerCase().includes(locLower)
-        );
-        if (matched.length > 0) {
-          filtered = matched;
-        }
-      }
-      records = filtered.map(record => ({
+      records = liveResult.records.map(record => ({
         ...record,
         directors: deriveMcaDirectorsFromCompany(record),
       }));
+
+      return NextResponse.json({
+        success: true,
+        isLiveApi: true,
+        source: "Ministry of Corporate Affairs (Live data.gov.in MCA21 API)",
+        total: records.length,
+        count: records.length,
+        records,
+      });
+    }
+
+    // If MCA API requires additional information to find exact record and fallback is not forced
+    if (liveResult.requiresMoreInfo && !allowFallback) {
+      return NextResponse.json({
+        success: false,
+        requiresMoreInfo: true,
+        missingFields: liveResult.missingFields || ["state", "cin", "entityType"],
+        message: liveResult.message || "The MCA21 Portal requires the Registered State or 21-digit CIN to locate the exact company record.",
+        queryAttempted: companyName || cin,
+        records: [],
+      });
     }
 
     // 3. Fallback to Centralized Corporate Knowledge Base if 0 records returned

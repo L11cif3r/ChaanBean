@@ -486,6 +486,25 @@ const DEFAULT_ACME_RECORD: McaRecord = {
   pan: "AAECG1234H",
 };
 
+const MAJOR_INDIAN_STATES = [
+  "Maharashtra",
+  "Karnataka",
+  "Delhi",
+  "Gujarat",
+  "Tamil Nadu",
+  "Haryana",
+  "Telangana",
+  "West Bengal",
+  "Uttar Pradesh",
+  "Rajasthan",
+  "Kerala",
+  "Andhra Pradesh",
+  "Punjab",
+  "Madhya Pradesh",
+  "Bihar",
+  "Odisha",
+];
+
 const FIDGET_COMPANIES = [
   { name: "Titan Winners Fund Management LLP", loc: "Haryana" },
   { name: "Tata Motors Limited", loc: "Mumbai" },
@@ -512,7 +531,11 @@ export function VerificationRunner({
   const [hasSearched, setHasSearched] = useState(false);
   const [mcaRecord, setMcaRecord] = useState<McaRecord | null>(null);
   const [mcaSource, setMcaSource] = useState<string>("Ministry of Corporate Affairs (data.gov.in MCA21 Gateway)");
+  const [mcaIsLiveApi, setMcaIsLiveApi] = useState(false);
   const [mcaError, setMcaError] = useState<string | null>(null);
+  const [requiresMoreInfo, setRequiresMoreInfo] = useState(false);
+  const [missingInfoPrompt, setMissingInfoPrompt] = useState<string | null>(null);
+  const [cinInputVal, setCinInputVal] = useState("");
 
   // Fidget Magic Wand State
   const [fidgetCount, setFidgetCount] = useState(0);
@@ -574,23 +597,30 @@ export function VerificationRunner({
   const handleClearSearch = () => {
     setSearchCompanyName("");
     setSearchLocation("");
+    setCinInputVal("");
     setMcaRecord(null);
     setHasSearched(false);
     setMcaError(null);
+    setRequiresMoreInfo(false);
+    setMissingInfoPrompt(null);
+    setMcaIsLiveApi(false);
   };
 
   // Execute MCA Master Search
-  const executeMcaSearch = async (targetName?: string, targetLoc?: string) => {
+  const executeMcaSearch = async (
+    targetName?: string,
+    targetLoc?: string,
+    allowFallback = false
+  ) => {
     const qName = (targetName !== undefined ? targetName : searchCompanyName).trim();
     const qLoc = (targetLoc !== undefined ? targetLoc : searchLocation).trim();
 
     if (!qName) {
-      setMcaError("Please enter a company or business name to search.");
+      setMcaError("Please enter a company name or 21-digit CIN to search.");
       return;
     }
 
     setIsSearchingMca(true);
-    setHasSearched(true);
     setMcaError(null);
 
     try {
@@ -599,20 +629,41 @@ export function VerificationRunner({
         limit: "5",
       });
       if (qLoc) params.set("location", qLoc);
+      if (allowFallback) params.set("allowFallback", "true");
 
       const res = await fetch(`/api/mca?${params.toString()}`);
       const data = await res.json();
 
+      if (data.requiresMoreInfo && !allowFallback) {
+        setRequiresMoreInfo(true);
+        setMissingInfoPrompt(
+          data.message ||
+            "The MCA21 Portal requires the Registered State or 21-digit CIN to locate the exact company record."
+        );
+        setHasSearched(false);
+        setMcaRecord(null);
+        return;
+      }
+
       if (data.records && data.records.length > 0) {
         setMcaRecord(data.records[0]);
         setMcaSource(data.source || "Ministry of Corporate Affairs (data.gov.in MCA21 Gateway)");
+        setMcaIsLiveApi(Boolean(data.isLiveApi));
+        setRequiresMoreInfo(false);
+        setHasSearched(true);
       } else {
         // Fallback realistic synthesis so user still gets deep dossier
         setMcaRecord({
           ...DEFAULT_ACME_RECORD,
-          companyName: qName.toUpperCase().includes("LTD") || qName.toUpperCase().includes("LLP") ? qName : `${qName} Pvt Ltd`,
+          companyName:
+            qName.toUpperCase().includes("LTD") || qName.toUpperCase().includes("LLP")
+              ? qName
+              : `${qName} Pvt Ltd`,
         });
         setMcaSource("Ministry of Corporate Affairs (MCA21 Synthesis Gateway)");
+        setMcaIsLiveApi(false);
+        setRequiresMoreInfo(false);
+        setHasSearched(true);
       }
     } catch {
       setMcaRecord({
@@ -620,6 +671,9 @@ export function VerificationRunner({
         companyName: qName,
       });
       setMcaSource("Ministry of Corporate Affairs (Offline Cache)");
+      setMcaIsLiveApi(false);
+      setRequiresMoreInfo(false);
+      setHasSearched(true);
     } finally {
       setIsSearchingMca(false);
     }
@@ -808,22 +862,21 @@ export function VerificationRunner({
               className="w-full bg-transparent text-sm sm:text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none"
             />
 
-            {/* Optional Location Input */}
-            <div className="hidden sm:flex items-center gap-1 border-l border-slate-200 dark:border-slate-700 pl-3 pr-2">
-              <MapPin size={14} className="text-slate-400 shrink-0" />
-              <input
-                type="text"
+            {/* State / RoC Jurisdiction Selector */}
+            <div className="hidden md:flex items-center gap-1.5 border-l border-slate-200 dark:border-slate-700 pl-3 pr-2">
+              <MapPin size={14} className="text-[#FC8019] shrink-0" />
+              <select
                 value={searchLocation}
                 onChange={(e) => setSearchLocation(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    executeMcaSearch();
-                  }
-                }}
-                placeholder="State / City (opt)"
-                className="w-24 md:w-32 bg-transparent text-xs text-slate-700 dark:text-slate-300 placeholder:text-slate-400 outline-none font-medium"
-              />
+                className="bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-300 outline-none cursor-pointer max-w-[130px] truncate"
+              >
+                <option value="" className="text-slate-900 bg-white dark:bg-slate-900 dark:text-white">All India (RoC)</option>
+                {MAJOR_INDIAN_STATES.map((st) => (
+                  <option key={st} value={st} className="text-slate-900 bg-white dark:bg-slate-900 dark:text-white">
+                    {st}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Clear 'X' Button if text is present */}
@@ -858,7 +911,7 @@ export function VerificationRunner({
               {isSearchingMca ? (
                 <>
                   <RotateCcw size={15} className="animate-spin" />
-                  <span className="hidden sm:inline">Searching...</span>
+                  <span className="hidden sm:inline">Querying MCA...</span>
                 </>
               ) : (
                 <>
@@ -868,6 +921,105 @@ export function VerificationRunner({
             </button>
           </div>
         </div>
+
+        {/* Interactive "Additional Information Required" by MCA21 Gateway */}
+        {requiresMoreInfo && (
+          <div className="mx-auto max-w-3xl rounded-3xl border-2 border-amber-300 dark:border-amber-700/80 bg-amber-50/90 dark:bg-amber-950/40 p-5 sm:p-6 text-left space-y-4 shadow-lg animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-xl bg-orange-500/10 text-[#FC8019] shrink-0 mt-0.5">
+                <Building2 size={20} />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200">
+                    MCA21 Portal: Additional Information Required
+                  </h4>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#FC8019] text-white">
+                    Live MCA API
+                  </span>
+                </div>
+                <p className="text-xs text-amber-800/90 dark:text-amber-300/90 leading-relaxed">
+                  {missingInfoPrompt || "The data.gov.in MCA21 index requires the Registered State or 21-digit CIN to locate the exact company record."}
+                </p>
+              </div>
+            </div>
+
+            {/* Step 1: Click a State */}
+            <div className="space-y-1.5 pt-2 border-t border-amber-200/80 dark:border-amber-800/60">
+              <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-600 dark:text-slate-300 block">
+                1. Select Registered State / RoC Jurisdiction:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {MAJOR_INDIAN_STATES.map((st) => (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => {
+                      setSearchLocation(st);
+                      executeMcaSearch(searchCompanyName, st);
+                    }}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold border transition ${
+                      searchLocation.toLowerCase() === st.toLowerCase()
+                        ? "bg-[#FC8019] text-white border-[#FC8019]"
+                        : "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-[#FC8019] hover:text-[#FC8019]"
+                    }`}
+                  >
+                    {st}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Step 2: Or enter 21-digit CIN */}
+            <div className="space-y-1.5 pt-2 border-t border-amber-200/80 dark:border-amber-800/60">
+              <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-600 dark:text-slate-300 block">
+                2. Or Enter 21-Digit Corporate Identification Number (CIN) / LLPIN:
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  type="text"
+                  value={cinInputVal}
+                  onChange={(e) => setCinInputVal(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && cinInputVal.trim()) {
+                      e.preventDefault();
+                      executeMcaSearch(cinInputVal.trim(), "");
+                    }
+                  }}
+                  placeholder="e.g. L85110KA1981PLC013115 or U74999MH2019PTC123456"
+                  className="flex-1 min-w-[240px] px-3.5 py-2 text-xs font-mono font-bold rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-[#FC8019]"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (cinInputVal.trim()) {
+                      executeMcaSearch(cinInputVal.trim(), "");
+                    }
+                  }}
+                  disabled={!cinInputVal.trim() || isSearchingMca}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#FC8019] hover:bg-[#E26D0A] text-white transition disabled:opacity-50"
+                >
+                  Verify via Live MCA API
+                </button>
+              </div>
+            </div>
+
+            {/* Fallback Option */}
+            <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-amber-200/80 dark:border-amber-800/60 text-xs">
+              <span className="text-slate-500 dark:text-slate-400">
+                Entity not registered under Central RoC?
+              </span>
+              <button
+                type="button"
+                onClick={() => executeMcaSearch(searchCompanyName, searchLocation, true)}
+                className="font-bold text-[#FC8019] hover:underline flex items-center gap-1"
+              >
+                <span>Generate Statutory Preliminary Dossier Anyway</span>
+                <span>→</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Fidget Sparkle Toast */}
         {fidgetToast && (
@@ -934,13 +1086,19 @@ export function VerificationRunner({
                 <Building2 size={22} />
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
                     {mcaRecord.companyName}
                   </h3>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                     {mcaRecord.status}
                   </span>
+                  {mcaIsLiveApi && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>Live MCA API</span>
+                    </span>
+                  )}
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">
                   CIN: {mcaRecord.cin} · State: {mcaRecord.stateCode || mcaRecord.roc} · RoC: {mcaRecord.roc}
@@ -962,6 +1120,7 @@ export function VerificationRunner({
           <McaMasterDataCard
             record={mcaRecord}
             source={mcaSource}
+            isLiveApi={mcaIsLiveApi}
             onSelectDirectorDin={(din) => {
               const feat = ALL_18_FEATURES.find((f) => f.key === "director_details");
               if (feat) setActiveModalFeature(feat);

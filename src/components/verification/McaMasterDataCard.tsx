@@ -56,12 +56,14 @@ export interface McaRecord {
 interface McaMasterDataCardProps {
   record: McaRecord;
   source?: string;
+  isLiveApi?: boolean;
   onSelectDirectorDin?: (din: string) => void;
 }
 
 export function McaMasterDataCard({
   record,
   source = "Ministry of Corporate Affairs (data.gov.in MCA21 Gateway)",
+  isLiveApi = false,
   onSelectDirectorDin,
 }: McaMasterDataCardProps) {
   const [copiedCin, setCopiedCin] = useState(false);
@@ -107,7 +109,7 @@ export function McaMasterDataCard({
               <Building2 size={24} />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[10px] font-mono uppercase tracking-widest text-[#FC8019] font-bold">
                   Government of India · MCA21 Portal
                 </span>
@@ -115,6 +117,12 @@ export function McaMasterDataCard({
                 <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 font-semibold">
                   {record.roc || "ROC Registry"}
                 </span>
+                {isLiveApi && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Live MCA API (data.gov.in)
+                  </span>
+                )}
               </div>
               <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5">
                 {record.companyName}
@@ -325,7 +333,9 @@ export function McaMasterDataCard({
             <ShieldCheck size={13} />
             <span>Official Government Statutory Registry Record Authenticated</span>
           </div>
-          <span>Source: {source}</span>
+          <span className="font-semibold text-slate-700 dark:text-slate-300">
+            Source: {source} {isLiveApi ? "· Resource ID: 4dbe5667-7b6b-41d7-82af-211562424d9a" : ""}
+          </span>
         </div>
       </div>
     </div>

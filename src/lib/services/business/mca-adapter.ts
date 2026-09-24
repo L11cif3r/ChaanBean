@@ -40,7 +40,82 @@ export interface McaApiResponse {
   count: number;
   records: McaLiveRecord[];
   source: string;
+  isLiveApi?: boolean;
+  requiresMoreInfo?: boolean;
+  missingFields?: string[];
+  message?: string;
   error?: string;
+}
+
+export const STATE_KEYWORD_MAP: Record<string, string> = {
+  "maharashtra": "maharashtra",
+  "mh": "maharashtra",
+  "mumbai": "maharashtra",
+  "pune": "maharashtra",
+  "karnataka": "karnataka",
+  "ka": "karnataka",
+  "bangalore": "karnataka",
+  "bengaluru": "karnataka",
+  "delhi": "delhi",
+  "dl": "delhi",
+  "new delhi": "delhi",
+  "gujarat": "gujarat",
+  "gj": "gujarat",
+  "ahmedabad": "gujarat",
+  "tamil nadu": "tamil nadu",
+  "tamilnadu": "tamil nadu",
+  "tn": "tamil nadu",
+  "chennai": "tamil nadu",
+  "haryana": "haryana",
+  "hr": "haryana",
+  "gurgaon": "haryana",
+  "gurugram": "haryana",
+  "telangana": "telangana",
+  "ts": "telangana",
+  "hyderabad": "telangana",
+  "uttar pradesh": "uttar pradesh",
+  "up": "uttar pradesh",
+  "noida": "uttar pradesh",
+  "kanpur": "uttar pradesh",
+  "west bengal": "west bengal",
+  "wb": "west bengal",
+  "kolkata": "west bengal",
+  "rajasthan": "rajasthan",
+  "rj": "rajasthan",
+  "jaipur": "rajasthan",
+  "kerala": "kerala",
+  "kl": "kerala",
+  "kochi": "kerala",
+  "andhra pradesh": "andhra pradesh",
+  "ap": "andhra pradesh",
+  "punjab": "punjab",
+  "pb": "punjab",
+  "madhya pradesh": "madhya pradesh",
+  "mp": "madhya pradesh",
+  "bihar": "bihar",
+  "odisha": "odisha",
+  "assam": "assam",
+};
+
+export function resolveMcaStateCode(loc?: string | null): string | undefined {
+  if (!loc) return undefined;
+  const lower = loc.trim().toLowerCase();
+  for (const [key, val] of Object.entries(STATE_KEYWORD_MAP)) {
+    if (lower === key || lower.includes(key)) {
+      return val;
+    }
+  }
+  return undefined;
+}
+
+export function isCinFormat(input?: string | null): boolean {
+  if (!input) return false;
+  const clean = input.trim();
+  // 21 alphanumeric starting with L or U (e.g. L85110KA1981PLC013115)
+  const cinRegex = /^[LUlu][0-9]{5}[A-Za-z]{2}[0-9]{4}[A-Za-z]{3}[0-9]{6}$/;
+  // LLPIN format (e.g. AAA-1234 or ABD-0345)
+  const llpinRegex = /^[A-Za-z]{3}-[0-9]{4}$/;
+  return cinRegex.test(clean) || llpinRegex.test(clean);
 }
 
 /** Get the configured MCA API key */
@@ -68,74 +143,143 @@ export function getMcaPortalUrl(params: {
 
 /**
  * Fetch live company master data from data.gov.in MCA API.
- * Supports exact CIN filter or CompanyName filter.
+ * Supports exact CIN filter, CompanyName variations, and State filters.
  */
 export async function fetchLiveMcaCompanyData(params: {
   cin?: string | null;
   companyName?: string | null;
+  stateCode?: string | null;
+  location?: string | null;
   limit?: number;
 }): Promise<McaApiResponse> {
   const apiKey = getMcaApiKey();
   const limit = params.limit || 5;
 
-  const url = new URL(MCA_RESOURCE_ENDPOINT);
-  url.searchParams.set("api-key", apiKey);
-  url.searchParams.set("format", "json");
-  url.searchParams.set("limit", String(limit));
+  const rawInput = (params.companyName || params.cin || "").trim();
+  const isInputCin = isCinFormat(params.cin) || isCinFormat(params.companyName);
+  const targetCin = isInputCin ? (params.cin || params.companyName)!.trim().toUpperCase() : null;
 
-  if (params.cin && params.cin.trim()) {
-    url.searchParams.set("filters[CIN]", params.cin.trim().toUpperCase());
-  } else if (params.companyName && params.companyName.trim()) {
-    url.searchParams.set("filters[CompanyName]", params.companyName.trim());
-  }
+  const resolvedState = resolveMcaStateCode(params.stateCode || params.location);
+
+  // Helper to query data.gov.in
+  const queryGovEndpoint = async (filterKey: string, filterValue: string, stateFilter?: string) => {
+    const url = new URL(MCA_RESOURCE_ENDPOINT);
+    url.searchParams.set("api-key", apiKey);
+    url.searchParams.set("format", "json");
+    url.searchParams.set("limit", String(limit));
+    url.searchParams.set(`filters[${filterKey}]`, filterValue);
+    if (stateFilter) {
+      url.searchParams.set("filters[CompanyStateCode]", stateFilter);
+    }
+
+    try {
+      const res = await fetch(url.toString(), {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        next: { revalidate: 3600 },
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data.records) ? data.records : [];
+    } catch {
+      return [];
+    }
+  };
 
   try {
-    const res = await fetch(url.toString(), {
-      method: "GET",
-      headers: { Accept: "application/json" },
-      next: { revalidate: 3600 }, // Cache for 1 hour
-    });
+    let rawRecords: any[] = [];
 
-    if (!res.ok) {
-      const errText = await res.text().catch(() => "");
+    // 1. Direct CIN Lookup (Highest accuracy, instantaneous)
+    if (targetCin) {
+      rawRecords = await queryGovEndpoint("CIN", targetCin);
+    }
+
+    // 2. Company Name Query with intelligent candidate generation
+    if (rawRecords.length === 0 && !isInputCin && rawInput) {
+      const upperName = rawInput.toUpperCase();
+      const candidates: string[] = [upperName];
+
+      if (!upperName.endsWith("LIMITED") && !upperName.endsWith("LTD") && !upperName.endsWith("LLP")) {
+        candidates.push(`${upperName} LIMITED`);
+        candidates.push(`${upperName} PRIVATE LIMITED`);
+        candidates.push(`${upperName} INDIA PRIVATE LIMITED`);
+        candidates.push(`${upperName} LLP`);
+      } else if (upperName.endsWith("PVT LTD")) {
+        candidates.push(upperName.replace(/PVT LTD$/, "PRIVATE LIMITED").trim());
+      } else if (upperName.endsWith("LTD")) {
+        candidates.push(upperName.replace(/LTD$/, "LIMITED").trim());
+      }
+
+      // Try candidates
+      for (const cand of candidates) {
+        rawRecords = await queryGovEndpoint("CompanyName", cand, resolvedState);
+        if (rawRecords.length > 0) break;
+      }
+
+      // If no result with state, retry candidates without state filter (pan-India)
+      if (rawRecords.length === 0 && resolvedState) {
+        for (const cand of candidates.slice(0, 3)) {
+          rawRecords = await queryGovEndpoint("CompanyName", cand);
+          if (rawRecords.length > 0) break;
+        }
+      }
+    }
+
+    // If records were found in live data.gov.in index
+    if (rawRecords.length > 0) {
+      const records: McaLiveRecord[] = rawRecords.map((r: any) => ({
+        cin: String(r.CIN || "").trim(),
+        companyName: String(r.CompanyName || "").trim(),
+        roc: String(r.CompanyROCcode || "").trim(),
+        companyCategory: String(r.CompanyCategory || "Company limited by shares").trim(),
+        companySubCategory: String(r.CompanySubCategory || "Non-government company").trim(),
+        companyClass: String(r.CompanyClass || "Private").trim(),
+        authorizedCapital: Number(r.AuthorizedCapital) || 0,
+        paidUpCapital: Number(r.PaidupCapital) || 0,
+        incorporationDate: String(r.CompanyRegistrationdate_date || "").trim(),
+        registeredAddress: String(r.Registered_Office_Address || "").trim(),
+        listingStatus: String(r.Listingstatus || "Unlisted").trim(),
+        status: String(r.CompanyStatus || "Active").trim(),
+        stateCode: String(r.CompanyStateCode || "").trim(),
+        country: String(r["CompanyIndian/Foreign Company"] || "India").trim(),
+        nicCode: String(r.nic_code || "").trim(),
+        industrialClassification: String(r.CompanyIndustrialClassification || "").trim(),
+      }));
+
+      return {
+        success: true,
+        total: records.length,
+        count: records.length,
+        records,
+        isLiveApi: true,
+        source: "Ministry of Corporate Affairs (data.gov.in MCA21 API)",
+      };
+    }
+
+    // If 0 records were found: check if additional information is required
+    if (!resolvedState && !isInputCin) {
       return {
         success: false,
         total: 0,
         count: 0,
         records: [],
-        source: "data.gov.in (MCA21)",
-        error: `MCA API returned status ${res.status}: ${errText.slice(0, 200)}`,
+        isLiveApi: false,
+        requiresMoreInfo: true,
+        missingFields: ["state", "cin", "entityType"],
+        message: "The MCA21 Portal requires Registered State / RoC or 21-digit CIN to locate the exact company record.",
+        source: "Ministry of Corporate Affairs (data.gov.in MCA21 API)",
       };
     }
 
-    const data = await res.json();
-    const rawRecords = Array.isArray(data.records) ? data.records : [];
-
-    const records: McaLiveRecord[] = rawRecords.map((r: any) => ({
-      cin: String(r.CIN || "").trim(),
-      companyName: String(r.CompanyName || "").trim(),
-      roc: String(r.CompanyROCcode || "").trim(),
-      companyCategory: String(r.CompanyCategory || "").trim(),
-      companySubCategory: String(r.CompanySubCategory || "").trim(),
-      companyClass: String(r.CompanyClass || "").trim(),
-      authorizedCapital: Number(r.AuthorizedCapital) || 0,
-      paidUpCapital: Number(r.PaidupCapital) || 0,
-      incorporationDate: String(r.CompanyRegistrationdate_date || "").trim(),
-      registeredAddress: String(r.Registered_Office_Address || "").trim(),
-      listingStatus: String(r.Listingstatus || "Unlisted").trim(),
-      status: String(r.CompanyStatus || "Active").trim(),
-      stateCode: String(r.CompanyStateCode || "").trim(),
-      country: String(r["CompanyIndian/Foreign Company"] || "India").trim(),
-      nicCode: String(r.nic_code || "").trim(),
-      industrialClassification: String(r.CompanyIndustrialClassification || "").trim(),
-    }));
-
     return {
-      success: true,
-      total: Number(data.total) || records.length,
-      count: records.length,
-      records,
-      source: "Ministry of Corporate Affairs (data.gov.in MCA21)",
+      success: false,
+      total: 0,
+      count: 0,
+      records: [],
+      isLiveApi: false,
+      requiresMoreInfo: false,
+      source: "Ministry of Corporate Affairs (data.gov.in MCA21 API)",
+      error: "No matching corporate record found in MCA21 registry.",
     };
   } catch (err: any) {
     return {
@@ -143,7 +287,8 @@ export async function fetchLiveMcaCompanyData(params: {
       total: 0,
       count: 0,
       records: [],
-      source: "data.gov.in (MCA21)",
+      isLiveApi: false,
+      source: "Ministry of Corporate Affairs (data.gov.in MCA21 API)",
       error: err instanceof Error ? err.message : String(err),
     };
   }
