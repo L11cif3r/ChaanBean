@@ -43,7 +43,6 @@ import {
   Filter,
   RotateCcw,
   AlertCircle,
-  Wand2,
   MapPin,
   ArrowRight,
   ChevronRight,
@@ -916,16 +915,6 @@ export function VerificationRunner({
                 <X size={16} />
               </button>
             )}
-
-            {/* Interactive Fidget Magic Wand Button */}
-            <button
-              type="button"
-              onClick={handleFidgetClick}
-              className="p-2 rounded-full text-[#FC8019] hover:bg-orange-50 dark:hover:bg-orange-950/60 hover:rotate-12 active:scale-90 transition-all duration-200 cursor-pointer"
-              title="Fidget & Magic Auto-Fill popular Indian companies"
-            >
-              <Wand2 size={18} className="animate-pulse" />
-            </button>
 
             {/* Google Search CTA Button */}
             <button
