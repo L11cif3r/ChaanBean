@@ -12,6 +12,7 @@ import {
   Sparkles,
   ExternalLink,
   Coins,
+  Info,
 } from "lucide-react";
 
 export interface FeatureBlockCardProps {
@@ -126,22 +127,6 @@ export function FeatureBlockCard({
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 font-mono text-xs">
-            {cost === 0 ? (
-              <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold">
-                Included in Plan
-              </span>
-            ) : cost === 1500 ? (
-              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 text-[11px] font-bold">
-                ₹1,500 Add-on
-              </span>
-            ) : (
-              <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-orange-50 dark:bg-orange-500/10 text-[#FC8019] border border-orange-200 dark:border-orange-500/30 text-[11px] font-bold">
-                <Coins size={11} />
-                ₹{cost} / check
-              </span>
-            )}
-          </div>
         </div>
 
         {/* Feature Title and Primary Icon */}
@@ -149,38 +134,37 @@ export function FeatureBlockCard({
           <div className={`p-3 rounded-xl border border-transparent shrink-0 ${styles.iconBg}`}>
             <Icon size={22} />
           </div>
-          <div>
-            <h3 className="mca-company-title font-bold text-base text-slate-900 dark:text-white tracking-tight leading-snug">
-              {renderHighlightedText(feature.label, searchQuery)}
-            </h3>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="mca-company-title font-bold text-base text-slate-900 dark:text-white tracking-tight leading-snug">
+                {renderHighlightedText(feature.label, searchQuery)}
+              </h3>
+              {/* Information Icon Tooltip */}
+              <div className="relative group/info inline-flex items-center shrink-0">
+                <button
+                  type="button"
+                  aria-label={`About ${feature.label}`}
+                  className="text-slate-400 hover:text-[#FC8019] dark:hover:text-orange-400 transition-colors p-0.5 focus:outline-none"
+                >
+                  <Info size={15} />
+                </button>
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover/info:block z-30 w-64 p-3 rounded-xl bg-slate-900 dark:bg-slate-800 text-slate-100 text-xs shadow-xl border border-slate-700 pointer-events-none leading-relaxed animate-in fade-in">
+                  <p className="font-sans font-normal text-slate-200">{feature.purpose}</p>
+                  {feature.statute && (
+                    <div className="mt-1.5 pt-1.5 border-t border-slate-700/80 text-[10px] text-amber-300 font-mono">
+                      Statute: {feature.statute}
+                    </div>
+                  )}
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900 dark:border-t-slate-800"></div>
+                </div>
+              </div>
+            </div>
             {feature.statute && (
-              <span className="inline-block mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              <span className="inline-block mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate max-w-full">
                 {renderHighlightedText(feature.statute, searchQuery)}
               </span>
             )}
           </div>
-        </div>
-
-        {/* Purpose Box: Highlights why the feature exists and what it solves */}
-        <div
-          className={`rounded-xl p-3.5 space-y-1.5 transition-colors ${
-            isMatchedInPurpose
-              ? "bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80"
-              : "bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800"
-          }`}
-        >
-          <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            <Target size={11} className={isMatchedInPurpose ? "text-amber-600 dark:text-amber-400" : "text-slate-400"} />
-            <span>Purpose &amp; Use Case:</span>
-            {isMatchedInPurpose && (
-              <span className="ml-auto px-1.5 py-0.2 rounded bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 text-[9px] font-sans font-semibold">
-                Matched Search
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            {renderHighlightedText(feature.purpose, searchQuery)}
-          </p>
         </div>
 
         {/* Capabilities Chips */}

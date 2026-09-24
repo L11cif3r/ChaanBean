@@ -1117,52 +1117,49 @@ export function VerificationRunner({
               embedded={true}
             />
 
-            {/* Visual Connection Bridge: Seamless transition from MCA Master Data to Pay-to-Unlock Extensions */}
-            <div className="bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent dark:from-orange-500/20 dark:via-amber-500/10 border-t-2 border-b border-orange-300 dark:border-orange-500/30 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#FC8019] text-white flex items-center justify-center font-bold shadow-xs">
-                  <TrendingUp size={18} />
+            {/* Section 2: Locked Verification Reports & Risk Add-ons */}
+            <div className="p-6 sm:p-8 space-y-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-950/20">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                {/* Filter Tabs */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {categories.map((cat) => {
+                    const isSelected = selectedCategory === cat;
+                    const count = getCategoryCount(cat);
+                    if (count === 0 && cat !== "All") return null;
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${
+                          isSelected
+                            ? "bg-[#FC8019] text-white shadow-md shadow-orange-500/20 font-bold"
+                            : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                        }`}
+                      >
+                        <span>{cat}</span>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                            isSelected
+                              ? "bg-white/20 text-white"
+                              : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#FC8019]">
-                      Extension of Search Results · Statutory Credit Dossier
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold font-mono">
-                      ✓ Initial MCA Data Complete
-                    </span>
-                  </div>
-                  <h3 className="mca-company-title text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-                    Commercial Credit &amp; Underwriting Extensions for {mcaRecord.companyName}
-                  </h3>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-mono text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 px-3.5 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 font-bold shadow-xs">
-                  Wallet: ₹{walletBalance.toLocaleString("en-IN")}
-                </span>
-                <span className="text-xs font-mono text-slate-500 dark:text-slate-400 hidden sm:inline">
-                  {searchedCompanyExtensions.length} Available Extensions
-                </span>
-              </div>
-            </div>
-
-            {/* Section 2: Paywalled Intelligence Add-ons as an extension of the searched company */}
-            <div className="p-6 sm:p-8 space-y-6 bg-slate-50/40 dark:bg-slate-950/20">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <p className="text-xs text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
-                  Director vetting and initial master filings are authenticated above. Unlock real-time GST filings, exact certified turnover, e-Courts litigation history, MSME payment status, and statutory recovery suites for <strong>{mcaRecord.companyName}</strong> below.
-                </p>
 
                 {/* Filter search */}
-                <div className="relative min-w-[240px]">
+                <div className="relative min-w-[220px]">
                   <Search size={14} className="absolute left-3 top-3 text-slate-400" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Filter extensions (GST, court, MSME)..."
+                    placeholder="Search reports..."
                     className="w-full rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-8 py-2 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-[#FC8019] shadow-xs"
                   />
                   {searchQuery && (
@@ -1175,38 +1172,6 @@ export function VerificationRunner({
                     </button>
                   )}
                 </div>
-              </div>
-
-              {/* Filter Tabs */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                {categories.map((cat) => {
-                  const isSelected = selectedCategory === cat;
-                  const count = getCategoryCount(cat);
-                  if (count === 0 && cat !== "All") return null;
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${
-                        isSelected
-                          ? "bg-[#FC8019] text-white shadow-md shadow-orange-500/20 font-bold"
-                          : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                      }`}
-                    >
-                      <span>{cat}</span>
-                      <span
-                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                          isSelected
-                            ? "bg-white/20 text-white"
-                            : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
-                        }`}
-                      >
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
               </div>
 
               {/* Grid of Extension Cards (Excludes director details & DIN vetting since already shown) */}
