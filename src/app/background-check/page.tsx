@@ -72,9 +72,9 @@ export default async function BackgroundCheckPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800/60">
-          <Cpu size={14} />
-          <span>18 Statutory Intelligence &amp; Recovery Modules</span>
+        <div className="flex items-center gap-2.5 text-xs font-bold font-sans text-slate-900 dark:text-white bg-white dark:bg-slate-800 px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#FC8019] shrink-0 animate-pulse" />
+          <span>18 Statutory Verification Services</span>
         </div>
       </div>
 

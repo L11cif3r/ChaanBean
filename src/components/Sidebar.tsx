@@ -182,10 +182,10 @@ export function Sidebar() {
             {/* Mobile Navigation List */}
             <nav className="flex-1 p-4 space-y-4 overflow-y-auto font-sans">
               <div className="flex items-center justify-between px-2">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">
+                <span className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-300 font-bold">
                   Core Operating Stations
                 </span>
-                <span className="text-[10px] font-mono text-[#FC8019] bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded-md shadow-xs">
                   5 Modules
                 </span>
               </div>
@@ -221,19 +221,19 @@ export function Sidebar() {
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 shrink-0">
+                              <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 shrink-0">
                                 0{idx + 1}
                               </span>
                               <h3 className="text-xs font-bold leading-tight truncate text-slate-900 dark:text-white">
                                 {tab.label}
                               </h3>
                             </div>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug truncate">
+                            <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-0.5 leading-snug truncate">
                               {tab.subtitle}
                             </p>
                           </div>
                         </div>
-                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-md border shrink-0 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500">
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 shadow-xs">
                           {tab.badge}
                         </span>
                       </div>
@@ -350,10 +350,10 @@ export function Sidebar() {
           {/* Section Header (when expanded) */}
           {!isCollapsed && (
             <div className="flex items-center justify-between px-2">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">
+              <span className="text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-300 font-bold">
                 Core Operating Stations
               </span>
-              <span className="text-[10px] font-mono text-[#FC8019] bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 px-1.5 py-0.5 rounded">
+              <span className="text-[10px] font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded-md shadow-xs">
                 5 Modules
               </span>
             </div>

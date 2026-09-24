@@ -204,7 +204,7 @@ export function FeatureBlockCard({
           <>
             <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium font-mono">
               <CheckCircle2 size={14} />
-              <span>In Library (₹0)</span>
+              <span>Verified Report (₹0)</span>
             </div>
 
             <div className="flex items-center gap-2">

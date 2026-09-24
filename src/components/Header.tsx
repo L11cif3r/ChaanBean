@@ -101,21 +101,7 @@ export function Header() {
           </span>
         </Link>
 
-        {/* Report Library Direct Access */}
-        <Link
-          href="/reports"
-          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-xs text-slate-700 dark:text-slate-200 hover:border-[#FC8019] hover:text-[#FC8019] transition shadow-sm font-semibold"
-          title="Access Your Permanent Purchased Report Library"
-        >
-          <FileText size={13} className="text-[#FC8019]" />
-          <span>Library</span>
-        </Link>
 
-        {/* System Health Indicator */}
-        <div className="hidden 2xl:flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
-          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>11 Gateways Live</span>
-        </div>
 
         {/* Theme Switcher (Dark / Light Mode Icon) */}
         <ThemeToggle />
