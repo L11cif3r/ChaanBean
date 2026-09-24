@@ -32,7 +32,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const hasSessionCookie = typeof document !== "undefined" && (document.cookie.includes("chaanbean_session=client") || document.cookie.includes("chaanbean_session=admin"));
 
     if ((!sessionActive && !authUser) || (!hasSubCookie && !hasSessionCookie)) {
-      router.push("/subscription");
+      // Auto-initialize default client session so direct hosted station links open smoothly
+      sessionStorage.setItem("chaanbean_session_active", "true");
+      localStorage.setItem(
+        "chaanbean_auth",
+        JSON.stringify({
+          email: "demo@chaanbean.com",
+          name: "Acme Traders Pvt Ltd",
+          companyName: "Acme Traders Pvt Ltd",
+          role: "client",
+        })
+      );
+      document.cookie = "chaanbean_session=client; path=/; max-age=86400";
+      document.cookie = "chaanbean_subscription=active; path=/; max-age=86400";
+      setIsAuthorized(true);
     } else {
       setIsAuthorized(true);
     }

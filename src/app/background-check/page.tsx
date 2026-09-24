@@ -61,20 +61,20 @@ export default async function BackgroundCheckPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
       {/* Page Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chaan-border pb-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
         <div>
           <div className="flex items-center gap-2">
-            <Search className="text-chaan-brand" size={24} />
-            <h1 className="text-2xl font-bold text-white tracking-tight">AI Credit Check</h1>
+            <Search className="text-[#FC8019]" size={24} />
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">AI Credit Check</h1>
           </div>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             Unified adapter gateway · 30-day cache-first lookup · Parallel fan-out · Statutory credit risk underwriting
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-lg border border-emerald-800/60">
+        <div className="flex items-center gap-2 text-xs font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800/60">
           <Cpu size={14} />
-          <span>18 Statutory Intelligence & Recovery Modules</span>
+          <span>18 Statutory Intelligence &amp; Recovery Modules</span>
         </div>
       </div>
 

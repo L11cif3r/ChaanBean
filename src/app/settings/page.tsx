@@ -716,7 +716,7 @@ function SettingsContent() {
                     {planName}
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Valid for {daysRemaining} days remaining · 14 statutory adapters + automated voice dialer
+                    Valid for {daysRemaining} days remaining · 18 statutory adapters + automated voice dialer
                   </p>
                 </div>
 

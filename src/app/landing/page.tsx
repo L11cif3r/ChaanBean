@@ -693,7 +693,7 @@ export default function LandingPage() {
                 <div className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[#FC8019]">
                   {m.value}
                 </div>
-                <div className="text-xs sm:text-sm lg:text-base font-bold text-slate-800 dark:text-slate-200">
+                <div className="text-xs sm:text-sm lg:text-base font-bold text-[#FC8019] tracking-wide">
                   {m.label}
                 </div>
               </div>

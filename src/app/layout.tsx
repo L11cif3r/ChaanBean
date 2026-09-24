@@ -7,9 +7,13 @@ export const metadata: Metadata = {
   title: "ChaanBean — Credit Recovery & Verification",
   description: "B2B credit recovery and business verification platform for the Indian market",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: [
+      { url: "/icon.png", sizes: "512x512", type: "image/png" },
+      { url: "/favicon.ico", sizes: "64x64" },
+      { url: "/logo.png", sizes: "1024x742", type: "image/png" },
+    ],
+    shortcut: "/icon.png",
+    apple: "/apple-icon.png",
   },
 };
 

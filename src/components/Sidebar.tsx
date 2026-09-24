@@ -84,7 +84,7 @@ export function Sidebar() {
       id: "ai-credit-check",
       href: "/background-check",
       label: "AI Credit Check",
-      subtitle: "14 Statutory Gateways",
+      subtitle: "18 Statutory Gateways",
       icon: Search,
       badge: "Credit",
     },
