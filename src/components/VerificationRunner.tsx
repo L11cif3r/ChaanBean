@@ -821,20 +821,13 @@ export function VerificationRunner({
     <div className="space-y-10">
       
       {/* ------------------------------------------------------------- */}
-      {/* TOP STATUS BAR: ENTERPRISE WALLET BALANCE & ACTIVE ENGINE     */}
+      {/* TOP STATUS BAR: ACTIVE ENGINE                                 */}
       {/* ------------------------------------------------------------- */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-2">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-sans">
-            MCA21 Live Government Registry Gateway
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 text-xs font-mono font-bold text-[#FC8019] shadow-xs">
-          <Coins size={14} />
-          <span>Wallet Balance: ₹{walletBalance.toLocaleString("en-IN")}</span>
-        </div>
+      <div className="flex items-center gap-2 pb-2">
+        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-sans">
+          MCA21 Live Government Registry Gateway
+        </span>
       </div>
 
       {/* Global Wallet Action Notification Toast */}

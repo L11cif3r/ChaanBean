@@ -87,18 +87,29 @@ export function Header() {
 
       {/* Right Controls */}
       <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-        {/* Wallet Balance Pill with 3-Month Validity Indicator */}
+        {/* Prominent Top Navigation Wallet Balance with Real-time Validity Indicator */}
         <Link
           href="/subscription"
-          className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-orange-50/80 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 text-xs font-mono shadow-sm hover:border-[#FC8019] transition group"
+          className="flex items-center gap-2 sm:gap-2.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/15 dark:from-orange-500/20 dark:via-amber-500/15 dark:to-orange-500/20 border-2 border-orange-400/80 dark:border-orange-500/70 shadow-sm hover:shadow-md hover:shadow-orange-500/15 hover:border-[#FC8019] transition-all group shrink-0"
           title={`Wallet Balance: ₹${walletBalance.toLocaleString("en-IN")} · ${planName} (Valid for ${daysRemaining} days)`}
         >
-          <Wallet size={14} className="text-[#FC8019] group-hover:scale-110 transition-transform shrink-0" />
-          <span className="text-slate-500 dark:text-slate-400 hidden md:inline">{t.walletBalance}:</span>
-          <span className="font-bold text-[#FC8019] text-xs">₹{walletBalance.toLocaleString("en-IN")}</span>
-          <span className="hidden xl:inline text-[10px] px-1.5 py-0.2 rounded bg-orange-100 dark:bg-orange-950/80 text-orange-700 dark:text-orange-300 font-sans font-semibold">
-            {daysRemaining}d left
-          </span>
+          <div className="p-1 sm:p-1.5 rounded-lg bg-[#FC8019] text-white shadow-xs group-hover:scale-105 transition-transform flex items-center justify-center shrink-0">
+            <Wallet size={15} className="shrink-0 stroke-[2.5]" />
+          </div>
+          <div className="flex flex-col text-left leading-tight">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-sans hidden sm:block">
+              {t.walletBalance || "Wallet Balance"}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs sm:text-sm font-black text-[#FC8019] dark:text-orange-400 font-mono tracking-tight">
+                ₹{walletBalance.toLocaleString("en-IN")}
+              </span>
+              <span className="hidden xl:inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-200 font-sans font-bold">
+                <Clock size={9} className="text-[#FC8019]" />
+                {daysRemaining}d left
+              </span>
+            </div>
+          </div>
         </Link>
 
 
