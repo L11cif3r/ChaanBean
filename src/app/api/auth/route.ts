@@ -71,6 +71,59 @@ export async function POST(req: Request) {
       return res;
     }
 
+    // 1b. CLIENT OTP LOGIN
+    if (action === "login_otp") {
+      const { mobile, otpCode } = body;
+      if (!mobile) {
+        return NextResponse.json({ error: "Mobile number is required." }, { status: 400 });
+      }
+      if (!otpCode || otpCode.length < 4) {
+        return NextResponse.json({ error: "Valid 6-digit OTP is required." }, { status: 400 });
+      }
+
+      let company = await prisma.company.findFirst({
+        where: { name: "Acme Traders Pvt Ltd" },
+      });
+      if (!company) {
+        company = await prisma.company.findFirst();
+      }
+
+      if (!company) {
+        return NextResponse.json(
+          { error: "No active client organization account found." },
+          { status: 404 }
+        );
+      }
+
+      const res = NextResponse.json({
+        success: true,
+        type: "client",
+        user: {
+          id: company.id,
+          name: company.name,
+          email: `${mobile.replace(/\D/g, "").slice(-10)}@acmetraders.in`,
+          phone: mobile,
+          role: "client_admin",
+          companyId: company.id,
+          plan: company.plan,
+          walletBalance: company.walletBalance,
+        },
+      });
+
+      res.cookies.set("chaanbean_company_id", company.id, {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax",
+      });
+      res.cookies.set("chaanbean_company_name", encodeURIComponent(company.name), {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax",
+      });
+
+      return res;
+    }
+
     // 2. CLIENT REGISTRATION
     if (action === "register_client") {
       const {

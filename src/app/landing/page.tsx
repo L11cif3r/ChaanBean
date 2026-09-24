@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Lock,
   Zap,
+  Sparkles,
   Menu,
   X,
   Phone,
@@ -43,6 +44,7 @@ export default function LandingPage() {
   const [contactSent, setContactSent] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const [selectedPillarId, setSelectedPillarId] = useState<string>("ai-credit-check");
 
   const milestones = [
     {
@@ -500,40 +502,145 @@ export default function LandingPage() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {pillars.map((pillar) => (
-              <div
-                key={pillar.id}
-                className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-md hover:shadow-xl hover:border-[#FC8019] transition-all duration-300 group"
-              >
-                <div className="space-y-4">
-                  {/* Title & Tagline */}
-                  <div>
-                    <h3 className="text-xl font-black text-slate-900 dark:text-white group-hover:text-[#FC8019] transition-colors">
-                      {pillar.title}
-                    </h3>
-                    <p className="text-sm font-bold text-[#FC8019] mt-1">
-                      {pillar.tagline}
+            {pillars.map((pillar) => {
+              const isSelected = selectedPillarId === pillar.id;
+              return (
+                <div
+                  key={pillar.id}
+                  onClick={() => setSelectedPillarId(pillar.id)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      setSelectedPillarId(pillar.id);
+                    }
+                  }}
+                  className={`relative flex flex-col justify-between rounded-3xl border-2 p-6 sm:p-7 shadow-md transition-all duration-300 cursor-pointer select-none group active:scale-95 transform ${
+                    isSelected
+                      ? "border-[#FC8019] ring-4 ring-[#FC8019]/25 shadow-2xl shadow-orange-500/20 scale-[1.03] bg-gradient-to-b from-orange-50/70 via-white to-white dark:from-orange-950/30 dark:via-slate-900 dark:to-slate-900 z-10"
+                      : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xl hover:scale-[1.01]"
+                  }`}
+                >
+                  <div className="space-y-4">
+                    {/* Click Status Header */}
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[11px] font-mono font-bold uppercase tracking-wider ${
+                        isSelected ? "text-[#FC8019]" : "text-slate-400 dark:text-slate-500"
+                      }`}>
+                        {isSelected ? "● Active Focus" : "Click to Explore"}
+                      </span>
+                      {isSelected && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#FC8019] px-2.5 py-0.5 text-[10px] font-bold text-white shadow-sm animate-pulse">
+                          Active
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Title & Tagline */}
+                    <div>
+                      <h3 className={`text-xl font-black transition-colors ${
+                        isSelected ? "text-[#FC8019]" : "text-slate-900 dark:text-white group-hover:text-[#FC8019]"
+                      }`}>
+                        {pillar.title}
+                      </h3>
+                      <p className="text-sm font-bold text-[#FC8019] mt-1">
+                        {pillar.tagline}
+                      </p>
+                    </div>
+
+                    {/* Description - High visibility & clear font */}
+                    <p className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200 leading-relaxed">
+                      {pillar.description}
                     </p>
+
+                    {/* Bullet Highlights */}
+                    <ul className="space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
+                      {pillar.highlights.map((h, i) => (
+                        <li key={i} className="flex items-start gap-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                          <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                          <span>{h}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  {/* Description - High visibility & clear font */}
-                  <p className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200 leading-relaxed">
-                    {pillar.description}
-                  </p>
+                  {/* Tap feedback cue */}
+                  <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-500 dark:text-slate-400 group-hover:text-[#FC8019] transition-colors">
+                      {isSelected ? "Selected Step" : "Tap to inspect"}
+                    </span>
+                    <ArrowRight size={14} className={`transition-transform duration-300 ${isSelected ? "text-[#FC8019] translate-x-1" : "text-slate-400 group-hover:translate-x-1"}`} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-                  {/* Bullet Highlights */}
-                  <ul className="space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
-                    {pillar.highlights.map((h, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100">
-                        <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                        <span>{h}</span>
-                      </li>
-                    ))}
-                  </ul>
+          {/* Interactive Active Pillar Spotlight Drawer */}
+          {(() => {
+            const activePillar = pillars.find((p) => p.id === selectedPillarId) || pillars[0];
+            return (
+              <div className="mt-10 rounded-3xl border-2 border-[#FC8019]/40 bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent p-6 sm:p-8 dark:from-orange-500/15 dark:via-slate-900 dark:to-slate-900 shadow-xl transition-all duration-500">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                  <div className="space-y-3 max-w-2xl">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-[#FC8019]/20 border border-[#FC8019]/30 px-3 py-1 text-xs font-bold text-[#FC8019]">
+                      <Sparkles size={13} />
+                      <span>Active Focus · {activePillar.title}</span>
+                    </div>
+                    <h4 className="text-2xl font-black text-slate-900 dark:text-white">
+                      {activePillar.tagline}
+                    </h4>
+                    <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed">
+                      {activePillar.description}
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {activePillar.highlights.map((h, i) => (
+                        <span
+                          key={i}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-white/80 dark:bg-slate-800/80 px-3 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-sm"
+                        >
+                          <CheckCircle2 size={13} className="text-emerald-500" />
+                          {h}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+                    <Link
+                      href={
+                        activePillar.id === "ai-credit-check"
+                          ? "/background-check"
+                          : activePillar.id === "payment-automation"
+                          ? "/invoices"
+                          : activePillar.id === "legal-infrastructure"
+                          ? "/legal"
+                          : "/subscription"
+                      }
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FC8019] px-6 py-3.5 text-xs font-bold text-white shadow-lg shadow-[#FC8019]/25 hover:bg-[#E26D0A] transition"
+                    >
+                      <span>
+                        {activePillar.id === "ai-credit-check"
+                          ? "Try AI Credit Check Now"
+                          : activePillar.id === "payment-automation"
+                          ? "View Payment Follow-Ups"
+                          : activePillar.id === "legal-infrastructure"
+                          ? "Calculate MSME Legal Dues"
+                          : "Explore Business Security"}
+                      </span>
+                      <ArrowRight size={14} />
+                    </Link>
+                    <Link
+                      href="/subscription"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3.5 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:border-[#FC8019] transition"
+                    >
+                      <span>View Subscription Pricing</span>
+                    </Link>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </div>
       </section>
 
