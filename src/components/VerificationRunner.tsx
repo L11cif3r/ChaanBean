@@ -54,7 +54,8 @@ export type FeatureCategory =
   | "All"
   | "Corporate & Identity"
   | "Tax & GST"
-  | "Judicial & Legal";
+  | "Judicial & Legal"
+  | "Recovery & Governance";
 
 export interface FeatureItem {
   key: string;
@@ -62,7 +63,7 @@ export interface FeatureItem {
   label: string;
   shortLabel: string;
   reportTypes: ReportType[];
-  category: "Corporate & Identity" | "Tax & GST" | "Judicial & Legal";
+  category: "Corporate & Identity" | "Tax & GST" | "Judicial & Legal" | "Recovery & Governance";
   statute: string;
   description: string;
   purpose: string;
@@ -354,16 +355,39 @@ export const ALL_18_FEATURES: FeatureItem[] = [
     icon: Building,
   },
   {
-    key: "legal_notice_suite",
+    key: "voice_call_cadence",
     num: 14,
-    label: "Statutory Legal Notices Suite (§43B(h) / DRC-01A)",
+    label: "Default Payments Voice Calls (1m, 2m, 5m, 30m, 1h)",
+    shortLabel: "Voice Call Cadence",
+    reportTypes: ["voice_call_cadence"],
+    category: "Recovery & Governance",
+    statute: "TRAI & Telephony Regulatory Framework · High Frequency Dialer",
+    description: "Automated high-velocity debt recovery voice calls deployed at progressive cadences (every 1 min, 2 mins, 5 mins, 30 mins, and hourly).",
+    purpose: "Automates persistent, high-frequency debt collection phone calls with neural speech synthesis across configurable intervals (1m, 2m, 5m, 30m, 1h) to break debtor avoidance and secure payment commitments.",
+    useCase: "Apply relentless, compliant calling pressure on evasive debtors who ignore emails and WhatsApp reminders until payment is cleared.",
+    capabilities: ["Configurable Dialing Cadences (1m–1h)", "Neural Speech Synthesis", "Automated Outbound PBX", "Promise-to-Pay Logging"],
+    cost: 1,
+    primaryInputLabel: "Target Debtor Mobile (+91)",
+    primaryPlaceholder: "e.g. 9876543210",
+    secondaryInputLabel: "Calling Cadence Frequency",
+    secondaryPlaceholder: "Every 30 Mins",
+    defaultId: "9876543210",
+    defaultSecondary: "Every 30 Mins",
+    subjectType: "individual",
+    keywords: ["voice call", "cadence", "dialer", "telephony", "asterisk", "automated call", "1 min", "2 mins", "5 mins", "30 mins", "hourly", "phone call", "collection call", "debtor pressure", "promise to pay"],
+    icon: PhoneCall,
+  },
+  {
+    key: "legal_notice_suite",
+    num: 15,
+    label: "Legal Notices - GST, MSME, INCOME TAX, & Demand",
     shortLabel: "Legal Notices Suite",
     reportTypes: ["legal_notice_suite"],
     category: "Judicial & Legal",
-    statute: "Advocate Bar Council & Statutory Formats",
-    description: "4 statutory notices with official Government Reference Numbers reported to the Income Tax Department (§43B(h)) and GST Department (§16(4) / DRC-01A).",
-    purpose: "Generates and issues legally binding statutory demand notices referencing Section 43B(h) of Income Tax Act, Section 16(4) / DRC-01A of GST Act, and Section 18 of MSMED Act with official reference numbers.",
-    useCase: "Apply maximum legal leverage on recalcitrant debtors before launching costly court litigation or filing NCLT insolvency petitions.",
+    statute: "Income Tax §43B(h) · CGST §16(4)/DRC-01A · MSMED §18 · §138 NI Act",
+    description: "4 official statutory legal notices with verified Government Reference Numbers reported to the Income Tax Department (§43B(h)), GST Portal (§16(4)), and MSME Council.",
+    purpose: "Generates and dispatches formal statutory demand notices citing Section 43B(h) tax disallowances, GST DRC-01A ITC reversal warnings, MSMED Act 3x compound interest, and Section 138 NI Act court prosecution.",
+    useCase: "Enforce statutory recovery leverage before filing court suits, creating immediate financial consequences for the debtor's tax filings and input credits.",
     capabilities: ["Income Tax §43B(h) Notice", "GST §16(4) / DRC-01A Warning", "MSMED Act §18 Demand", "Official Govt Reference Numbers"],
     cost: 1500,
     primaryInputLabel: "Target Debtor Name or GSTIN",
@@ -373,8 +397,77 @@ export const ALL_18_FEATURES: FeatureItem[] = [
     defaultId: "27AAECG1234H1Z5",
     defaultSecondary: "₹5,40,000",
     subjectType: "business",
-    keywords: ["legal notice", "demand notice", "statutory notice", "section 43b(h)", "income tax warning", "drc-01a", "msmed notice", "advocate notice", "overdue demand", "legal action", "recovery notice"],
+    keywords: ["legal notice", "demand notice", "statutory notice", "section 43b(h)", "income tax warning", "drc-01a", "msmed notice", "advocate notice", "overdue demand", "legal action", "recovery notice", "gst notice", "msme notice"],
     icon: FileWarning,
+  },
+  {
+    key: "delayed_payment_followup",
+    num: 16,
+    label: "Delayed Payments Follow UP",
+    shortLabel: "Delayed Payments Follow-Up",
+    reportTypes: ["delayed_payment_followup"],
+    category: "Recovery & Governance",
+    statute: "Temporal Aging Protocols & Dispute Escalation Engine",
+    description: "Multi-channel automated collections workflow tracking overdue aging buckets, assigned recovery officers, and automated promise-to-pay confirmations.",
+    purpose: "Tracks overdue invoices across progressive aging buckets (1–15, 16–30, 31–45, 45+ days), orchestrating multi-channel WhatsApp, email, and voice outreach with assigned collection personnel.",
+    useCase: "Maintain rigorous, systematic payment follow-ups from day 1 overdue to prevent accounts from deteriorating into write-offs or bad debt.",
+    capabilities: ["Aging Bucket Classification", "Assigned Collector Routing", "Escalation Sequence Tracking", "Promise-to-Pay Management"],
+    cost: 1,
+    primaryInputLabel: "Debtor Name or GSTIN",
+    primaryPlaceholder: "e.g. 27AAECG1234H1Z5",
+    secondaryInputLabel: "Days Overdue Bracket",
+    secondaryPlaceholder: "30+ Days",
+    defaultId: "27AAECG1234H1Z5",
+    defaultSecondary: "30+ Days",
+    subjectType: "business",
+    keywords: ["delayed payment", "follow up", "aging bucket", "overdue", "collections", "escalation", "promise to pay", "recovery officer", "whatsapp reminder", "payment tracking"],
+    icon: Clock,
+  },
+  {
+    key: "subscription_seats",
+    num: 17,
+    label: "User Access (5 per Subscription)",
+    shortLabel: "User Access (5 Seats)",
+    reportTypes: ["subscription_seats"],
+    category: "Recovery & Governance",
+    statute: "Enterprise Team Access & Role-Based Access Control (RBAC)",
+    description: "Manage 5 fully included team seats per subscription with role-based permissions for Finance Controllers, Collection Leads, Legal Counsel, and Auditors.",
+    purpose: "Configures and allocates 5 enterprise user seats included with every ChaanBean subscription, enabling collaborative credit evaluation and recovery management without per-seat add-on fees.",
+    useCase: "Equip your entire credit, recovery, finance, and legal team with dedicated logins, customized permission tiers, and audit-logged actions.",
+    capabilities: ["5 Included Team Seats", "Role-Based Access Control", "Seat Allocation & Invites", "Audit Logging"],
+    cost: 0,
+    primaryInputLabel: "Organization ID or Domain",
+    primaryPlaceholder: "e.g. ACME-CORP or acme.in",
+    secondaryInputLabel: "Seat Allocation Role",
+    secondaryPlaceholder: "Finance Controller",
+    defaultId: "ACME-CORP",
+    defaultSecondary: "Finance Controller",
+    subjectType: "business",
+    keywords: ["user access", "5 seats", "subscription", "team members", "roles", "permissions", "finance controller", "collections lead", "legal counsel", "multi user", "rbac", "team seats"],
+    icon: Users,
+  },
+  {
+    key: "additional_company_addon",
+    num: 18,
+    label: "Add Additional Company Name for ₹1,500",
+    shortLabel: "Add Company (₹1,500)",
+    reportTypes: ["additional_company_addon"],
+    category: "Recovery & Governance",
+    statute: "Multi-Entity Group Governance & Cross-Company Ledger",
+    description: "Register and monitor additional sister companies, subsidiaries, or branch entities under one master subscription for a flat ₹1,500 one-time fee.",
+    purpose: "Allows corporate groups and holding companies to add and manage additional company profiles, GSTINs, and debtor books within the same ChaanBean account for ₹1,500.",
+    useCase: "Consolidate credit risk monitoring, background underwriting, and payment recovery across multiple sister concerns or subsidiary firms seamlessly.",
+    capabilities: ["Sister Concern Linkage", "Multi-Entity Consolidated Ledger", "Instant GSTIN Registration", "Cross-Entity Credit Limits"],
+    cost: 1500,
+    primaryInputLabel: "Additional Company Name or GSTIN",
+    primaryPlaceholder: "e.g. Acme Polymers Manufacturing Pvt Ltd",
+    secondaryInputLabel: "State / Jurisdiction",
+    secondaryPlaceholder: "e.g. Maharashtra",
+    defaultId: "Acme Logistics & Supply Chain LLP",
+    defaultSecondary: "Maharashtra",
+    subjectType: "business",
+    keywords: ["additional company", "1500 rupees", "company name", "sister concern", "subsidiary", "multi-entity", "add company", "group companies", "holding company", "corporate ledger"],
+    icon: Building2,
   },
 ];
 
@@ -487,6 +580,7 @@ export function VerificationRunner({
     "Corporate & Identity",
     "Tax & GST",
     "Judicial & Legal",
+    "Recovery & Governance",
   ];
 
   const getCategoryCount = (cat: FeatureCategory) => {

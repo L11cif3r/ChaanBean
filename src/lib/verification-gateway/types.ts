@@ -139,5 +139,9 @@ export const BUNDLE_REPORT_TYPES: ReportType[] = [
   "import_export_report",
   "education_marksheet_check",
   "pan_to_gst",
+  "voice_call_cadence",
   "legal_notice_suite",
+  "delayed_payment_followup",
+  "subscription_seats",
+  "additional_company_addon",
 ];

@@ -74,7 +74,7 @@ export default async function BackgroundCheckPage() {
 
         <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-lg border border-emerald-800/60">
           <Cpu size={14} />
-          <span>14 Statutory Background Adapters</span>
+          <span>18 Statutory Intelligence & Recovery Modules</span>
         </div>
       </div>
 
