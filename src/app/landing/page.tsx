@@ -36,12 +36,6 @@ import {
   Instagram,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import {
-  CreditCheckMinimalIllustration,
-  RiskSecurityMinimalIllustration,
-  PaymentCadenceMinimalIllustration,
-  LegalDocketMinimalIllustration,
-} from "@/components/LandingIllustrations";
 import { FooterModals, ModalType } from "@/components/FooterModals";
 
 export default function LandingPage() {
@@ -54,18 +48,26 @@ export default function LandingPage() {
     {
       value: "4 Years",
       label: "Years of Service",
+      sub: "Continuously Serving Indian MSMEs",
+      badge: "Since 2022",
     },
     {
       value: "1,500 Cr",
       label: "Received",
+      sub: "Total Dispute Recoveries Disbursed",
+      badge: "Verified Capital",
     },
     {
       value: "2,000+",
       label: "Recovered Cases",
+      sub: "Settled Overdue Accounts",
+      badge: "94% Success Rate",
     },
     {
       value: "100K+",
       label: "Company Data",
+      sub: "Monitored Indian Corporate Entities",
+      badge: "Real-time Gateway",
     },
   ];
 
@@ -429,13 +431,7 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden px-6 pt-16 pb-20 text-center lg:pt-24 lg:pb-28 z-10">
-        <div className="mx-auto max-w-4xl space-y-6">
-          {/* Announcement Tag */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#FC8019]/30 bg-[#FC8019]/10 px-4 py-1.5 text-xs font-semibold text-[#FC8019] shadow-sm">
-            <Zap size={13} />
-            <span>Next-Generation B2B Credit Risk & Recovery Platform</span>
-          </div>
-
+        <div className="mx-auto max-w-4xl space-y-8">
           {/* Main Headline */}
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl text-slate-900 dark:text-white">
             Smarter Credit Assessment.
@@ -445,15 +441,8 @@ export default function LandingPage() {
             </span>
           </h1>
 
-          {/* Subtitle */}
-          <p className="mx-auto max-w-2xl text-base text-slate-600 dark:text-slate-300 sm:text-lg leading-relaxed">
-            ChaanBean is the unified operating system for Indian commercial trade credit.
-            Verify counterparty credibility in seconds, underwrite risk with deterministic intelligence,
-            automate debt collections, and enforce statutory arbitration under MSMED Act §18.
-          </p>
-
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <Link
               href="/subscription"
               className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl bg-[#FC8019] px-8 py-4 text-sm font-bold text-white shadow-xl shadow-[#FC8019]/25 hover:bg-[#E26D0A] hover:scale-[1.02] transition"
@@ -469,26 +458,6 @@ export default function LandingPage() {
               <Lock size={15} className="text-[#FC8019]" />
               <span>Already a Customer? Log In</span>
             </Link>
-          </div>
-
-          {/* Trust Highlights */}
-          <div className="flex flex-wrap items-center justify-center gap-6 pt-6 text-sm font-semibold text-slate-700 dark:text-slate-200">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-emerald-500" />
-              <span>MSME Payment Protection</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-emerald-500" />
-              <span>45-Day Payment Rule Compliance</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-emerald-500" />
-              <span>Official Government Records</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-emerald-500" />
-              <span>100% Safe & Confidential</span>
-            </div>
           </div>
         </div>
       </section>
@@ -531,30 +500,12 @@ export default function LandingPage() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {pillars.map((pillar, idx) => (
+            {pillars.map((pillar) => (
               <div
                 key={pillar.id}
                 className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-md hover:shadow-xl hover:border-[#FC8019] transition-all duration-300 group"
               >
                 <div className="space-y-4">
-                  {/* Top Header: Step Indicator & Category Tag (No top-left icon) */}
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-orange-100 text-[#FC8019] dark:bg-orange-950/60 dark:text-orange-400 border border-orange-300/60 dark:border-orange-800">
-                      Step 0{idx + 1}
-                    </span>
-                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
-                      {pillar.badge}
-                    </span>
-                  </div>
-
-                  {/* Minimal Illustration Accent */}
-                  <div className="py-2.5 px-3 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/70 dark:border-slate-800">
-                    {pillar.id === "ai-credit-check" && <CreditCheckMinimalIllustration />}
-                    {pillar.id === "business-security" && <RiskSecurityMinimalIllustration />}
-                    {pillar.id === "payment-automation" && <PaymentCadenceMinimalIllustration />}
-                    {pillar.id === "legal-infrastructure" && <LegalDocketMinimalIllustration />}
-                  </div>
-
                   {/* Title & Tagline */}
                   <div>
                     <h3 className="text-xl font-black text-slate-900 dark:text-white group-hover:text-[#FC8019] transition-colors">
@@ -580,12 +531,6 @@ export default function LandingPage() {
                     ))}
                   </ul>
                 </div>
-
-                {/* Bottom Reassurance Benefit */}
-                <div className="pt-4 mt-5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs sm:text-sm font-bold">
-                  <span className="text-slate-500 dark:text-slate-400">{pillar.badge}</span>
-                  <span className="text-[#FC8019] dark:text-orange-400">{pillar.benefit}</span>
-                </div>
               </div>
             ))}
           </div>
@@ -596,10 +541,6 @@ export default function LandingPage() {
       <section id="loans" className="relative overflow-hidden px-6 py-20 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F17]/80 scroll-mt-16">
         <div className="relative mx-auto max-w-7xl z-10 space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] border border-orange-200 dark:border-orange-800">
-              <Briefcase size={14} />
-              <span>MSME Financial Solutions</span>
-            </span>
             <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
               Working Capital &amp; Business Loans
             </h2>
@@ -684,18 +625,50 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Proof & Milestones Section - Pure Minimalist Stat Strip on Page Body (No background, all same orange) */}
-      <section id="milestones" className="relative px-6 py-14 border-t border-slate-200 dark:border-slate-800 scroll-mt-16 z-10">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {milestones.map((m, idx) => (
-              <div key={idx} className="space-y-1.5">
-                <div className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[#FC8019]">
-                  {m.value}
+      {/* Proof & Milestones Section - Interactive Left-to-Right Motion */}
+      <section id="milestones" className="relative py-14 border-t border-slate-200 dark:border-slate-800 overflow-hidden scroll-mt-16 z-10 bg-slate-50/50 dark:bg-[#0B0F17]/60">
+        {/* Soft edge fade masks for seamless horizontal motion */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-20 sm:w-32 bg-gradient-to-r from-slate-50 dark:from-[#0B0F17] to-transparent z-20" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-20 sm:w-32 bg-gradient-to-l from-slate-50 dark:from-[#0B0F17] to-transparent z-20" />
+
+        <div className="mx-auto max-w-7xl px-6 mb-5 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-widest bg-orange-50 dark:bg-orange-500/10 text-[#FC8019] border border-orange-200 dark:border-orange-500/30">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>ChaanBean Operational Track Record · Moving in Real-Time (Hover to Pause)</span>
+          </div>
+        </div>
+
+        {/* Marquee Track: Smooth Continuous Motion from Left to Right */}
+        <div className="relative w-full overflow-hidden py-2">
+          <div className="animate-marquee-ltr flex items-center gap-6">
+            {/* Duplicated for infinite seamless loop */}
+            {[...milestones, ...milestones, ...milestones, ...milestones].map((m, idx) => (
+              <div
+                key={idx}
+                className="group relative flex flex-col justify-between w-64 sm:w-72 p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-xl hover:border-[#FC8019] hover:-translate-y-1 hover:scale-[1.03] transition-all duration-300 cursor-pointer select-none shrink-0"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-orange-50 dark:bg-orange-950/60 text-[#FC8019] border border-orange-200 dark:border-orange-800">
+                    {m.badge}
+                  </span>
+                  <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                    <CheckCircle2 size={11} />
+                    Verified
+                  </span>
                 </div>
-                <div className="text-xs sm:text-sm lg:text-base font-bold text-[#FC8019] tracking-wide">
-                  {m.label}
+
+                <div className="my-3 space-y-0.5">
+                  <div className="text-3xl sm:text-4xl font-black tracking-tight text-[#FC8019] group-hover:scale-105 transition-transform origin-left">
+                    {m.value}
+                  </div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white tracking-wide">
+                    {m.label}
+                  </div>
                 </div>
+
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  {m.sub}
+                </p>
               </div>
             ))}
           </div>

@@ -953,4 +953,27 @@ html.dark .chaan-tooltip-bubble .text-\[\#FC8019\] {
   color: #fc8019 !important;
 }
 
+/* =========================================================
+   CONTINUOUS LEFT-TO-RIGHT MARQUEE ANIMATION
+   ========================================================= */
+@keyframes marquee-ltr {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee-ltr {
+  display: flex;
+  width: max-content;
+  animation: marquee-ltr 28s linear infinite;
+}
+
+.animate-marquee-ltr:hover {
+  animation-play-state: paused;
+}
+
+
 
