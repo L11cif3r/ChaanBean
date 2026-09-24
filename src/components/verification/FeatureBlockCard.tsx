@@ -150,7 +150,7 @@ export function FeatureBlockCard({
             <Icon size={22} />
           </div>
           <div>
-            <h3 className="font-bold text-base text-slate-900 dark:text-white tracking-tight leading-snug">
+            <h3 className="mca-company-title font-bold text-base text-slate-900 dark:text-white tracking-tight leading-snug">
               {renderHighlightedText(feature.label, searchQuery)}
             </h3>
             {feature.statute && (

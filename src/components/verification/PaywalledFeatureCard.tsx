@@ -287,7 +287,7 @@ export function PaywalledFeatureCard({
             <Icon size={22} />
           </div>
           <div className="min-w-0">
-            <h3 className="font-bold text-base text-slate-900 dark:text-white tracking-tight leading-snug">
+            <h3 className="mca-company-title font-bold text-base text-slate-900 dark:text-white tracking-tight leading-snug">
               {feature.label}
             </h3>
             {feature.statute && (

@@ -18,6 +18,7 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
+  RotateCcw,
 } from "lucide-react";
 
 export interface McaDirector {
@@ -58,6 +59,8 @@ interface McaMasterDataCardProps {
   source?: string;
   isLiveApi?: boolean;
   onSelectDirectorDin?: (din: string) => void;
+  onClearSearch?: () => void;
+  embedded?: boolean;
 }
 
 export function McaMasterDataCard({
@@ -65,6 +68,8 @@ export function McaMasterDataCard({
   source = "Ministry of Corporate Affairs (data.gov.in MCA21 Gateway)",
   isLiveApi = false,
   onSelectDirectorDin,
+  onClearSearch,
+  embedded = false,
 }: McaMasterDataCardProps) {
   const [copiedCin, setCopiedCin] = useState(false);
   const [showAllDirectors, setShowAllDirectors] = useState(true);
@@ -100,7 +105,13 @@ export function McaMasterDataCard({
   const directors = record.directors || [];
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden transition">
+    <div
+      className={
+        embedded
+          ? "bg-white dark:bg-slate-900 transition"
+          : "rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden transition"
+      }
+    >
       {/* Official Government / MCA Header Banner */}
       <div className="bg-slate-50 dark:bg-slate-900/90 text-slate-900 dark:text-white p-5 sm:p-6 border-b border-slate-200 dark:border-slate-800">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -139,6 +150,17 @@ export function McaMasterDataCard({
             <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shadow-xs">
               {record.listingStatus || "Unlisted"}
             </span>
+
+            {onClearSearch && (
+              <button
+                type="button"
+                onClick={onClearSearch}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-[#FC8019] hover:text-[#FC8019] transition shadow-xs ml-1"
+              >
+                <RotateCcw size={13} />
+                <span>Search Another</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

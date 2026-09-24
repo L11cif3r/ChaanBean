@@ -47,6 +47,7 @@ import {
   MapPin,
   ArrowRight,
   ChevronRight,
+  TrendingUp,
 } from "lucide-react";
 
 interface VerificationRunnerProps {
@@ -751,7 +752,13 @@ export function VerificationRunner({
     }));
   };
 
-  // Filter features based on category and search query
+  // Keys excluded from searched company paywall: director details (already shown in initial MCA Master Data) and platform admin items
+  const SEARCHED_COMPANY_EXCLUDED_KEYS = useMemo(
+    () => new Set(["director_details", "user_access_5_per_sub", "add_additional_company"]),
+    []
+  );
+
+  // Filter features based on category and search query for initial unsearched catalog (all 18 services)
   const filteredFeatures = useMemo(() => {
     return ALL_18_FEATURES.filter((feat) => {
       if (selectedCategory !== "All" && feat.category !== selectedCategory) {
@@ -771,6 +778,29 @@ export function VerificationRunner({
     });
   }, [selectedCategory, searchQuery]);
 
+  // Filter features as connected extensions for the searched company (excludes director details and admin seats)
+  const searchedCompanyExtensions = useMemo(() => {
+    return ALL_18_FEATURES.filter((feat) => {
+      if (SEARCHED_COMPANY_EXCLUDED_KEYS.has(feat.key)) {
+        return false;
+      }
+      if (selectedCategory !== "All" && feat.category !== selectedCategory) {
+        return false;
+      }
+      if (!searchQuery.trim()) return true;
+
+      const q = searchQuery.toLowerCase().trim();
+      return (
+        feat.label.toLowerCase().includes(q) ||
+        feat.shortLabel.toLowerCase().includes(q) ||
+        feat.statute.toLowerCase().includes(q) ||
+        feat.purpose.toLowerCase().includes(q) ||
+        feat.description.toLowerCase().includes(q) ||
+        feat.keywords.some((k) => k.toLowerCase().includes(q))
+      );
+    });
+  }, [selectedCategory, searchQuery, SEARCHED_COMPANY_EXCLUDED_KEYS]);
+
   const categories: FeatureCategory[] = [
     "All",
     "Corporate & Identity",
@@ -780,8 +810,11 @@ export function VerificationRunner({
   ];
 
   const getCategoryCount = (cat: FeatureCategory) => {
-    if (cat === "All") return ALL_18_FEATURES.length;
-    return ALL_18_FEATURES.filter((f) => f.category === cat).length;
+    const pool = hasSearched && mcaRecord
+      ? ALL_18_FEATURES.filter((f) => !SEARCHED_COMPANY_EXCLUDED_KEYS.has(f.key))
+      : ALL_18_FEATURES;
+    if (cat === "All") return pool.length;
+    return pool.filter((f) => f.category === cat).length;
   };
 
   return (
@@ -1075,101 +1108,105 @@ export function VerificationRunner({
         </div>
       ) : hasSearched && mcaRecord ? (
         /* ------------------------------------------------------------- */
-        /* STATE A: COMPANY SEARCHED -> SHOW MCA MASTER DATA + PAYWALLS  */
+        /* STATE A: COMPANY SEARCHED -> CONNECTED MASTER DOSSIER         */
         /* ------------------------------------------------------------- */
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-3 duration-300">
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
           
-          {/* Active Company Bar with Clear Button */}
-          <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-md">
-            <div className="flex items-center gap-3.5">
-              <div className="h-11 w-11 rounded-2xl bg-orange-500/10 text-[#FC8019] flex items-center justify-center font-bold shrink-0">
-                <Building2 size={22} />
-              </div>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="mca-company-title text-lg sm:text-xl font-black text-slate-900 dark:text-white">
-                    {mcaRecord.companyName}
-                  </h3>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                    {mcaRecord.status}
-                  </span>
-                  {mcaIsLiveApi && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                      <span>Live MCA API</span>
+          {/* Unified Dossier Container */}
+          <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl overflow-hidden transition-all">
+            
+            {/* Section 1: Official Ministry of Corporate Affairs Master Data */}
+            <McaMasterDataCard
+              record={mcaRecord}
+              source={mcaSource}
+              isLiveApi={mcaIsLiveApi}
+              onClearSearch={handleClearSearch}
+              embedded={true}
+            />
+
+            {/* Visual Connection Bridge: Seamless transition from MCA Master Data to Pay-to-Unlock Extensions */}
+            <div className="bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent dark:from-orange-500/20 dark:via-amber-500/10 border-t-2 border-b border-orange-300 dark:border-orange-500/30 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#FC8019] text-white flex items-center justify-center font-bold shadow-xs">
+                  <TrendingUp size={18} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#FC8019]">
+                      Extension of Search Results · Statutory Credit Dossier
                     </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold font-mono">
+                      ✓ Initial MCA Data Complete
+                    </span>
+                  </div>
+                  <h3 className="mca-company-title text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+                    Commercial Credit &amp; Underwriting Extensions for {mcaRecord.companyName}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-mono text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 px-3.5 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 font-bold shadow-xs">
+                  Wallet: ₹{walletBalance.toLocaleString("en-IN")}
+                </span>
+                <span className="text-xs font-mono text-slate-500 dark:text-slate-400 hidden sm:inline">
+                  {searchedCompanyExtensions.length} Available Extensions
+                </span>
+              </div>
+            </div>
+
+            {/* Section 2: Paywalled Intelligence Add-ons as an extension of the searched company */}
+            <div className="p-6 sm:p-8 space-y-6 bg-slate-50/40 dark:bg-slate-950/20">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <p className="text-xs text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
+                  Director vetting and initial master filings are authenticated above. Unlock real-time GST filings, exact certified turnover, e-Courts litigation history, MSME payment status, and statutory recovery suites for <strong>{mcaRecord.companyName}</strong> below.
+                </p>
+
+                {/* Filter search */}
+                <div className="relative min-w-[240px]">
+                  <Search size={14} className="absolute left-3 top-3 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Filter extensions (GST, court, MSME)..."
+                    className="w-full rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-8 py-2 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-[#FC8019] shadow-xs"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+                    >
+                      <X size={13} />
+                    </button>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">
-                  CIN: {mcaRecord.cin} · State: {mcaRecord.stateCode || mcaRecord.roc} · RoC: {mcaRecord.roc}
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleClearSearch}
-              className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-[#FC8019] hover:text-[#FC8019] transition shadow-xs"
-            >
-              <RotateCcw size={14} />
-              <span>Search Another Company</span>
-            </button>
-          </div>
-
-          {/* Official MCA Master Data Card */}
-          <McaMasterDataCard
-            record={mcaRecord}
-            source={mcaSource}
-            isLiveApi={mcaIsLiveApi}
-            onSelectDirectorDin={(din) => {
-              const feat = ALL_18_FEATURES.find((f) => f.key === "director_details");
-              if (feat) setActiveModalFeature(feat);
-            }}
-          />
-
-          {/* Paywalled Deep Intelligence Add-ons for this Searched Company */}
-          <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 space-y-6 shadow-sm">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Coins className="text-[#FC8019]" size={22} />
-                  <h3 className="mca-company-title text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-                    Unlock Statutory Intelligence &amp; Deep Underwriting Dossiers
-                  </h3>
-                </div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-3xl">
-                  MCA preliminary master data is verified above for <strong>{mcaRecord.companyName}</strong>. Unlock real-time GST filings, exact filed turnover, e-Courts litigation, MSME status, and legal notices below.
-                </p>
               </div>
 
-              <span className="text-xs font-mono text-emerald-800 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/80 px-3.5 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 font-bold shrink-0">
-                Wallet: ₹{walletBalance.toLocaleString("en-IN")}
-              </span>
-            </div>
-
-            {/* Filter Tabs & Search for Features */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+              {/* Filter Tabs */}
+              <div className="flex flex-wrap items-center gap-1.5">
                 {categories.map((cat) => {
                   const isSelected = selectedCategory === cat;
                   const count = getCategoryCount(cat);
+                  if (count === 0 && cat !== "All") return null;
                   return (
                     <button
                       key={cat}
                       type="button"
                       onClick={() => setSelectedCategory(cat)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${
                         isSelected
-                          ? "bg-orange-50 dark:bg-orange-500/20 text-[#FC8019] border border-orange-200 dark:border-orange-500/40 font-bold shadow-xs"
-                          : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                          ? "bg-[#FC8019] text-white shadow-md shadow-orange-500/20 font-bold"
+                          : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                       }`}
                     >
                       <span>{cat}</span>
                       <span
                         className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
                           isSelected
-                            ? "bg-[#FC8019] text-white"
-                            : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                            ? "bg-white/20 text-white"
+                            : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
                         }`}
                       >
                         {count}
@@ -1179,58 +1216,40 @@ export function VerificationRunner({
                 })}
               </div>
 
-              <div className="relative w-full sm:w-72">
-                <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search features (e.g. turnover, slab)..."
-                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-8 pr-7 py-1.5 text-xs text-slate-900 dark:text-white outline-none focus:border-[#FC8019]"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600"
-                  >
-                    <X size={13} />
-                  </button>
-                )}
+              {/* Grid of Extension Cards (Excludes director details & DIN vetting since already shown) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pt-1">
+                {searchedCompanyExtensions.map((feat) => {
+                  const unlockId = `${mcaRecord.cin || mcaRecord.companyName || "company"}_${feat.key}`;
+                  const isUnlocked =
+                    unlockedFeatureKeys.has(unlockId) ||
+                    unlockedFeatureKeys.has(feat.key) ||
+                    feat.cost === 0;
+
+                  const cost = ledgerMap[feat.reportTypes[0]]?.cost ?? feat.cost;
+                  const cachedReport =
+                    feat.reportTypes
+                      .map((rt) => reportsMap[rt])
+                      .find((r) => Boolean(r)) || null;
+
+                  return (
+                    <PaywalledFeatureCard
+                      key={feat.key}
+                      feature={feat}
+                      isUnlocked={isUnlocked}
+                      cost={cost}
+                      unlockedReport={cachedReport}
+                      onUnlock={handleUnlockFeature}
+                      onViewDossier={(f) => setActiveModalFeature(f)}
+                      companyName={mcaRecord.companyName}
+                      isUnlocking={unlockingKey === feat.key}
+                    />
+                  );
+                })}
               </div>
             </div>
 
-            {/* Grid of Paywalled Feature Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pt-2">
-              {filteredFeatures.map((feat) => {
-                const unlockId = `${mcaRecord.cin || mcaRecord.companyName || "company"}_${feat.key}`;
-                const isUnlocked =
-                  unlockedFeatureKeys.has(unlockId) ||
-                  unlockedFeatureKeys.has(feat.key) ||
-                  feat.cost === 0;
-
-                const cost = ledgerMap[feat.reportTypes[0]]?.cost ?? feat.cost;
-                const cachedReport =
-                  feat.reportTypes
-                    .map((rt) => reportsMap[rt])
-                    .find((r) => Boolean(r)) || null;
-
-                return (
-                  <PaywalledFeatureCard
-                    key={feat.key}
-                    feature={feat}
-                    isUnlocked={isUnlocked}
-                    cost={cost}
-                    unlockedReport={cachedReport}
-                    onUnlock={handleUnlockFeature}
-                    onViewDossier={(f) => setActiveModalFeature(f)}
-                    companyName={mcaRecord.companyName}
-                    isUnlocking={unlockingKey === feat.key}
-                  />
-                );
-              })}
-            </div>
           </div>
+
         </div>
       ) : (
         /* ------------------------------------------------------------- */
