@@ -595,8 +595,8 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Phone &amp; WhatsApp</span>
-                    <a href="tel:+919820012345" className="text-base font-bold text-slate-900 dark:text-white hover:text-[#FC8019] transition">
-                      +91 (022) 4893 2100 / +91 98200 12345
+                    <a href="tel:+917900048382" className="text-base font-bold text-slate-900 dark:text-white hover:text-[#FC8019] transition">
+                      +91 79000 48382
                     </a>
                   </div>
                 </div>
@@ -607,8 +607,8 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Email Support</span>
-                    <a href="mailto:support@chaanbean.in" className="text-base font-bold text-slate-900 dark:text-white hover:text-[#FC8019] transition">
-                      support@chaanbean.in
+                    <a href="mailto:hello@chaanbean.com" className="text-base font-bold text-slate-900 dark:text-white hover:text-[#FC8019] transition">
+                      hello@chaanbean.com
                     </a>
                   </div>
                 </div>
@@ -618,9 +618,9 @@ export default function LandingPage() {
                     <MapPin size={18} />
                   </div>
                   <div>
-                    <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Registered Corporate Desk</span>
+                    <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Registered Corporate Office</span>
                     <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                      ChaanBean Credit OS · Nariman Point &amp; Connaught Place, India
+                      Flat No. 101, 1st Floor, Venkatesh Apts CHSL, Rawal Nagar, Behind Hardik Palace, Station Road, Mira Road, Mumbai, Maharashtra, India
                     </p>
                   </div>
                 </div>
@@ -795,8 +795,8 @@ export default function LandingPage() {
                 Autonomous trade credit underwriting, debtor verification, automated communication cadences, and statutory arbitration under MSMED Act §18.
               </p>
               <div className="pt-1 text-xs space-y-1 text-slate-500 dark:text-slate-400">
-                <p className="font-semibold text-slate-700 dark:text-slate-300">Registered Corporate Desk:</p>
-                <p>Nariman Point &amp; Connaught Place, India</p>
+                <p className="font-semibold text-slate-700 dark:text-slate-300">Registered Corporate Office:</p>
+                <p>Flat No. 101, 1st Floor, Venkatesh Apts CHSL, Rawal Nagar, Behind Hardik Palace, Station Road, Mira Road, Mumbai, Maharashtra, India</p>
                 <p>CIN: U72900MH2022PTC384129</p>
               </div>
             </div>
@@ -949,14 +949,14 @@ export default function LandingPage() {
               <div className="space-y-2 text-xs">
                 <p className="flex items-center gap-2">
                   <Phone size={13} className="text-[#FC8019] shrink-0" />
-                  <a href="tel:+919820012345" className="hover:text-[#FC8019] transition font-semibold">
-                    +91 98200 12345
+                  <a href="tel:+917900048382" className="hover:text-[#FC8019] transition font-semibold">
+                    +91 79000 48382
                   </a>
                 </p>
                 <p className="flex items-center gap-2">
                   <Mail size={13} className="text-[#FC8019] shrink-0" />
-                  <a href="mailto:support@chaanbean.in" className="hover:text-[#FC8019] transition font-semibold">
-                    support@chaanbean.in
+                  <a href="mailto:hello@chaanbean.com" className="hover:text-[#FC8019] transition font-semibold">
+                    hello@chaanbean.com
                   </a>
                 </p>
                 <p className="flex items-center gap-2">

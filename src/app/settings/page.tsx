@@ -946,7 +946,7 @@ function SettingsContent() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
                   <span className="text-[10px] text-slate-500 font-mono uppercase">WhatsApp Helpline</span>
-                  <div className="text-sm font-bold text-slate-900 dark:text-white mt-1">+91 98200 12345</div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white mt-1">+91 79000 48382</div>
                   <span className="text-[10px] text-emerald-500 font-mono">Instant Response</span>
                 </div>
                 <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
@@ -956,7 +956,7 @@ function SettingsContent() {
                 </div>
                 <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
                   <span className="text-[10px] text-slate-500 font-mono uppercase">Support Email</span>
-                  <div className="text-sm font-bold text-slate-900 dark:text-white mt-1">support@chaanbean.in</div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white mt-1">hello@chaanbean.com</div>
                   <span className="text-[10px] text-slate-400 font-mono">SLA &lt; 30 Minutes</span>
                 </div>
               </div>
