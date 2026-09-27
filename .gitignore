@@ -44,3 +44,8 @@ next-env.d.ts
 
 # vercel
 .vercel
+
+# agent skills & local neon context
+/.agents/
+skills-lock.json
+/.neon

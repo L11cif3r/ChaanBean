@@ -9,7 +9,8 @@ export async function GET() {
   try {
     // Quick lightweight query to confirm database responsiveness
     await prisma.company.count();
-  } catch {
+  } catch (err) {
+    console.error("[health] Database health check failed:", err);
     dbStatus = "disconnected";
   }
 
