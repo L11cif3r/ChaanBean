@@ -46,33 +46,6 @@ export default function LandingPage() {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [selectedPillarId, setSelectedPillarId] = useState<string>("ai-credit-check");
 
-  const milestones = [
-    {
-      value: "4 Years",
-      label: "Years of Service",
-      sub: "Continuously Serving Indian MSMEs",
-      badge: "Since 2022",
-    },
-    {
-      value: "1,500 Cr",
-      label: "Received",
-      sub: "Total Dispute Recoveries Disbursed",
-      badge: "Verified Capital",
-    },
-    {
-      value: "2,000+",
-      label: "Recovered Cases",
-      sub: "Settled Overdue Accounts",
-      badge: "94% Success Rate",
-    },
-    {
-      value: "100K+",
-      label: "Company Data",
-      sub: "Monitored Indian Corporate Entities",
-      badge: "Real-time Gateway",
-    },
-  ];
-
   const loanProducts = [
     {
       title: "Business & Working Capital Loan",
@@ -116,52 +89,6 @@ export default function LandingPage() {
     },
   ];
 
-  const testimonials = [
-    {
-      quote:
-        "A garment distributor in Delhi owed our textile mill ₹42.8 Lakhs for over 14 months and stopped answering our calls. After enrolling on ChaanBean, their automated multilingual voice follow-ups and MSMED §18 notice docket brought the buyer to the table. The full principal plus interest was credited within 35 days without stepping into court.",
-      name: "Kishore Mehra",
-      role: "Managing Partner",
-      company: "Shree Balaji Fabrics & Textiles",
-      location: "Surat, Gujarat",
-      recoveredAmount: "₹42.8 Lakhs Recovered",
-      timeline: "Settled in 35 Days",
-      rating: 5,
-    },
-    {
-      quote:
-        "In the auto component industry, delayed payments kill cash flow. When two tier-2 vendors delayed payments citing liquidity, ChaanBean automatically computed the 3x compound penal interest and generated ready-to-file legal evidence packs. The buyers quickly settled ₹64.5 Lakhs to avoid legal blacklisting under MSMED Act.",
-      name: "Sunil Kulkarni",
-      role: "Founder & Managing Director",
-      company: "Apex Precision Tooling & Dies",
-      location: "Pune, Maharashtra",
-      recoveredAmount: "₹64.5 Lakhs Recovered",
-      timeline: "3 Delinquent Accounts Cleared",
-      rating: 5,
-    },
-    {
-      quote:
-        "We were about to dispatch two truckloads of agricultural chemicals on 60-day credit to a new buyer. ChaanBean's AI Credit Check revealed three active cheque-bounce cases and court disputes against the directors. We immediately insisted on 100% advance payment, saving our business from an ₹85 Lakh catastrophic default.",
-      name: "Dinesh Patidar",
-      role: "Director",
-      company: "Rameshwar Agro & Chemicals",
-      location: "Indore, Madhya Pradesh",
-      recoveredAmount: "₹85 Lakhs Loss Prevented",
-      timeline: "Instant 1-Click Verification",
-      rating: 5,
-    },
-    {
-      quote:
-        "The automated WhatsApp reminders and polite voice calls remove all personal awkwardness between old business friends. Our buyers receive clear invoice summaries with payment links and 45-day statutory deadline alerts. Over 90% of our invoices are now cleared on time.",
-      name: "Venkatesh Rao",
-      role: "Chief Financial Officer",
-      company: "Kalyani Polychem Industries",
-      location: "Hyderabad, Telangana",
-      recoveredAmount: "₹27.3 Lakhs Recovered",
-      timeline: "Average Collection Down to 21 Days",
-      rating: 5,
-    },
-  ];
   const pillars = [
     {
       id: "ai-credit-check",
@@ -322,12 +249,6 @@ export default function LandingPage() {
             <a href="#loans" className="hover:text-[#FC8019] transition-colors">
               Loans
             </a>
-            <a href="#milestones" className="hover:text-[#FC8019] transition-colors">
-              Track Record
-            </a>
-            <a href="#testimonials" className="hover:text-[#FC8019] transition-colors">
-              Testimonials
-            </a>
             <a href="#about" className="hover:text-[#FC8019] transition-colors">
               About Us
             </a>
@@ -382,20 +303,6 @@ export default function LandingPage() {
               className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
             >
               Business & Working Capital Loans
-            </a>
-            <a
-              href="#milestones"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
-            >
-              Track Record & Proof
-            </a>
-            <a
-              href="#testimonials"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
-            >
-              Client Testimonials
             </a>
             <a
               href="#about"
@@ -728,148 +635,6 @@ export default function LandingPage() {
               <span>Explore Loan Portal &amp; Calculator</span>
               <ArrowRight size={16} />
             </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Proof & Milestones Section - Interactive Left-to-Right Motion */}
-      <section id="milestones" className="relative py-14 border-t border-slate-200 dark:border-slate-800 overflow-hidden scroll-mt-16 z-10 bg-slate-50/50 dark:bg-[#0B0F17]/60">
-        {/* Soft edge fade masks for seamless horizontal motion */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-20 sm:w-32 bg-gradient-to-r from-slate-50 dark:from-[#0B0F17] to-transparent z-20" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-20 sm:w-32 bg-gradient-to-l from-slate-50 dark:from-[#0B0F17] to-transparent z-20" />
-
-        <div className="mx-auto max-w-7xl px-6 mb-5 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-widest bg-orange-50 dark:bg-orange-500/10 text-[#FC8019] border border-orange-200 dark:border-orange-500/30">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>ChaanBean Operational Track Record · Moving in Real-Time (Hover to Pause)</span>
-          </div>
-        </div>
-
-        {/* Marquee Track: Smooth Continuous Motion from Left to Right */}
-        <div className="relative w-full overflow-hidden py-2">
-          <div className="animate-marquee-ltr flex items-center gap-6">
-            {/* Duplicated for infinite seamless loop */}
-            {[...milestones, ...milestones, ...milestones, ...milestones].map((m, idx) => (
-              <div
-                key={idx}
-                className="group relative flex flex-col justify-between w-64 sm:w-72 p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-xl hover:border-[#FC8019] hover:-translate-y-1 hover:scale-[1.03] transition-all duration-300 cursor-pointer select-none shrink-0"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-orange-50 dark:bg-orange-950/60 text-[#FC8019] border border-orange-200 dark:border-orange-800">
-                    {m.badge}
-                  </span>
-                  <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                    <CheckCircle2 size={11} />
-                    Verified
-                  </span>
-                </div>
-
-                <div className="my-3 space-y-0.5">
-                  <div className="text-3xl sm:text-4xl font-black tracking-tight text-[#FC8019] group-hover:scale-105 transition-transform origin-left">
-                    {m.value}
-                  </div>
-                  <div className="text-sm font-bold text-slate-900 dark:text-white tracking-wide">
-                    {m.label}
-                  </div>
-                </div>
-
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                  {m.sub}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section id="testimonials" className="relative overflow-hidden px-6 py-20 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 scroll-mt-16">
-        <div className="relative mx-auto max-w-7xl z-10 space-y-14">
-          <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] border border-orange-200 dark:border-orange-800">
-              <Star size={14} className="fill-[#FC8019]" />
-              <span>Verified Client Recoveries</span>
-            </span>
-            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
-              Trusted by 2,000+ Indian Businesses
-            </h2>
-            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 font-medium">
-              Read how MSME manufacturers, traders, and suppliers recovered crores in long-overdue receivables without courtroom friction.
-            </p>
-          </div>
-
-          {/* Testimonials Grid */}
-          <div className="grid gap-8 md:grid-cols-2">
-            {testimonials.map((t, idx) => (
-              <div
-                key={idx}
-                className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-md hover:shadow-xl hover:border-[#FC8019]/60 transition-all duration-300"
-              >
-                <div className="space-y-4">
-                  {/* Top Quote Icon & Recovery Badge */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: t.rating }).map((_, i) => (
-                        <Star key={i} size={16} className="text-amber-400 fill-amber-400" />
-                      ))}
-                    </div>
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                      <CheckCircle2 size={12} />
-                      <span>{t.recoveredAmount}</span>
-                    </span>
-                  </div>
-
-                  {/* Quote Text */}
-                  <p className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-200 leading-relaxed italic">
-                    &ldquo;{t.quote}&rdquo;
-                  </p>
-                </div>
-
-                {/* Author & Verification Card */}
-                <div className="pt-6 mt-6 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-11 w-11 rounded-full bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center font-black text-sm border border-orange-300/60 dark:border-orange-800">
-                      {t.name.split(" ").map((n) => n[0]).join("")}
-                    </div>
-                    <div>
-                      <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">
-                        {t.name}
-                      </h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {t.role}, <span className="font-semibold text-slate-700 dark:text-slate-300">{t.company}</span>
-                      </p>
-                      <p className="text-[11px] text-slate-400 font-mono">
-                        {t.location}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="text-right hidden sm:block">
-                    <span className="inline-block text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
-                      {t.timeline}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Social Proof Trust Bar */}
-          <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 text-center space-y-4 shadow-sm">
-            <div className="flex flex-wrap items-center justify-center gap-8 text-sm font-bold text-slate-700 dark:text-slate-200">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-emerald-500" />
-                <span>4.9 / 5.0 Star Verified Rating</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-emerald-500" />
-                <span>₹1,500+ Cr Successfully Recovered</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-emerald-500" />
-                <span>100% MSMED Act §18 Compliant</span>
-              </div>
-            </div>
           </div>
         </div>
       </section>
