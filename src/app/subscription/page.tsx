@@ -16,6 +16,9 @@ import {
   ArrowRight,
   Sparkles,
   PhoneCall,
+  Phone,
+  Mail,
+  MapPin,
   Scale,
   Search,
   CheckCircle2,
@@ -130,7 +133,7 @@ const PLANS: PlanTier[] = [
       "3 User Access Seats Included (₹0 Additional Charge)",
       "1 Additional Company Name Profile Included (₹1,500 value)",
     ],
-    ctaText: "Subscribe to Retail Plan (₹9,899)",
+    ctaText: "Contact Us",
   },
   {
     id: "enterprise",
@@ -160,7 +163,7 @@ const PLANS: PlanTier[] = [
       "5 User Access Seats Included (₹0 Additional Charge)",
       "1 Additional Company Name Profile Included (₹1,500 value)",
     ],
-    ctaText: "Choose Enterprise Plan (₹17,599)",
+    ctaText: "Contact Us",
   },
 ];
 
@@ -196,11 +199,14 @@ export default function SubscriptionPage() {
   const [selectedPlan, setSelectedPlan] = useState<PlanTier>(PLANS[0]);
   const [selectedAlaCarteOption, setSelectedAlaCarteOption] = useState<CallPackageOption>(ALACARTE_OPTIONS[1]);
   const [customerInput, setCustomerInput] = useState<string>("");
-  const [gatewayOpen, setGatewayOpen] = useState(false);
-  const [paymentTab, setPaymentTab] = useState<"upi" | "card" | "netbanking" | "neft">("upi");
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [txnDetails, setTxnDetails] = useState<{ txnId: string; timestamp: string } | null>(null);
+  const [inquiryPlan, setInquiryPlan] = useState<string>("Retail Plan (Growth)");
+  const [inquiryName, setInquiryName] = useState<string>("");
+  const [inquiryCompany, setInquiryCompany] = useState<string>("");
+  const [inquiryEmail, setInquiryEmail] = useState<string>("");
+  const [inquiryPhone, setInquiryPhone] = useState<string>("");
+  const [inquiryMessage, setInquiryMessage] = useState<string>("");
+  const [inquirySubmitting, setInquirySubmitting] = useState<boolean>(false);
+  const [inquirySent, setInquirySent] = useState<boolean>(false);
 
   // Existing Customer Login Modal State
   const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -356,133 +362,18 @@ export default function SubscriptionPage() {
     return pricingMap[plan.priceKey] ?? plan.defaultPrice;
   };
 
-  const handleOpenGateway = (plan: PlanTier) => {
-    setSelectedPlan(plan);
-    setGatewayOpen(true);
-    setPaymentSuccess(false);
+  const handleSelectInquiryPlan = (planName: string) => {
+    setInquiryPlan(planName);
+    const el = document.getElementById("contact");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleOpenAlaCarteGateway = (option: CallPackageOption) => {
-    const alaCartePlan: PlanTier = {
-      id: option.id,
-      priceKey: option.id,
-      name: `À La Carte (${option.callsFormatted})`,
-      tagline: `Dedicated Call Service · ${option.validity}`,
-      defaultPrice: option.price,
-      isAlaCarte: true,
-      validityText: option.validity,
-      validityDays: option.validityDays,
-      validityMonths: option.validityMonths,
-      callsCount: option.calls,
-      badge: "Call Service Only · 100% Wallet Credit",
-      features: [
-        "Dedicated to Call Service Only (Automated Payment Recovery)",
-        `${option.callsFormatted} automated recovery voice calls included`,
-        `Strict ${option.validity} (${option.validityDays} Days Active Period)`,
-        "₹1 charged only per picked-up / answered call",
-        "Multilingual AI Voice Engine (EN, HI, ML, TA, TU)",
-        "Automated Cadences (1m, 2m, 5m, 30m, 1h emergency cadences)",
-        "Debtor Intake & Mandatory Invoice Verification System",
-      ],
-      ctaText: `Subscribe to À La Carte (${option.callsFormatted})`,
-    };
-    setSelectedPlan(alaCartePlan);
-    setGatewayOpen(true);
-    setPaymentSuccess(false);
-  };
-
-  const handleAuthorizePayment = async () => {
-    setIsProcessing(true);
-    const txnId = `TXN-CB-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1000)}`;
-    const timestamp = new Date().toISOString();
-    const paidAmount = getPlanPrice(selectedPlan);
-    const validityDays = selectedPlan.validityDays || 90;
-    const validityMonths = selectedPlan.validityMonths || 3;
-    const isAlaCarte = Boolean(selectedPlan.isAlaCarte || selectedPlan.id.startsWith("alacarte"));
-
-    try {
-      // Activate on backend: adds 100% of amount to wallet and sets strict validity
-      const res = await fetch("/api/subscription/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          planId: selectedPlan.id,
-          planName: selectedPlan.name,
-          paidAmount,
-          validityDays,
-          validityMonths,
-          callsCount: selectedPlan.callsCount,
-          isAlaCarte,
-          txnId,
-        }),
-      });
-      const data = await res.json();
-
-      setIsProcessing(false);
-      setTxnDetails({ txnId, timestamp });
-      setPaymentSuccess(true);
-
-      const expiresAt = data.subscription?.expiresAt || new Date(Date.now() + validityDays * 24 * 60 * 60 * 1000).toISOString();
-      const cookieMaxAge = validityDays * 86400;
-
-      if (typeof window !== "undefined") {
-        document.cookie = `chaanbean_subscription=active; path=/; max-age=${cookieMaxAge}`;
-        document.cookie = `chaanbean_session=client; path=/; max-age=${cookieMaxAge}`;
-        sessionStorage.setItem("chaanbean_session_active", "true");
-        localStorage.setItem(
-          "chaanbean_auth",
-          JSON.stringify({
-            type: "client",
-            user: {
-              id: data.company?.id || "sub-user-active",
-              name: data.company?.name || "Acme Traders Pvt Ltd",
-              email: "operations@acmetraders.in",
-              companyName: data.company?.name || "Acme Traders Pvt Ltd",
-            },
-          })
-        );
-        localStorage.setItem(
-          "chaanbean_subscription",
-          JSON.stringify({
-            active: true,
-            planId: selectedPlan.id,
-            planName: selectedPlan.name,
-            paidAmount,
-            walletAdded: paidAmount,
-            validityMonths,
-            validityDays,
-            callsCount: selectedPlan.callsCount,
-            isAlaCarte,
-            expiresAt,
-            txnId,
-            paidAt: timestamp,
-          })
-        );
-
-        window.dispatchEvent(new CustomEvent("chaanbean:wallet-updated"));
-      }
-
-      // Forward to Payment Recovery for À La Carte, or AI Credit Check for Growth/Enterprise
-      setTimeout(() => {
-        if (isAlaCarte) {
-          router.push("/payment-recovery");
-        } else {
-          router.push("/background-check");
-        }
-      }, 1800);
-    } catch (err) {
-      console.error("Subscription payment error:", err);
-      setIsProcessing(false);
-      setTxnDetails({ txnId, timestamp });
-      setPaymentSuccess(true);
-      setTimeout(() => {
-        if (isAlaCarte) {
-          router.push("/payment-recovery");
-        } else {
-          router.push("/background-check");
-        }
-      }, 1800);
-    }
+  const handleInquirySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setInquirySubmitting(true);
+    await new Promise((r) => setTimeout(r, 600));
+    setInquirySubmitting(false);
+    setInquirySent(true);
   };
 
   const handleExploreBypass = () => {
@@ -727,18 +618,22 @@ export default function SubscriptionPage() {
                 </div>
 
                 <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenGateway(plan)}
+                  <a
+                    href="#contact"
+                    onClick={() => {
+                      setInquiryPlan(plan.name);
+                      const el = document.getElementById("contact");
+                      if (el) el.scrollIntoView({ behavior: "smooth" });
+                    }}
                     className={`w-full py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm ${
                       isPopular
                         ? "bg-[#FC8019] hover:bg-[#E26D0A] text-white shadow-orange-500/30"
                         : "bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white"
                     }`}
                   >
-                    <span>{plan.ctaText}</span>
+                    <span>Contact Us</span>
                     <ArrowRight size={14} />
-                  </button>
+                  </a>
                 </div>
               </div>
             );
@@ -905,14 +800,18 @@ export default function SubscriptionPage() {
             </div>
 
             <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={() => handleOpenAlaCarteGateway(selectedAlaCarteOption)}
+              <a
+                href="#contact"
+                onClick={() => {
+                  setInquiryPlan(`À La Carte (${selectedAlaCarteOption.callsFormatted})`);
+                  const el = document.getElementById("contact");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
+                }}
                 className="w-full py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-md bg-[#FC8019] hover:bg-[#E26D0A] text-white shadow-orange-500/20"
               >
-                <span>Subscribe to À La Carte ({selectedAlaCarteOption.callsFormatted})</span>
+                <span>Contact Us</span>
                 <ArrowRight size={14} />
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -1051,262 +950,224 @@ export default function SubscriptionPage() {
             <span>Full Section 65B Electronic Proof</span>
           </div>
         </div>
-      </main>
 
-      {/* ------------------------------------------------------------- */}
-      {/* INTERACTIVE PAYMENT GATEWAY MODAL */}
-      {/* ------------------------------------------------------------- */}
-      {gatewayOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0D1322] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
-            {/* Modal Header */}
-            <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/60">
-              <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-[#FC8019] flex items-center justify-center text-white font-bold">
-                  CB
+        {/* Contact Us Form Section */}
+        <section id="contact" className="scroll-mt-12 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B101D] shadow-sm p-6 sm:p-10 space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#FC8019]/10 text-[#FC8019] border border-[#FC8019]/20 mb-3">
+                <Sparkles size={13} />
+                <span>Private Access Onboarding</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                Contact Us to Subscribe
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
+                We are actively onboarding commercial enterprises, MSMEs, and credit bureaus in private preview. Reach out to our advisory team directly to activate your subscription plan or request custom API integrations.
+              </p>
+            </div>
+            <div className="text-xs font-mono text-slate-500 dark:text-slate-400 shrink-0">
+              <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+              Advisory Desk Active · 2 Hr Response SLA
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left: Official Contact Details */}
+            <div className="lg:col-span-5 space-y-6">
+              <div className="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 space-y-5">
+                <h3 className="font-bold text-slate-900 dark:text-white text-sm uppercase tracking-wider font-mono">
+                  Official Contact Channels
+                </h3>
+
+                <div className="space-y-4 text-xs font-mono">
+                  <div className="flex items-start gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-orange-50 dark:bg-[#FC8019]/15 border border-[#FC8019]/30 flex items-center justify-center text-[#FC8019] shrink-0">
+                      <Phone size={15} />
+                    </div>
+                    <div>
+                      <div className="text-slate-500 dark:text-slate-400 text-[11px]">Direct Telephone / WhatsApp</div>
+                      <a href="tel:+917900048382" className="text-slate-900 dark:text-white font-bold hover:text-[#FC8019] transition">
+                        +91 79000 48382
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-orange-50 dark:bg-[#FC8019]/15 border border-[#FC8019]/30 flex items-center justify-center text-[#FC8019] shrink-0">
+                      <Mail size={15} />
+                    </div>
+                    <div>
+                      <div className="text-slate-500 dark:text-slate-400 text-[11px]">Official Email Desk</div>
+                      <a href="mailto:hello@chaanbean.com" className="text-slate-900 dark:text-white font-bold hover:text-[#FC8019] transition">
+                        hello@chaanbean.com
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-orange-50 dark:bg-[#FC8019]/15 border border-[#FC8019]/30 flex items-center justify-center text-[#FC8019] shrink-0">
+                      <MapPin size={15} />
+                    </div>
+                    <div>
+                      <div className="text-slate-500 dark:text-slate-400 text-[11px]">Registered Office</div>
+                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-sans text-xs mt-0.5">
+                        Flat No. 101, 1st Floor, Venkatesh Apts CHSL, Rawal Nagar, Behind Hardik Palace, Station Road, Mira Road, Mumbai, Maharashtra, India.
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-sm text-slate-900 dark:text-white">ChaanBean Payment Gateway</h3>
-                  <p className="text-[10px] text-slate-500 font-mono">Merchant ID: CB_PAY_CORP_2026</p>
+
+                <div className="pt-4 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-mono">
+                  Operational Hours: Monday – Saturday, 9:30 AM to 7:00 PM IST. Enterprise accounts receive dedicated SLA support &amp; custom account managers.
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setGatewayOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white"
-              >
-                <X size={18} />
-              </button>
             </div>
 
-            {/* Modal Body */}
-            {paymentSuccess ? (
-              <div className="p-8 text-center space-y-4 font-mono">
-                <div className="h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-500 border border-emerald-500/40 flex items-center justify-center mx-auto">
-                  <CheckCircle2 size={36} />
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold text-slate-900 dark:text-white">Payment Authorized &amp; Active!</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    {selectedPlan.isAlaCarte || selectedPlan.id.startsWith("alacarte")
-                      ? "Welcome to ChaanBean. Forwarding to your Payment Automation Hub..."
-                      : "Welcome to ChaanBean. Forwarding to your Credit & Recovery Hub..."}
-                  </p>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-left text-xs space-y-1">
-                  <div className="text-slate-500 flex justify-between">
-                    <span>Transaction ID:</span>
-                    <strong className="text-slate-900 dark:text-white">{txnDetails?.txnId}</strong>
+            {/* Right: Contact Form */}
+            <div className="lg:col-span-7">
+              {inquirySent ? (
+                <div className="p-8 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-center space-y-4 font-mono animate-in fade-in">
+                  <div className="h-14 w-14 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto">
+                    <CheckCircle2 size={30} />
                   </div>
-                  <div className="text-slate-500 flex justify-between">
-                    <span>Plan Activated:</span>
-                    <span className="text-[#FC8019] font-bold">{selectedPlan.name}</span>
-                  </div>
-                  <div className="text-slate-500 flex justify-between">
-                    <span>Validity Window:</span>
-                    <span className="text-slate-700 dark:text-slate-300 font-semibold">{selectedPlan.validityText || "3 Months Validity"}</span>
-                  </div>
-                  <div className="text-slate-500 flex justify-between">
-                    <span>Amount Charged:</span>
-                    <span className="text-emerald-500 font-bold">₹{(getPlanPrice(selectedPlan) * 1.18).toLocaleString("en-IN")}</span>
-                  </div>
-                </div>
-
-                <div className="flex justify-center">
-                  <div className="inline-flex items-center gap-2 text-xs text-slate-400">
-                    <div className="h-3 w-3 rounded-full border-2 border-[#FC8019] border-t-transparent animate-spin" />
-                    <span>
-                      {selectedPlan.isAlaCarte || selectedPlan.id.startsWith("alacarte")
-                        ? "Launching Payment Automation Hub..."
-                        : "Launching platform dashboard..."}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="p-6 space-y-5">
-                {/* Order Summary Strip (Uses Dynamic Price!) */}
-                <div className="rounded-xl border border-orange-200 dark:border-orange-500/30 bg-orange-50/50 dark:bg-orange-500/10 p-3.5 flex items-center justify-between text-xs font-mono">
                   <div>
-                    <span className="text-slate-500 dark:text-slate-400 uppercase text-[10px]">Selected Subscription:</span>
-                    <div className="font-bold text-slate-900 dark:text-white text-sm">{selectedPlan.name}</div>
-                    {selectedPlan.validityText && (
-                      <div className="text-[10px] text-[#FC8019] font-semibold mt-0.5">
-                        {selectedPlan.validityText} · {selectedPlan.isAlaCarte ? "Dedicated Call Service" : "100% Wallet Credit"}
-                      </div>
-                    )}
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                      Subscription Inquiry Received!
+                    </h3>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 max-w-md mx-auto">
+                      Thank you for contacting us regarding <span className="text-[#FC8019] font-bold">{inquiryPlan}</span>. Our corporate relationship desk will connect with you at <span className="font-bold">{inquiryPhone || inquiryEmail || "your registered contact"}</span> within 2 business hours.
+                    </p>
                   </div>
-                  <div className="text-right">
-                    <span className="text-slate-500 dark:text-slate-400 uppercase text-[10px]">Total with GST (18%):</span>
-                    <div className="text-base font-black text-[#FC8019]">
-                      ₹{(getPlanPrice(selectedPlan) * 1.18).toLocaleString("en-IN")}
-                    </div>
-                    <span className="text-[10px] text-slate-400 font-mono block">Base: ₹{getPlanPrice(selectedPlan).toLocaleString("en-IN")}</span>
-                  </div>
-                </div>
-
-                {/* Gateway Payment Method Tabs */}
-                <div className="grid grid-cols-4 gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold">
                   <button
                     type="button"
-                    onClick={() => setPaymentTab("upi")}
-                    className={`py-2 rounded-lg flex flex-col items-center gap-1 transition ${
-                      paymentTab === "upi"
-                        ? "bg-white dark:bg-slate-800 text-[#FC8019] shadow-sm"
-                        : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
-                    }`}
+                    onClick={() => {
+                      setInquirySent(false);
+                      setInquiryName("");
+                      setInquiryCompany("");
+                      setInquiryEmail("");
+                      setInquiryPhone("");
+                      setInquiryMessage("");
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold hover:opacity-90 transition mt-2"
                   >
-                    <QrCode size={16} />
-                    <span className="text-[10px]">UPI QR</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentTab("card")}
-                    className={`py-2 rounded-lg flex flex-col items-center gap-1 transition ${
-                      paymentTab === "card"
-                        ? "bg-white dark:bg-slate-800 text-[#FC8019] shadow-sm"
-                        : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
-                    }`}
-                  >
-                    <CreditCard size={16} />
-                    <span className="text-[10px]">Card</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentTab("netbanking")}
-                    className={`py-2 rounded-lg flex flex-col items-center gap-1 transition ${
-                      paymentTab === "netbanking"
-                        ? "bg-white dark:bg-slate-800 text-[#FC8019] shadow-sm"
-                        : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
-                    }`}
-                  >
-                    <Landmark size={16} />
-                    <span className="text-[10px]">NetBanking</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentTab("neft")}
-                    className={`py-2 rounded-lg flex flex-col items-center gap-1 transition ${
-                      paymentTab === "neft"
-                        ? "bg-white dark:bg-slate-800 text-[#FC8019] shadow-sm"
-                        : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
-                    }`}
-                  >
-                    <Building2 size={16} />
-                    <span className="text-[10px]">NEFT/RTGS</span>
+                    Submit Another Inquiry
                   </button>
                 </div>
-
-                {/* Tab Specific Content */}
-                {paymentTab === "upi" && (
-                  <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-4 text-center space-y-3">
-                    <div className="mx-auto w-36 h-36 rounded-xl border-2 border-dashed border-[#FC8019] bg-white p-2 flex items-center justify-center shadow-sm">
-                      <div className="text-center font-mono text-[10px] text-slate-700">
-                        <QrCode size={90} className="mx-auto text-[#FC8019]" />
-                        <span>Scan with any UPI App</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-center gap-2 text-[11px] font-mono text-slate-500">
-                      <span className="rounded bg-slate-200 dark:bg-slate-800 px-2 py-0.5">Google Pay</span>
-                      <span className="rounded bg-slate-200 dark:bg-slate-800 px-2 py-0.5">PhonePe</span>
-                      <span className="rounded bg-slate-200 dark:bg-slate-800 px-2 py-0.5">Paytm</span>
-                      <span className="rounded bg-slate-200 dark:bg-slate-800 px-2 py-0.5">CRED</span>
-                    </div>
+              ) : (
+                <form onSubmit={handleInquirySubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block font-mono uppercase tracking-wider">
+                      Selected Plan / Requirement *
+                    </label>
+                    <select
+                      value={inquiryPlan}
+                      onChange={(e) => setInquiryPlan(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-[#FC8019] focus:ring-1 focus:ring-[#FC8019] transition font-mono"
+                    >
+                      <option value="Retail Plan (Growth)">Retail Plan (Growth) - ₹9,899 / 3 Months</option>
+                      <option value="Enterprise Plan (Professional)">Enterprise Plan (Professional) - ₹17,599 / 1 Year</option>
+                      <option value="À La Carte (3,000 Voice Calls)">À La Carte (3,000 Voice Calls) - ₹4,500</option>
+                      <option value="À La Carte (8,000 Voice Calls)">À La Carte (8,000 Voice Calls) - ₹10,000</option>
+                      <option value="À La Carte (14,000 Voice Calls)">À La Carte (14,000 Voice Calls) - ₹15,000</option>
+                      <option value="À La Carte (19,000 Voice Calls)">À La Carte (19,000 Voice Calls) - ₹20,000</option>
+                      <option value="Custom Enterprise / API Integration">Custom Enterprise / API Integration</option>
+                    </select>
                   </div>
-                )}
 
-                {paymentTab === "card" && (
-                  <div className="space-y-3 text-xs font-mono">
-                    <div>
-                      <label className="text-[10px] text-slate-500 uppercase block mb-1">Card Number</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block font-mono uppercase tracking-wider">
+                        Full Name / Contact Person *
+                      </label>
                       <input
                         type="text"
-                        placeholder="4532 ···· ···· 8901"
-                        defaultValue="4532 8912 3409 8812"
-                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white outline-none"
+                        required
+                        value={inquiryName}
+                        onChange={(e) => setInquiryName(e.target.value)}
+                        placeholder="e.g. Ramesh Sharma"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-[#FC8019] focus:ring-1 focus:ring-[#FC8019] transition"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-[10px] text-slate-500 uppercase block mb-1">Valid Thru</label>
-                        <input
-                          type="text"
-                          placeholder="MM/YY"
-                          defaultValue="08/29"
-                          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-500 uppercase block mb-1">CVV</label>
-                        <input
-                          type="password"
-                          placeholder="···"
-                          defaultValue="891"
-                          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white outline-none"
-                        />
-                      </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block font-mono uppercase tracking-wider">
+                        Company / Business Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={inquiryCompany}
+                        onChange={(e) => setInquiryCompany(e.target.value)}
+                        placeholder="e.g. Acme Industrial Traders Pvt Ltd"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-[#FC8019] focus:ring-1 focus:ring-[#FC8019] transition"
+                      />
                     </div>
                   </div>
-                )}
 
-                {paymentTab === "netbanking" && (
-                  <div className="space-y-2 text-xs">
-                    <span className="text-[10px] text-slate-500 font-mono uppercase block">Popular Corporate Banks:</span>
-                    <div className="grid grid-cols-3 gap-2 font-mono text-[11px]">
-                      {["HDFC Bank", "ICICI Bank", "State Bank", "Axis Bank", "Kotak Bank", "Yes Bank"].map((b, i) => (
-                        <div
-                          key={i}
-                          className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-center font-bold text-slate-800 dark:text-slate-200 hover:border-[#FC8019] cursor-pointer"
-                        >
-                          {b}
-                        </div>
-                      ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block font-mono uppercase tracking-wider">
+                        Official Work Email *
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={inquiryEmail}
+                        onChange={(e) => setInquiryEmail(e.target.value)}
+                        placeholder="ramesh@company.com"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-[#FC8019] focus:ring-1 focus:ring-[#FC8019] transition font-mono"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block font-mono uppercase tracking-wider">
+                        Phone / WhatsApp Number *
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={inquiryPhone}
+                        onChange={(e) => setInquiryPhone(e.target.value)}
+                        placeholder="+91 98765 43210"
+                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-[#FC8019] focus:ring-1 focus:ring-[#FC8019] transition font-mono"
+                      />
                     </div>
                   </div>
-                )}
 
-                {paymentTab === "neft" && (
-                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-mono space-y-1">
-                    <div className="text-slate-500 flex justify-between">
-                      <span>Beneficiary:</span>
-                      <strong className="text-slate-900 dark:text-white">ChaanBean FinTech Corp</strong>
-                    </div>
-                    <div className="text-slate-500 flex justify-between">
-                      <span>Virtual A/C:</span>
-                      <strong className="text-[#FC8019]">CB98102839401</strong>
-                    </div>
-                    <div className="text-slate-500 flex justify-between">
-                      <span>IFSC Code:</span>
-                      <strong className="text-slate-900 dark:text-white">HDFC0000240</strong>
-                    </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block font-mono uppercase tracking-wider">
+                      Message / Special Requirements (Optional)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={inquiryMessage}
+                      onChange={(e) => setInquiryMessage(e.target.value)}
+                      placeholder="Specify company size, volume of credit checks, voice call automation needs, or questions..."
+                      className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-[#FC8019] focus:ring-1 focus:ring-[#FC8019] transition"
+                    />
                   </div>
-                )}
 
-                {/* Complete Payment Button */}
-                <button
-                  type="button"
-                  disabled={isProcessing}
-                  onClick={handleAuthorizePayment}
-                  className="w-full py-3 rounded-xl bg-[#FC8019] hover:bg-[#E26D0A] text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 disabled:opacity-50"
-                >
-                  <Lock size={14} />
-                  {isProcessing
-                    ? "Securing Transaction & Authorizing..."
-                    : `Pay ₹${(getPlanPrice(selectedPlan) * 1.18).toLocaleString("en-IN")} & ${
-                        selectedPlan.isAlaCarte || selectedPlan.id.startsWith("alacarte")
-                          ? "Launch Call Hub"
-                          : "Launch Hub"
-                      }`}
-                </button>
-              </div>
-            )}
+                  <button
+                    type="submit"
+                    disabled={inquirySubmitting}
+                    className="w-full py-3.5 rounded-xl bg-[#FC8019] hover:bg-[#E26D0A] text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 disabled:opacity-50"
+                  >
+                    {inquirySubmitting ? (
+                      <span>Sending Subscription Inquiry...</span>
+                    ) : (
+                      <>
+                        <span>Submit Subscription Inquiry</span>
+                        <ArrowRight size={14} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        </section>
+      </main>
 
       {/* Existing Customer Login Modal */}
       {loginModalOpen && (
