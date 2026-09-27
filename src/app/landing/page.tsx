@@ -16,22 +16,10 @@ import {
   MapPin,
   Clock,
   ShieldCheck,
-  Scale,
-  Target,
-  Compass,
-  Star,
-  Quote,
   Coins,
   Briefcase,
   Home,
   TrendingUp,
-  Award,
-  BadgeCheck,
-  ChevronDown,
-  ChevronUp,
-  HelpCircle,
-  BookOpen,
-  FileText,
   Facebook,
   Linkedin,
   Instagram,
@@ -42,7 +30,6 @@ import { FooterModals, ModalType } from "@/components/FooterModals";
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [contactSent, setContactSent] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [selectedPillarId, setSelectedPillarId] = useState<string>("ai-credit-check");
 
@@ -152,39 +139,6 @@ export default function LandingPage() {
     },
   ];
 
-  const faqs = [
-    {
-      question: "What is the MSME 45-day payment rule under Indian law?",
-      answer:
-        "Under Section 15 of the MSMED Act 2006 and Income Tax Section 43B(h), buyers must clear dues to MSME suppliers within the agreed credit period or within a statutory maximum of 45 days. If a buyer fails to pay within 45 days, they are legally liable to pay compound interest with monthly rests at three times the RBI Bank Rate, and the buyer cannot claim the unpaid invoice as a business tax deduction.",
-    },
-    {
-      question: "How does ChaanBean verify whether a buyer is safe before I give credit?",
-      answer:
-        "ChaanBean audits multiple public and judicial registries in seconds: MCA21 corporate filings, GST return regularity, court litigations and cheque bounce dockets, and national commercial credit records. The platform synthesizes these into a simple Green, Amber, or Red safety badge along with an exact safe rupee credit limit recommendation.",
-    },
-    {
-      question: "Will automated reminders damage my personal relationship with buyers?",
-      answer:
-        "No. ChaanBean's automated calls and WhatsApp reminders are crafted with courteous, professional language in Hindi, English, and regional Indian languages. They frame payment follow-ups around mutual statutory accounting and Section 43B(h) compliance, preserving healthy commercial relationships while ensuring timely receivables.",
-    },
-    {
-      question: "How does the legal arbitration process work if a buyer refuses to pay?",
-      answer:
-        "When an invoice becomes persistently overdue, ChaanBean automatically builds an admissible digital evidence docket with your e-invoices, e-way bills, proof of delivery, and communication history. You can then issue statutory legal notices and submit claims to institutional MSMED Section 18 fast-track arbitration councils without spending months or heavy fees in traditional civil courts.",
-    },
-    {
-      question: "How can I apply for the Business Loans and Invoice Financing on ChaanBean?",
-      answer:
-        "Registered ChaanBean clients can apply directly from their portal. Because your counterparty verifications and sales ledgers are already validated on our platform, our partner banks and NBFCs can disburse working capital and invoice advances within 24 to 48 hours with minimal documentation.",
-    },
-    {
-      question: "Is my business, buyer, and ledger data secure and confidential?",
-      answer:
-        "Yes, absolutely. All client records are secured with bank-grade AES-256 encryption at rest and TLS 1.3 in transit, hosted on ISO 27001-certified Indian cloud infrastructure. We strictly abide by the Digital Personal Data Protection (DPDP) Act 2023 and never share or monetize your private ledger data.",
-    },
-  ];
-
   return (
     <div className="min-h-screen relative overflow-x-hidden bg-slate-50 dark:bg-[#0B0F17] text-slate-900 dark:text-white transition-colors duration-200">
       {/* Micro-dot Watermark Security Matrix */}
@@ -249,12 +203,6 @@ export default function LandingPage() {
             <a href="#loans" className="hover:text-[#FC8019] transition-colors">
               Loans
             </a>
-            <a href="#about" className="hover:text-[#FC8019] transition-colors">
-              About Us
-            </a>
-            <a href="#faqs" className="hover:text-[#FC8019] transition-colors">
-              FAQs
-            </a>
             <a href="#contact" className="hover:text-[#FC8019] transition-colors">
               Contact Us
             </a>
@@ -303,20 +251,6 @@ export default function LandingPage() {
               className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
             >
               Business & Working Capital Loans
-            </a>
-            <a
-              href="#about"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
-            >
-              About Us
-            </a>
-            <a
-              href="#faqs"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#FC8019]"
-            >
-              FAQs
             </a>
             <a
               href="#contact"
@@ -515,15 +449,7 @@ export default function LandingPage() {
 
                   <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
                     <Link
-                      href={
-                        activePillar.id === "ai-credit-check"
-                          ? "/background-check"
-                          : activePillar.id === "payment-automation"
-                          ? "/invoices"
-                          : activePillar.id === "legal-infrastructure"
-                          ? "/legal"
-                          : "/subscription"
-                      }
+                      href="/subscription"
                       className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FC8019] px-6 py-3.5 text-xs font-bold text-white shadow-lg shadow-[#FC8019]/25 hover:bg-[#E26D0A] transition"
                     >
                       <span>
@@ -538,10 +464,10 @@ export default function LandingPage() {
                       <ArrowRight size={14} />
                     </Link>
                     <Link
-                      href="/subscription"
+                      href="/login"
                       className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-3.5 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:border-[#FC8019] transition"
                     >
-                      <span>View Subscription Pricing</span>
+                      <span>Already Subscribed? Log In</span>
                     </Link>
                   </div>
                 </div>
@@ -609,7 +535,7 @@ export default function LandingPage() {
 
                   <div className="pt-5 mt-5 border-t border-slate-200 dark:border-slate-800">
                     <Link
-                      href="/loans"
+                      href="/subscription"
                       className="flex items-center justify-center gap-1.5 w-full rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 hover:border-[#FC8019] hover:text-[#FC8019] transition shadow-sm"
                     >
                       <span>Check Eligibility &amp; Apply</span>
@@ -629,140 +555,12 @@ export default function LandingPage() {
               </p>
             </div>
             <Link
-              href="/loans"
+              href="/subscription"
               className="shrink-0 flex items-center gap-2 rounded-2xl bg-[#FC8019] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#FC8019]/25 hover:bg-[#E26D0A] transition"
             >
               <span>Explore Loan Portal &amp; Calculator</span>
               <ArrowRight size={16} />
             </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* About Us Section */}
-      <section id="about" className="relative overflow-hidden px-6 py-20 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F17]/60 scroll-mt-16">
-        <div className="relative mx-auto max-w-5xl z-10">
-          <div className="text-center max-w-3xl mx-auto mb-14 space-y-3">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#FC8019]">
-              About ChaanBean
-            </span>
-            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
-              Protecting India&apos;s MSMEs from Trade Credit Defaults
-            </h2>
-            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
-              Every month, thousands of manufacturers, suppliers, and distributors across India face severe working capital loss due to delayed payments and untraceable buyers. ChaanBean was created to give MSME business owners the same institutional-grade credit intelligence and recovery infrastructure used by large commercial banks.
-            </p>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-3">
-            <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-6 space-y-3">
-              <div className="h-10 w-10 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center font-bold">
-                <ShieldCheck size={22} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">100% Statutory Verification</h3>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-                Direct government records from MCA, GST, e-Courts, and Udyam to ensure you only deal with authentic, verified businesses.
-              </p>
-            </div>
-
-            <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-6 space-y-3">
-              <div className="h-10 w-10 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center font-bold">
-                <Clock size={22} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">45-Day Payment Discipline</h3>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-                Automated reminders and statutory notices under MSMED Act §15-18 ensure payments arrive on time without awkward personal friction.
-              </p>
-            </div>
-
-            <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-6 space-y-3">
-              <div className="h-10 w-10 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center font-bold">
-                <Scale size={22} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Lawful Dispute Resolution</h3>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-                If a counterparty refuses to pay, get automatic compound interest calculation at 3x RBI bank rate and legal arbitration backing.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Mission & Vision Section */}
-      <section className="relative overflow-hidden px-6 py-20 border-t border-slate-200 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-900/40">
-        <div className="relative mx-auto max-w-5xl z-10 space-y-12">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#FC8019]">
-              Purpose &amp; Direction
-            </span>
-            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
-              Our Mission &amp; Vision
-            </h2>
-            <p className="text-base text-slate-700 dark:text-slate-300 font-medium">
-              Committed to creating a secure, transparent commercial credit ecosystem for India.
-            </p>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-2">
-            {/* Mission Card */}
-            <div id="mission" className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 space-y-4 shadow-md scroll-mt-24">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center font-bold">
-                  <Target size={24} />
-                </div>
-                <div>
-                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#FC8019]">Our Mission</span>
-                  <h3 className="text-2xl font-black text-slate-900 dark:text-white">Zero Bad Debts for Every MSME</h3>
-                </div>
-              </div>
-              <p className="text-base font-medium text-slate-700 dark:text-slate-200 leading-relaxed">
-                To eliminate trade credit defaults across Indian commercial supply chains. We give every small and medium business owner the intelligence to assess buyers upfront, the tools to recover money politely, and the legal power to enforce statutory rights without expensive lawyer fees.
-              </p>
-              <ul className="space-y-2.5 pt-4 border-t border-slate-200 dark:border-slate-800 text-sm font-semibold text-slate-800 dark:text-slate-200">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Protect business working capital and avoid liquidity crunches</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Provide bank-grade risk assessment to small enterprises</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Restore certainty and trust in B2B credit commerce</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Vision Card */}
-            <div id="vision" className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 space-y-4 shadow-md scroll-mt-24">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] flex items-center justify-center font-bold">
-                  <Compass size={24} />
-                </div>
-                <div>
-                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#FC8019]">Our Vision</span>
-                  <h3 className="text-2xl font-black text-slate-900 dark:text-white">A Reliable &amp; Disciplined Trade Economy</h3>
-                </div>
-              </div>
-              <p className="text-base font-medium text-slate-700 dark:text-slate-200 leading-relaxed">
-                To build India&apos;s most trusted trade network where payment discipline is the national norm, 45-day MSME statutory deadlines are universally respected, and honest entrepreneurs can expand their businesses with complete peace of mind.
-              </p>
-              <ul className="space-y-2.5 pt-4 border-t border-slate-200 dark:border-slate-800 text-sm font-semibold text-slate-800 dark:text-slate-200">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-                  <span>100% adherence to statutory 45-day payment rules</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Make deliberate payment defaults practically impossible</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Empower India&apos;s 63M+ MSMEs to scale without fear of unpaid bills</span>
-                </li>
-              </ul>
-            </div>
           </div>
         </div>
       </section>
@@ -923,51 +721,6 @@ export default function LandingPage() {
                 </form>
               )}
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQs Section */}
-      <section id="faqs" className="relative overflow-hidden px-6 py-20 border-t border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#0B0F17]/70 scroll-mt-16">
-        <div className="relative mx-auto max-w-4xl z-10 space-y-10">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-100 dark:bg-orange-950/60 text-[#FC8019] border border-orange-200 dark:border-orange-800">
-              <HelpCircle size={14} />
-              <span>Answers &amp; Clarity</span>
-            </span>
-            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
-              Frequently Asked Questions
-            </h2>
-            <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 font-medium">
-              Everything you need to know about checking buyer risk, MSMED statutory rights, and automated debt recovery.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            {faqs.map((faq, idx) => {
-              const isOpen = openFaq === idx;
-              return (
-                <div
-                  key={idx}
-                  className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-all duration-200 overflow-hidden shadow-sm hover:border-[#FC8019]"
-                >
-                  <button
-                    onClick={() => setOpenFaq(isOpen ? null : idx)}
-                    className="w-full flex items-center justify-between p-5 text-left font-bold text-base sm:text-lg text-slate-900 dark:text-white hover:text-[#FC8019] transition"
-                  >
-                    <span>{faq.question}</span>
-                    <span className="ml-4 p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 shrink-0">
-                      {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                    </span>
-                  </button>
-                  {isOpen && (
-                    <div className="px-5 pb-5 pt-1 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800/60">
-                      {faq.answer}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
           </div>
         </div>
       </section>
@@ -1134,6 +887,14 @@ export default function LandingPage() {
               <ul className="space-y-2 text-xs font-medium">
                 <li>
                   <button
+                    onClick={() => setActiveModal("about")}
+                    className="hover:text-[#FC8019] transition text-left"
+                  >
+                    About Us
+                  </button>
+                </li>
+                <li>
+                  <button
                     onClick={() => setActiveModal("terms")}
                     className="hover:text-[#FC8019] transition text-left"
                   >
@@ -1165,9 +926,12 @@ export default function LandingPage() {
                   </button>
                 </li>
                 <li>
-                  <a href="#faqs" className="hover:text-[#FC8019] transition">
+                  <button
+                    onClick={() => setActiveModal("faqs")}
+                    className="hover:text-[#FC8019] transition text-left"
+                  >
                     Frequently Asked Questions (FAQs)
-                  </a>
+                  </button>
                 </li>
                 <li>
                   <Link href="/subscription" className="hover:text-[#FC8019] transition">
