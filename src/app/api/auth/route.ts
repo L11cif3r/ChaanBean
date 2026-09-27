@@ -262,9 +262,16 @@ export async function POST(req: Request) {
         );
       }
 
-      // Check admin security passkey
-      const VALID_PASSKEYS = ["CHAANBEAN-ROOT-2026", "CHAANBEAN-ADMIN", "ADMIN2026"];
-      if (securityKey && !VALID_PASSKEYS.includes(securityKey.trim())) {
+      // Check admin security passkey (externalized to ADMIN_SECURITY_KEY in production)
+      const configuredKey = process.env.ADMIN_SECURITY_KEY;
+      const isDev = process.env.NODE_ENV !== "production";
+      const validKeys = [
+        ...(configuredKey ? [configuredKey.trim()] : []),
+        ...(isDev ? ["CHAANBEAN-ROOT-2026", "CHAANBEAN-ADMIN", "ADMIN2026"] : []),
+      ];
+
+      const providedKey = (securityKey || "").trim();
+      if (!validKeys.includes(providedKey)) {
         return NextResponse.json(
           { error: "Invalid Admin Master Security Key." },
           { status: 403 }

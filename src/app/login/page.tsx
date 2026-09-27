@@ -547,17 +547,19 @@ export default function LoginPage() {
                         </div>
                       </div>
 
-                      {/* Demo Quick OTP Fill */}
-                      <div className="pt-1">
-                        <button
-                          type="button"
-                          onClick={fillSampleOtp}
-                          className="text-left text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline transition flex items-center gap-1.5"
-                        >
-                          <Sparkles size={12} className="text-amber-500 shrink-0" />
-                          <span>Click to auto-fill Demo Number (+91 9876543210 · OTP: 482910)</span>
-                        </button>
-                      </div>
+                      {/* Demo Quick OTP Fill (Development / Evaluation Only) */}
+                      {process.env.NODE_ENV !== "production" && (
+                        <div className="pt-1">
+                          <button
+                            type="button"
+                            onClick={fillSampleOtp}
+                            className="text-left text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline transition flex items-center gap-1.5"
+                          >
+                            <Sparkles size={12} className="text-amber-500 shrink-0" />
+                            <span>Click to auto-fill Demo Number (+91 9876543210 · OTP: 482910)</span>
+                          </button>
+                        </div>
+                      )}
                     </>
                   ) : (
                     /* OPTION B: EMAIL & PASSWORD */
@@ -596,24 +598,26 @@ export default function LoginPage() {
                         </div>
                       </div>
 
-                      {/* Quick Fill Demo Credentials */}
-                      <div className="flex flex-col gap-1.5 pt-1">
-                        <button
-                          type="button"
-                          onClick={fillEnterpriseClient}
-                          className="text-left text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline transition flex items-center gap-1.5"
-                        >
-                          <Sparkles size={12} className="text-amber-500 shrink-0" />
-                          <span>ABC Industry (Enterprise Plan · 3 Scenarios)</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={fillSampleClient}
-                          className="text-left text-[11px] font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 hover:underline transition"
-                        >
-                          Acme Traders (Clean First-Time Login)
-                        </button>
-                      </div>
+                      {/* Quick Fill Demo Credentials (Development / Evaluation Only) */}
+                      {process.env.NODE_ENV !== "production" && (
+                        <div className="flex flex-col gap-1.5 pt-1 border-t border-slate-200 dark:border-slate-800/80 mt-1">
+                          <button
+                            type="button"
+                            onClick={fillEnterpriseClient}
+                            className="text-left text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline transition flex items-center gap-1.5"
+                          >
+                            <Sparkles size={12} className="text-amber-500 shrink-0" />
+                            <span>ABC Industry (Enterprise Plan · 3 Scenarios)</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={fillSampleClient}
+                            className="text-left text-[11px] font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 hover:underline transition"
+                          >
+                            Acme Traders (Clean First-Time Login)
+                          </button>
+                        </div>
+                      )}
                     </>
                   )
                 ) : (

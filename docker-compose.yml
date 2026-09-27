@@ -1,19 +1,53 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://chaanbean:chaanbean@postgres:5432/chaanbean?schema=public
+      - REDIS_URL=redis://redis:6379
+      - ADMIN_SECURITY_KEY=${ADMIN_SECURITY_KEY:-PROD-ADMIN-KEY-DEMO}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - chaanbean-internal
+
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: chaanbean
       POSTGRES_PASSWORD: chaanbean
       POSTGRES_DB: chaanbean
-    ports:
-      - "5432:5432"
+    # Notice: No external ports exposed. Accessible ONLY inside chaanbean-internal network.
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chaanbean -d chaanbean"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chaanbean-internal
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    restart: unless-stopped
+    # Notice: No external ports exposed. Accessible ONLY inside chaanbean-internal network.
+    networks:
+      - chaanbean-internal
+
+networks:
+  chaanbean-internal:
+    driver: bridge
 
 volumes:
   pgdata:

@@ -8,8 +8,8 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefi
 function getDatabaseUrl(): string | undefined {
   const envUrl = process.env.DATABASE_URL;
 
-  // If using a non-sqlite external database (e.g. Postgres), use directly
-  if (envUrl && !envUrl.startsWith("file:")) {
+  // In production or when using PostgreSQL, use connection URL directly
+  if (envUrl && (envUrl.startsWith("postgres://") || envUrl.startsWith("postgresql://") || !envUrl.startsWith("file:"))) {
     return envUrl;
   }
 

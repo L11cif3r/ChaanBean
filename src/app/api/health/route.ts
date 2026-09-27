@@ -1,27 +1,31 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
-  const start = Date.now();
-  let dbStatus = "up";
+  let dbStatus = "connected";
+
   try {
+    // Quick lightweight query to confirm database responsiveness
     await prisma.company.count();
   } catch {
-    dbStatus = "down";
+    dbStatus = "disconnected";
   }
 
-  return NextResponse.json({
-    status: dbStatus === "up" ? "healthy" : "degraded",
-    version: "1.0.0",
-    uptimeSeconds: process.uptime(),
-    timestamp: new Date().toISOString(),
-    latencyMs: Date.now() - start,
-    checks: {
+  const isHealthy = dbStatus === "connected";
+
+  return NextResponse.json(
+    {
+      status: isHealthy ? "healthy" : "degraded",
       database: dbStatus,
-      verificationGateway: "operational",
-      policyEngine: "operational",
-      riskScoringEngine: "operational",
-      voiceSystem: "operational",
+      timestamp: new Date().toISOString(),
     },
-  });
+    {
+      status: isHealthy ? 200 : 503,
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+      },
+    }
+  );
 }

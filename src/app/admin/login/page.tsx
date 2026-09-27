@@ -228,24 +228,26 @@ export default function AdminLoginPage() {
                 </div>
               </div>
 
-              {/* Quick Fill Credentials */}
-              <div className="flex flex-col gap-1.5 pt-1">
-                <button
-                  type="button"
-                  onClick={fillOwnerCredentials}
-                  className="text-left text-[11px] font-semibold text-amber-400 hover:text-amber-300 hover:underline transition flex items-center gap-1.5 font-mono"
-                >
-                  <Sparkles size={12} />
-                  <span>Fill Owner Credentials (Siddharth Verma)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={fillTeamCredentials}
-                  className="text-left text-[11px] text-slate-400 hover:text-slate-200 hover:underline transition font-mono"
-                >
-                  Fill Team Member Credentials (Pooja Deshmukh)
-                </button>
-              </div>
+              {/* Quick Fill Credentials (Development / Evaluation Only) */}
+              {process.env.NODE_ENV !== "production" && (
+                <div className="flex flex-col gap-1.5 pt-1 border-t border-slate-800/60 mt-1">
+                  <button
+                    type="button"
+                    onClick={fillOwnerCredentials}
+                    className="text-left text-[11px] font-semibold text-amber-400 hover:text-amber-300 hover:underline transition flex items-center gap-1.5 font-mono"
+                  >
+                    <Sparkles size={12} />
+                    <span>Fill Owner Credentials (Siddharth Verma)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={fillTeamCredentials}
+                    className="text-left text-[11px] text-slate-400 hover:text-slate-200 hover:underline transition font-mono"
+                  >
+                    Fill Team Member Credentials (Pooja Deshmukh)
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -290,9 +292,9 @@ export default function AdminLoginPage() {
                 <div className="flex items-center rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 focus-within:border-amber-400 transition">
                   <KeyRound size={16} className="text-slate-500 mr-2 shrink-0" />
                   <input
-                    type="text"
+                    type="password"
                     required
-                    placeholder="CHAANBEAN-ROOT-2026"
+                    placeholder="Enter Master Security Key"
                     value={securityKey}
                     onChange={(e) => setSecurityKey(e.target.value)}
                     className="w-full bg-transparent text-xs font-mono text-white placeholder-slate-600 outline-none"

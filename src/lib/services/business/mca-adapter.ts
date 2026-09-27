@@ -9,7 +9,7 @@
 import { prisma } from "@/lib/db";
 import { logAuditEvent } from "./audit-logger";
 
-export const MCA_DEFAULT_API_KEY = "579b464db66ec23bdd000001c2fe5c8eee274b5751c009ca66811152";
+export const MCA_DEFAULT_API_KEY = "";
 export const MCA_RESOURCE_ENDPOINT = "https://api.data.gov.in/resource/4dbe5667-7b6b-41d7-82af-211562424d9a";
 
 export const MCA_PORTAL_BASE = "https://www.mca.gov.in/mcafoportal/viewCompanyMasterData.do";
