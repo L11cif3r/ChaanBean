@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build && node scripts/copy-standalone-assets.js",
-    "start": "node server.js",
+    "build:vercel": "prisma migrate deploy && prisma generate && next build",
+    "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:use:postgres": "node -e \"const fs=require('fs'); fs.copyFileSync('prisma/schema.postgresql.prisma', 'prisma/schema.prisma');\" && prisma generate",

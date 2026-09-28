@@ -28,7 +28,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
   serverExternalPackages: ["@prisma/adapter-neon", "@neondatabase/serverless", "ws", "dotenv"],
   poweredByHeader: false,
   experimental: {
