@@ -17,4 +17,18 @@ if (fs.existsSync(standaloneDir)) {
     fs.cpSync(staticSrc, staticDest, { recursive: true, force: true });
     console.log("[build] Copied .next/static/ -> .next/standalone/.next/static/");
   }
+
+  // Copy .env and .env.production to standalone if present in root
+  for (const envName of [".env", ".env.production"]) {
+    const envSrc = path.join(process.cwd(), envName);
+    const envDest = path.join(standaloneDir, envName);
+    if (fs.existsSync(envSrc) && !fs.existsSync(envDest)) {
+      try {
+        fs.copyFileSync(envSrc, envDest);
+        console.log(`[build] Copied ${envName} -> .next/standalone/${envName}`);
+      } catch {
+        // Ignore copy errors
+      }
+    }
+  }
 }

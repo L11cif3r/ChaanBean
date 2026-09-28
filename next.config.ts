@@ -29,7 +29,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  serverExternalPackages: ["@prisma/adapter-neon", "@neondatabase/serverless", "ws"],
+  serverExternalPackages: ["@prisma/adapter-neon", "@neondatabase/serverless", "ws", "dotenv"],
   poweredByHeader: false,
   experimental: {
     serverActions: {
