@@ -106,10 +106,10 @@ export function Sidebar() {
     {
       id: "mvp-demo",
       href: "/demo",
-      label: "16-Step MVP Demo",
-      subtitle: "Live End-to-End Cockpit",
+      label: "ChaanBean 16-step journey",
+      subtitle: "Interactive Workflow",
       icon: Zap,
-      badge: "LIVE MVP",
+      badge: "Journey",
     },
   ];
 

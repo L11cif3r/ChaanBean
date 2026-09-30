@@ -86,11 +86,11 @@ const STEPS: StepDefinition[] = [
   {
     number: 6,
     title: "Create & Approve Credit Case",
-    subtitle: "PostgreSQL CreditCase Persistence",
+    subtitle: "Credit Approval Record",
     category: "core",
     icon: FileCheck,
-    actionLabel: "Persist Credit Case",
-    description: "Store formal underwriting record in Neon PostgreSQL with approved limits and tenor.",
+    actionLabel: "Record Credit Case",
+    description: "Record formal underwriting approval with approved limits and tenor.",
   },
   {
     number: 7,
@@ -122,29 +122,29 @@ const STEPS: StepDefinition[] = [
   {
     number: 10,
     title: "Rules Engine Next Action",
-    subtitle: "TRAI Windows & Frequency Caps",
+    subtitle: "Regulatory Window & Frequency Check",
     category: "recovery",
     icon: CheckCircle2,
     actionLabel: "Evaluate Rules Engine",
-    description: "Authorizer verifies TRAI calling window (09:00-18:00 IST), daily caps (max 2/24h), and 4h spacing.",
+    description: "Authorizer verifies statutory calling window, daily caps, and required minimum spacing.",
   },
   {
     number: 11,
-    title: "Dispatch Exotel Voice Reminder",
-    subtitle: "15-Second Outbound Call & ExoML",
+    title: "Dispatch Statutory Notice Reminder",
+    subtitle: "Statutory Communication Notice",
     category: "communication",
     icon: PhoneCall,
-    actionLabel: "Trigger Exotel Call",
-    description: "Generate compliant Hindi/English statutory reminder and dispatch outbound voice call via Exotel adapter.",
+    actionLabel: "Dispatch Reminder",
+    description: "Generate compliant statutory reminder and dispatch communications sequence.",
   },
   {
     number: 12,
-    title: "Process Webhook & Update Timeline",
-    subtitle: "Carrier Telemetry Callback",
+    title: "Log Communication Receipt & Update Timeline",
+    subtitle: "Delivery Status Confirmation",
     category: "communication",
     icon: Volume2,
-    actionLabel: "Simulate Webhook Callback",
-    description: "Carrier terminal webhook updates duration to 15s, records status 'completed', and appends to CaseTimeline.",
+    actionLabel: "Confirm Delivery Receipt",
+    description: "Delivery status verified and confirmed into the recovery case timeline.",
   },
   {
     number: 13,
@@ -298,7 +298,7 @@ export default function DemoPage() {
         const company = stepData[2]?.[0];
         const credit = stepData[4];
         const explanation = stepData[5]?.explanation;
-        addLog("Persisting formal CreditCase into Neon PostgreSQL...");
+        addLog("Recording formal CreditCase approval...");
         const res = await fetch("/api/credit-cases", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -314,7 +314,7 @@ export default function DemoPage() {
         const json = await res.json();
         setStepData((prev) => ({ ...prev, 6: json.creditCase }));
         setSelectedPayload(json.creditCase);
-        addLog(`CreditCase persisted in DB with ID: ${json.creditCase?.id}. Status: ${json.creditCase?.status?.toUpperCase()}`);
+        addLog(`CreditCase approved with ID: ${json.creditCase?.id}. Status: ${json.creditCase?.status?.toUpperCase()}`);
         setCurrentStep(7);
       } else if (stepNum === 7) {
         addLog("Simulating Trade Invoice booking of ₹12,50,000 (PO Ref: PO-2026-9021)...");
@@ -349,7 +349,7 @@ export default function DemoPage() {
         addLog(`Statutory Claim Calculated: Principal ₹12.50L + MSMED Interest ₹${interest.toLocaleString("en-IN")} = ₹${totalClaim.toLocaleString("en-IN")}`);
         setCurrentStep(9);
       } else if (stepNum === 9) {
-        addLog("Creating RecoveryCase in PostgreSQL with stage L2_DEMAND...");
+        addLog("Creating RecoveryCase with stage L2_DEMAND...");
         const res = await fetch("/api/recovery-cases", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -368,7 +368,7 @@ export default function DemoPage() {
         setCurrentStep(10);
       } else if (stepNum === 10) {
         const recCase = stepData[9];
-        addLog("Evaluating Rules Engine for authorized recovery action (TRAI compliance check)...");
+        addLog("Evaluating Rules Engine for authorized recovery action...");
         const res = await fetch("/api/recovery-cases", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -384,7 +384,7 @@ export default function DemoPage() {
         setCurrentStep(11);
       } else if (stepNum === 11) {
         const recCase = stepData[9];
-        addLog("Dispatching 15-second statutory voice reminder via Exotel Adapter...");
+        addLog("Dispatching statutory communication reminder...");
         const res = await fetch("/api/recovery-cases", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -401,11 +401,11 @@ export default function DemoPage() {
         const json = await res.json();
         setStepData((prev) => ({ ...prev, 11: json.data }));
         setSelectedPayload(json.data);
-        addLog(`Exotel call initiated! Carrier CallSid: ${json.data?.callSid}. Provider: ${json.data?.provider}`);
+        addLog(`Reminder notice dispatched! Reference ID: ${json.data?.callSid || 'DEMO-REF-01'}`);
         setCurrentStep(12);
       } else if (stepNum === 12) {
         const callSid = stepData[11]?.callSid || "exo_sbx_live_call";
-        addLog(`Processing Exotel Terminal Callback Webhook for ${callSid}...`);
+        addLog(`Confirming communication delivery receipt for ${callSid}...`);
         const res = await fetch("/api/mcp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -423,7 +423,7 @@ export default function DemoPage() {
         const json = await res.json();
         setStepData((prev) => ({ ...prev, 12: json.data }));
         setSelectedPayload(json.data);
-        addLog("Exotel status updated to 'completed' (15s duration). Timeline event appended.");
+        addLog("Communication confirmed as completed. Timeline event appended.");
         setCurrentStep(13);
       } else if (stepNum === 13) {
         const recCase = stepData[9];
@@ -518,13 +518,13 @@ export default function DemoPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Production Architecture Live Cockpit
+              Enterprise Workflow Journey
             </div>
             <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
-              ChaanBean 16-Step MVP Demo Journey
+              ChaanBean 16-step journey
             </h1>
             <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
-              Autonomous enterprise pipeline: AI recommends → Rules authorize → MCP executes → Audit records.
+              End-to-end B2B credit evaluation, statutory compliance, and recovery workflow.
             </p>
           </div>
 
@@ -549,42 +549,31 @@ export default function DemoPage() {
         </div>
 
         {/* PROGRESS METRICS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
           <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
             <span className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">Active Milestone</span>
             <div className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
-              Step {currentStep} <span className="text-xs text-slate-400 font-normal">/ 16</span>
+              Step {currentStep} <span className="text-xs text-slate-400 font-normal">/ 16: {STEPS[currentStep - 1]?.title || "Complete"}</span>
             </div>
-            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mt-2">
+            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 mt-3">
               <div
-                className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
+                className="bg-emerald-500 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${(Object.keys(stepData).length / 16) * 100}%` }}
               />
             </div>
           </div>
 
           <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-            <span className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">Database Engine</span>
-            <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-2">
-              <Database className="w-4 h-4" /> Neon PostgreSQL
+            <span className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">Journey Progress</span>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white mt-1 flex items-center justify-between">
+              <span>{Object.keys(stepData).length} of 16 Completed</span>
+              <span className="text-sm font-mono font-semibold text-emerald-600 dark:text-emerald-400">
+                {Math.round((Object.keys(stepData).length / 16) * 100)}%
+              </span>
             </div>
-            <span className="text-xs text-slate-400">6 Production Domain Models</span>
-          </div>
-
-          <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-            <span className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">MCP Gateway</span>
-            <div className="text-sm font-bold text-blue-600 dark:text-blue-400 mt-1 flex items-center gap-2">
-              <Terminal className="w-4 h-4" /> 26 Tools Registered
-            </div>
-            <span className="text-xs text-slate-400">Tenant-Isolated &amp; Authorized</span>
-          </div>
-
-          <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-            <span className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">Voice &amp; Telephony</span>
-            <div className="text-sm font-bold text-purple-600 dark:text-purple-400 mt-1 flex items-center gap-2">
-              <PhoneCall className="w-4 h-4" /> Exotel 15s Adapter
-            </div>
-            <span className="text-xs text-slate-400">TRAI Window &amp; Webhook Validated</span>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+              {Object.keys(stepData).length === 16 ? "All milestones successfully executed." : "Execute milestones individually or run the full automated sequence."}
+            </p>
           </div>
         </div>
       </div>
@@ -595,7 +584,7 @@ export default function DemoPage() {
         <div className="lg:col-span-7 space-y-3">
           <div className="flex items-center justify-between pb-2">
             <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
-              16 Steps MVP Workflow Pipeline
+              16-Step Workflow Pipeline
             </h2>
             <span className="text-xs text-slate-500">
               {Object.keys(stepData).length} of 16 completed
@@ -686,11 +675,8 @@ export default function DemoPage() {
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Terminal className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                Live Response &amp; Database Inspector
+                Live Response Inspector
               </h3>
-              <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 font-mono">
-                PostgreSQL &amp; MCP Gateway
-              </span>
             </div>
 
             {selectedPayload ? (
@@ -709,13 +695,13 @@ export default function DemoPage() {
                   <pre>{JSON.stringify(selectedPayload, null, 2)}</pre>
                 </div>
 
-                {/* SPECIAL DISPLAY FOR EXOTEL REMINDER SCRIPT */}
+                {/* SPECIAL DISPLAY FOR STATUTORY REMINDER SCRIPT */}
                 {selectedPayload?.reminderText && (
-                  <div className="bg-purple-950/30 border border-purple-800/40 rounded-lg p-3">
-                    <div className="text-xs font-semibold text-purple-300 flex items-center gap-2 mb-1">
-                      <Volume2 className="w-3.5 h-3.5" /> 15-Second Exotel Audio Script
+                  <div className="bg-slate-900 border border-slate-800 rounded-lg p-3">
+                    <div className="text-xs font-semibold text-slate-300 flex items-center gap-2 mb-1">
+                      <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> Statutory Communication Script
                     </div>
-                    <p className="text-xs text-slate-300 leading-relaxed italic">
+                    <p className="text-xs text-slate-400 leading-relaxed italic">
                       "{selectedPayload.reminderText}"
                     </p>
                   </div>

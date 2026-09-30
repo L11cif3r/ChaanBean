@@ -255,10 +255,10 @@ export default function HomeCommandCentrePage() {
             Live Enterprise Production Pipeline
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            16-Step Production Demo Journey (Live Cockpit)
+            ChaanBean 16-step journey
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
-            Execute the complete end-to-end statutory credit & recovery journey across Neon PostgreSQL, 26 MCP Domain Tools, Rules Engine, and Exotel 15-second voice telephony.
+            Execute the complete end-to-end statutory credit assessment, risk underwriting, and payment recovery workflow.
           </p>
         </div>
         <Link
