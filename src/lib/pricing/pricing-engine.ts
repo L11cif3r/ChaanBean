@@ -344,3 +344,54 @@ export function resetFeaturePrice(featureKey: string): { success: boolean; item?
   if (!def) return { success: false };
   return updateFeaturePrice(canonicalKey, def.defaultPrice);
 }
+
+export interface RateCardItem {
+  key: string;
+  name: string;
+  category: "verification" | "recovery" | "legal" | "addon";
+  categoryLabel: string;
+  unit: string;
+  price: number;
+  description: string;
+}
+
+export function getAlaCarteRateCard(): RateCardItem[] {
+  const pricing = loadPricingFromDisk();
+
+  const metadata: Record<string, { category: RateCardItem["category"]; categoryLabel: string; unit: string }> = {
+    director_details: { category: "verification", categoryLabel: "Statutory Due Diligence", unit: "per DIN lookup" },
+    msme_report: { category: "verification", categoryLabel: "Statutory Due Diligence", unit: "per Udyam report" },
+    gst_slab: { category: "verification", categoryLabel: "Statutory Due Diligence", unit: "per GSTIN check" },
+    gst_exact_turnover: { category: "verification", categoryLabel: "Statutory Due Diligence", unit: "per filing dossier" },
+    gst_filing_month_basis: { category: "verification", categoryLabel: "Statutory Due Diligence", unit: "Free (Included)" },
+    gst_supreme_report: { category: "verification", categoryLabel: "Statutory Due Diligence", unit: "per PAN registry" },
+    mobile_to_pan: { category: "verification", categoryLabel: "Identity Resolution", unit: "per lookup" },
+    mobile_identity: { category: "verification", categoryLabel: "Identity Resolution", unit: "per dossier" },
+    court_case_history: { category: "verification", categoryLabel: "Dispute & Crime Screening", unit: "per e-Courts search" },
+    import_export_report: { category: "verification", categoryLabel: "Statutory Due Diligence", unit: "per IEC report" },
+    marksheets_10_12: { category: "verification", categoryLabel: "Identity Resolution", unit: "per promoter check" },
+    pan_to_gst: { category: "verification", categoryLabel: "Statutory Due Diligence", unit: "per PAN lookup" },
+    find_someone_lookup: { category: "verification", categoryLabel: "Identity Resolution", unit: "per skip-trace" },
+    trust_hub_id: { category: "verification", categoryLabel: "Trust Network", unit: "per Trust ID verification" },
+    default_payment_voice_calls: { category: "recovery", categoryLabel: "Automated Telephony", unit: "per connected call" },
+    delayed_payments_followup: { category: "recovery", categoryLabel: "Automated Telephony", unit: "per PTP follow-up" },
+    legal_notices: { category: "legal", categoryLabel: "Legal Infrastructure", unit: "per notice suite" },
+    additional_company: { category: "addon", categoryLabel: "Platform Add-on", unit: "per company profile" },
+  };
+
+  const keys = Object.keys(metadata);
+  return keys.map((key) => {
+    const item = pricing[key] || DEFAULT_PRICING[key];
+    const meta = metadata[key];
+    return {
+      key,
+      name: item?.name || key,
+      category: meta.category,
+      categoryLabel: meta.categoryLabel,
+      unit: meta.unit,
+      price: typeof item?.price === "number" ? item.price : 50,
+      description: item?.description || "",
+    };
+  });
+}
+

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { refreshBuyerRiskFlag } from "@/lib/services/risk-service";
+import { resolveTenantCompany } from "@/lib/tenant/tenant-resolver";
 
-export async function GET() {
-  const company = await prisma.company.findFirst();
+export async function GET(req: Request) {
+  const company = await resolveTenantCompany(req);
+
   if (!company) {
     return NextResponse.json({ buyers: [] });
   }
@@ -39,7 +41,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Buyer name is required" }, { status: 400 });
     }
 
-    const company = await prisma.company.findFirst();
+    const company = await resolveTenantCompany(req);
+
     if (!company) {
       return NextResponse.json({ error: "No active company profile" }, { status: 400 });
     }
@@ -59,8 +62,9 @@ export async function POST(req: Request) {
       },
     });
 
-    const dueDate = new Date(Date.now() - (parseInt(overdueDays) || 0) * 86400000);
-    const outstanding = isNaN(parseFloat(initialAmount)) ? 0 : Math.max(0, parseFloat(initialAmount));
+    const numOverdueDays = Math.max(0, parseInt(String(overdueDays), 10) || 0);
+    const dueDate = new Date(Date.now() - numOverdueDays * 86400000);
+    const outstanding = isNaN(parseFloat(String(initialAmount))) ? 0 : Math.max(0, parseFloat(String(initialAmount)));
 
     await prisma.creditAccount.create({
       data: {
@@ -68,18 +72,19 @@ export async function POST(req: Request) {
         outstandingAmount: outstanding,
         creditLimit: 0,
         dueDate,
-        overdueStatus: overdueDays > 30 ? "overdue" : overdueDays > 0 ? "due" : "current",
+        overdueStatus: numOverdueDays > 30 ? "overdue" : numOverdueDays > 0 ? "due" : "current",
       },
     });
 
-    // Run parallel verification fan-out and compute risk flag immediately
-    const riskResult = await refreshBuyerRiskFlag(buyer.id);
+    // Decouple heavy risk flag calculation into non-blocking background task
+    refreshBuyerRiskFlag(buyer.id).catch((riskErr) => {
+      console.warn("Buyer created, background risk refresh deferred:", riskErr);
+    });
 
     return NextResponse.json({
       success: true,
-      message: `Buyer created. Parallel verification completed with ${riskResult.flag.toUpperCase()} risk flag.`,
+      message: "Buyer created successfully. Background verification and risk scoring initiated.",
       buyer,
-      riskFlag: riskResult,
     });
   } catch (error) {
     return NextResponse.json(

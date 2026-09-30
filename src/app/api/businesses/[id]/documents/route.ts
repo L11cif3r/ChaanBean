@@ -13,6 +13,19 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+
+    const biz = await prisma.businessProfile.findUnique({ where: { id } });
+    if (!biz) {
+      return NextResponse.json({ error: "Business not found" }, { status: 404 });
+    }
+
+    const cookieHeader = _req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+    const tenantId = _req.headers.get("x-tenant-id") || (match ? match[1] : undefined);
+    if (tenantId && biz.createdBy && biz.createdBy !== tenantId) {
+      return NextResponse.json({ error: "Forbidden: Cross-tenant access denied." }, { status: 403 });
+    }
+
     const documents = await prisma.financialDocument.findMany({
       where: { businessId: id },
       include: { extractions: true },
@@ -35,6 +48,13 @@ export async function POST(
     const biz = await prisma.businessProfile.findUnique({ where: { id: businessId } });
     if (!biz) {
       return NextResponse.json({ error: "Business not found" }, { status: 404 });
+    }
+
+    const cookieHeader = req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+    const tenantId = req.headers.get("x-tenant-id") || (match ? match[1] : undefined);
+    if (tenantId && biz.createdBy && biz.createdBy !== tenantId) {
+      return NextResponse.json({ error: "Forbidden: Cross-tenant access denied." }, { status: 403 });
     }
 
     const formData = await req.formData();

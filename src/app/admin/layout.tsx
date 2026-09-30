@@ -13,6 +13,7 @@ import {
   UserCheck,
   Building,
   LogOut,
+  Wallet,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -58,6 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/leads", label: "Leads & Ad Funnel", icon: TrendingUp },
     { href: "/admin/pipeline", label: "Sales Pipeline (CRM)", icon: GitPullRequest },
     { href: "/admin/customers", label: "Customer Engagement", icon: Users2 },
+    { href: "/admin/wallets", label: "À La Carte & Wallets", icon: Wallet },
     { href: "/admin/marketing", label: "Marketing & Attribution", icon: TrendingUp },
     { href: "/admin/financials", label: "Monthly Financials (MRR)", icon: DollarSign, ownerOnly: true },
   ];

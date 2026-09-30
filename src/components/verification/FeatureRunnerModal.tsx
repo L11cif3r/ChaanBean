@@ -48,6 +48,11 @@ export interface FeatureRunnerModalProps {
   sampleEntities?: Array<{ name: string; id: string; type: "debtor" | "vendor" }>;
   cachedReport?: NormalizedReport | null;
   onReportGenerated?: (report: NormalizedReport) => void;
+  initialPrimaryInput?: string;
+  initialSecondaryInput?: string;
+  autoFillSource?: string;
+  directorsList?: Array<{ name: string; din: string }>;
+  discoveredGstins?: string[];
 }
 
 export function FeatureRunnerModal({
@@ -59,13 +64,22 @@ export function FeatureRunnerModal({
   sampleEntities = [],
   cachedReport,
   onReportGenerated,
+  initialPrimaryInput,
+  initialSecondaryInput,
+  autoFillSource,
+  directorsList = [],
+  discoveredGstins = [],
 }: FeatureRunnerModalProps) {
   const primaryReportType = feature.reportTypes[0];
   const cost = ledger?.cost ?? feature.cost;
   const ttl = REPORT_CACHE_TTL_HOURS[primaryReportType] ?? 720;
 
-  const [primaryInput, setPrimaryInput] = useState(feature.defaultId || "27AAECG1234H1Z5");
-  const [secondaryInput, setSecondaryInput] = useState(feature.defaultSecondary || "");
+  const [primaryInput, setPrimaryInput] = useState(
+    initialPrimaryInput !== undefined ? initialPrimaryInput : (feature.defaultId || "")
+  );
+  const [secondaryInput, setSecondaryInput] = useState(
+    initialSecondaryInput !== undefined ? initialSecondaryInput : (feature.defaultSecondary || "")
+  );
   const [subjectType, setSubjectType] = useState<"business" | "individual">(feature.subjectType || "business");
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<NormalizedReport | null>(cachedReport || null);
@@ -85,10 +99,23 @@ export function FeatureRunnerModal({
   }, [cachedReport]);
 
   useEffect(() => {
-    if (feature.defaultId) {
+    if (initialPrimaryInput !== undefined) {
+      setPrimaryInput(initialPrimaryInput);
+    } else if (feature.defaultId) {
       setPrimaryInput(feature.defaultId);
+    } else {
+      setPrimaryInput("");
     }
-  }, [feature.defaultId]);
+
+    if (initialSecondaryInput !== undefined) {
+      setSecondaryInput(initialSecondaryInput);
+    } else if (feature.defaultSecondary) {
+      setSecondaryInput(feature.defaultSecondary);
+    } else {
+      setSecondaryInput("");
+    }
+    setErrorMessage(null);
+  }, [feature.key, initialPrimaryInput, initialSecondaryInput, feature.defaultId, feature.defaultSecondary]);
 
   if (!isOpen) return null;
 
@@ -253,9 +280,17 @@ export function FeatureRunnerModal({
             {/* Form Inputs */}
             <div className="grid gap-4 sm:grid-cols-12 items-end">
               <div className="sm:col-span-8 space-y-1.5">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {feature.primaryInputLabel || "Target Identifier (GSTIN / PAN / DIN / Mobile)"}
-                </label>
+                <div className="flex items-center justify-between gap-2">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    {feature.primaryInputLabel || "Target Identifier (GSTIN / PAN / DIN / Mobile)"}
+                  </label>
+                  {autoFillSource && primaryInput && (
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 flex items-center gap-1 shrink-0">
+                      <CheckCircle2 size={11} className="text-emerald-600" />
+                      Auto-filled from {autoFillSource}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="text"
                   value={primaryInput}
@@ -263,6 +298,51 @@ export function FeatureRunnerModal({
                   placeholder={feature.primaryPlaceholder || "Enter target identifier..."}
                   className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-mono text-slate-900 dark:text-white uppercase tracking-wider outline-none focus:border-chaan-brand shadow-sm"
                 />
+
+                {/* Quick Director Selector if applicable */}
+                {directorsList && directorsList.length > 0 && feature.key === "director_details" && (
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[10px] text-slate-500 font-mono">Select Director:</span>
+                    {directorsList.map((d, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          setPrimaryInput(d.din);
+                          setSecondaryInput(d.name);
+                        }}
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold border transition ${
+                          primaryInput === d.din
+                            ? "bg-[#FC8019] text-white border-[#FC8019]"
+                            : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400"
+                        }`}
+                      >
+                        {d.name} ({d.din})
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Quick Discovered GSTINs if applicable */}
+                {discoveredGstins && discoveredGstins.length > 1 && feature.key.includes("gst") && (
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[10px] text-slate-500 font-mono">Discovered GSTINs:</span>
+                    {discoveredGstins.map((g, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setPrimaryInput(g)}
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold border transition ${
+                          primaryInput === g
+                            ? "bg-[#FC8019] text-white border-[#FC8019]"
+                            : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400"
+                        }`}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {feature.secondaryInputLabel && (
@@ -286,7 +366,7 @@ export function FeatureRunnerModal({
                     type="button"
                     onClick={handleRunVerification}
                     disabled={loading || !primaryInput.trim()}
-                    className="w-full flex items-center justify-center gap-2 rounded-lg bg-chaan-brand px-4 py-2 text-xs font-bold text-white hover:bg-chaan-brandDark transition disabled:opacity-50 shadow-md shadow-orange-500/20"
+                    className="w-full flex items-center justify-center gap-2 rounded-lg bg-[#FC8019] hover:bg-[#E26D0A] px-4 py-2.5 text-xs font-bold text-white transition disabled:opacity-40 shadow-md shadow-orange-500/20"
                   >
                     <Zap size={14} />
                     {loading ? "Querying Gateway..." : `Run Verification (₹${cost})`}
@@ -296,7 +376,7 @@ export function FeatureRunnerModal({
                     type="button"
                     onClick={handleRequestOtp}
                     disabled={otpLoading || !primaryInput.trim()}
-                    className="w-full flex items-center justify-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-xs font-bold text-white hover:bg-amber-700 transition disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 rounded-lg bg-amber-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-amber-700 transition disabled:opacity-40"
                   >
                     <KeyRound size={14} />
                     {otpLoading ? "Sending OTP..." : "Request Authorized Signatory OTP"}

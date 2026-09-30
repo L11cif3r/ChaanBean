@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { verifyAdminSession } from "@/lib/auth/admin-auth";
 
-export async function GET() {
+export async function GET(req: Request) {
+  const session = await verifyAdminSession(req);
+  if (!session.authorized) {
+    return NextResponse.json(
+      { error: session.error || "Admin authentication required" },
+      { status: session.status || 401 }
+    );
+  }
+
   const channels = await prisma.marketingChannel.findMany({
     include: {
       sources: true,

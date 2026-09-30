@@ -1,18 +1,45 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { calculateMSMEPenalInterest } from "@/lib/arbitration/interest";
+import { resolveTenantCompany } from "@/lib/tenant/tenant-resolver";
 import crypto from "crypto";
 
-export async function GET() {
-  const cases = await prisma.arbitrationCase.findMany({
-    include: { creditAccount: { include: { buyer: true } } },
-    orderBy: { createdAt: "desc" },
-  });
-  return NextResponse.json({ cases });
+export async function GET(req: Request) {
+  try {
+    const company = await resolveTenantCompany(req);
+
+    if (!company) {
+      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+    }
+
+    const cases = await prisma.arbitrationCase.findMany({
+      where: {
+        creditAccount: {
+          buyer: {
+            companyId: company.id,
+          },
+        },
+      },
+      include: { creditAccount: { include: { buyer: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+    return NextResponse.json({ cases });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to fetch arbitration cases" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(req: Request) {
   try {
+    const company = await resolveTenantCompany(req);
+
+    if (!company) {
+      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+    }
+
     const body = await req.json();
     const { caseId, action, signatoryName, signatoryRole } = body as {
       caseId: string;
@@ -32,6 +59,10 @@ export async function POST(req: Request) {
 
     if (!arbCase) {
       return NextResponse.json({ error: "Arbitration case not found" }, { status: 404 });
+    }
+
+    if (arbCase.creditAccount.buyer.companyId !== company.id) {
+      return NextResponse.json({ error: "Forbidden: Cross-tenant access denied." }, { status: 403 });
     }
 
     if (action === "recalculate_interest") {
@@ -58,7 +89,7 @@ export async function POST(req: Request) {
     }
 
     if (action === "generate_settlement") {
-      const settlementDocUrl = `https://chaanbean-docs.s3.ap-south-1.amazonaws.com/settlements/${caseId}-settlement.pdf`;
+      const settlementDocUrl = `https://chaanbean-docs.s3.ap-south-1.amazonaws.com/settlements/${caseId}-settlement-docket`;
       const terms = `Mutually agreed out-of-court settlement: Principal ₹${arbCase.principalAmount.toLocaleString("en-IN")} + negotiated interest ₹${Math.round(arbCase.accruedInterest * 0.6).toLocaleString("en-IN")} payable in 2 tranches over 30 days under the Arbitration & Conciliation Act 1996.`;
 
       await prisma.arbitrationCase.update({
@@ -96,6 +127,13 @@ export async function POST(req: Request) {
     }
 
     if (action === "e_sign") {
+      if (arbCase.eSignStatus === "fully_signed" || arbCase.status === "award_passed") {
+        return NextResponse.json(
+          { error: "Arbitration award is already fully signed and sealed. No further signatures permitted." },
+          { status: 400 }
+        );
+      }
+
       const signer = signatoryName || "Authorized Signatory (Claimant)";
       const role = signatoryRole || "Claimant";
       const timestamp = new Date().toISOString();

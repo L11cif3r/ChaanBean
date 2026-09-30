@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 import { saveMcaManualEntry } from "@/lib/services/business/mca-adapter";
 import { saveGstManualEntry } from "@/lib/services/business/gst-adapter";
 import { saveUdyamManualEntry } from "@/lib/services/business/udyam-adapter";
@@ -11,6 +12,19 @@ export async function POST(
 ) {
   try {
     const { id: businessId } = await params;
+
+    const biz = await prisma.businessProfile.findUnique({ where: { id: businessId } });
+    if (!biz) {
+      return NextResponse.json({ error: "Business not found" }, { status: 404 });
+    }
+
+    const cookieHeader = req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+    const tenantId = req.headers.get("x-tenant-id") || (match ? match[1] : undefined);
+    if (tenantId && biz.createdBy && biz.createdBy !== tenantId) {
+      return NextResponse.json({ error: "Forbidden: Cross-tenant access denied." }, { status: 403 });
+    }
+
     const body = await req.json();
     const { type, payload, actor } = body;
 

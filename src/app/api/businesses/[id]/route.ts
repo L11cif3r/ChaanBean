@@ -29,6 +29,13 @@ export async function GET(
       return NextResponse.json({ error: "Business not found" }, { status: 404 });
     }
 
+    const cookieHeader = _req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+    const tenantId = _req.headers.get("x-tenant-id") || (match ? match[1] : undefined);
+    if (tenantId && business.createdBy && business.createdBy !== tenantId) {
+      return NextResponse.json({ error: "Forbidden: Cross-tenant access denied." }, { status: 403 });
+    }
+
     return NextResponse.json({ business });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
@@ -41,6 +48,19 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
+
+    const existing = await prisma.businessProfile.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: "Business not found" }, { status: 404 });
+    }
+
+    const cookieHeader = req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+    const tenantId = req.headers.get("x-tenant-id") || (match ? match[1] : undefined);
+    if (tenantId && existing.createdBy && existing.createdBy !== tenantId) {
+      return NextResponse.json({ error: "Forbidden: Cross-tenant access denied." }, { status: 403 });
+    }
+
     const body = await req.json();
 
     const allowedFields = [

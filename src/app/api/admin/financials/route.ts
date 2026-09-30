@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { verifyAdminSession } from "@/lib/auth/admin-auth";
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const role = searchParams.get("role") || "owner";
-
-  // Role Gate: Team Members cannot view raw financial figures
-  if (role !== "owner") {
+  const session = await verifyAdminSession(req, { requireOwner: true });
+  if (!session.authorized) {
     return NextResponse.json(
       {
-        error: "Access Denied: Owner-only financial analytics. Contact Siddharth Verma for access.",
+        error: session.error || "Access Denied: Owner-only financial analytics.",
         authorized: false,
       },
-      { status: 403 }
+      { status: session.status || 403 }
     );
   }
 

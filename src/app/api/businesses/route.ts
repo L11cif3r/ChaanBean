@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { runBusinessVerification } from "@/lib/services/business/verification-orchestrator";
 import { logAuditEvent } from "@/lib/services/business/audit-logger";
+import { resolveTenantCompany } from "@/lib/tenant/tenant-resolver";
 import { z } from "zod";
 
 const CreateBusinessSchema = z.object({
@@ -19,9 +20,8 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     let createdBy = searchParams.get("createdBy");
     if (!createdBy) {
-      const cookieHeader = req.headers.get("cookie") || "";
-      const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
-      if (match) createdBy = decodeURIComponent(match[1]);
+      const company = await resolveTenantCompany(req);
+      if (company) createdBy = company.id;
     }
     const flag = searchParams.get("flag");
 
@@ -70,7 +70,8 @@ export async function POST(req: Request) {
       }
     }
 
-    const company = await prisma.company.findFirst();
+    const company = await resolveTenantCompany(req);
+
     const checkFee = 299;
     if (company && company.walletBalance < checkFee) {
       return NextResponse.json(
@@ -86,6 +87,31 @@ export async function POST(req: Request) {
       );
     }
 
+    // Atomic debit with gte guard
+    if (company) {
+      const debitResult = await prisma.company.updateMany({
+        where: {
+          id: company.id,
+          walletBalance: { gte: checkFee },
+        },
+        data: {
+          walletBalance: { decrement: checkFee },
+          lastActiveAt: new Date(),
+        },
+      });
+
+      if (debitResult.count === 0) {
+        return NextResponse.json(
+          {
+            error: `Insufficient wallet balance. AI Business Security Check costs ₹${checkFee}.`,
+            insufficientBalance: true,
+            required: checkFee,
+          },
+          { status: 402 }
+        );
+      }
+    }
+
     // Create business profile
     const business = await prisma.businessProfile.create({
       data: {
@@ -95,7 +121,7 @@ export async function POST(req: Request) {
         pan: data.pan || null,
         udyamNo: data.udyamNo || null,
         phone: data.phone || null,
-        createdBy: data.createdBy || null,
+        createdBy: company?.id || data.createdBy || null,
         overallStatus: "PENDING",
       },
     });
@@ -123,7 +149,7 @@ export async function POST(req: Request) {
     await logAuditEvent({
       businessId: business.id,
       eventType: "PROFILE_CREATED",
-      actor: data.createdBy || "user",
+      actor: company?.name || data.createdBy || "user",
       description: `Business profile created for "${data.companyName}"`,
       metadata: { identifiers: idEntries.map(e => e.type) },
     });
@@ -131,15 +157,8 @@ export async function POST(req: Request) {
     // Kick off verification orchestrator (non-blocking)
     runBusinessVerification(business.id).catch(console.error);
 
-    // Debit fee from wallet & record in UserReportLibrary
+    // Record in ledger & UserReportLibrary
     if (company) {
-      await prisma.company.update({
-        where: { id: company.id },
-        data: {
-          walletBalance: { decrement: checkFee },
-          lastActiveAt: new Date(),
-        },
-      });
 
       await prisma.walletUsageLedger.upsert({
         where: { companyId_reportType: { companyId: company.id, reportType: "business_security_check" } },

@@ -34,6 +34,9 @@ import {
   Activity,
   PlusCircle,
   Check,
+  Wallet,
+  Coins,
+  ArrowRight,
 } from "lucide-react";
 
 export type SettingsTabId =
@@ -91,7 +94,7 @@ function SettingsContent() {
   const [profileDepartment, setProfileDepartment] = useState("Finance & Accounts");
 
   // 2. Company Profile State
-  const [companyName, setCompanyName] = useState("Acme Traders Pvt Ltd");
+  const [companyName, setCompanyName] = useState("Alright Trade");
   const [cinNumber, setCinNumber] = useState("U72900MH2020PTC123456");
   const [gstin, setGstin] = useState("27AAECG1234H1Z5");
   const [pan, setPan] = useState("AAECG1234H");
@@ -120,7 +123,7 @@ function SettingsContent() {
       .then((data) => {
         if (typeof data.walletBalance === "number") setWalletBalance(data.walletBalance);
         if (typeof data.daysRemaining === "number") setDaysRemaining(data.daysRemaining);
-        if (data.companyName) setCompanyName(data.companyName);
+        if (data.companyName && data.companyName !== "Rival Zenith Logistics") setCompanyName(data.companyName);
         if (data.plan) {
           if (data.plan.startsWith("alacarte")) {
             setPlanName("À La Carte (Call Service)");
@@ -728,6 +731,31 @@ function SettingsContent() {
                 </div>
               </div>
 
+              {/* Universal Pay & Use Recharge Quick Action */}
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1 rounded-md bg-[#FC8019] text-white">
+                      <Wallet size={14} />
+                    </span>
+                    <span className="text-xs font-bold text-slate-900 dark:text-white">
+                      Universal Pay &amp; Use Recharge (13 Tiers)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Recharge wallet from ₹5,000 up to ₹1,00,000+ Enterprise Customization. Pay unit rates strictly as you consume across all 18 gateways.
+                  </p>
+                </div>
+                <Link
+                  href="/wallet"
+                  className="px-4 py-2 rounded-xl bg-[#FC8019] hover:bg-[#e67312] text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm"
+                >
+                  <Coins size={14} />
+                  <span>Go to Wallet &amp; Recharge Center</span>
+                  <ArrowRight size={13} />
+                </Link>
+              </div>
+
               {/* Invoice Receipts */}
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase font-mono text-slate-400">
@@ -755,10 +783,10 @@ function SettingsContent() {
                         <button
                           type="button"
                           onClick={() => showToast(`Downloaded invoice ${inv.id}`)}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-medium text-slate-700 dark:text-slate-300 hover:border-[#FC8019] transition"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-medium text-slate-700 dark:text-slate-300 hover:border-[#FC8019] transition"
                         >
                           <Download size={12} />
-                          <span>PDF</span>
+                          <span>Invoice</span>
                         </button>
                       </div>
                     </div>

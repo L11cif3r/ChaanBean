@@ -3,17 +3,16 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Globe, Wallet, ShieldCheck, LogOut, FileText, Clock } from "lucide-react";
+import { Globe, Wallet, ShieldCheck, LogOut, FileText, Clock, Sparkles, MessageSquarePlus } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { GlobalSearch } from "@/components/GlobalSearch";
 
 export function Header() {
   const { language, setLanguage, t } = useLanguage();
   const [walletBalance, setWalletBalance] = useState<number>(100000);
   const [daysRemaining, setDaysRemaining] = useState<number>(90);
   const [planName, setPlanName] = useState<string>("Retail Plan (Growth)");
-  const [companyName, setCompanyName] = useState<string>("Acme Traders Pvt Ltd");
+  const [companyName, setCompanyName] = useState<string>("Alright Trade");
 
   const refreshWallet = useCallback(async () => {
     try {
@@ -25,18 +24,21 @@ export function Header() {
       if (typeof data.daysRemaining === "number") {
         setDaysRemaining(data.daysRemaining);
       }
-      if (data.companyName) {
+      if (data.companyName && data.companyName !== "Rival Zenith Logistics") {
         setCompanyName(data.companyName);
       }
       if (data.plan) {
-        if (data.plan.startsWith("alacarte")) {
+        if (data.plan.startsWith("recharge")) {
+          const amountStr = data.plan.replace("recharge_", "");
+          setPlanName(`Pay & Use (${amountStr.toUpperCase()})`);
+        } else if (data.plan.startsWith("alacarte")) {
           const map: Record<string, string> = {
             alacarte_3k: "À La Carte (3,000 Calls)",
             alacarte_8k: "À La Carte (8,000 Calls)",
             alacarte_14k: "À La Carte (14,000 Calls)",
             alacarte_19k: "À La Carte (19,000 Calls)",
           };
-          setPlanName(map[data.plan] || "À La Carte (Call Service)");
+          setPlanName(map[data.plan] || "Universal À La Carte");
         } else if (data.plan === "enterprise") {
           setPlanName("Enterprise Plan");
         } else {
@@ -70,42 +72,52 @@ export function Header() {
       {/* Left: Active Organization / Tenant */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-900 dark:text-white tracking-tight truncate max-w-[120px] sm:max-w-[200px] md:max-w-none text-xs sm:text-sm">
+          <span className="font-bold text-slate-900 dark:text-white tracking-tight truncate max-w-[140px] sm:max-w-[240px] md:max-w-none text-sm sm:text-base">
             {companyName}
           </span>
-          <span className="hidden sm:flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 font-mono font-semibold">
-            <ShieldCheck size={11} />
+          <span className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 font-mono font-bold">
+            <ShieldCheck size={13} />
             KYC Verified
           </span>
         </div>
       </div>
 
-      {/* Center: Prominent Global Database Search Bar */}
-      <div className="flex-1 max-w-xl mx-2 sm:mx-4 min-w-0">
-        <GlobalSearch />
-      </div>
-
       {/* Right Controls */}
       <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        {/* Quick Trigger: Ask ChaanBean AI Navigator */}
+        <button
+          type="button"
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("chaanbean:open-ask-ai"));
+            }
+          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-orange-50 dark:bg-orange-950/60 border border-orange-200 dark:border-orange-800 text-[#FC8019] hover:bg-[#FC8019] hover:text-white font-bold text-xs shadow-xs transition group"
+          title="Ask ChaanBean AI Navigator"
+        >
+          <Sparkles size={14} className="group-hover:rotate-12 transition-transform" />
+          <span className="hidden md:inline">Ask ChaanBean</span>
+        </button>
+
         {/* Prominent Top Navigation Wallet Balance with Real-time Validity Indicator */}
         <Link
-          href="/subscription"
-          className="flex items-center gap-2 sm:gap-2.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/15 dark:from-orange-500/20 dark:via-amber-500/15 dark:to-orange-500/20 border-2 border-orange-400/80 dark:border-orange-500/70 shadow-sm hover:shadow-md hover:shadow-orange-500/15 hover:border-[#FC8019] transition-all group shrink-0"
+          href="/wallet"
+          className="flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/15 dark:from-orange-500/20 dark:via-amber-500/15 dark:to-orange-500/20 border-2 border-orange-400/80 dark:border-orange-500/70 shadow-sm hover:shadow-md hover:shadow-orange-500/15 hover:border-[#FC8019] transition-all group shrink-0"
           title={`Wallet Balance: ₹${walletBalance.toLocaleString("en-IN")} · ${planName} (Valid for ${daysRemaining} days)`}
         >
-          <div className="p-1 sm:p-1.5 rounded-lg bg-[#FC8019] text-white shadow-xs group-hover:scale-105 transition-transform flex items-center justify-center shrink-0">
-            <Wallet size={15} className="shrink-0 stroke-[2.5]" />
+          <div className="p-1.5 rounded-lg bg-[#FC8019] text-white shadow-xs group-hover:scale-105 transition-transform flex items-center justify-center shrink-0">
+            <Wallet size={17} className="shrink-0 stroke-[2.5]" />
           </div>
           <div className="flex flex-col text-left leading-tight">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-sans hidden sm:block">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-sans hidden sm:block">
               {t.walletBalance || "Wallet Balance"}
             </span>
             <div className="flex items-center gap-1.5">
-              <span className="text-xs sm:text-sm font-black text-[#FC8019] dark:text-orange-400 font-mono tracking-tight">
+              <span className="text-sm sm:text-base font-black text-[#FC8019] dark:text-orange-400 font-mono tracking-tight">
                 ₹{walletBalance.toLocaleString("en-IN")}
               </span>
-              <span className="hidden xl:inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-200 font-sans font-bold">
-                <Clock size={9} className="text-[#FC8019]" />
+              <span className="hidden xl:inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-200 font-sans font-bold">
+                <Clock size={11} className="text-[#FC8019]" />
                 {daysRemaining}d left
               </span>
             </div>
@@ -116,6 +128,20 @@ export function Header() {
 
         {/* Theme Switcher (Dark / Light Mode Icon) */}
         <ThemeToggle />
+
+        {/* Global Feedback Trigger */}
+        <button
+          type="button"
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("chaanbean:open-feedback"));
+            }
+          }}
+          className="p-2 rounded-xl text-slate-500 hover:text-[#FC8019] hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+          title="Give Feedback & Feature Request"
+        >
+          <MessageSquarePlus size={16} />
+        </button>
 
         {/* Language Switcher */}
         <div className="hidden sm:flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg p-1">

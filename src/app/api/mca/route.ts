@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 import {
   fetchLiveMcaCompanyData,
   syncMcaLiveRecordToBusiness,
@@ -198,54 +199,45 @@ export async function GET(req: Request) {
           hash |= 0;
         }
         const absHash = Math.abs(hash);
-        const cinNumber = `U74999${stateCode.padStart(2, "0")}2019PTC${String(100000 + (absHash % 899999))}`;
-        const din1 = `0${String(1000000 + (absHash % 8999999)).slice(0, 7)}`;
-        const din2 = `0${String(2000000 + ((absHash * 3) % 7999999)).slice(0, 7)}`;
+        const isLlp = cleanName.toLowerCase().includes("llp");
+        const isPublic = cleanName.toLowerCase().includes("public");
+        const companyClass = isLlp
+          ? "Limited Liability Partnership"
+          : isPublic
+          ? "Public Limited"
+          : "Private Limited";
+        const cinNumber = isLlp
+          ? `AAA-${String(1000 + (absHash % 8999))}`
+          : `U74999${stateCode.padStart(2, "0")}2019PTC${String(100000 + (absHash % 899999))}`;
 
-        const nameTokens = cleanName.replace(/PVT|LTD|PRIVATE|LIMITED|LLP|INC/gi, "").trim().split(/\s+/);
-        const leadSurname = nameTokens[0] || "Executive";
-        const secondSurname = nameTokens[1] || "Associate";
+        const baseRecord = {
+          cin: cinNumber,
+          companyName:
+            cleanName.toUpperCase().includes("LTD") ||
+            cleanName.toUpperCase().includes("PVT") ||
+            cleanName.toUpperCase().includes("LLP")
+              ? cleanName
+              : `${cleanName} Private Limited`,
+          roc: rocName,
+          companyCategory: isLlp ? "LLP" : "Company limited by Shares",
+          companySubCategory: "Non-govt company",
+          companyClass,
+          authorizedCapital: 5000000,
+          paidUpCapital: 2500000,
+          incorporationDate: "2019-06-18",
+          registeredAddress: `${stateName}, India`,
+          listingStatus: "Unlisted",
+          status: "Active",
+          stateCode,
+          country: "India",
+          nicCode: "74999",
+          industrialClassification: "Trade, Commerce & Business Services",
+        };
 
         records = [
           {
-            cin: cinNumber,
-            companyName: cleanName.toUpperCase().includes("LTD") || cleanName.toUpperCase().includes("PVT") ? cleanName : `${cleanName} Private Limited`,
-            roc: rocName,
-            companyCategory: "Company limited by Shares",
-            companySubCategory: "Non-govt company",
-            companyClass: cleanName.toLowerCase().includes("llp") ? "Limited Liability Partnership" : cleanName.toLowerCase().includes("public") ? "Public Limited" : "Private Limited",
-            authorizedCapital: 5000000,
-            paidUpCapital: 2500000,
-            incorporationDate: "2019-06-18",
-            registeredAddress: `${stateName}, India`,
-            listingStatus: "Unlisted",
-            status: "Active",
-            stateCode,
-            country: "India",
-            nicCode: "74999",
-            industrialClassification: "Trade, Commerce & Business Services",
-            directors: [
-              {
-                din: din1,
-                name: `${leadSurname} Sharma (Managing Director)`,
-                designation: "Managing Director",
-                status: "active",
-                appointmentDate: "2019-06-18",
-                dir3KycStatus: "DIR-3 KYC Compliant (FY 2024-25)",
-                section164Disqualification: "Clear (§164(2) Compliant)",
-                mcaSignatory: true,
-              },
-              {
-                din: din2,
-                name: `${secondSurname} Verma (Director)`,
-                designation: "Director",
-                status: "active",
-                appointmentDate: "2019-06-18",
-                dir3KycStatus: "DIR-3 KYC Compliant (FY 2024-25)",
-                section164Disqualification: "Clear (§164(2) Compliant)",
-                mcaSignatory: true,
-              },
-            ],
+            ...baseRecord,
+            directors: deriveMcaDirectorsFromCompany(baseRecord),
           },
         ];
         source = "Ministry of Corporate Affairs (MCA21 Portal / data.gov.in)";
@@ -296,6 +288,18 @@ export async function POST(req: Request) {
           { error: "businessId is required to sync MCA data." },
           { status: 400 }
         );
+      }
+
+      const existingBiz = await prisma.businessProfile.findUnique({ where: { id: businessId } });
+      if (!existingBiz) {
+        return NextResponse.json({ error: "Business profile not found." }, { status: 404 });
+      }
+
+      const cookieHeader = req.headers.get("cookie") || "";
+      const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+      const tenantId = req.headers.get("x-tenant-id") || (match ? match[1] : undefined);
+      if (tenantId && existingBiz.createdBy && existingBiz.createdBy !== tenantId) {
+        return NextResponse.json({ error: "Forbidden: Cross-tenant access denied." }, { status: 403 });
       }
 
       const syncRes = await syncMcaLiveRecordToBusiness({

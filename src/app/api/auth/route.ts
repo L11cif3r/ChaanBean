@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getDefaultCompany } from "@/lib/tenant/tenant-resolver";
 
 export async function POST(req: Request) {
   try {
@@ -18,18 +19,14 @@ export async function POST(req: Request) {
         company = await prisma.company.findFirst({
           where: { name: { contains: "ABC Industry" } },
         });
-      } else if (compLower && !compLower.includes("acme")) {
+      } else if (compLower) {
         company = await prisma.company.findFirst({
           where: { name: { contains: companyName } },
-        });
-      } else {
-        company = await prisma.company.findFirst({
-          where: { name: "Acme Traders Pvt Ltd" },
         });
       }
 
       if (!company) {
-        company = await prisma.company.findFirst();
+        company = await getDefaultCompany();
       }
 
       if (!company) {
@@ -81,12 +78,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Valid 6-digit OTP is required." }, { status: 400 });
       }
 
-      let company = await prisma.company.findFirst({
-        where: { name: "Acme Traders Pvt Ltd" },
-      });
-      if (!company) {
-        company = await prisma.company.findFirst();
-      }
+      const company = await getDefaultCompany();
 
       if (!company) {
         return NextResponse.json(
@@ -239,7 +231,7 @@ export async function POST(req: Request) {
         });
       }
 
-      return NextResponse.json({
+      const res = NextResponse.json({
         success: true,
         type: "admin",
         user: {
@@ -249,6 +241,24 @@ export async function POST(req: Request) {
           role: adminUser.role,
         },
       });
+
+      res.cookies.set("chaanbean_admin_session", "active", {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax",
+      });
+      res.cookies.set("chaanbean_admin_role", adminUser.role, {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax",
+      });
+      res.cookies.set("chaanbean_admin_id", adminUser.id, {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax",
+      });
+
+      return res;
     }
 
     // 4. ADMIN REGISTRATION
@@ -283,12 +293,30 @@ export async function POST(req: Request) {
       });
 
       if (existing) {
-        return NextResponse.json({
+        const res = NextResponse.json({
           success: true,
           type: "admin",
           message: "Admin credentials verified.",
           user: existing,
         });
+
+        res.cookies.set("chaanbean_admin_session", "active", {
+          path: "/",
+          maxAge: 86400,
+          sameSite: "lax",
+        });
+        res.cookies.set("chaanbean_admin_role", existing.role, {
+          path: "/",
+          maxAge: 86400,
+          sameSite: "lax",
+        });
+        res.cookies.set("chaanbean_admin_id", existing.id, {
+          path: "/",
+          maxAge: 86400,
+          sameSite: "lax",
+        });
+
+        return res;
       }
 
       const newAdmin = await prisma.adminUser.create({
@@ -299,12 +327,30 @@ export async function POST(req: Request) {
         },
       });
 
-      return NextResponse.json({
+      const res = NextResponse.json({
         success: true,
         type: "admin",
         message: "New Administrator successfully registered.",
         user: newAdmin,
       });
+
+      res.cookies.set("chaanbean_admin_session", "active", {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax",
+      });
+      res.cookies.set("chaanbean_admin_role", newAdmin.role, {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax",
+      });
+      res.cookies.set("chaanbean_admin_id", newAdmin.id, {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax",
+      });
+
+      return res;
     }
 
     return NextResponse.json({ error: "Invalid action." }, { status: 400 });

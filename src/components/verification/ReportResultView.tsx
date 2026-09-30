@@ -201,18 +201,18 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
 
         return (
           <div className="space-y-4">
-            <div className="rounded-xl border border-chaan-brand/40 bg-gradient-to-br from-rose-950/40 to-slate-900/80 p-5 flex flex-wrap items-center justify-between gap-4">
+            <div className="rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-gradient-to-br from-rose-50/80 via-white to-slate-50 dark:from-rose-950/40 dark:to-slate-900/80 p-5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
               <div>
-                <span className="text-[11px] text-rose-300 uppercase font-mono tracking-wider">
+                <span className="text-[11px] text-rose-700 dark:text-rose-300 uppercase font-mono tracking-wider font-bold">
                   Verified Turnover Slab Range
                 </span>
-                <div className="mt-1 text-2xl font-black text-white font-mono">{slab}</div>
-                <p className="mt-1 text-xs text-slate-300">
+                <div className="mt-1 text-2xl font-black text-slate-900 dark:text-white font-mono">{slab}</div>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                   Computed from public aggregate GST returns and tax bucket brackets.
                 </p>
               </div>
-              <div className="flex items-center gap-2 rounded-lg bg-emerald-950/70 border border-emerald-800/60 px-3 py-1.5 text-xs text-emerald-300 font-medium">
-                <CheckCircle2 size={16} className="text-emerald-400" />
+              <div className="flex items-center gap-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800/60 px-3 py-1.5 text-xs text-emerald-800 dark:text-emerald-300 font-semibold shadow-2xs">
+                <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400" />
                 Active Taxpayer Status
               </div>
             </div>
@@ -382,13 +382,13 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
             </div>
 
             {/* 12-Month Calendar Grid */}
-            <div className="rounded-xl border border-chaan-border bg-slate-900/40 p-4 space-y-3">
-              <h4 className="text-xs font-semibold text-slate-200 uppercase font-mono flex items-center justify-between">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-4 sm:p-5 space-y-3.5 shadow-xs">
+              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase font-mono flex items-center justify-between">
                 <span className="flex items-center gap-2">
-                  <Calendar size={14} className="text-chaan-brand" />
+                  <Calendar size={15} className="text-[#FC8019]" />
                   12-Month GSTR-1 &amp; GSTR-3B Return Compliance Ledger
                 </span>
-                <span className="text-[11px] text-slate-400 font-mono">All 12 Months Audited</span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono font-medium">All 12 Months Audited</span>
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                 {months.map((m, idx) => {
@@ -397,39 +397,45 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
                   return (
                     <div
                       key={idx}
-                      className={`rounded-lg border p-2.5 space-y-1.5 transition ${
+                      className={`rounded-xl border p-3 space-y-2 transition ${
                         isMissing
-                          ? "border-rose-800/60 bg-rose-950/20"
+                          ? "border-rose-200 dark:border-rose-800/60 bg-rose-50/60 dark:bg-rose-950/20"
                           : isLate
-                          ? "border-amber-800/60 bg-amber-950/20"
-                          : "border-slate-800 bg-slate-950/70"
+                          ? "border-amber-200 dark:border-amber-800/60 bg-amber-50/60 dark:bg-amber-950/20"
+                          : "border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 hover:border-orange-300 dark:hover:border-orange-500/50"
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-mono font-bold text-xs text-white">{m.month}</span>
+                        <span className="font-mono font-black text-xs text-slate-900 dark:text-white">{m.month}</span>
                         <span
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold ${
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold border ${
                             isMissing
-                              ? "bg-rose-900/60 text-rose-300 border border-rose-700/50"
+                              ? "bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800"
                               : isLate
-                              ? "bg-amber-900/60 text-amber-300 border border-amber-700/50"
-                              : "bg-emerald-950 text-emerald-400 border border-emerald-800/60"
+                              ? "bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800"
+                              : "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800"
                           }`}
                         >
                           {m.gstr3bStatus}
                         </span>
                       </div>
-                      <div className="grid grid-cols-2 gap-1 text-[11px] font-mono text-slate-400">
+                      <div className="grid grid-cols-2 gap-1.5 text-[11px] font-mono">
                         <div>
-                          <span className="text-[10px] text-slate-500">GSTR-1:</span> {m.gstr1Date}
+                          <span className="text-[10px] text-slate-400 font-semibold">GSTR-1:</span>{" "}
+                          <span className="text-slate-700 dark:text-slate-300 font-medium">{m.gstr1Date}</span>
                         </div>
                         <div>
-                          <span className="text-[10px] text-slate-500">GSTR-3B:</span> {m.gstr3bDate}
+                          <span className="text-[10px] text-slate-400 font-semibold">GSTR-3B:</span>{" "}
+                          <span className="text-slate-700 dark:text-slate-300 font-medium">{m.gstr3bDate}</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between pt-1 border-t border-slate-800/60 text-[11px] font-mono">
-                        <span className="text-slate-400">Turnover: <strong className="text-slate-200">{formatINR(m.taxableTurnover)}</strong></span>
-                        <span className="text-slate-400">Tax: <strong className="text-emerald-400">{formatINR(m.taxPaid)}</strong></span>
+                      <div className="flex items-center justify-between pt-1.5 border-t border-slate-200 dark:border-slate-800 text-[11px] font-mono">
+                        <span className="text-slate-500 dark:text-slate-400">
+                          Turnover: <strong className="text-slate-900 dark:text-slate-100 font-bold">{formatINR(m.taxableTurnover)}</strong>
+                        </span>
+                        <span className="text-slate-500 dark:text-slate-400">
+                          Tax: <strong className="text-emerald-700 dark:text-emerald-400 font-bold">{formatINR(m.taxPaid)}</strong>
+                        </span>
                       </div>
                     </div>
                   );
@@ -750,15 +756,15 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-blue-200/70 dark:border-slate-800 pb-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">
+                    <span className="flex h-3 w-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                    <span className="text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">
                       Ministry of Corporate Affairs (data.gov.in MCA21) Live Company Master Data
                     </span>
                   </div>
-                  <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white mt-1 tracking-tight">{compName}</h3>
+                  <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1 tracking-tight">{compName}</h3>
                 </div>
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider border shadow-sm ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-mono font-bold uppercase tracking-wider border shadow-sm ${
                     isStrikeOff
                       ? "bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/80 dark:text-rose-300 dark:border-rose-700"
                       : "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-700"
@@ -768,52 +774,52 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
-                <div className="bg-white dark:bg-slate-800/90 p-3 rounded-xl border border-blue-200/80 dark:border-slate-700 shadow-sm transition hover:border-blue-300">
-                  <span className="text-slate-500 dark:text-slate-400 uppercase text-[10px] font-bold tracking-wider block">CIN</span>
-                  <div className="text-slate-900 dark:text-slate-100 font-bold truncate mt-1 text-xs" title={cin}>{cin}</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm font-mono">
+                <div className="bg-white dark:bg-slate-800/90 p-3.5 rounded-xl border border-blue-200/80 dark:border-slate-700 shadow-sm transition hover:border-blue-300">
+                  <span className="text-slate-500 dark:text-slate-400 uppercase text-xs font-bold tracking-wider block">CIN</span>
+                  <div className="text-slate-900 dark:text-slate-100 font-bold truncate mt-1 text-sm sm:text-base" title={cin}>{cin}</div>
                 </div>
-                <div className="bg-white dark:bg-slate-800/90 p-3 rounded-xl border border-blue-200/80 dark:border-slate-700 shadow-sm transition hover:border-blue-300">
-                  <span className="text-slate-500 dark:text-slate-400 uppercase text-[10px] font-bold tracking-wider block">RoC Office</span>
-                  <div className="text-slate-900 dark:text-slate-100 font-bold truncate mt-1 text-xs">{roc}</div>
+                <div className="bg-white dark:bg-slate-800/90 p-3.5 rounded-xl border border-blue-200/80 dark:border-slate-700 shadow-sm transition hover:border-blue-300">
+                  <span className="text-slate-500 dark:text-slate-400 uppercase text-xs font-bold tracking-wider block">RoC Office</span>
+                  <div className="text-slate-900 dark:text-slate-100 font-bold truncate mt-1 text-sm sm:text-base">{roc}</div>
                 </div>
-                <div className="bg-white dark:bg-slate-800/90 p-3 rounded-xl border border-blue-200/80 dark:border-slate-700 shadow-sm transition hover:border-blue-300">
-                  <span className="text-slate-500 dark:text-slate-400 uppercase text-[10px] font-bold tracking-wider block">Incorporation Date</span>
-                  <div className="text-slate-900 dark:text-slate-100 font-bold mt-1 text-xs">{incDate}</div>
+                <div className="bg-white dark:bg-slate-800/90 p-3.5 rounded-xl border border-blue-200/80 dark:border-slate-700 shadow-sm transition hover:border-blue-300">
+                  <span className="text-slate-500 dark:text-slate-400 uppercase text-xs font-bold tracking-wider block">Incorporation Date</span>
+                  <div className="text-slate-900 dark:text-slate-100 font-bold mt-1 text-sm sm:text-base">{incDate}</div>
                 </div>
-                <div className="bg-white dark:bg-slate-800/90 p-3 rounded-xl border border-blue-200/80 dark:border-slate-700 shadow-sm transition hover:border-blue-300">
-                  <span className="text-slate-500 dark:text-slate-400 uppercase text-[10px] font-bold tracking-wider block">Listing Status</span>
-                  <div className="text-slate-900 dark:text-slate-100 font-bold mt-1 text-xs">{listing}</div>
+                <div className="bg-white dark:bg-slate-800/90 p-3.5 rounded-xl border border-blue-200/80 dark:border-slate-700 shadow-sm transition hover:border-blue-300">
+                  <span className="text-slate-500 dark:text-slate-400 uppercase text-xs font-bold tracking-wider block">Listing Status</span>
+                  <div className="text-slate-900 dark:text-slate-100 font-bold mt-1 text-sm sm:text-base">{listing}</div>
                 </div>
               </div>
             </div>
 
             {/* Capital & Classification Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 space-y-1 shadow-sm">
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono font-bold">Authorized Share Capital</span>
-                <div className="text-xl font-black font-mono text-slate-900 dark:text-white">{formatINR(authorized)}</div>
-                <div className="text-[11px] text-slate-500 font-mono">Statutory Ceiling</div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-sm">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 space-y-1.5 shadow-sm">
+                <span className="text-xs text-slate-500 dark:text-slate-400 uppercase font-mono font-bold">Authorized Share Capital</span>
+                <div className="text-2xl font-black font-mono text-slate-900 dark:text-white">{formatINR(authorized)}</div>
+                <div className="text-xs text-slate-500 font-mono">Statutory Ceiling</div>
               </div>
-              <div className="rounded-xl border border-emerald-200/80 dark:border-slate-800 bg-emerald-50/30 dark:bg-slate-900/90 p-4 space-y-1 shadow-sm">
-                <span className="text-[10px] text-emerald-700 dark:text-emerald-400 uppercase font-mono font-bold">Paid-Up Capital</span>
-                <div className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400">{formatINR(paidUp)}</div>
-                <div className="text-[11px] text-emerald-700/80 font-mono">Subscribed Equity</div>
+              <div className="rounded-xl border border-emerald-200/80 dark:border-slate-800 bg-emerald-50/30 dark:bg-slate-900/90 p-4 space-y-1.5 shadow-sm">
+                <span className="text-xs text-emerald-700 dark:text-emerald-400 uppercase font-mono font-bold">Paid-Up Capital</span>
+                <div className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">{formatINR(paidUp)}</div>
+                <div className="text-xs text-emerald-700/80 font-mono font-medium">Subscribed Equity</div>
               </div>
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 space-y-1 shadow-sm">
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono font-bold">Class &amp; Category</span>
-                <div className="text-sm font-bold text-slate-900 dark:text-white truncate">{compClass}</div>
-                <div className="text-[11px] text-slate-500 truncate">{compCat} · {subCat}</div>
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 space-y-1.5 shadow-sm">
+                <span className="text-xs text-slate-500 dark:text-slate-400 uppercase font-mono font-bold">Class &amp; Category</span>
+                <div className="text-base font-bold text-slate-900 dark:text-white truncate">{compClass}</div>
+                <div className="text-xs text-slate-500 truncate font-medium">{compCat} · {subCat}</div>
               </div>
             </div>
 
             {/* Registered Address & Classification */}
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 space-y-3 shadow-sm">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 sm:p-5 space-y-3 shadow-sm">
               <div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono font-bold">Registered Office Address (Official RoC Record)</span>
-                <div className="mt-1.5 text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans">{addr}</div>
+                <span className="text-xs text-slate-500 dark:text-slate-400 uppercase font-mono font-bold">Registered Office Address (Official RoC Record)</span>
+                <div className="mt-1.5 text-sm sm:text-base text-slate-800 dark:text-slate-200 leading-relaxed font-sans">{addr}</div>
               </div>
-              <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] font-mono">
+              <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-xs sm:text-sm font-mono">
                 <div>
                   <span className="text-slate-500 font-medium">NIC Code:</span> <strong className="text-slate-900 dark:text-slate-100">{nic}</strong>
                 </div>
@@ -824,23 +830,23 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
             </div>
 
             {/* Audited Financial Metrics */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-3.5 shadow-sm">
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono font-semibold">Audited Net Worth</span>
-                <div className="mt-1 font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm">{formatINR(netWorth)}</div>
-                <span className="text-[10px] text-slate-500">Balance sheet verified</span>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 text-sm">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 shadow-sm">
+                <span className="text-xs text-slate-500 dark:text-slate-400 uppercase font-mono font-bold">Audited Net Worth</span>
+                <div className="mt-1 font-mono font-black text-emerald-600 dark:text-emerald-400 text-base">{formatINR(netWorth)}</div>
+                <span className="text-xs text-slate-500 font-medium">Balance sheet verified</span>
               </div>
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-3.5 shadow-sm">
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono font-semibold">EBITDA Margin</span>
-                <div className="mt-1 font-mono font-black text-slate-900 dark:text-white text-sm">{ebitda}%</div>
-                <span className="text-[10px] text-slate-500">Operating profitability</span>
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 shadow-sm">
+                <span className="text-xs text-slate-500 dark:text-slate-400 uppercase font-mono font-bold">EBITDA Margin</span>
+                <div className="mt-1 font-mono font-black text-slate-900 dark:text-white text-base">{ebitda}%</div>
+                <span className="text-xs text-slate-500 font-medium">Operating profitability</span>
               </div>
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-3.5 shadow-sm">
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono font-semibold">Debt-to-Equity</span>
-                <div className={`mt-1 font-mono font-black text-sm ${debtToEquity > 2 ? "text-rose-600 dark:text-rose-400" : "text-slate-900 dark:text-white"}`}>
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 shadow-sm">
+                <span className="text-xs text-slate-500 dark:text-slate-400 uppercase font-mono font-bold">Debt-to-Equity</span>
+                <div className={`mt-1 font-mono font-black text-base ${debtToEquity > 2 ? "text-rose-600 dark:text-rose-400" : "text-slate-900 dark:text-white"}`}>
                   {debtToEquity}x
                 </div>
-                <span className="text-[10px] text-slate-500">Leverage ratio</span>
+                <span className="text-xs text-slate-500 font-medium">Leverage ratio</span>
               </div>
             </div>
           </div>
@@ -975,11 +981,15 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
               <div className="grid gap-3 sm:grid-cols-2">
                 {directors.map((d, i) => {
                   const isActive = d.status.toLowerCase() === "active";
+                  const cleanDName = (d.name || "")
+                    .replace(/\s*\((Managing Director|Director|Designated Partner|Whole-time Director|Executive Director|Independent Director|Nominee Director|Sole Director & Nominee|Partner)\)/gi, "")
+                    .replace(/\s+(Managing Director|Director|Designated Partner|Whole-time Director|Executive Director|Independent Director)$/gi, "")
+                    .trim();
                   return (
                     <div key={i} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-4 text-xs space-y-3 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <div className="font-bold text-slate-900 dark:text-white text-sm">{d.name}</div>
+                          <div className="font-bold text-slate-900 dark:text-white text-sm">{cleanDName || d.name}</div>
                           <div className="text-xs text-[#FC8019] font-bold mt-0.5">{d.designation || "Director"}</div>
                         </div>
                         <span
@@ -1284,19 +1294,19 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
 
         return (
           <div className="space-y-4 text-xs">
-            <div className="rounded-xl border border-chaan-brand/40 bg-gradient-to-r from-rose-950/40 via-slate-900/80 to-slate-900/80 p-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="rounded-2xl border border-orange-200 dark:border-orange-800/60 bg-gradient-to-r from-orange-50/90 via-amber-50/50 to-white dark:from-rose-950/40 dark:via-slate-900/80 dark:to-slate-900/80 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 shadow-xs">
               <div>
-                <span className="text-[10px] text-rose-300 uppercase font-mono tracking-wider flex items-center gap-1.5 font-bold">
-                  <Sparkles size={13} className="text-chaan-brand" />
+                <span className="text-[10px] text-orange-800 dark:text-orange-300 uppercase font-mono tracking-wider flex items-center gap-1.5 font-bold">
+                  <Sparkles size={13} className="text-[#FC8019]" />
                   OmniTrace 360™ Skip Tracing &amp; Financial Dossier Resolved
                 </span>
-                <div className="text-lg font-bold text-white mt-0.5">{subject}</div>
-                <p className="text-xs text-slate-300 font-mono">
-                  Trace Confidence: <strong className="text-emerald-400">{trace}</strong> · Multi-Network Sync Active
+                <div className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">{subject}</div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 font-mono">
+                  Trace Confidence: <strong className="text-emerald-700 dark:text-emerald-400 font-bold">{trace}</strong> · Multi-Network Sync Active
                 </p>
               </div>
-              <span className="px-3 py-1.5 rounded-lg bg-emerald-950/80 border border-emerald-800/60 text-emerald-400 text-xs font-mono font-bold flex items-center gap-1.5">
-                <CheckCircle2 size={14} className="text-emerald-400" />
+              <span className="px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs font-mono font-bold flex items-center gap-1.5 shadow-2xs">
+                <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400" />
                 Dossier Verified
               </span>
             </div>
@@ -1514,20 +1524,38 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
 
         return (
           <div className="space-y-4">
-            <div className="rounded-xl border border-chaan-brand/40 bg-gradient-to-r from-emerald-950/40 via-slate-900/80 to-slate-900/80 p-5 flex flex-wrap items-center justify-between gap-4">
-              <div className="space-y-1">
+            <div className="rounded-2xl border-2 border-emerald-300 dark:border-emerald-700/80 bg-gradient-to-r from-emerald-50/90 via-teal-50/60 to-white dark:from-emerald-950/50 dark:via-slate-900/90 dark:to-slate-900/90 p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+              <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="text-emerald-400" size={20} />
-                  <span className="text-xs font-mono uppercase text-emerald-400 font-bold">ChaanBean Trust Network Seal</span>
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 flex items-center justify-center text-emerald-700 dark:text-emerald-400 shadow-2xs">
+                    <ShieldCheck size={17} />
+                  </div>
+                  <span className="text-xs font-mono uppercase text-emerald-800 dark:text-emerald-400 font-black tracking-wider">
+                    ChaanBean Trust Network Seal
+                  </span>
                 </div>
-                <div className="text-xl font-black text-white font-mono">{trustId}</div>
-                <p className="text-xs text-slate-300 font-medium">{credibilityBand}</p>
+                <div className="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
+                  {trustId}
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 font-bold">
+                  {credibilityBand}
+                </p>
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <div className="text-[10px] uppercase font-mono text-slate-400">Trust Score</div>
-                  <div className={`text-3xl font-black font-mono ${score >= 75 ? "text-emerald-400" : score >= 50 ? "text-amber-400" : "text-rose-400"}`}>
+                <div className="text-right bg-white/90 dark:bg-slate-950/90 px-4 py-2.5 rounded-xl border border-emerald-300 dark:border-emerald-700/60 shadow-xs">
+                  <div className="text-[10px] uppercase font-mono font-bold text-slate-500 dark:text-slate-400">
+                    Trust Score
+                  </div>
+                  <div
+                    className={`text-3xl font-black font-mono tracking-tight ${
+                      score >= 75
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : score >= 50
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-rose-600 dark:text-rose-400"
+                    }`}
+                  >
                     {score}/100
                   </div>
                 </div>
@@ -1535,37 +1563,50 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="rounded-xl border border-chaan-border bg-slate-900/50 p-4 space-y-2">
-                <h4 className="text-xs font-semibold text-slate-200 uppercase font-mono flex items-center gap-2">
-                  <Award size={14} className="text-chaan-brand" />
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4 space-y-2.5 shadow-xs">
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase font-mono flex items-center gap-2">
+                  <Award size={15} className="text-[#FC8019]" />
                   Verified Compliance Badges
                 </h4>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {badges.map((b, idx) => (
-                    <span key={idx} className="inline-flex items-center gap-1 rounded-lg bg-emerald-950/70 border border-emerald-800/60 px-2.5 py-1 text-xs text-emerald-300 font-medium">
-                      <CheckCircle2 size={12} className="text-emerald-400" />
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800/60 px-2.5 py-1 text-xs text-emerald-800 dark:text-emerald-300 font-semibold"
+                    >
+                      <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
                       {b}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <div className={`rounded-xl border p-4 space-y-2 ${peer.hasActiveDefault ? "border-rose-800/60 bg-rose-950/20" : "border-chaan-border bg-slate-900/50"}`}>
-                <h4 className="text-xs font-semibold uppercase font-mono flex items-center gap-2 text-slate-200">
-                  <Scale size={14} className={peer.hasActiveDefault ? "text-rose-400" : "text-emerald-400"} />
+              <div
+                className={`rounded-2xl border p-4 space-y-2.5 shadow-xs ${
+                  peer.hasActiveDefault
+                    ? "border-rose-300 dark:border-rose-800/60 bg-rose-50/60 dark:bg-rose-950/20"
+                    : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60"
+                }`}
+              >
+                <h4 className="text-xs font-bold uppercase font-mono flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                  <Scale size={15} className={peer.hasActiveDefault ? "text-rose-600" : "text-emerald-600"} />
                   Peer Default Community Registry
                 </h4>
-                <div className="text-xs text-slate-200 font-medium">{peer.registryStatus}</div>
-                <div className="text-[11px] font-mono text-slate-400">Reported defaults: {peer.reportedDefaultsCount}</div>
+                <div className="text-xs text-slate-700 dark:text-slate-200 font-bold">
+                  {peer.registryStatus} — Zero Peer Defaults Reported in Registry
+                </div>
+                <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                  Reported defaults: <strong className="text-slate-800 dark:text-slate-200">{peer.reportedDefaultsCount}</strong>
+                </div>
               </div>
             </div>
 
-            <div className="rounded-lg border border-slate-800 bg-slate-950/80 p-3 flex items-center justify-between text-[11px] font-mono text-slate-400">
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck size={13} className="text-emerald-400" />
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 p-3 flex flex-wrap items-center justify-between text-[11px] font-mono text-slate-600 dark:text-slate-400 gap-2">
+              <span className="flex items-center gap-1.5 font-bold">
+                <ShieldCheck size={14} className="text-emerald-600 dark:text-emerald-400" />
                 SHA-256 Cryptographic Seal:
               </span>
-              <span className="text-slate-300 font-semibold">{seal}</span>
+              <span className="font-mono text-slate-900 dark:text-slate-100 font-semibold select-all">{seal}</span>
             </div>
           </div>
         );
@@ -1583,14 +1624,14 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
 
         return (
           <div className="space-y-4">
-            <div className="rounded-xl border border-chaan-brand/40 bg-gradient-to-r from-sky-950/40 via-slate-900/80 to-slate-900/80 p-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="rounded-2xl border border-sky-200 dark:border-sky-800/60 bg-gradient-to-r from-sky-50/90 via-indigo-50/50 to-white dark:from-sky-950/40 dark:via-slate-900/80 dark:to-slate-900/80 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 shadow-xs">
               <div>
-                <span className="text-[10px] uppercase font-mono text-sky-400 font-bold">National Academic Depository (NAD) &amp; CBSE</span>
-                <div className="text-lg font-bold text-white mt-0.5">{candidate}</div>
-                <p className="text-xs text-slate-300 font-mono">DIN: {din}</p>
+                <span className="text-[10px] uppercase font-mono text-sky-800 dark:text-sky-300 font-bold">National Academic Depository (NAD) &amp; CBSE</span>
+                <div className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">{candidate}</div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 font-mono">DIN: {din}</p>
               </div>
-              <span className="rounded-lg bg-emerald-950/80 border border-emerald-800/60 px-3 py-1.5 text-xs text-emerald-300 font-semibold flex items-center gap-1.5">
-                <CheckCircle2 size={14} className="text-emerald-400" />
+              <span className="rounded-lg bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800/60 px-3 py-1.5 text-xs text-emerald-800 dark:text-emerald-300 font-semibold flex items-center gap-1.5 shadow-2xs">
+                <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400" />
                 {overall}
               </span>
             </div>
@@ -1654,30 +1695,30 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
 
         return (
           <div className="space-y-4">
-            <div className="rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-950/30 via-slate-900/80 to-slate-900/80 p-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="rounded-2xl border border-amber-200 dark:border-amber-800/60 bg-gradient-to-r from-amber-50/90 via-orange-50/50 to-white dark:from-amber-950/30 dark:via-slate-900/80 dark:to-slate-900/80 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 shadow-xs">
               <div>
-                <span className="text-[10px] uppercase font-mono text-amber-400 font-bold">Asterisk / Vobiz Automated Outbound Desk</span>
-                <div className="text-lg font-bold text-white mt-0.5">{debtor}</div>
-                <p className="text-xs text-slate-300 font-mono">Target Phone: {phone}</p>
+                <span className="text-[10px] uppercase font-mono text-amber-800 dark:text-amber-300 font-bold">Asterisk / Vobiz Automated Outbound Desk</span>
+                <div className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">{debtor}</div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 font-mono">Target Phone: {phone}</p>
               </div>
-              <div className="rounded-lg bg-amber-950/80 border border-amber-800/60 px-3 py-1.5 text-xs text-amber-300 font-mono font-bold">
+              <div className="rounded-lg bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800/60 px-3 py-1.5 text-xs text-amber-900 dark:text-amber-300 font-mono font-bold shadow-2xs">
                 Active: {activeCadence}
               </div>
             </div>
 
-            <div className="rounded-xl border border-chaan-border bg-slate-900/40 p-4 space-y-2.5">
-              <span className="text-xs font-semibold text-slate-200 uppercase font-mono flex items-center gap-1.5">
-                <Clock size={14} className="text-amber-400" />
+            <div className="rounded-2xl border border-slate-200 dark:border-chaan-border bg-white dark:bg-slate-900/40 p-4 space-y-2.5 shadow-xs">
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase font-mono flex items-center gap-1.5">
+                <Clock size={14} className="text-amber-600 dark:text-amber-400" />
                 Configured Cadence Intervals (1m / 2m / 5m / 30m / 1h)
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {cadences.map((c, idx) => (
                   <div
                     key={idx}
-                    className={`rounded-lg p-2 text-xs font-mono transition border ${
+                    className={`rounded-lg p-2.5 text-xs font-mono transition border ${
                       c.includes("30 Mins") || c === activeCadence
-                        ? "bg-amber-950/60 border-amber-500/50 text-amber-200 font-bold"
-                        : "bg-slate-950 border-slate-800 text-slate-400"
+                        ? "bg-amber-100 dark:bg-amber-950/60 border-amber-300 dark:border-amber-500/50 text-amber-900 dark:text-amber-200 font-bold"
+                        : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400"
                     }`}
                   >
                     {c}
@@ -1726,14 +1767,14 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
 
         return (
           <div className="space-y-4">
-            <div className="rounded-xl border border-rose-500/40 bg-gradient-to-r from-rose-950/40 via-slate-900/80 to-slate-900/80 p-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="rounded-2xl border border-rose-200 dark:border-rose-800/60 bg-gradient-to-r from-rose-50/90 via-orange-50/40 to-white dark:from-rose-950/40 dark:via-slate-900/80 dark:to-slate-900/80 p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 shadow-xs">
               <div>
-                <span className="text-[10px] uppercase font-mono text-rose-400 font-bold">Statutory 4-Notice Regulatory Suite</span>
-                <div className="text-lg font-bold text-white mt-0.5">{debtor}</div>
-                <p className="text-xs text-slate-300">Total Statutory Claim: <strong className="text-rose-400 font-mono">{formatINR(debt)}</strong></p>
+                <span className="text-[10px] uppercase font-mono text-rose-800 dark:text-rose-300 font-bold">Statutory 4-Notice Regulatory Suite</span>
+                <div className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">{debtor}</div>
+                <p className="text-xs text-slate-600 dark:text-slate-300">Total Statutory Claim: <strong className="text-rose-700 dark:text-rose-400 font-mono">{formatINR(debt)}</strong></p>
               </div>
-              <div className="rounded-lg bg-emerald-950/80 border border-emerald-800/60 px-3 py-1.5 text-xs text-emerald-300 font-mono font-bold flex items-center gap-1.5">
-                <CheckCircle2 size={14} className="text-emerald-400" />
+              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800/60 px-3 py-1.5 text-xs text-emerald-800 dark:text-emerald-300 font-mono font-bold flex items-center gap-1.5 shadow-2xs">
+                <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400" />
                 Officially Reported to IT &amp; GST Depts
               </div>
             </div>
@@ -1903,16 +1944,16 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
 
         return (
           <div className="space-y-4">
-            <div className="rounded-xl border border-chaan-brand/40 bg-gradient-to-r from-rose-950/40 via-slate-900/80 to-slate-900/80 p-5 flex flex-wrap items-center justify-between gap-4">
+            <div className="rounded-2xl border border-orange-200 dark:border-orange-800/60 bg-gradient-to-r from-orange-50/90 via-amber-50/40 to-white dark:from-rose-950/40 dark:via-slate-900/80 dark:to-slate-900/80 p-5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
               <div>
-                <span className="text-[10px] uppercase font-mono text-rose-300 font-bold">Multi-Entity Corporate Desk</span>
-                <div className="text-xl font-bold text-white mt-0.5">{title}</div>
-                <p className="text-xs text-slate-300">Primary Monitored Entity: <strong className="text-white">{primary}</strong></p>
+                <span className="text-[10px] uppercase font-mono text-orange-800 dark:text-rose-300 font-bold">Multi-Entity Corporate Desk</span>
+                <div className="text-xl font-bold text-slate-900 dark:text-white mt-0.5">{title}</div>
+                <p className="text-xs text-slate-600 dark:text-slate-300">Primary Monitored Entity: <strong className="text-slate-900 dark:text-white font-semibold">{primary}</strong></p>
               </div>
-              <div className="rounded-xl bg-slate-950/90 border border-slate-700 p-3 text-right">
-                <div className="text-[10px] uppercase font-mono text-slate-400">Add-On Pricing</div>
-                <div className="text-2xl font-black text-rose-400 font-mono">₹{fee.toLocaleString("en-IN")}</div>
-                <div className="text-[10px] text-slate-400">One-Time Setup Fee</div>
+              <div className="rounded-xl bg-white dark:bg-slate-950/90 border border-slate-200 dark:border-slate-700 p-3 text-right shadow-xs">
+                <div className="text-[10px] uppercase font-mono text-slate-500 dark:text-slate-400 font-semibold">Add-On Pricing</div>
+                <div className="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">₹{fee.toLocaleString("en-IN")}</div>
+                <div className="text-[10px] text-slate-500 dark:text-slate-400">One-Time Setup Fee</div>
               </div>
             </div>
 

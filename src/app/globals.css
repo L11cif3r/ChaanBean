@@ -21,6 +21,30 @@ html {
   --swiggy-orange: #fc8019;
   --swiggy-orange-hover: #e26d0a;
   --swiggy-orange-light: #fff2e7;
+  font-size: 16.5px;
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 17px;
+  }
+}
+
+/* Ensure no text anywhere in the portal drops below comfortable reading threshold */
+.text-\[8px\],
+.text-\[9px\] {
+  font-size: 0.75rem !important; /* 12.75px */
+  line-height: 1.15rem !important;
+}
+
+.text-\[10px\] {
+  font-size: 0.8125rem !important; /* ~13.8px */
+  line-height: 1.2rem !important;
+}
+
+.text-\[11px\] {
+  font-size: 0.875rem !important; /* ~14.9px */
+  line-height: 1.25rem !important;
 }
 
 html.dark {
@@ -62,6 +86,8 @@ html.light .rounded-xl.bg-\[\#0B0F17\],
 html.light .rounded-2xl.bg-\[\#0E1523\],
 html.light .rounded-xl.bg-\[\#080C14\],
 html.light .bg-slate-900,
+html.light .bg-slate-900\/20,
+html.light .bg-slate-900\/30,
 html.light .bg-slate-900\/40,
 html.light .bg-slate-900\/50,
 html.light .bg-slate-900\/60,
@@ -69,9 +95,25 @@ html.light .bg-slate-900\/70,
 html.light .bg-slate-900\/80,
 html.light .bg-slate-900\/90,
 html.light .bg-slate-950,
+html.light .bg-slate-950\/20,
+html.light .bg-slate-950\/30,
 html.light .bg-slate-950\/40,
+html.light .bg-slate-950\/50,
 html.light .bg-slate-950\/60,
-html.light .bg-slate-950\/80 {
+html.light .bg-slate-950\/70,
+html.light .bg-slate-950\/80,
+html.light .bg-slate-950\/90 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Neutralize legacy unadapted dark gradients in light theme */
+html.light .bg-gradient-to-r.from-sky-950\/40,
+html.light .bg-gradient-to-r.from-rose-950\/40,
+html.light .bg-gradient-to-r.from-amber-950\/30,
+html.light .bg-gradient-to-br.from-rose-950\/40,
+html.light .bg-gradient-to-r.from-emerald-950\/40 {
+  background-image: none !important;
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
 }
@@ -81,13 +123,6 @@ html.light .fixed.bg-black\/70,
 html.light .fixed.bg-black\/80 {
   background-color: rgba(15, 23, 42, 0.5) !important;
   backdrop-filter: blur(4px) !important;
-}
-
-html.light .fixed .rounded-xl,
-html.light .fixed .rounded-2xl {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
 }
 
 /* 4. Secondary Containers, Pill Chips, Table Insets */
@@ -874,51 +909,90 @@ body {
 
 /* =========================================================
    CUSTOM EMI CALCULATOR RANGE SLIDERS
-   Ensures a small, lightly visible line with crisp contrast
-   and a distinctive draggable ball across all browsers.
+   Ensures a prominent, high-contrast visible line drawn from
+   left to right with an active fill and a distinctive draggable
+   ball (thumb) across all desktop and mobile browsers.
    ========================================================= */
+
+:root {
+  --range-unfilled-color: #cbd5e1;
+  --range-border-color: #94a3b8;
+}
+
+html.dark {
+  --range-unfilled-color: #334155;
+  --range-border-color: #475569;
+}
 
 input[type="range"].emi-range-input {
   -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
   width: 100%;
-  height: 24px;
-  background: transparent;
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--range-unfilled-color, #cbd5e1);
+  border: 1px solid var(--range-border-color, #94a3b8);
   outline: none;
-  margin: 0;
+  margin: 10px 0;
   cursor: pointer;
-  z-index: 20;
+  display: block;
+}
+
+/* Chrome / Safari / Edge Track */
+input[type="range"].emi-range-input::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 9999px;
+  background: transparent;
+  border: none;
 }
 
 /* Chrome / Safari / Edge Thumb (The draggable ball) */
 input[type="range"].emi-range-input::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: #fc8019;
   border: 3px solid #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(252, 128, 25, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 0 0 1.5px rgba(252, 128, 25, 0.5);
   cursor: grab;
-  margin-top: 1px;
+  margin-top: -9px;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 input[type="range"].emi-range-input::-webkit-slider-thumb:active {
   cursor: grabbing;
   transform: scale(1.18);
-  box-shadow: 0 3px 10px rgba(252, 128, 25, 0.6), 0 0 0 4px rgba(252, 128, 25, 0.25);
+  box-shadow: 0 4px 14px rgba(252, 128, 25, 0.6), 0 0 0 4px rgba(252, 128, 25, 0.3);
+}
+
+/* Firefox Track */
+input[type="range"].emi-range-input::-moz-range-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--range-unfilled-color, #cbd5e1);
+  border: 1px solid var(--range-border-color, #94a3b8);
+}
+
+/* Firefox filled portion */
+input[type="range"].emi-range-input::-moz-range-progress {
+  height: 10px;
+  border-radius: 9999px;
+  background: #fc8019;
 }
 
 /* Firefox Thumb */
 input[type="range"].emi-range-input::-moz-range-thumb {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: #fc8019;
   border: 3px solid #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(252, 128, 25, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 0 0 1.5px rgba(252, 128, 25, 0.5);
   cursor: grab;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
@@ -926,20 +1000,7 @@ input[type="range"].emi-range-input::-moz-range-thumb {
 input[type="range"].emi-range-input::-moz-range-thumb:active {
   cursor: grabbing;
   transform: scale(1.18);
-  box-shadow: 0 3px 10px rgba(252, 128, 25, 0.6), 0 0 0 4px rgba(252, 128, 25, 0.25);
-}
-
-/* Make default tracks transparent so custom under-track line displays cleanly */
-input[type="range"].emi-range-input::-webkit-slider-runnable-track {
-  background: transparent;
-  height: 24px;
-  border: none;
-}
-
-input[type="range"].emi-range-input::-moz-range-track {
-  background: transparent;
-  height: 24px;
-  border: none;
+  box-shadow: 0 4px 14px rgba(252, 128, 25, 0.6), 0 0 0 4px rgba(252, 128, 25, 0.3);
 }
 
 /* =========================================================
@@ -990,6 +1051,18 @@ html.dark .chaan-tooltip-bubble .text-\[\#FC8019\] {
 .animate-marquee-ltr:hover {
   animation-play-state: paused;
 }
+
+/* =========================================================
+   SCROLLBAR UTILITIES
+   ========================================================= */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 
 
 

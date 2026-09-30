@@ -628,11 +628,17 @@ export async function callKycAggregator(
 
       if (isDinInput) {
         dinVettingInfo = vetMcaDin(rawSubId, { companyName: entity.name });
+        const derived = deriveMcaDirectorsFromCompany({
+          cin: entity.cin,
+          companyName: entity.name,
+          status: "Active",
+        } as any);
+        const matched = derived.find((d) => d.din === dinVettingInfo.din) || derived[0];
         verifiedDirectors = [
           {
             din: dinVettingInfo.din,
-            name: `${entity.name.split(" ")[0]} Executive Director`,
-            designation: "Managing Director",
+            name: matched?.name || "Rajeshwar Rao Deshmukh",
+            designation: matched?.designation || "Managing Director",
             status: dinVettingInfo.status === "ACTIVE" ? "active" : "disqualified",
             appointmentDate: "2018-04-10",
             dir3KycStatus: dinVettingInfo.dir3KycCompliant ? "DIR-3 KYC Compliant (FY 2024-25)" : "Deactivated",

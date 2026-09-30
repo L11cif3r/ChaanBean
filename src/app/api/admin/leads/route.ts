@@ -187,7 +187,17 @@ function saveStore(store: LeadsDataStore) {
   }
 }
 
+import { verifyAdminSession } from "@/lib/auth/admin-auth";
+
 export async function GET(req: Request) {
+  const session = await verifyAdminSession(req);
+  if (!session.authorized) {
+    return NextResponse.json(
+      { error: session.error || "Admin authentication required" },
+      { status: session.status || 401 }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const source = searchParams.get("source");
   const advisor = searchParams.get("advisor");
@@ -359,6 +369,14 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const session = await verifyAdminSession(req);
+  if (!session.authorized) {
+    return NextResponse.json(
+      { error: session.error || "Admin authentication required" },
+      { status: session.status || 401 }
+    );
+  }
+
   try {
     const body = await req.json();
     const { action } = body as { action: string };

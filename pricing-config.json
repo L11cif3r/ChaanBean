@@ -19,9 +19,11 @@
     "key": "gst_slab",
     "name": "GST Slab",
     "category": "background_check",
-    "price": 15,
+    "price": 20,
     "defaultPrice": 15,
-    "description": "Statutory tax bracket and enterprise scale qualification."
+    "description": "Statutory tax bracket and enterprise scale qualification.",
+    "providerCost": 4,
+    "status": "LIVE"
   },
   "gst_exact_turnover": {
     "key": "gst_exact_turnover",

@@ -1,5 +1,6 @@
 import { evaluatePolicy, deliverMessage, type EscalationContext } from "@/lib/policy-engine";
 import { prisma } from "@/lib/db";
+import { getDefaultCompany } from "@/lib/tenant/tenant-resolver";
 import { checkCallingWindowAndLimits } from "../communication/calling-window";
 import { calculateMSMEPenalInterest } from "../arbitration/interest";
 
@@ -31,7 +32,7 @@ export async function runRecoveryTick(creditAccountId: string): Promise<Recovery
   const account = await prisma.creditAccount.findUnique({
     where: { id: creditAccountId },
     include: {
-      buyer: true,
+      buyer: { include: { company: true } },
       escalationStates: { orderBy: { updatedAt: "desc" }, take: 1 },
       legalNotices: true,
     },
@@ -112,7 +113,7 @@ export async function runRecoveryTick(creditAccountId: string): Promise<Recovery
     const comp =
       (await prisma.company.findUnique({
         where: { id: account.buyer.companyId },
-      })) || (await prisma.company.findFirst());
+      })) || (await getDefaultCompany());
     if (comp && comp.walletBalance >= 1) {
       await prisma.company.update({
         where: { id: comp.id },
@@ -204,7 +205,7 @@ export async function runRecoveryTick(creditAccountId: string): Promise<Recovery
           creditAccountId,
           status: "open",
           assignedLegalOwner: "Adv. Rajesh Nair (ChaanBean Legal Desk)",
-          claimantName: "Acme Traders Pvt Ltd",
+          claimantName: (account.buyer as any).company?.name || "Alright Trade",
           respondentName: account.buyer.name,
           principalAmount: account.outstandingAmount,
           penalInterestRate: interest.statutoryRatePercent,

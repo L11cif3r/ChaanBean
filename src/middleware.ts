@@ -15,18 +15,8 @@ export function middleware(request: NextRequest) {
   // - Payment Automation (/payment-recovery)
   // - Legal Infrastructure (/arbitration)
 
-  // Redirect Dashboard to AI Credit Check
-  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
-    return NextResponse.redirect(new URL("/background-check", request.url));
-  }
-
   // Redirect Debtors & Portfolio to AI Business Security
   if (pathname === "/debtors" || pathname.startsWith("/debtors/")) {
-    return NextResponse.redirect(new URL("/business-check", request.url));
-  }
-
-  // Redirect Monitoring & Continuous Radar to AI Business Security
-  if (pathname === "/monitoring" || pathname.startsWith("/monitoring/")) {
     return NextResponse.redirect(new URL("/business-check", request.url));
   }
 
@@ -61,12 +51,8 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/",
-    "/dashboard/:path*",
-    "/dashboard",
     "/debtors/:path*",
     "/debtors",
-    "/monitoring/:path*",
-    "/monitoring",
     "/collections/:path*",
     "/collections",
     "/find-someone/:path*",

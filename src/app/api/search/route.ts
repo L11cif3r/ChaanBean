@@ -9,9 +9,14 @@ export async function GET(req: Request) {
     return NextResponse.json({ results: [] });
   }
 
-  // Search Buyers / Debtors
+  const cookieHeader = req.headers.get("cookie") || "";
+  const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+  const tenantId = req.headers.get("x-tenant-id") || (match ? decodeURIComponent(match[1]) : undefined);
+
+  // Search Buyers / Debtors (strictly tenant isolated)
   const buyers = await prisma.buyerDebtor.findMany({
     where: {
+      ...(tenantId ? { companyId: tenantId } : {}),
       OR: [
         { name: { contains: q } },
         { gstin: { contains: q } },

@@ -1,6 +1,6 @@
 /**
  * Financial Extractor
- * Parses raw text (from PDF) or structured rows (from XLSX/CSV)
+ * Parses raw text (from financial documents) or structured rows (from XLSX/CSV)
  * into typed financial fields. NO LLM. Pure deterministic text matching.
  */
 
@@ -168,7 +168,7 @@ function parseIndianNumber(raw: string): number {
   return parseFloat(cleaned);
 }
 
-/** Extract financial fields from raw PDF text */
+/** Extract financial fields from raw document text */
 export function extractFromText(text: string): ExtractedFinancials {
   const result: Partial<ExtractedFinancials> = {};
   const missingFields: string[] = [];

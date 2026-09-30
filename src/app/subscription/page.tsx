@@ -26,8 +26,13 @@ import {
   ShieldCheck,
   Award,
   UserCheck,
+  Coins,
+  Sliders,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { RECHARGE_TIERS, RechargeTier, getAllRechargeTiers, RateCardItem, DEFAULT_RATE_CARD } from "@/lib/pricing/recharge-plans";
 
 interface PlanTier {
   id: string;
@@ -167,23 +172,6 @@ const PLANS: PlanTier[] = [
   },
 ];
 
-const STATUTORY_FEATURE_BREAKDOWN = [
-  { num: "1", name: "Director Details (DIN)", retailQty: 10, unitPrice: 200, retailGross: 2000, entPrice: 200, entQty: 20, entGross: 4000 },
-  { num: "2", name: "MSME Report (Udyam)", retailQty: 10, unitPrice: 200, retailGross: 2000, entPrice: 200, entQty: 20, entGross: 4000 },
-  { num: "3", name: "GST Slab", retailQty: 40, unitPrice: 15, retailGross: 600, entPrice: 15, entQty: 65, entGross: 975 },
-  { num: "4", name: "GST Exact Turn over filed", retailQty: 40, unitPrice: 200, retailGross: 8000, entPrice: 200, entQty: 65, entGross: 13000 },
-  { num: "5", name: "GST Filling on month basis", retailQty: 40, unitPriceText: "Free", retailGross: 0, entPriceText: "Free", entQty: 65, entGross: 0 },
-  { num: "6", name: "Mobile to Pan", retailQty: 40, unitPrice: 50, retailGross: 2000, entPrice: 50, entQty: 65, entGross: 3250 },
-  { num: "7", name: "Mobile Identity For all alternate numbers", retailQty: 10, unitPrice: 200, retailGross: 2000, entPrice: 200, entQty: 25, entGross: 5000 },
-  { num: "8", name: "Court Case History – FIR Report", retailQty: 30, unitPrice: 250, retailGross: 7500, entPrice: 250, entQty: 50, entGross: 12500 },
-  { num: "09", name: "Import Export Report", retailQty: 40, unitPrice: 250, retailGross: 10000, entPrice: 250, entQty: 65, entGross: 16250 },
-  { num: "10", name: "Pan to GST Number", retailQty: 40, unitPrice: 15, retailGross: 600, entPrice: 15, entQty: 65, entGross: 975 },
-  { num: "11", name: "Default Payments Voice Calls (1m, 2m, 5m, 30m, 1h)", retailQty: 3500, unitPriceText: "₹1/call", retailGross: 5000, entPriceText: "₹1/call", entQty: 6000, entGross: 7500 },
-  { num: "12", name: "Legal Notices - GST, MSME, INCOME TAX, & Demand", retailQty: 5, unitPrice: 1500, retailGross: 7500, entPrice: 1500, entQty: 10, entGross: 15000 },
-  { num: "13", name: "Delayed Payments Follow UP", retailQty: 500, unitPrice: 1, retailGross: 500, entPrice: 1, entQty: 1000, entGross: 2000 },
-  { num: "14", name: "User access per subscription", retailQty: 3, unitPriceText: "Free (3 Seats)", retailGross: 0, entPriceText: "Free (5 Seats)", entQty: 5, entGross: 0 },
-  { num: "15", name: "Add additional Company name", retailQty: 1, unitPrice: 1500, retailGross: 1500, entPrice: 1500, entQty: 1, entGross: 1500 },
-];
 
 export default function SubscriptionPage() {
   const router = useRouter();
@@ -197,7 +185,10 @@ export default function SubscriptionPage() {
   });
 
   const [selectedPlan, setSelectedPlan] = useState<PlanTier>(PLANS[0]);
-  const [selectedAlaCarteOption, setSelectedAlaCarteOption] = useState<CallPackageOption>(ALACARTE_OPTIONS[1]);
+  const [alaCarteMode, setAlaCarteMode] = useState<"universal" | "voice_only">("universal");
+  const [selectedRechargeTier, setSelectedRechargeTier] = useState<RechargeTier>(RECHARGE_TIERS[1]);
+  const [selectedCallOption, setSelectedCallOption] = useState<CallPackageOption>(ALACARTE_OPTIONS[1]);
+  const [showRateCardModal, setShowRateCardModal] = useState<boolean>(false);
   const [customerInput, setCustomerInput] = useState<string>("");
   const [inquiryPlan, setInquiryPlan] = useState<string>("Retail Plan (Growth)");
   const [inquiryName, setInquiryName] = useState<string>("");
@@ -639,301 +630,420 @@ export default function SubscriptionPage() {
             );
           })}
 
-          {/* 3rd Option: À La Carte (Call Service Only) */}
+          {/* 3rd Option: Dual-Mode À La Carte (Universal Pay & Use OR Call-Service-Only) */}
           <div className="relative rounded-2xl p-7 flex flex-col justify-between transition-all duration-200 bg-white dark:bg-slate-900 border-2 border-orange-500/40 dark:border-orange-500/40 shadow-xl shadow-orange-500/5 hover:border-[#FC8019]">
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
               <span className="block whitespace-nowrap rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-3.5 py-1 text-[11px] font-bold text-white uppercase tracking-wider font-mono shadow-md">
-                À La Carte · Call Service Only
+                {alaCarteMode === "universal" ? "À La Carte 01 · Universal Pay & Use" : "À La Carte 02 · Call-Service-Only"}
               </span>
             </div>
 
             <div className="space-y-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">À La Carte</h3>
-                  <span className="rounded bg-orange-100 dark:bg-orange-950/80 text-orange-700 dark:text-orange-300 text-[10px] font-mono px-2 py-0.5 font-bold">
-                    Voice Cadence
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                  Dedicated exclusively to the Automated Payment Recovery Call Hub. Choose a package tailored to your call volume.
-                </p>
+              {/* Dual-Mode Selector Tabs */}
+              <div className="grid grid-cols-2 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setAlaCarteMode("universal")}
+                  className={`py-2 px-2 rounded-lg transition-all flex items-center justify-center gap-1.5 text-center ${
+                    alaCarteMode === "universal"
+                      ? "bg-white dark:bg-slate-900 text-[#FC8019] shadow-sm font-black border border-orange-500/20"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                >
+                  <Zap size={13} className={alaCarteMode === "universal" ? "text-[#FC8019]" : ""} />
+                  <span className="truncate">Universal Pay &amp; Use</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAlaCarteMode("voice_only")}
+                  className={`py-2 px-2 rounded-lg transition-all flex items-center justify-center gap-1.5 text-center ${
+                    alaCarteMode === "voice_only"
+                      ? "bg-white dark:bg-slate-900 text-[#FC8019] shadow-sm font-black border border-orange-500/20"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                >
+                  <Phone size={13} className={alaCarteMode === "voice_only" ? "text-[#FC8019]" : ""} />
+                  <span className="truncate">Call-Service-Only</span>
+                </button>
               </div>
 
-              {/* Call Package Selector (4 Options) */}
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                <span className="text-[11px] font-mono uppercase font-bold text-slate-500 dark:text-slate-400 block tracking-wider">
-                  Select Call Volume Pack:
-                </span>
-                <div className="grid grid-cols-2 gap-2">
-                  {ALACARTE_OPTIONS.map((opt) => {
-                    const isSelected = selectedAlaCarteOption.id === opt.id;
-                    return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setSelectedAlaCarteOption(opt)}
-                        className={`p-2.5 rounded-xl border text-left transition relative ${
-                          isSelected
-                            ? "border-[#FC8019] bg-orange-50/90 dark:bg-orange-500/15 ring-2 ring-[#FC8019]/40 shadow-sm"
-                            : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 hover:border-slate-300 dark:hover:border-slate-700"
-                        }`}
-                      >
-                        {opt.popular && (
-                          <span className="absolute -top-2 right-2 text-[8px] bg-[#FC8019] text-white px-1.5 py-0.2 rounded font-mono font-bold shadow-xs">
-                            POPULAR
-                          </span>
-                        )}
-                        <div className="text-xs font-black font-mono text-slate-900 dark:text-white">
-                          ₹{opt.price.toLocaleString("en-IN")}
+              {alaCarteMode === "universal" ? (
+                /* Mode 1: Universal À La Carte */
+                <div className="space-y-4 animate-in fade-in duration-150">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">Universal À La Carte</h3>
+                      <span className="rounded bg-orange-100 dark:bg-orange-950/80 text-orange-700 dark:text-orange-300 text-[10px] font-mono px-2 py-0.5 font-bold">
+                        All 18 Gateways
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                      Universal Pay &amp; Use across all 18 statutory checks, Asterisk voice recovery, and legal notice dockets. 100% credited to your wallet with zero lock-in.
+                    </p>
+                  </div>
+
+                  {/* Recharge Tier Selector (13 Options) */}
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                    {/* Standard Tiers */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">
+                          Standard Pay &amp; Use Tiers:
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-400">
+                          ₹5K – ₹40K
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {RECHARGE_TIERS.filter((t) => !t.isCustomization).map((tier) => {
+                          const isSelected = selectedRechargeTier.id === tier.id;
+                          return (
+                            <button
+                              key={tier.id}
+                              type="button"
+                              onClick={() => setSelectedRechargeTier(tier)}
+                              className={`py-1.5 px-2 rounded-lg border text-center transition font-mono ${
+                                isSelected
+                                  ? "border-[#FC8019] bg-[#FC8019] text-white shadow-sm ring-1 ring-[#FC8019]"
+                                  : "border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 text-xs"
+                              }`}
+                            >
+                              <div className="text-[11px] font-black">₹{tier.amount >= 1000 ? `${tier.amount / 1000}k` : tier.amount}</div>
+                              <div className={`text-[8px] ${isSelected ? "text-white/90" : "text-slate-400"} truncate`}>
+                                {tier.validityMonths}M
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Customization Tiers (₹50k - ₹100k) */}
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#FC8019] tracking-wider flex items-center gap-1">
+                          <Sparkles size={11} />
+                          <span>Enterprise Customization Tiers:</span>
+                        </span>
+                        <span className="text-[9px] font-mono bg-orange-100 dark:bg-orange-950/80 text-[#FC8019] px-1.5 py-0.2 rounded font-bold">
+                          Bespoke Setup
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {RECHARGE_TIERS.filter((t) => t.isCustomization).map((tier) => {
+                          const isSelected = selectedRechargeTier.id === tier.id;
+                          return (
+                            <button
+                              key={tier.id}
+                              type="button"
+                              onClick={() => setSelectedRechargeTier(tier)}
+                              className={`py-1.5 px-2 rounded-lg border text-center transition font-mono relative ${
+                                isSelected
+                                  ? "border-amber-500 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md ring-1 ring-amber-400"
+                                  : "border-orange-200 dark:border-orange-900/50 bg-orange-50/40 dark:bg-orange-950/20 text-orange-900 dark:text-orange-200 hover:border-orange-300 text-xs"
+                              }`}
+                            >
+                              <div className="text-[11px] font-black flex items-center justify-center gap-0.5">
+                                <span>₹{tier.amount / 1000}k</span>
+                                <span className="text-[9px]">✨</span>
+                              </div>
+                              <div className={`text-[8px] ${isSelected ? "text-white/90" : "text-orange-600/80 dark:text-orange-400/80"} truncate`}>
+                                1 Yr · Custom
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dynamic Price Display */}
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-black font-mono text-slate-900 dark:text-white">
+                        ₹{selectedRechargeTier.amount.toLocaleString("en-IN")}
+                      </span>
+                      <span className="text-xs font-mono text-[#FC8019] font-bold">
+                        / {selectedRechargeTier.validityText.toLowerCase()}
+                      </span>
+                    </div>
+                    <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                      <CheckCircle2 size={12} className="shrink-0" />
+                      <span>
+                        ₹{selectedRechargeTier.amount.toLocaleString("en-IN")} credited 100% to Universal Wallet
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                      {selectedRechargeTier.tagline}
+                    </div>
+                  </div>
+
+                  {/* Customization Highlight Box (If tier >= 50k) */}
+                  {selectedRechargeTier.isCustomization && (
+                    <div className="p-3.5 rounded-xl bg-gradient-to-br from-orange-500/10 via-amber-500/10 to-yellow-500/5 border-2 border-[#FC8019] shadow-md shadow-orange-500/10 space-y-2 animate-in fade-in">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1 rounded bg-[#FC8019] text-white">
+                          <Sparkles size={13} />
                         </div>
-                        <div className="text-[11px] font-bold text-[#FC8019] leading-tight">
-                          {opt.callsFormatted}
+                        <div>
+                          <div className="text-xs font-black uppercase tracking-wider text-[#FC8019] font-mono">
+                            Enterprise Customization Highlight
+                          </div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                            Tailored setup included for ₹{selectedRechargeTier.amount.toLocaleString("en-IN")}+ tier
+                          </div>
                         </div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
-                          {opt.validity.replace(" Validity", "")}
+                      </div>
+                      <ul className="text-[11px] space-y-1 text-slate-700 dark:text-slate-300 font-sans">
+                        {selectedRechargeTier.customizationPerks?.map((perk, i) => (
+                          <li key={i} className="flex items-start gap-1.5">
+                            <Check size={12} className="text-[#FC8019] shrink-0 mt-0.5" strokeWidth={3} />
+                            <span className="leading-snug">{perk}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Feature Checklist */}
+                  <div className="space-y-2 pt-2">
+                    <span className="text-[11px] font-mono uppercase font-bold text-slate-400 block tracking-wider">
+                      Universal Wallet Capabilities:
+                    </span>
+                    <div className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
+                      <div className="flex items-start gap-2">
+                        <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                          <Check size={11} strokeWidth={3} />
                         </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+                        <span className="leading-tight">
+                          <strong>Universal deduction</strong> across all 18 statutory checks &amp; recovery dialer
+                        </span>
+                      </div>
 
-              {/* Dynamic Price Display */}
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-black font-mono text-slate-900 dark:text-white">
-                    ₹{selectedAlaCarteOption.price.toLocaleString("en-IN")}
-                  </span>
-                  <span className="text-xs font-mono text-[#FC8019] font-bold">
-                    / {selectedAlaCarteOption.validity.toLowerCase()}
-                  </span>
-                </div>
-                <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                  <CheckCircle2 size={12} className="shrink-0" />
-                  <span>
-                    ₹{selectedAlaCarteOption.price.toLocaleString("en-IN")} credited (covers {selectedAlaCarteOption.callsFormatted})
-                  </span>
-                </div>
-                <span className="text-[10px] text-slate-400 font-mono block">
-                  Strict {selectedAlaCarteOption.validityDays}-day active validity · ₹1/call picked up · + 18% GST
-                </span>
-              </div>
+                      <div className="flex items-start gap-2">
+                        <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                          <Check size={11} strokeWidth={3} />
+                        </div>
+                        <span className="leading-tight">
+                          <strong>₹1/call</strong> only charged per connected recovery voice call
+                        </span>
+                      </div>
 
-              {/* Feature Checklist */}
-              <div className="space-y-2.5 pt-2">
-                <span className="text-[11px] font-mono uppercase font-bold text-slate-400 block tracking-wider">
-                  Included Call Capabilities:
-                </span>
-                <div className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
-                  <div className="flex items-start gap-2.5">
-                    <div className="rounded-full p-0.5 bg-orange-100 dark:bg-orange-950/80 text-[#FC8019] mt-0.5 shrink-0">
-                      <PhoneCall size={12} strokeWidth={2.5} />
+                      <div className="flex items-start gap-2">
+                        <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                          <Check size={11} strokeWidth={3} />
+                        </div>
+                        <span className="leading-tight">
+                          Statutory Legal Notices (§43B(h), DRC-01A, MSMED) at ₹1,500/notice
+                        </span>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                          <Check size={11} strokeWidth={3} />
+                        </div>
+                        <span className="leading-tight">
+                          Director DIN KYC (₹200) &amp; Udyam MSME Validation (₹200)
+                        </span>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                          <Check size={11} strokeWidth={3} />
+                        </div>
+                        <span className="leading-tight">
+                          GST Exact Turnovers filed (GSTR-3B/9) at ₹200/lookup
+                        </span>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                          <Check size={11} strokeWidth={3} />
+                        </div>
+                        <span className="leading-tight">
+                          <strong>{selectedRechargeTier.validityText}</strong> active window · 100% wallet carryforward
+                        </span>
+                      </div>
                     </div>
-                    <span className="leading-tight font-semibold text-slate-900 dark:text-white">
-                      Dedicated to Call Service Only (Automated Payment Recovery)
-                    </span>
-                  </div>
 
-                  <div className="flex items-start gap-2.5">
-                    <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
-                      <Check size={12} strokeWidth={3} />
-                    </div>
-                    <span className="leading-tight">
-                      <strong>{selectedAlaCarteOption.callsFormatted}</strong> automated recovery voice calls
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-2.5">
-                    <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
-                      <Check size={12} strokeWidth={3} />
-                    </div>
-                    <span className="leading-tight">
-                      <strong>{selectedAlaCarteOption.validity}</strong> ({selectedAlaCarteOption.validityDays} days active window)
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-2.5">
-                    <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
-                      <Check size={12} strokeWidth={3} />
-                    </div>
-                    <span className="leading-tight">
-                      ₹1 charged <em>only</em> per picked-up / connected call
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-2.5">
-                    <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
-                      <Check size={12} strokeWidth={3} />
-                    </div>
-                    <span className="leading-tight">
-                      Multilingual AI Voice: English, Hindi, Malayalam, Tamil, Tulu
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-2.5">
-                    <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
-                      <Check size={12} strokeWidth={3} />
-                    </div>
-                    <span className="leading-tight">
-                      5 Cadences (1m, 2m, 5m, 30m, 1h emergency cadences)
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-2.5">
-                    <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
-                      <Check size={12} strokeWidth={3} />
-                    </div>
-                    <span className="leading-tight">
-                      Debtor Intake &amp; Mandatory Invoice Matching System
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-2 text-[11px] text-amber-600 dark:text-amber-400 pt-1 border-t border-slate-100 dark:border-slate-800/80">
-                    <span className="font-mono">ℹ</span>
-                    <span className="leading-tight">
-                      Note: Excludes statutory AI Credit Check reports &amp; Legal Docket.
-                    </span>
+                    {/* Rate Card Trigger Button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowRateCardModal(true)}
+                      className="w-full mt-2 py-2 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-mono font-semibold flex items-center justify-between transition"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Coins size={14} className="text-[#FC8019]" />
+                        <span>View All 18 Services Rate Card</span>
+                      </span>
+                      <span className="text-[#FC8019] text-[11px] font-bold">Rates &rarr;</span>
+                    </button>
                   </div>
                 </div>
-              </div>
+              ) : (
+                /* Mode 2: Call-Service-Only À La Carte (4500, 10000, 15000, 20000) */
+                <div className="space-y-4 animate-in fade-in duration-150">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">Call-Service-Only</h3>
+                      <span className="rounded bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono px-2 py-0.5 font-bold">
+                        Dedicated Voice Dialer
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                      Multi-cadence automated voice recovery dialer with 9 Indian languages. Dedicated strictly to payment collection calls with no deductions for other platform checks.
+                    </p>
+                  </div>
+
+                  {/* 4 Dedicated Call Packages (₹4.5k, ₹10k, ₹15k, ₹20k) */}
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">
+                        Select Voice Call Package:
+                      </span>
+                      <span className="text-[10px] font-mono text-[#FC8019] font-bold">
+                        ₹4,500 – ₹20,000
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {ALACARTE_OPTIONS.map((pkg) => {
+                        const isSelected = selectedCallOption.id === pkg.id;
+                        return (
+                          <button
+                            key={pkg.id}
+                            type="button"
+                            onClick={() => setSelectedCallOption(pkg)}
+                            className={`p-2.5 rounded-xl border text-left transition font-mono relative ${
+                              isSelected
+                                ? "border-[#FC8019] bg-orange-50/80 dark:bg-orange-950/40 text-slate-900 dark:text-white shadow-sm ring-2 ring-[#FC8019]"
+                                : "border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700"
+                            }`}
+                          >
+                            {pkg.popular && (
+                              <span className="absolute -top-2 right-2 text-[8px] font-bold px-1.5 py-0.2 rounded-full bg-[#FC8019] text-white">
+                                POPULAR
+                              </span>
+                            )}
+                            <div className="text-sm font-black text-slate-900 dark:text-white">
+                              ₹{pkg.price.toLocaleString("en-IN")}
+                            </div>
+                            <div className="text-xs font-bold text-[#FC8019] mt-0.5">
+                              {pkg.callsFormatted}
+                            </div>
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center justify-between mt-1">
+                              <span>{pkg.validityMonths} Months</span>
+                              <span>{pkg.perCallRate}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Dynamic Price Display */}
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-black font-mono text-slate-900 dark:text-white">
+                        ₹{selectedCallOption.price.toLocaleString("en-IN")}
+                      </span>
+                      <span className="text-xs font-mono text-[#FC8019] font-bold">
+                        / {selectedCallOption.validity.toLowerCase()}
+                      </span>
+                    </div>
+                    <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                      <CheckCircle2 size={12} className="shrink-0" />
+                      <span>
+                        {selectedCallOption.callsFormatted} dedicated voice calls ({selectedCallOption.perCallRate})
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                      Dedicated recovery voice balance · Full roll-over of unused calls during validity
+                    </div>
+                  </div>
+
+                  {/* Feature Checklist */}
+                  <div className="space-y-2 pt-2">
+                    <span className="text-[11px] font-mono uppercase font-bold text-slate-400 block tracking-wider">
+                      Call-Service-Only Capabilities:
+                    </span>
+                    <div className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
+                      <div className="flex items-start gap-2">
+                        <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                          <Check size={11} strokeWidth={3} />
+                        </div>
+                        <span className="leading-tight">
+                          <strong>Dedicated Asterisk Voice Dialer</strong> with 1m, 2m, 5m, 30m, 1h automated cadences
+                        </span>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                          <Check size={11} strokeWidth={3} />
+                        </div>
+                        <span className="leading-tight">
+                          <strong>9 Indian Languages</strong> conversational AI voice recovery (Hindi, Tamil, Marathi, etc.)
+                        </span>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                          <Check size={11} strokeWidth={3} />
+                        </div>
+                        <span className="leading-tight">
+                          Promise-to-Pay (PTP) recording &amp; WhatsApp payment link dispatch
+                        </span>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                          <Check size={11} strokeWidth={3} />
+                        </div>
+                        <span className="leading-tight">
+                          Dedicated voice minutes (zero deductions for statutory checks)
+                        </span>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <div className="rounded-full p-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0">
+                          <Check size={11} strokeWidth={3} />
+                        </div>
+                        <span className="leading-tight">
+                          <strong>{selectedCallOption.validity}</strong> active window · 100% rollover of unused calls
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
+            {/* CTA Button */}
             <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
               <a
                 href="#contact"
                 onClick={() => {
-                  setInquiryPlan(`À La Carte (${selectedAlaCarteOption.callsFormatted})`);
+                  const planTitle = alaCarteMode === "universal"
+                    ? (selectedRechargeTier.isCustomization
+                        ? `Enterprise Customization (${selectedRechargeTier.name} - ₹${selectedRechargeTier.amount.toLocaleString("en-IN")})`
+                        : `À La Carte Recharge (${selectedRechargeTier.name} - ₹${selectedRechargeTier.amount.toLocaleString("en-IN")})`)
+                    : `Call-Service-Only À La Carte (${selectedCallOption.callsFormatted} - ₹${selectedCallOption.price.toLocaleString("en-IN")})`;
+                  setInquiryPlan(planTitle);
                   const el = document.getElementById("contact");
                   if (el) el.scrollIntoView({ behavior: "smooth" });
                 }}
                 className="w-full py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-md bg-[#FC8019] hover:bg-[#E26D0A] text-white shadow-orange-500/20"
               >
-                <span>Contact Us</span>
+                <span>
+                  {alaCarteMode === "universal"
+                    ? `Contact Us for ${selectedRechargeTier.name}`
+                    : `Contact Us for ${selectedCallOption.callsFormatted} (₹${selectedCallOption.price.toLocaleString("en-IN")})`}
+                </span>
                 <ArrowRight size={14} />
               </a>
             </div>
           </div>
         </div>
 
-        {/* Full Comparative Pricing & Quota Breakdown Table */}
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-md">
-          <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/15 text-[#FC8019] text-[10px] font-mono font-bold uppercase tracking-wider mb-1">
-                Official Plan Schedule
-              </div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                Detailed Feature Quotas &amp; Statutory Pricing Breakdown
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Exact feature quotas, unit rates, gross value, and discounted subscription totals.
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-mono px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-400 font-semibold">
-                100% Subscription Credited to Feature Wallet
-              </span>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-mono text-[11px] uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
-                <tr>
-                  <th className="py-3 px-4 w-12 text-center">#</th>
-                  <th className="py-3 px-4 font-bold">Feature Name</th>
-                  <th className="py-3 px-3 text-center bg-orange-50/50 dark:bg-orange-950/20 text-[#FC8019]">Retail Qty</th>
-                  <th className="py-3 px-3 text-right bg-orange-50/50 dark:bg-orange-950/20 text-[#FC8019]">Unit Price</th>
-                  <th className="py-3 px-4 text-right bg-orange-50/50 dark:bg-orange-950/20 text-[#FC8019] font-bold">Retail Value</th>
-                  <th className="py-3 px-3 text-right bg-blue-50/50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400">Unit Price</th>
-                  <th className="py-3 px-3 text-center bg-blue-50/50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400">Enterprise Qty</th>
-                  <th className="py-3 px-4 text-right bg-blue-50/50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 font-bold">Enterprise Value</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-xs">
-                {STATUTORY_FEATURE_BREAKDOWN.map((row) => (
-                  <tr key={row.num} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition">
-                    <td className="py-2.5 px-4 text-center text-slate-400">{row.num}</td>
-                    <td className="py-2.5 px-4 font-sans font-medium text-slate-900 dark:text-white">
-                      {row.name}
-                    </td>
-                    <td className="py-2.5 px-3 text-center font-bold text-slate-800 dark:text-slate-200 bg-orange-50/20 dark:bg-orange-950/10">
-                      {row.retailQty.toLocaleString("en-IN")}
-                    </td>
-                    <td className="py-2.5 px-3 text-right text-slate-600 dark:text-slate-400 bg-orange-50/20 dark:bg-orange-950/10">
-                      {row.unitPriceText ? row.unitPriceText : `₹${row.unitPrice}`}
-                    </td>
-                    <td className="py-2.5 px-4 text-right font-bold text-slate-900 dark:text-white bg-orange-50/20 dark:bg-orange-950/10">
-                      {row.retailGross > 0 ? `₹${row.retailGross.toLocaleString("en-IN")}` : "Free"}
-                    </td>
-                    <td className="py-2.5 px-3 text-right text-slate-600 dark:text-slate-400 bg-blue-50/20 dark:bg-blue-950/10">
-                      {row.entPriceText ? row.entPriceText : `₹${row.entPrice}`}
-                    </td>
-                    <td className="py-2.5 px-3 text-center font-bold text-slate-800 dark:text-slate-200 bg-blue-50/20 dark:bg-blue-950/10">
-                      {row.entQty.toLocaleString("en-IN")}
-                    </td>
-                    <td className="py-2.5 px-4 text-right font-bold text-slate-900 dark:text-white bg-blue-50/20 dark:bg-blue-950/10">
-                      {row.entGross > 0 ? `₹${row.entGross.toLocaleString("en-IN")}` : "Free"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="border-t-2 border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 font-mono">
-                {/* Gross Totals Row */}
-                <tr className="border-b border-slate-200 dark:border-slate-700 text-xs">
-                  <td colSpan={2} className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 uppercase">
-                    Total Gross Value
-                  </td>
-                  <td colSpan={2} className="py-3 px-3 text-right text-slate-500 font-semibold bg-orange-50/30 dark:bg-orange-950/20">
-                    Gross:
-                  </td>
-                  <td className="py-3 px-4 text-right font-black text-slate-500 line-through bg-orange-50/30 dark:bg-orange-950/20">
-                    ₹49,200
-                  </td>
-                  <td colSpan={2} className="py-3 px-3 text-right text-slate-500 font-semibold bg-blue-50/30 dark:bg-blue-950/20">
-                    Gross:
-                  </td>
-                  <td className="py-3 px-4 text-right font-black text-slate-500 line-through bg-blue-50/30 dark:bg-blue-950/20">
-                    ₹85,950
-                  </td>
-                </tr>
-
-                {/* Discounted Subscription Price Row */}
-                <tr className="text-sm bg-orange-50/60 dark:bg-orange-950/40">
-                  <td colSpan={2} className="py-3.5 px-4 font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                    Plan Subscription Fee (After Discount)
-                  </td>
-                  <td colSpan={2} className="py-3.5 px-3 text-right font-bold text-[#FC8019] text-xs">
-                    Retail Plan:
-                  </td>
-                  <td className="py-3.5 px-4 text-right font-black text-xl text-[#FC8019]">
-                    ₹9,899
-                  </td>
-                  <td colSpan={2} className="py-3.5 px-3 text-right font-bold text-blue-600 dark:text-blue-400 text-xs">
-                    Enterprise Plan:
-                  </td>
-                  <td className="py-3.5 px-4 text-right font-black text-xl text-blue-600 dark:text-blue-400">
-                    ₹17,599
-                  </td>
-                </tr>
-
-                {/* Net Savings & 100% Wallet Credit */}
-                <tr className="text-[11px] text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/30">
-                  <td colSpan={2} className="py-2.5 px-4 font-semibold">
-                    Net Client Savings / 100% Wallet Allocation
-                  </td>
-                  <td colSpan={3} className="py-2.5 px-4 text-right font-bold">
-                    Save ₹39,301 · ₹9,899 Credited 100% to Wallet
-                  </td>
-                  <td colSpan={3} className="py-2.5 px-4 text-right font-bold">
-                    Save ₹68,351 · ₹17,599 Credited 100% to Wallet
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
 
         {/* Security & Statutory Seals */}
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6 flex flex-wrap items-center justify-around gap-6 text-xs text-slate-600 dark:text-slate-400 font-mono">
@@ -1009,11 +1119,19 @@ export default function SubscriptionPage() {
                     <div className="h-8 w-8 rounded-lg bg-orange-50 dark:bg-[#FC8019]/15 border border-[#FC8019]/30 flex items-center justify-center text-[#FC8019] shrink-0">
                       <MapPin size={15} />
                     </div>
-                    <div>
-                      <div className="text-slate-500 dark:text-slate-400 text-[11px]">Registered Office</div>
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-sans text-xs mt-0.5">
-                        Flat No. 101, 1st Floor, Venkatesh Apts CHSL, Rawal Nagar, Behind Hardik Palace, Station Road, Mira Road, Mumbai, Maharashtra, India.
-                      </p>
+                    <div className="space-y-2">
+                      <div>
+                        <div className="text-slate-500 dark:text-slate-400 text-[11px] font-semibold uppercase">Kerala Office</div>
+                        <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-sans text-xs mt-0.5">
+                          10 53 , PANAVILA VEEDU, THRIKOVILVATTOM MUKHATHALA, MUKHATHALA - KOLLAM - KERALA 691577— INDIA — 9819206637
+                        </p>
+                      </div>
+                      <div>
+                        <div className="text-slate-500 dark:text-slate-400 text-[11px] font-semibold uppercase">Mumbai Office</div>
+                        <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-sans text-xs mt-0.5">
+                          Flat no 101 1st floor Venkatesh Apts CHSL Rawal Nagar Behind Hardik Palace Station Road Mira
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1065,13 +1183,34 @@ export default function SubscriptionPage() {
                       onChange={(e) => setInquiryPlan(e.target.value)}
                       className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-[#FC8019] focus:ring-1 focus:ring-[#FC8019] transition font-mono"
                     >
-                      <option value="Retail Plan (Growth)">Retail Plan (Growth) - ₹9,899 / 3 Months</option>
-                      <option value="Enterprise Plan (Professional)">Enterprise Plan (Professional) - ₹17,599 / 1 Year</option>
-                      <option value="À La Carte (3,000 Voice Calls)">À La Carte (3,000 Voice Calls) - ₹4,500</option>
-                      <option value="À La Carte (8,000 Voice Calls)">À La Carte (8,000 Voice Calls) - ₹10,000</option>
-                      <option value="À La Carte (14,000 Voice Calls)">À La Carte (14,000 Voice Calls) - ₹15,000</option>
-                      <option value="À La Carte (19,000 Voice Calls)">À La Carte (19,000 Voice Calls) - ₹20,000</option>
-                      <option value="Custom Enterprise / API Integration">Custom Enterprise / API Integration</option>
+                      <optgroup label="Bundled Subscriptions (3-Month 80% Off)">
+                        <option value="Retail Plan (Growth)">Retail Plan (Growth) - ₹9,899 / 3 Months</option>
+                        <option value="Enterprise Plan">Enterprise Plan - ₹17,599 / 3 Months</option>
+                      </optgroup>
+                      <optgroup label="Standard Pay &amp; Use Tiers (Universal Wallet)">
+                        {RECHARGE_TIERS.filter((t) => !t.isCustomization).map((t) => (
+                          <option key={t.id} value={`À La Carte Recharge (${t.name} - ₹${t.amount.toLocaleString("en-IN")})`}>
+                            {t.name} - ₹{t.amount.toLocaleString("en-IN")} ({t.validityText})
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Enterprise Customization Tiers (Bespoke Setup)">
+                        {RECHARGE_TIERS.filter((t) => t.isCustomization).map((t) => (
+                          <option key={t.id} value={`Enterprise Customization (${t.name} - ₹${t.amount.toLocaleString("en-IN")})`}>
+                            {t.name} - ₹{t.amount.toLocaleString("en-IN")} ({t.validityText}) [Customization]
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Call-Service-Only À La Carte (Dedicated Voice Recovery)">
+                        {ALACARTE_OPTIONS.map((opt) => (
+                          <option key={opt.id} value={`Call-Service-Only À La Carte (${opt.callsFormatted} - ₹${opt.price.toLocaleString("en-IN")})`}>
+                            {opt.callsFormatted} - ₹{opt.price.toLocaleString("en-IN")} ({opt.validity} · {opt.perCallRate})
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Custom Inquiries">
+                        <option value="Custom Enterprise / API Integration">Custom Enterprise / API Integration</option>
+                      </optgroup>
                     </select>
                   </div>
 
@@ -1271,6 +1410,86 @@ export default function SubscriptionPage() {
                   <ArrowRight size={11} />
                 </Link>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Universal À La Carte Rate Card Modal */}
+      {showRateCardModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-4xl max-h-[90vh] rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0E131F] shadow-2xl flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-start justify-between bg-slate-50/70 dark:bg-slate-900/50">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/15 text-[#FC8019] text-[10px] font-mono font-bold uppercase tracking-wider">
+                  Universal Pay &amp; Use Rate Card
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                  All 18 Services &amp; Statutory Gateways
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Exact per-unit deduction rates applied when consuming services via your Universal Recharge Wallet.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRateCardModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Table Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-mono text-[11px] uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
+                    <tr>
+                      <th className="py-3 px-4 font-bold">Service / Gateway</th>
+                      <th className="py-3 px-3">Category</th>
+                      <th className="py-3 px-3">Billing Unit</th>
+                      <th className="py-3 px-4 text-right font-bold text-[#FC8019]">Unit Price</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-sans">
+                    {DEFAULT_RATE_CARD.map((item) => (
+                      <tr key={item.key} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition">
+                        <td className="py-3 px-4">
+                          <div className="font-semibold text-slate-900 dark:text-white">{item.name}</div>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{item.description}</div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            {item.categoryLabel}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
+                          {item.unit}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono font-black text-sm text-[#FC8019]">
+                          {item.price === 0 ? "FREE" : `₹${item.price.toLocaleString("en-IN")}`}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400">
+              <div>
+                100% of recharge credited to wallet · Deductions apply only upon execution · + 18% GST
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRateCardModal(false)}
+                className="py-1.5 px-4 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs hover:opacity-90 transition font-sans"
+              >
+                Close Rate Card
+              </button>
             </div>
           </div>
         </div>

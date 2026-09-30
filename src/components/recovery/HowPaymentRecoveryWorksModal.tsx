@@ -191,7 +191,7 @@ export function HowPaymentRecoveryWorksModal({
                 </h4>
                 <ul className="space-y-2.5 list-disc pl-5 leading-relaxed">
                   <li>
-                    <strong>Document Verification:</strong> The uploaded bill or invoice copy (.pdf, .jpg, .png) is cryptographically processed to match:
+                    <strong>Document Verification:</strong> The uploaded bill or invoice copy is cryptographically processed to match:
                     <span className="block mt-1 pl-2 text-slate-700 dark:text-slate-200 font-mono text-[11px]">
                       • Debtor&apos;s Company Trade Name<br />
                       • Debtor&apos;s 15-Digit GSTIN &amp; PAN<br />

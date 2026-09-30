@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { resolveTenantCompany } from "@/lib/tenant/tenant-resolver";
 
-export async function GET() {
-  const company = await prisma.company.findFirst();
+export async function GET(req: Request) {
+  const company = await resolveTenantCompany(req);
+
   if (!company) return NextResponse.json({ vendors: [] });
 
   const vendors = await prisma.vendor.findMany({
@@ -29,13 +31,8 @@ export async function POST(req: Request) {
       vendors, // bulk onboarding array
     } = body;
 
-    let company = null;
-    if (explicitCompanyId) {
-      company = await prisma.company.findUnique({ where: { id: explicitCompanyId } });
-    }
-    if (!company) {
-      company = await prisma.company.findFirst();
-    }
+    const company = await resolveTenantCompany(req);
+
     if (!company) {
       return NextResponse.json({ error: "No active company account found." }, { status: 400 });
     }

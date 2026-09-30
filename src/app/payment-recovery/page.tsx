@@ -22,28 +22,13 @@ import {
   Building2,
 } from "lucide-react";
 import { cookies } from "next/headers";
+import { resolveTenantFromCookieStore } from "@/lib/tenant/tenant-resolver";
 
 export const dynamic = "force-dynamic";
 
 export default async function PaymentRecoveryPage() {
   const cookieStore = await cookies();
-  const companyIdCookie = cookieStore.get("chaanbean_company_id")?.value;
-
-  let company = null;
-  if (companyIdCookie) {
-    company = await prisma.company.findUnique({
-      where: { id: companyIdCookie },
-    });
-  }
-  if (!company) {
-    // Default to Acme Traders if no cookie set
-    company = await prisma.company.findFirst({
-      where: { name: { contains: "Acme Traders" } },
-    });
-    if (!company) {
-      company = await prisma.company.findFirst();
-    }
-  }
+  const company = await resolveTenantFromCookieStore(cookieStore);
 
   const targetCompanyId = company?.id;
 

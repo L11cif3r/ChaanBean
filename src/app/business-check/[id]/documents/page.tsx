@@ -129,7 +129,7 @@ export default function DocumentsPage() {
         <div className="mb-6">
           <h1 className="text-xl font-bold text-[var(--chaan-text)]">Upload Financial Documents</h1>
           <p className="text-sm text-[var(--chaan-text-muted)] mt-1">
-            Supported: PDF, XLSX, CSV (processed automatically) · PNG, JPG (manual entry required)
+            Supported: Spreadsheets, CSV, Financial Statements (processed automatically) · Scans &amp; Photos (manual entry required)
           </p>
         </div>
 
@@ -189,7 +189,7 @@ export default function DocumentsPage() {
             ) : (
               <>
                 <p className="text-[var(--chaan-text-muted)] text-sm">Drag &amp; drop a file here, or click to browse</p>
-                <p className="text-xs text-[var(--chaan-text-muted)] mt-1">PDF, XLSX, CSV, PNG, JPG · Max 20MB</p>
+                <p className="text-xs text-[var(--chaan-text-muted)] mt-1">Financial Statements, Spreadsheets, Scans · Max 20MB</p>
               </>
             )}
           </div>
@@ -209,7 +209,7 @@ export default function DocumentsPage() {
               {uploading ? "Uploading…" : "Upload & Process"}
             </button>
             <p className="text-xs text-[var(--chaan-text-muted)]">
-              PDF &amp; XLSX files are processed automatically. Images require manual data entry.
+              Financial statements &amp; spreadsheets are processed automatically. Scans require manual data entry.
             </p>
           </div>
         </div>

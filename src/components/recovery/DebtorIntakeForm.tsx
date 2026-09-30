@@ -407,7 +407,7 @@ export function DebtorIntakeForm({ onCaseCreated, onCancel }: DebtorIntakeFormPr
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <label className="relative flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 hover:border-[#FC8019] text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer transition shadow-sm shrink-0">
               <Upload size={16} className="text-[#FC8019]" />
-              <span>Upload Bill / Invoice (PDF, JPG, PNG)</span>
+              <span>Upload Bill / Invoice Document</span>
               <input
                 type="file"
                 accept=".pdf,.png,.jpg,.jpeg"

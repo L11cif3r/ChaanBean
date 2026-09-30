@@ -4,6 +4,7 @@ import type { ReportType, SubjectType } from "@/lib/verification-gateway/types";
 import { prisma } from "@/lib/db";
 import { throttle } from "@/lib/redis";
 import { getFeaturePrice } from "@/lib/pricing/pricing-engine";
+import { resolveTenantCompany } from "@/lib/tenant/tenant-resolver";
 
 export const dynamic = "force-dynamic";
 
@@ -30,13 +31,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "subjectId and reportTypes are required" }, { status: 400 });
     }
 
-    let company = null;
-    if (explicitCompanyId) {
-      company = await prisma.company.findUnique({ where: { id: explicitCompanyId } });
-    }
-    if (!company) {
-      company = await prisma.company.findFirst();
-    }
+    const company = await resolveTenantCompany(req);
 
     const cleanSubjectId = subjectId.trim();
 
@@ -102,13 +97,29 @@ export async function POST(req: Request) {
     let newBalance = company?.walletBalance ?? 0;
     if (company) {
       if (totalCost > 0) {
-        const updated = await prisma.company.update({
-          where: { id: company.id },
+        const debitResult = await prisma.company.updateMany({
+          where: {
+            id: company.id,
+            walletBalance: { gte: totalCost },
+          },
           data: {
             walletBalance: { decrement: totalCost },
             lastActiveAt: new Date(),
           },
         });
+
+        if (debitResult.count === 0) {
+          return NextResponse.json(
+            {
+              error: `Insufficient wallet balance for verification reports.`,
+              insufficientBalance: true,
+              required: totalCost,
+            },
+            { status: 402 }
+          );
+        }
+
+        const updated = await prisma.company.findUniqueOrThrow({ where: { id: company.id } });
         newBalance = updated.walletBalance;
 
         // Record in WalletUsageLedger

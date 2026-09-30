@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { SupportDrawer } from "./SupportDrawer";
+import { FeedbackDrawer } from "./feedback/FeedbackDrawer";
 import { SidebarProvider } from "./SidebarContext";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -16,6 +17,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const [mounted, setMounted] = useState<boolean>(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleOpenFeedback = () => setIsFeedbackOpen(true);
+    window.addEventListener("chaanbean:open-feedback", handleOpenFeedback);
+    return () => {
+      window.removeEventListener("chaanbean:open-feedback", handleOpenFeedback);
+    };
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -31,20 +41,50 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const hasSubCookie = typeof document !== "undefined" && document.cookie.includes("chaanbean_subscription=active");
     const hasSessionCookie = typeof document !== "undefined" && (document.cookie.includes("chaanbean_session=client") || document.cookie.includes("chaanbean_session=admin"));
 
+    // Sanitize any stale test tenant references from cookies or localStorage
+    if (typeof document !== "undefined") {
+      const cookies = document.cookie || "";
+      if (
+        cookies.includes("cmuno02w40000fpxoicjn4jjt") ||
+        cookies.includes("Rival%20Zenith") ||
+        cookies.includes("Rival+Zenith") ||
+        !cookies.includes("chaanbean_company_id=")
+      ) {
+        document.cookie = "chaanbean_company_id=cmukt7n090000jn04sx3ac7ly; path=/; max-age=86400; SameSite=Lax";
+        document.cookie = "chaanbean_company_name=Alright%20Trade; path=/; max-age=86400; SameSite=Lax";
+      }
+    }
+
+    if (authUser && (authUser.includes("Rival Zenith") || authUser.includes("cmuno02w40000fpxoicjn4jjt"))) {
+      localStorage.setItem(
+        "chaanbean_auth",
+        JSON.stringify({
+          email: "trade.ops@chaanbean.in",
+          name: "Alright Trade",
+          companyName: "Alright Trade",
+          companyId: "cmukt7n090000jn04sx3ac7ly",
+          role: "client",
+        })
+      );
+    }
+
     if ((!sessionActive && !authUser) || (!hasSubCookie && !hasSessionCookie)) {
-      // Auto-initialize default client session so direct hosted station links open smoothly
+      // Auto-initialize default client session with active database tenant
       sessionStorage.setItem("chaanbean_session_active", "true");
       localStorage.setItem(
         "chaanbean_auth",
         JSON.stringify({
-          email: "demo@chaanbean.com",
-          name: "Acme Traders Pvt Ltd",
-          companyName: "Acme Traders Pvt Ltd",
+          email: "trade.ops@chaanbean.in",
+          name: "Alright Trade",
+          companyName: "Alright Trade",
+          companyId: "cmukt7n090000jn04sx3ac7ly",
           role: "client",
         })
       );
-      document.cookie = "chaanbean_session=client; path=/; max-age=86400";
-      document.cookie = "chaanbean_subscription=active; path=/; max-age=86400";
+      document.cookie = "chaanbean_session=client; path=/; max-age=86400; SameSite=Lax";
+      document.cookie = "chaanbean_subscription=active; path=/; max-age=86400; SameSite=Lax";
+      document.cookie = "chaanbean_company_id=cmukt7n090000jn04sx3ac7ly; path=/; max-age=86400; SameSite=Lax";
+      document.cookie = "chaanbean_company_name=Alright%20Trade; path=/; max-age=86400; SameSite=Lax";
       setIsAuthorized(true);
     } else {
       setIsAuthorized(true);
@@ -76,9 +116,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <Header />
-          <main className="flex-1 overflow-y-auto">{children}</main>
+          <main className="flex-1 overflow-y-auto">
+            {children}
+          </main>
         </div>
         <SupportDrawer />
+        <FeedbackDrawer
+          isOpen={isFeedbackOpen}
+          onClose={() => setIsFeedbackOpen(false)}
+          currentScreen={pathname}
+        />
       </div>
     </SidebarProvider>
   );

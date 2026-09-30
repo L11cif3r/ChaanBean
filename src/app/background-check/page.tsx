@@ -4,27 +4,13 @@ import { VerificationRunner } from "@/components/VerificationRunner";
 import { Search, ShieldAlert, Cpu } from "lucide-react";
 import { getAllKnowledgeEntities } from "@/lib/knowledge-source";
 import { cookies } from "next/headers";
+import { resolveTenantFromCookieStore } from "@/lib/tenant/tenant-resolver";
 
 export const dynamic = "force-dynamic";
 
 export default async function BackgroundCheckPage() {
   const cookieStore = await cookies();
-  const companyIdCookie = cookieStore.get("chaanbean_company_id")?.value;
-
-  let company = null;
-  if (companyIdCookie) {
-    company = await prisma.company.findUnique({
-      where: { id: companyIdCookie },
-    });
-  }
-  if (!company) {
-    company = await prisma.company.findFirst({
-      where: { name: { contains: "Acme Traders" } },
-    });
-    if (!company) {
-      company = await prisma.company.findFirst();
-    }
-  }
+  const company = await resolveTenantFromCookieStore(cookieStore);
 
   const ledger = company
     ? await prisma.walletUsageLedger.findMany({ where: { companyId: company.id } })
@@ -49,14 +35,18 @@ export default async function BackgroundCheckPage() {
     take: 4,
   });
 
-  const isCleanAcme = company?.name?.includes("Acme Traders") || (buyers.length === 0 && vendors.length === 0);
+  const dbEntities = [
+    ...buyers.map((b) => ({ name: b.name, id: b.gstin || b.pan || b.name, type: "debtor" as const })),
+    ...vendors.map((v) => ({ name: v.name, id: v.gstin || v.pan || v.name, type: "vendor" as const })),
+  ];
 
-  const entities = isCleanAcme
-    ? []
-    : [
-        ...buyers.map((b) => ({ name: b.name, id: b.gstin || b.pan || b.name, type: "debtor" as const })),
-        ...vendors.map((v) => ({ name: v.name, id: v.gstin || v.pan || v.name, type: "vendor" as const })),
-      ];
+  const knowledgeFallback = getAllKnowledgeEntities().slice(0, 4).map((k) => ({
+    name: k.legalName,
+    id: k.gstin || k.pan || k.cin,
+    type: "debtor" as const,
+  }));
+
+  const entities = dbEntities.length > 0 ? dbEntities : knowledgeFallback;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">

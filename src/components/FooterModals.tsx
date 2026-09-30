@@ -229,7 +229,7 @@ export function FooterModals({ activeModal, onClose }: FooterModalsProps) {
             <div className="space-y-4">
               <h4 className="font-bold text-base text-slate-900 dark:text-white">1. Platform Scope & Purpose</h4>
               <p>
-                ChaanBean provides autonomous trade credit underwriting, debtor verification, automated communication cadences, and statutory dispute documentation. All services are strictly rendered in compliance with the Micro, Small and Medium Enterprises Development (MSMED) Act, 2006.
+                ChaanBean is a statutory B2B counterparty due diligence, credit verification, and payment recovery platform for Indian enterprises. All services are strictly rendered in compliance with the Micro, Small and Medium Enterprises Development (MSMED) Act, 2006.
               </p>
               <h4 className="font-bold text-base text-slate-900 dark:text-white">2. Customer Representations & Invoice Legitimacy</h4>
               <p>

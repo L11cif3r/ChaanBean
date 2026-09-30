@@ -38,7 +38,7 @@ export function validateFile(
   if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
     return {
       ok: false,
-      error: `Unsupported file type: ${mimeType}. Allowed: PDF, XLSX, CSV, PNG, JPG`,
+      error: `Unsupported file type: ${mimeType}. Allowed: Financial Statements, Spreadsheets (XLSX, CSV), Scans & Photos (PNG, JPG)`,
     };
   }
   if (sizeBytes > MAX_FILE_SIZE) {

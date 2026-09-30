@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAllFeaturePricing, updateFeaturePrice, resetFeaturePrice, getFeaturePrice } from "@/lib/pricing/pricing-engine";
 
+import { verifyAdminSession } from "@/lib/auth/admin-auth";
+
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
@@ -17,6 +19,14 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const session = await verifyAdminSession(req, { requireOwner: true });
+  if (!session.authorized) {
+    return NextResponse.json(
+      { error: session.error || "Owner authentication required to modify pricing" },
+      { status: session.status || 403 }
+    );
+  }
+
   try {
     const body = await req.json();
     const { action = "update", key, price } = body as {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 import {
   getCompanyMonitoringSummary,
   setCreditHold,
@@ -9,7 +10,10 @@ import {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const companyId = searchParams.get("companyId") || undefined;
+    const cookieHeader = request.headers.get("cookie") || "";
+    const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+    const authTenantId = request.headers.get("x-tenant-id") || (match ? decodeURIComponent(match[1]) : undefined);
+    const companyId = authTenantId || searchParams.get("companyId") || undefined;
     const summary = await getCompanyMonitoringSummary(companyId);
     return NextResponse.json(summary);
   } catch (error: any) {
@@ -20,11 +24,29 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const cookieHeader = request.headers.get("cookie") || "";
+    const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+    const authTenantId = request.headers.get("x-tenant-id") || (match ? decodeURIComponent(match[1]) : undefined);
+
     const body = await request.json();
     const { action } = body;
 
+    // Verify tenant ownership of creditAccount if provided
+    if (body.creditAccountId) {
+      const account = await prisma.creditAccount.findUnique({
+        where: { id: body.creditAccountId },
+        include: { buyer: true },
+      });
+      if (!account) {
+        return NextResponse.json({ error: "Credit account not found" }, { status: 404 });
+      }
+      if (authTenantId && account.buyer.companyId !== authTenantId) {
+        return NextResponse.json({ error: "Forbidden: Account belongs to another tenant" }, { status: 403 });
+      }
+    }
+
     if (action === "hold") {
-      const result = await setCreditHold(body.creditAccountId, body.reason, body.placedBy);
+      const result = await setCreditHold(body.creditAccountId, body.reason || "Underwriter review", body.placedBy);
       return NextResponse.json(result);
     }
 

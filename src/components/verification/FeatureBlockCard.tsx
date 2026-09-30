@@ -22,7 +22,7 @@ export interface FeatureBlockCardProps {
     label: string;
     shortLabel: string;
     reportTypes: ReportType[];
-    category: "Corporate & Identity" | "Tax & GST" | "Judicial & Legal" | "Recovery & Governance";
+    category: string;
     statute?: string;
     description: string;
     purpose: string;
@@ -48,9 +48,11 @@ export function FeatureBlockCard({
 }: FeatureBlockCardProps) {
   const Icon = feature.icon;
 
-  // Visual styling accents based on category
+  // Visual styling accents based on 6 blueprint layers
   const getCategoryStyles = (category: string) => {
     switch (category) {
+      case "Payment Behaviour":
+      case "Trade Intelligence":
       case "Tax & GST":
         return {
           pill: "bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-500/30",
@@ -58,6 +60,7 @@ export function FeatureBlockCard({
           borderHover: "hover:border-orange-400/80 dark:hover:border-orange-500/60",
           glow: "group-hover:shadow-orange-500/10",
         };
+      case "Legal & Compliance":
       case "Judicial & Legal":
         return {
           pill: "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/30",
@@ -65,6 +68,7 @@ export function FeatureBlockCard({
           borderHover: "hover:border-rose-400/80 dark:hover:border-rose-500/60",
           glow: "group-hover:shadow-rose-500/10",
         };
+      case "Financial Health":
       case "Recovery & Governance":
         return {
           pill: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30",
@@ -72,6 +76,23 @@ export function FeatureBlockCard({
           borderHover: "hover:border-emerald-400/80 dark:hover:border-emerald-500/60",
           glow: "group-hover:shadow-emerald-500/10",
         };
+      case "Promoter & Group Exposure":
+      case "People & Connections":
+        return {
+          pill: "bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-500/30",
+          iconBg: "bg-purple-100/70 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400",
+          borderHover: "hover:border-purple-400/80 dark:hover:border-purple-500/60",
+          glow: "group-hover:shadow-purple-500/10",
+        };
+      case "Market Intelligence & Signals":
+      case "Contact Verification":
+        return {
+          pill: "bg-cyan-50 dark:bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-200 dark:border-cyan-500/30",
+          iconBg: "bg-cyan-100/70 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400",
+          borderHover: "hover:border-cyan-400/80 dark:hover:border-cyan-500/60",
+          glow: "group-hover:shadow-cyan-500/10",
+        };
+      case "Identity & Verification":
       case "Corporate & Identity":
       default:
         return {

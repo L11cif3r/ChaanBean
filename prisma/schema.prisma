@@ -35,6 +35,14 @@ model Company {
   erpSyncConfigs   ErpSyncConfig[]
   aiDecisionLogs   AiDecisionLog[]
   reportLibrary    UserReportLibrary[]
+  users            User[]
+  creditCases      CreditCase[]
+  recoveryCases    RecoveryCase[]
+  exotelCallLogs   ExotelCallLog[]
+  caseTimelines    CaseTimeline[]
+  legalCandidates  LegalCandidate[]
+  tallyConnection  TallyConnection?
+  walletTransactions WalletTransaction[]
 }
 
 model BuyerDebtor {
@@ -58,6 +66,7 @@ model BuyerDebtor {
   invoices       Invoice[]
   monitoringAlerts MonitoringAlert[]
   promisesToPay  PromiseToPay[]
+  recoveryCases  RecoveryCase[]
 
   @@index([companyId])
 }
@@ -85,6 +94,8 @@ model CreditAccount {
   paymentLinks      PaymentLink[]
   evidencePacks     LegalEvidencePack[]
   reconciliations   PaymentReconciliation[]
+  creditCases       CreditCase[]
+  recoveryCases     RecoveryCase[]
 
   @@index([buyerId])
 }
@@ -985,5 +996,252 @@ model ErpSyncConfig {
 
   @@index([companyId])
 }
+
+// -------------------------------------------------------------
+// USER, ORGANISATION, RBAC & MVP CASE LIFECYCLE (ENTERPRISE MVP SCOPE)
+// -------------------------------------------------------------
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String
+  role        String   @default("operator") // admin | operator | legal_reviewer | viewer
+  companyId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company  @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+}
+
+model CreditCase {
+  id                 String   @id @default(cuid())
+  companyId          String
+  creditAccountId    String?
+  targetCompanyName  String
+  targetCin          String?
+  targetGstin        String?
+  targetPan          String?
+  requestedAmount    Float    @default(5000000)
+  approvedAmount     Float?
+  recommendedTenor   Int      @default(30)
+  riskScore          Float
+  riskBand           String   // LOW_RISK | MODERATE_RISK | HIGH_RISK
+  status             String   @default("pending_approval") // pending_approval | approved | rejected | active
+  modelVersion       String   @default("v1.0-mvp")
+  factorsBreakdown   String   // JSON containing the 6 factors, weights, scores, inputs, sources
+  aiExplanation      String?
+  createdBy          String?
+  approvedBy         String?
+  approvedAt         DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  company            Company        @relation(fields: [companyId], references: [id])
+  creditAccount      CreditAccount? @relation(fields: [creditAccountId], references: [id])
+  timelines          CaseTimeline[]
+  recoveryCases      RecoveryCase[]
+
+  @@index([companyId])
+  @@index([targetCompanyName])
+}
+
+model RecoveryCase {
+  id                      String    @id @default(cuid())
+  companyId               String
+  creditCaseId            String?
+  creditAccountId         String
+  buyerId                 String
+  caseNumber              String    @unique
+  stage                   String    @default("L1_REMINDER") // L1_REMINDER | L2_DEMAND | L3_LEGAL_ESCALATION | CLOSED | SETTLED
+  status                  String    @default("active") // active | paused | ptp_active | legal_review | closed
+  totalOverdue            Float
+  overdueDpd              Int       @default(0) // Days Past Due
+  statutoryInterest       Float     @default(0) // MSMED Act §16: 3x RBI rate
+  totalClaim              Float
+  lastActionType          String?
+  lastActionAt            DateTime?
+  nextActionType          String?   // exotel_voice_call | demand_notice | legal_escalation
+  nextActionDueAt         DateTime?
+  ptpActive               Boolean   @default(false)
+  isLegalEligible         Boolean   @default(false)
+  legalEligibilityReasons String?   // JSON array of statutory grounds
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  company                 Company          @relation(fields: [companyId], references: [id])
+  creditCase              CreditCase?      @relation(fields: [creditCaseId], references: [id])
+  creditAccount           CreditAccount    @relation(fields: [creditAccountId], references: [id])
+  buyer                   BuyerDebtor      @relation(fields: [buyerId], references: [id])
+  timelines               CaseTimeline[]
+  exotelCallLogs          ExotelCallLog[]
+  legalCandidate          LegalCandidate?
+
+  @@index([companyId])
+  @@index([creditAccountId])
+  @@index([buyerId])
+}
+
+model ExotelCallLog {
+  id              String    @id @default(cuid())
+  companyId       String
+  recoveryCaseId  String?
+  callSid         String    @unique
+  toPhone         String
+  fromPhone       String    @default("08047190000") // ExoPhone caller ID
+  status          String    @default("initiated") // initiated | ringing | in-progress | completed | busy | no-answer | failed
+  direction       String    @default("outbound")
+  durationSec     Int       @default(0)
+  recordingUrl    String?
+  exoml           String?
+  reminderText    String?
+  aiSummary       String?
+  webhookPayload  String?   // Raw JSON from Exotel callback
+  calledAt        DateTime  @default(now())
+  completedAt     DateTime?
+
+  company         Company       @relation(fields: [companyId], references: [id])
+  recoveryCase    RecoveryCase? @relation(fields: [recoveryCaseId], references: [id])
+
+  @@index([companyId])
+  @@index([recoveryCaseId])
+  @@index([callSid])
+}
+
+model CaseTimeline {
+  id              String   @id @default(cuid())
+  companyId       String
+  creditCaseId    String?
+  recoveryCaseId  String?
+  eventType       String   // CASE_CREATED | CREDIT_ASSESSED | INVOICE_OVERDUE | EXOTEL_CALL_TRIGGERED | EXOTEL_CALL_COMPLETED | PTP_RECORDED | PTP_BROKEN | LEGAL_ELIGIBLE | LEGAL_CANDIDATE_CREATED | LEGAL_REVIEW_APPROVED
+  actor           String   @default("system") // system | rules_engine | ai_agent | user
+  title           String
+  description     String
+  metadata        String?  // JSON payload
+  createdAt       DateTime @default(now())
+
+  company         Company       @relation(fields: [companyId], references: [id])
+  creditCase      CreditCase?   @relation(fields: [creditCaseId], references: [id])
+  recoveryCase    RecoveryCase? @relation(fields: [recoveryCaseId], references: [id])
+
+  @@index([companyId])
+  @@index([creditCaseId])
+  @@index([recoveryCaseId])
+  @@index([createdAt])
+}
+
+model LegalCandidate {
+  id                   String    @id @default(cuid())
+  companyId            String
+  recoveryCaseId       String    @unique
+  candidateNumber      String    @unique
+  status               String    @default("pending_review") // pending_review | approved | rejected | notice_dispatched | arbitration_filed
+  statutoryGrounds     String    // JSON array of grounds (e.g. MSMED Act §15-18, Sec 138, Sec 43B(h))
+  principalAmount      Float
+  penalInterest        Float
+  totalClaim           Float
+  compiledCasePackage  String    // JSON containing company profile, directors, invoices, calls, timeline, 65B evidence
+  reviewedBy           String?
+  reviewNotes          String?
+  reviewedAt           DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  company              Company      @relation(fields: [companyId], references: [id])
+  recoveryCase         RecoveryCase @relation(fields: [recoveryCaseId], references: [id])
+
+  @@index([companyId])
+  @@index([status])
+}
+
+model EnterpriseRequest {
+  id                      String   @id @default(cuid())
+  companyName             String
+  contactName             String
+  businessEmail           String
+  phone                   String?
+  expectedMonthlyUsage    String?
+  servicesRequired        String
+  estimatedMonthlyBudget  Float?
+  integrationRequirements String?
+  additionalNotes         String?
+  status                  String   @default("New")
+  proposalTerms           String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+model ServiceCatalogItem {
+  id                   String   @id @default(cuid())
+  key                  String   @unique
+  name                 String
+  category             String
+  description          String
+  customerPrice        Float
+  providerCost         Float    @default(0)
+  status               String   @default("LIVE")
+  provider             String   @default("Statutory Gateway")
+  estimatedTime        String   @default("Instant")
+  requiresConsent      Boolean  @default(false)
+  requiresOtp          Boolean  @default(false)
+  requiresManualReview Boolean  @default(false)
+  availableToCustomer  Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model TallyConnection {
+  id                     String         @id @default(cuid())
+  companyId              String         @unique
+  status                 String         @default("Not Connected")
+  version                String?        @default("TallyPrime v4.0")
+  companyName            String?
+  serverUrl              String?
+  syncFrequency          String         @default("hourly")
+  lastSyncedAt           DateTime?
+  totalLedgersSynced     Int            @default(0)
+  totalInvoicesSynced    Int            @default(0)
+  totalReceivablesSynced Float          @default(0)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  company                Company        @relation(fields: [companyId], references: [id])
+  tallySyncLogs          TallySyncLog[]
+}
+
+model TallySyncLog {
+  id               String          @id @default(cuid())
+  connectionId     String
+  syncType         String
+  status           String
+  recordsProcessed Int             @default(0)
+  errorMessage     String?
+  syncedAt         DateTime        @default(now())
+  tallyConnection  TallyConnection @relation(fields: [connectionId], references: [id])
+}
+
+model WalletTransaction {
+  id             String   @id @default(cuid())
+  txnId          String   @unique
+  companyId      String
+  type           String
+  serviceKey     String?
+  serviceName    String?
+  provider       String?
+  amount         Float
+  openingBalance Float
+  closingBalance Float
+  status         String   @default("SUCCESS")
+  referenceId    String?
+  description    String?
+  metadata       String?
+  createdAt      DateTime @default(now())
+  company        Company  @relation(fields: [companyId], references: [id])
+
+  @@index([companyId])
+  @@index([txnId])
+}
+
+
 
 

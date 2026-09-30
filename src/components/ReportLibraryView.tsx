@@ -271,7 +271,7 @@ export function ReportLibraryView({ onSelectFeatureTab }: ReportLibraryViewProps
                     onClick={() => handleDownload(item)}
                     disabled={downloadingId === item.id}
                     className="py-1.5 px-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-[#FC8019] hover:text-[#FC8019] text-slate-600 dark:text-slate-400 text-xs font-semibold flex items-center justify-center gap-1 transition"
-                    title="Download Report JSON/PDF"
+                    title="Download Report Dossier"
                   >
                     <Download size={12} className={downloadingId === item.id ? "animate-bounce" : ""} />
                   </button>

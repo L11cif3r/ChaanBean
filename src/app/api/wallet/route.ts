@@ -1,38 +1,28 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getFeaturePrice } from "@/lib/pricing/pricing-engine";
+import { getFeaturePrice, getAlaCarteRateCard } from "@/lib/pricing/pricing-engine";
+import { getAllRechargeTiers, getRechargeTier } from "@/lib/pricing/recharge-plans";
+import { resolveTenantCompany, getDefaultCompany } from "@/lib/tenant/tenant-resolver";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    let companyId = searchParams.get("companyId");
+    const queryCompanyId = searchParams.get("companyId");
 
-    if (!companyId) {
-      const cookieHeader = req.headers.get("cookie") || "";
-      const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
-      if (match) companyId = decodeURIComponent(match[1]);
+    const cookieHeader = req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+    const authenticatedTenantId = req.headers.get("x-tenant-id") || (match ? decodeURIComponent(match[1]) : undefined);
+
+    if (queryCompanyId && authenticatedTenantId && queryCompanyId !== authenticatedTenantId) {
+      return NextResponse.json(
+        { error: "Forbidden: Cannot access another company's wallet" },
+        { status: 403 }
+      );
     }
 
-    let company = null;
-    if (companyId) {
-      company = await prisma.company.findUnique({
-        where: { id: companyId },
-        include: { walletLedger: true },
-      });
-    }
-    if (!company) {
-      company = await prisma.company.findFirst({
-        where: { name: { contains: "Acme Traders" } },
-        include: { walletLedger: true },
-      });
-      if (!company) {
-        company = await prisma.company.findFirst({
-          include: { walletLedger: true },
-        });
-      }
-    }
+    const company = await resolveTenantCompany(req, { include: { walletLedger: true } });
 
     if (!company) {
       return NextResponse.json({
@@ -42,6 +32,8 @@ export async function GET(req: Request) {
         daysRemaining: 0,
         isExpired: true,
         ledger: [],
+        rateCard: getAlaCarteRateCard(),
+        rechargeTiers: getAllRechargeTiers(),
       });
     }
 
@@ -56,7 +48,7 @@ export async function GET(req: Request) {
       isExpired = diffMs <= 0;
     }
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       companyId: company.id,
       companyName: company.name,
       plan: company.plan,
@@ -64,8 +56,24 @@ export async function GET(req: Request) {
       subscriptionExpiresAt: company.subscriptionExpiresAt,
       daysRemaining,
       isExpired,
-      ledger: company.walletLedger || [],
+      ledger: (company as any).walletLedger || [],
+      rateCard: getAlaCarteRateCard(),
+      rechargeTiers: getAllRechargeTiers(),
     });
+
+    // Keep active tenant cookie strictly synchronized
+    res.cookies.set("chaanbean_company_id", company.id, {
+      path: "/",
+      maxAge: 86400,
+      sameSite: "lax",
+    });
+    res.cookies.set("chaanbean_company_name", encodeURIComponent(company.name), {
+      path: "/",
+      maxAge: 86400,
+      sameSite: "lax",
+    });
+
+    return res;
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to load wallet" },
@@ -82,59 +90,144 @@ export async function POST(req: Request) {
       featureKey,
       featureName,
       amount,
+      rechargeId,
       companyId: explicitCompanyId,
       metadata,
     } = body as {
-      action?: "deduct" | "credit";
+      action?: "deduct" | "credit" | "recharge";
       featureKey?: string;
       featureName?: string;
       amount?: number;
+      rechargeId?: string;
       companyId?: string;
       metadata?: Record<string, unknown>;
     };
 
-    let company = null;
+    const cookieHeader = req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+    const authenticatedTenantId = req.headers.get("x-tenant-id") || (match ? decodeURIComponent(match[1]) : undefined);
+
+    let targetCompanyId = authenticatedTenantId;
     if (explicitCompanyId) {
-      company = await prisma.company.findUnique({ where: { id: explicitCompanyId } });
+      if (authenticatedTenantId && explicitCompanyId !== authenticatedTenantId) {
+        return NextResponse.json(
+          { error: "Forbidden: Cannot perform wallet operations on another tenant's account" },
+          { status: 403 }
+        );
+      }
+      targetCompanyId = explicitCompanyId;
+    }
+
+    let company = null;
+    if (targetCompanyId) {
+      company = await prisma.company.findUnique({ where: { id: targetCompanyId } });
     }
     if (!company) {
-      company = await prisma.company.findFirst();
+      company = await getDefaultCompany();
     }
 
     if (!company) {
       return NextResponse.json({ error: "No active company found" }, { status: 404 });
     }
 
-    // Determine final price: explicit amount or from dynamic pricing engine
-    const finalAmount =
-      typeof amount === "number" && amount >= 0
-        ? amount
-        : featureKey
-        ? getFeaturePrice(featureKey)
-        : 0;
+    // -------------------------------------------------------------
+    // ACTION: RECHARGE (À La Carte Pay & Use Packs from ₹5k to ₹100k+)
+    // -------------------------------------------------------------
+    if (action === "recharge") {
+      if (typeof amount === "number" && (isNaN(amount) || amount <= 0)) {
+        return NextResponse.json(
+          { error: "Recharge amount must be a positive number greater than 0" },
+          { status: 400 }
+        );
+      }
 
-    // Enforce À La Carte (Call Service Only) scope: cannot deduct for credit reports/legal notices
-    if (
-      company.plan?.startsWith("alacarte") &&
-      action === "deduct" &&
-      featureKey &&
-      !["default_payment_voice_calls", "recovery_call", "call_service"].includes(featureKey)
-    ) {
-      return NextResponse.json(
-        {
-          error: "Your current subscription is À La Carte (Call Service Only). Upgrade to Growth or Enterprise Plan to unlock statutory AI Credit Checks and legal reports.",
-          isAlaCarteRestricted: true,
-          currentPlan: company.plan,
-        },
-        { status: 403 }
-      );
-    }
+      let rechargeAmount = typeof amount === "number" && amount >= 5000 ? amount : 5000;
+      let rechargeTier = rechargeId ? getRechargeTier(rechargeId) : undefined;
 
-    if (action === "credit") {
+      if (!rechargeTier && typeof amount === "number") {
+        const tiers = getAllRechargeTiers();
+        rechargeTier = tiers.find((t) => t.amount === amount);
+      }
+
+      if (rechargeTier) {
+        rechargeAmount = rechargeTier.amount;
+      }
+
+      const validityDays = rechargeTier ? rechargeTier.validityDays : 90;
+      const newExpiry = new Date();
+      newExpiry.setDate(newExpiry.getDate() + validityDays);
+
+      const isSub = company.plan === "growth" || company.plan === "enterprise";
+      const targetPlan = isSub ? company.plan : (rechargeTier?.id || "alacarte_pay_and_use");
+
       const updated = await prisma.company.update({
         where: { id: company.id },
         data: {
-          walletBalance: { increment: finalAmount },
+          walletBalance: { increment: rechargeAmount },
+          plan: targetPlan,
+          subscriptionExpiresAt: newExpiry,
+          lastActiveAt: new Date(),
+        },
+      });
+
+      // Record in usage ledger
+      await prisma.walletUsageLedger.upsert({
+        where: { companyId_reportType: { companyId: company.id, reportType: "wallet_recharge" } },
+        create: {
+          companyId: company.id,
+          reportType: "wallet_recharge",
+          timesUsed: 1,
+          available: Math.round(updated.walletBalance),
+          cost: rechargeAmount,
+        },
+        update: {
+          timesUsed: { increment: 1 },
+          available: Math.round(updated.walletBalance),
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        action: "recharge",
+        rechargeAmount,
+        tier: rechargeTier?.name || `Pay & Use ₹${rechargeAmount.toLocaleString("en-IN")}`,
+        isCustomization: Boolean(rechargeTier?.isCustomization),
+        validityDays,
+        newBalance: updated.walletBalance,
+        subscriptionExpiresAt: updated.subscriptionExpiresAt,
+      });
+    }
+
+    // -------------------------------------------------------------
+    // ACTION: CREDIT (Direct administrative or promotional credit)
+    // -------------------------------------------------------------
+    if (action === "credit") {
+      const adminRoleHeader = req.headers.get("x-admin-role");
+      const adminSecretHeader = req.headers.get("x-admin-key");
+      const isAdmin =
+        adminRoleHeader === "owner" ||
+        adminRoleHeader === "admin" ||
+        (process.env.ADMIN_SECRET_KEY && adminSecretHeader === process.env.ADMIN_SECRET_KEY);
+
+      if (!isAdmin && process.env.NODE_ENV === "production") {
+        return NextResponse.json(
+          { error: "Unauthorized: Administrative role required for direct credit operations" },
+          { status: 403 }
+        );
+      }
+
+      if (typeof amount !== "number" || isNaN(amount) || amount <= 0) {
+        return NextResponse.json(
+          { error: "Credit amount must be a positive number greater than 0" },
+          { status: 400 }
+        );
+      }
+
+      const creditAmount = amount;
+      const updated = await prisma.company.update({
+        where: { id: company.id },
+        data: {
+          walletBalance: { increment: creditAmount },
           lastActiveAt: new Date(),
         },
       });
@@ -142,12 +235,36 @@ export async function POST(req: Request) {
       return NextResponse.json({
         success: true,
         action: "credit",
-        credited: finalAmount,
+        credited: creditAmount,
         newBalance: updated.walletBalance,
       });
     }
 
-    // Action: deduct
+    // -------------------------------------------------------------
+    // ACTION: DEDUCT (Pay-per-use across ANY platform service)
+    // -------------------------------------------------------------
+    if (typeof amount === "number" && (isNaN(amount) || amount <= 0)) {
+      return NextResponse.json(
+        { error: "Deduction amount must be a positive number greater than 0" },
+        { status: 400 }
+      );
+    }
+
+    // Determine final price: explicit amount or from dynamic pricing engine
+    const finalAmount =
+      typeof amount === "number" && amount > 0
+        ? amount
+        : featureKey
+        ? getFeaturePrice(featureKey)
+        : 0;
+
+    if (finalAmount <= 0) {
+      return NextResponse.json(
+        { error: "Feature price or deduction amount must be greater than 0" },
+        { status: 400 }
+      );
+    }
+
     if (company.walletBalance < finalAmount) {
       return NextResponse.json(
         {
@@ -156,6 +273,7 @@ export async function POST(req: Request) {
           )}, but your current balance is ₹${company.walletBalance.toLocaleString("en-IN")}.`,
           currentBalance: company.walletBalance,
           requiredAmount: finalAmount,
+          isInsufficientBalance: true,
         },
         { status: 402 }
       );

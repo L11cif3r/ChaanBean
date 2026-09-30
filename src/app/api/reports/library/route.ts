@@ -1,23 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { resolveTenantCompany } from "@/lib/tenant/tenant-resolver";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const companyId = searchParams.get("companyId");
     const subjectId = searchParams.get("subjectId");
     const reportType = searchParams.get("reportType");
     const q = searchParams.get("q")?.trim().toLowerCase();
 
-    let company = null;
-    if (companyId) {
-      company = await prisma.company.findUnique({ where: { id: companyId } });
-    }
-    if (!company) {
-      company = await prisma.company.findFirst();
-    }
+    const company = await resolveTenantCompany(req);
 
     const where: Record<string, unknown> = {};
     if (company) {
@@ -110,13 +104,7 @@ export async function POST(req: Request) {
       );
     }
 
-    let company = null;
-    if (explicitCompanyId) {
-      company = await prisma.company.findUnique({ where: { id: explicitCompanyId } });
-    }
-    if (!company) {
-      company = await prisma.company.findFirst();
-    }
+    const company = await resolveTenantCompany(req);
 
     const title =
       reportTitle ||

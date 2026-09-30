@@ -350,7 +350,7 @@ export function CallUnreachableModal({
                 <Mail size={14} className="text-purple-600 dark:text-purple-400 group-hover:scale-110 transition" />
               </div>
               <div className="text-xs font-bold text-slate-900 dark:text-white">Registered Email Notice</div>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400">Formal PDF demand notice with Section 138 NI Act statutory legal draft.</p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400">Formal statutory demand notice with Section 138 NI Act legal draft.</p>
               <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1 mt-1">
                 Send Email Notice <ArrowRight size={10} />
               </span>

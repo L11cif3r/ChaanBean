@@ -2,13 +2,15 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCollectionsOverview } from "@/lib/services/collections-engine";
 import { getCompanyMonitoringSummary } from "@/lib/services/monitoring-service";
+import { resolveTenantCompany } from "@/lib/tenant/tenant-resolver";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const format = searchParams.get("format") || "json";
 
-    const company = await prisma.company.findFirst();
+    const company = await resolveTenantCompany(request);
+
     if (!company) {
       return NextResponse.json({ error: "No company found" }, { status: 404 });
     }
@@ -17,6 +19,7 @@ export async function GET(request: Request) {
       getCompanyMonitoringSummary(company.id),
       getCollectionsOverview(company.id),
       prisma.arbitrationCase.findMany({
+        where: { creditAccount: { buyer: { companyId: company.id } } },
         include: { assignedAdvisor: true, creditAccount: { include: { buyer: true } } },
       }),
       prisma.legalAdvisor.findMany(),

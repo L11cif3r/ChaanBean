@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { getDefaultCompany } from "@/lib/tenant/tenant-resolver";
 
 export interface AgeingBucketBreakdown {
   current: number;
@@ -13,7 +14,7 @@ export interface AgeingBucketBreakdown {
 export async function getCollectionsOverview(companyId?: string) {
   const targetCompany = companyId
     ? await prisma.company.findUnique({ where: { id: companyId } })
-    : await prisma.company.findFirst();
+    : await getDefaultCompany();
 
   if (!targetCompany) {
     return {
@@ -111,11 +112,16 @@ export async function recordPromiseToPay(params: {
   paymentMode?: string;
   recordedBy?: string;
 }) {
+  const safeAmount = typeof params.amount === "number" && !isNaN(params.amount) ? Math.max(0, params.amount) : 0;
+  if (safeAmount <= 0) {
+    throw new Error("Promise to pay amount must be greater than 0");
+  }
+
   return await prisma.promiseToPay.create({
     data: {
       creditAccountId: params.creditAccountId,
       buyerId: params.buyerId,
-      amount: params.amount,
+      amount: safeAmount,
       promisedDate: new Date(params.promisedDate),
       notes: params.notes,
       paymentMode: params.paymentMode || "NEFT/RTGS",
@@ -131,6 +137,11 @@ export async function generatePaymentLink(params: {
   amount: number;
   expiresInDays?: number;
 }) {
+  const safeAmount = typeof params.amount === "number" && !isNaN(params.amount) ? Math.max(0, params.amount) : 0;
+  if (safeAmount <= 0) {
+    throw new Error("Payment link amount must be greater than 0");
+  }
+
   const token = Math.random().toString(36).substring(2, 10);
   const linkUrl = `https://pay.chaanbean.in/quick-pay/${token}`;
   const expiresAt = new Date(Date.now() + (params.expiresInDays || 7) * 86400000);
@@ -139,7 +150,7 @@ export async function generatePaymentLink(params: {
     data: {
       creditAccountId: params.creditAccountId,
       invoiceId: params.invoiceId,
-      amount: params.amount,
+      amount: safeAmount,
       linkUrl,
       expiresAt,
       status: "active",
@@ -156,11 +167,19 @@ export async function processPaymentReconciliation(params: {
   paymentMode?: string;
   notes?: string;
 }) {
+  const safeAmountPaid = typeof params.amountPaid === "number" && !isNaN(params.amountPaid) ? Math.max(0, params.amountPaid) : 0;
+  if (safeAmountPaid <= 0) {
+    throw new Error("Payment reconciliation amountPaid must be greater than 0");
+  }
+
+  let linkedAccountId = params.creditAccountId;
+
   // If invoiceId is supplied, update the invoice
   if (params.invoiceId) {
     const inv = await prisma.invoice.findUnique({ where: { id: params.invoiceId } });
     if (inv) {
-      const newPaid = inv.paidAmount + params.amountPaid;
+      linkedAccountId = linkedAccountId || inv.creditAccountId;
+      const newPaid = inv.paidAmount + safeAmountPaid;
       const newStatus = newPaid >= inv.amount ? "paid" : "partial";
       await prisma.invoice.update({
         where: { id: inv.id },
@@ -172,13 +191,23 @@ export async function processPaymentReconciliation(params: {
     }
   }
 
+  // Synchronize CreditAccount outstanding balance
+  if (linkedAccountId) {
+    await prisma.creditAccount.updateMany({
+      where: { id: linkedAccountId },
+      data: {
+        outstandingAmount: { decrement: safeAmountPaid },
+      },
+    });
+  }
+
   // Create reconciliation record
   const rec = await prisma.paymentReconciliation.create({
     data: {
       companyId: params.companyId,
-      creditAccountId: params.creditAccountId,
+      creditAccountId: linkedAccountId,
       invoiceId: params.invoiceId,
-      amountPaid: params.amountPaid,
+      amountPaid: safeAmountPaid,
       referenceNo: params.referenceNo,
       paymentMode: params.paymentMode || "bank_transfer",
       status: "matched",

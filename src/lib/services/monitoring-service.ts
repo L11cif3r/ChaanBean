@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { getDefaultCompany } from "@/lib/tenant/tenant-resolver";
 
 export interface AccountMonitoringSummary {
   creditAccountId: string;
@@ -28,7 +29,7 @@ export async function getCompanyMonitoringSummary(companyId?: string): Promise<{
   // Find first active company if not specified
   const targetCompany = companyId
     ? await prisma.company.findUnique({ where: { id: companyId } })
-    : await prisma.company.findFirst();
+    : await getDefaultCompany();
 
   if (!targetCompany) {
     return {

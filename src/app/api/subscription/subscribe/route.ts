@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { resolveTenantCompany } from "@/lib/tenant/tenant-resolver";
 
 export const dynamic = "force-dynamic";
 
@@ -28,12 +29,17 @@ export async function POST(req: Request) {
       companyId?: string;
     };
 
-    let company = null;
-    if (explicitCompanyId) {
-      company = await prisma.company.findUnique({ where: { id: explicitCompanyId } });
+    const numPaidAmount = Number(paidAmount);
+    if (isNaN(numPaidAmount) || numPaidAmount <= 0) {
+      return NextResponse.json(
+        { error: "Paid amount must be a positive number greater than 0" },
+        { status: 400 }
+      );
     }
-    if (!company) {
-      company = await prisma.company.findFirst();
+
+    let company = await resolveTenantCompany(req);
+    if (!company && explicitCompanyId) {
+      company = await prisma.company.findUnique({ where: { id: explicitCompanyId } });
     }
 
     // Dynamic Validity duration calculation
@@ -64,7 +70,7 @@ export async function POST(req: Request) {
     if (!company) {
       company = await prisma.company.create({
         data: {
-          name: "Acme Traders Pvt Ltd",
+          name: body.companyName || "Alright Trade",
           plan: planId,
           walletBalance: paidAmount, // 100% credited
           subscriptionExpiresAt: expiresAt,

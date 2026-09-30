@@ -18,8 +18,26 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const cookieHeader = request.headers.get("cookie") || "";
+    const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+    const tenantId = request.headers.get("x-tenant-id") || (match ? decodeURIComponent(match[1]) : undefined);
+
     const body = await request.json();
     const { action } = body;
+
+    // Verify case ownership if caseId is passed
+    if (body.caseId) {
+      const arbCase = await prisma.arbitrationCase.findUnique({
+        where: { id: body.caseId },
+        include: { creditAccount: { include: { buyer: true } } },
+      });
+      if (!arbCase) {
+        return NextResponse.json({ error: "Arbitration case not found" }, { status: 404 });
+      }
+      if (tenantId && arbCase.creditAccount.buyer.companyId !== tenantId) {
+        return NextResponse.json({ error: "Forbidden: Cross-tenant access denied" }, { status: 403 });
+      }
+    }
 
     if (action === "match") {
       const bestAdvisor = await matchAdvisorForCase(body.caseId);
@@ -39,11 +57,16 @@ export async function POST(request: Request) {
     }
 
     if (action === "record_fee") {
+      const numAmount = parseFloat(body.amount);
+      if (isNaN(numAmount) || numAmount <= 0) {
+        return NextResponse.json({ error: "Legal fee amount must be a positive number greater than 0" }, { status: 400 });
+      }
+
       const fee = await recordLegalFee({
         arbitrationCaseId: body.caseId,
         advisorId: body.advisorId,
         feeType: body.feeType,
-        amount: parseFloat(body.amount),
+        amount: numAmount,
         paymentStatus: body.paymentStatus,
         transactionRef: body.transactionRef,
       });

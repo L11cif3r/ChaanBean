@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { verifyAdminSession } from "@/lib/auth/admin-auth";
 
-export async function GET() {
+export async function GET(req: Request) {
+  const session = await verifyAdminSession(req);
+  if (!session.authorized) {
+    return NextResponse.json(
+      { error: session.error || "Admin authentication required" },
+      { status: session.status || 401 }
+    );
+  }
+
   const stages = await prisma.pipelineStage.findMany({
     orderBy: { order: "asc" },
     include: {
@@ -51,6 +60,14 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const session = await verifyAdminSession(req);
+  if (!session.authorized) {
+    return NextResponse.json(
+      { error: session.error || "Admin authentication required" },
+      { status: session.status || 401 }
+    );
+  }
+
   try {
     const body = await req.json();
     const { action } = body;
@@ -159,6 +176,16 @@ export async function POST(req: Request) {
       });
 
       if (!deal) return NextResponse.json({ error: "Deal not found" }, { status: 404 });
+
+      if (deal.companyId) {
+        return NextResponse.json(
+          {
+            error: "Deal has already been converted to an active company account",
+            companyId: deal.companyId,
+          },
+          { status: 409 }
+        );
+      }
 
       const name = companyName || deal.lead?.companyName || deal.title;
       const company = await prisma.company.create({

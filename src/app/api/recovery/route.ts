@@ -5,6 +5,7 @@ import { deliverMessage } from "@/lib/policy-engine";
 import { calculateMSMEPenalInterest } from "@/lib/arbitration/interest";
 import { getOrSynthesizePollyAudio } from "@/lib/communication/polly-s3";
 import { placeOutboundPlaybackCall } from "@/lib/communication/asterisk-vobiz";
+import { getDefaultCompany } from "@/lib/tenant/tenant-resolver";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -13,8 +14,13 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const creditAccountId = searchParams.get("creditAccountId");
 
+  const cookieHeader = req.headers.get("cookie") || "";
+  const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+  const tenantId = req.headers.get("x-tenant-id") || (match ? decodeURIComponent(match[1]) : undefined);
+
   if (!creditAccountId) {
     const accounts = await prisma.creditAccount.findMany({
+      where: tenantId ? { buyer: { companyId: tenantId } } : {},
       include: {
         buyer: true,
         escalationStates: { orderBy: { updatedAt: "desc" }, take: 1 },
@@ -34,6 +40,10 @@ export async function GET(req: Request) {
 
   if (!account) {
     return NextResponse.json({ error: "Credit account not found" }, { status: 404 });
+  }
+
+  if (tenantId && account.buyer.companyId !== tenantId) {
+    return NextResponse.json({ error: "Forbidden: Account belongs to another tenant" }, { status: 403 });
   }
 
   const lang = account.buyer.language || "en";
@@ -167,7 +177,7 @@ export async function POST(req: Request) {
       }
 
       // Find or create company
-      let company = await prisma.company.findFirst();
+      let company = await getDefaultCompany();
       if (!company) {
         company = await prisma.company.create({
           data: {
@@ -218,7 +228,7 @@ export async function POST(req: Request) {
           status: "overdue",
           ageingBucket: delayMonths >= 3 ? "90+" : delayMonths >= 2 ? "61-90" : "31-60",
           notes: JSON.stringify({
-            invoiceFileName: invoiceFileName || "Invoice.pdf",
+            invoiceFileName: invoiceFileName || "Invoice-Document",
             invoiceFileSize: invoiceFileSize || 1024,
             callFrequency: callFrequency || "daily",
             invoiceVerified: true,
@@ -325,6 +335,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "creditAccountId required" }, { status: 400 });
     }
 
+    const cookieHeader = req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+    const tenantId = req.headers.get("x-tenant-id") || (match ? decodeURIComponent(match[1]) : undefined);
+
     const account = await prisma.creditAccount.findUnique({
       where: { id: creditAccountId },
       include: { buyer: true },
@@ -332,6 +346,10 @@ export async function POST(req: Request) {
 
     if (!account) {
       return NextResponse.json({ error: "Credit account not found" }, { status: 404 });
+    }
+
+    if (tenantId && account.buyer.companyId !== tenantId) {
+      return NextResponse.json({ error: "Forbidden: Account belongs to another tenant" }, { status: 403 });
     }
 
     let phone = targetPhone || "+919876543210";
@@ -349,7 +367,7 @@ export async function POST(req: Request) {
       // Find company owning this debtor to check and deduct wallet balance
       const company = (await prisma.company.findUnique({
         where: { id: account.buyer.companyId },
-      })) || (await prisma.company.findFirst());
+      })) || (await getDefaultCompany());
 
       if (company && company.walletBalance < 1) {
         return NextResponse.json(
@@ -408,14 +426,17 @@ export async function POST(req: Request) {
 
       if (callResult.status === "answered" && company) {
         callFee = 1;
-        const updatedCompany = await prisma.company.update({
-          where: { id: company.id },
+        const debitResult = await prisma.company.updateMany({
+          where: { id: company.id, walletBalance: { gte: callFee } },
           data: {
             walletBalance: { decrement: callFee },
             lastActiveAt: new Date(),
           },
         });
-        newBalance = updatedCompany.walletBalance;
+        if (debitResult.count > 0) {
+          const updatedCompany = await prisma.company.findUnique({ where: { id: company.id } });
+          newBalance = updatedCompany?.walletBalance ?? 0;
+        }
 
         if (callResult.callId) {
           await prisma.call.update({

@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { cookies } from "next/headers";
+import { resolveTenantFromCookieStore } from "@/lib/tenant/tenant-resolver";
 import Link from "next/link";
 import { ArbitrationActions } from "@/components/ArbitrationActions";
 import {
@@ -27,13 +29,18 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function ArbitrationPage() {
+  const cookieStore = await cookies();
+  const company = await resolveTenantFromCookieStore(cookieStore);
+
   const [cases, recentEvidence] = await Promise.all([
     prisma.arbitrationCase.findMany({
+      where: company ? { creditAccount: { buyer: { companyId: company.id } } } : {},
       include: {
         creditAccount: {
           include: {
             buyer: {
               include: {
+                company: true,
                 calls: { orderBy: { createdAt: "desc" }, take: 4 },
               },
             },
@@ -196,7 +203,7 @@ export default async function ArbitrationPage() {
 
                   <p className="mt-2 text-xs text-slate-400 font-mono space-x-3">
                     <span>
-                      Claimant: <strong className="text-slate-200">{c.claimantName || "Acme Traders Pvt Ltd"}</strong>
+                      Claimant: <strong className="text-slate-200">{c.claimantName || (company ? company.name : "Alright Trade")}</strong>
                     </span>
                     <span>·</span>
                     <span>

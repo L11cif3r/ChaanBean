@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { resolveTenantCompany } from "@/lib/tenant/tenant-resolver";
 import crypto from "crypto";
 
 export async function POST(req: Request) {
@@ -49,8 +50,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get or create primary organization company
-    let company = await prisma.company.findFirst();
+    let company = await resolveTenantCompany(req);
+
     if (!company) {
       company = await prisma.company.create({
         data: {
@@ -75,33 +76,55 @@ export async function POST(req: Request) {
     const deterministicSuffix = Math.abs(crc32(`${cleanPan}_${Date.now()}`) % 9000 + 1000);
     const trustId = `TH-CB-${panPrefix}-${deterministicSuffix}`;
 
-    // Deduct fee and record ledger
-    if (company.walletBalance >= fee) {
-      await prisma.$transaction([
-        prisma.company.update({
-          where: { id: company.id },
-          data: { walletBalance: { decrement: fee } },
-        }),
-        prisma.walletUsageLedger.upsert({
-          where: {
-            companyId_reportType: {
-              companyId: company.id,
-              reportType: "trust_id_verification",
-            },
-          },
-          update: {
-            timesUsed: { increment: 1 },
-          },
-          create: {
-            companyId: company.id,
-            reportType: "trust_id_verification",
-            timesUsed: 1,
-            available: 100,
-            cost: fee,
-          },
-        }),
-      ]);
+    if (company.walletBalance < fee) {
+      return NextResponse.json(
+        {
+          error: `Insufficient wallet balance. Trust ID certification costs ₹${fee}, but current balance is ₹${company.walletBalance.toLocaleString(
+            "en-IN"
+          )}. Please recharge your wallet.`,
+          insufficientBalance: true,
+          required: fee,
+          currentBalance: company.walletBalance,
+        },
+        { status: 402 }
+      );
     }
+
+    // Atomic debit with gte guard and ledger record
+    const debitRes = await prisma.company.updateMany({
+      where: { id: company.id, walletBalance: { gte: fee } },
+      data: { walletBalance: { decrement: fee }, lastActiveAt: new Date() },
+    });
+
+    if (debitRes.count === 0) {
+      return NextResponse.json(
+        {
+          error: `Insufficient wallet balance for Trust ID registration.`,
+          insufficientBalance: true,
+          required: fee,
+        },
+        { status: 402 }
+      );
+    }
+
+    await prisma.walletUsageLedger.upsert({
+      where: {
+        companyId_reportType: {
+          companyId: company.id,
+          reportType: "trust_id_verification",
+        },
+      },
+      update: {
+        timesUsed: { increment: 1 },
+      },
+      create: {
+        companyId: company.id,
+        reportType: "trust_id_verification",
+        timesUsed: 1,
+        available: 100,
+        cost: fee,
+      },
+    });
 
     // Badges depending on structure
     const badges = [

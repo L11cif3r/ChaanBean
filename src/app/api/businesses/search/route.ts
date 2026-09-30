@@ -7,9 +7,16 @@ export async function GET(req: Request) {
     const q = searchParams.get("q") || "";
     const flag = searchParams.get("flag");
 
+    const cookieHeader = req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+    const tenantId = req.headers.get("x-tenant-id") || (match ? match[1] : undefined);
+
+    const tenantFilter = tenantId ? { OR: [{ createdBy: tenantId }, { createdBy: null }] } : {};
+
     const businesses = await prisma.businessProfile.findMany({
       where: {
         AND: [
+          tenantFilter,
           q
             ? {
                 OR: [

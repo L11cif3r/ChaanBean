@@ -14,6 +14,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: result.error || "OTP verification failed" }, { status: 400 });
     }
 
+    const cookieHeader = request.headers.get("cookie") || "";
+    const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+    const tenantId = request.headers.get("x-tenant-id") || (match ? match[1] : undefined);
+
     const cachedUntil = new Date(Date.now() + 720 * 3600000);
     const report = await prisma.verificationReport.create({
       data: {
@@ -21,6 +25,7 @@ export async function POST(request: Request) {
         subjectId: subjectId || "29AABCU9842F1Z5",
         reportType: "gst_supreme_report",
         provider: result.provider,
+        requestedBy: tenantId || null,
         status: "completed",
         rawPayload: JSON.stringify(result.data),
         normalizedPayload: JSON.stringify({
