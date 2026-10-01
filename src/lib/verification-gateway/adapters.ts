@@ -40,9 +40,11 @@ export const gstAdapter: VerificationAdapter = {
     "gst_slab_check",
     "gst_exact_turnover",
     "gst_supreme_report",
+    "gst_registration_certificate",
     "gst_monthly_filings",
     "pan_to_gst",
   ],
+
   async getReport(subjectType, subjectId, reportType) {
     const entity = await lookupDatabaseEntity(subjectId);
 

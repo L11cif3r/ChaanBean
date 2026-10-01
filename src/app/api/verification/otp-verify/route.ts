@@ -1,22 +1,83 @@
 import { NextResponse } from "next/server";
+import { validateGstnOtp, getGstnSession, removeGstnSession } from "@/lib/gstn";
 import { verifyGstSupremeOtp } from "@/lib/verification-gateway/clients";
 import { prisma } from "@/lib/db";
 
 export async function POST(request: Request) {
   try {
-    const { sessionId, otp, subjectId, subjectType = "business" } = await request.json();
-    if (!sessionId || !otp) {
-      return NextResponse.json({ error: "sessionId and otp are required" }, { status: 400 });
-    }
-
-    const result = await verifyGstSupremeOtp(sessionId, otp);
-    if (!result.success) {
-      return NextResponse.json({ error: result.error || "OTP verification failed" }, { status: 400 });
+    const { sessionId, txnId, otp, subjectId, subjectType = "business", companyId } = await request.json();
+    const activeTxnId = txnId || sessionId;
+    if (!activeTxnId || !otp) {
+      return NextResponse.json({ error: "sessionId / txnId and otp are required" }, { status: 400 });
     }
 
     const cookieHeader = request.headers.get("cookie") || "";
     const match = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
-    const tenantId = request.headers.get("x-tenant-id") || (match ? match[1] : undefined);
+    const tenantId = companyId || request.headers.get("x-tenant-id") || (match ? match[1] : undefined);
+
+    // 1. Check if this is a real GSTN session
+    const gstnSession = getGstnSession(activeTxnId);
+    if (gstnSession || activeTxnId.includes("-")) {
+      const gstin = (gstnSession?.gstin || subjectId || "30MCBPH2034F2Z8").toUpperCase();
+      const realResult = await validateGstnOtp({
+        gstin,
+        otp: String(otp).trim(),
+        txnId: activeTxnId,
+      });
+
+      if (!realResult.success || realResult.statusCd !== "1") {
+        return NextResponse.json(
+          { error: realResult.message, errorCode: realResult.errorCode },
+          { status: realResult.errorCode === "INTR_006" ? 400 : 422 }
+        );
+      }
+
+      removeGstnSession(activeTxnId);
+      const cachedUntil = new Date(Date.now() + 720 * 3600000);
+      const report = await prisma.verificationReport.create({
+        data: {
+          subjectType,
+          subjectId: realResult.gstin,
+          reportType: "gst_registration_certificate",
+          provider: "GSTN / API Setu (v1.0.1)",
+          requestedBy: tenantId || null,
+          status: "completed",
+          rawPayload: JSON.stringify(realResult),
+          normalizedPayload: JSON.stringify({
+            reportType: "gst_registration_certificate",
+            subjectType,
+            subjectId: realResult.gstin,
+            provider: "GSTN / API Setu (v1.0.1)",
+            status: "completed",
+            fetchedAt: new Date().toISOString(),
+            expiresAt: cachedUntil.toISOString(),
+            data: realResult,
+          }),
+          cachedUntil,
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        reportId: report.id,
+        reports: [
+          {
+            reportType: "gst_registration_certificate",
+            subjectId: realResult.gstin,
+            provider: "GSTN / API Setu (v1.0.1)",
+            status: "completed",
+            data: realResult,
+          },
+        ],
+        data: realResult,
+      });
+    }
+
+    // Fallback for legacy test session IDs
+    const result = await verifyGstSupremeOtp(activeTxnId, otp);
+    if (!result.success) {
+      return NextResponse.json({ error: result.error || "OTP verification failed" }, { status: 400 });
+    }
 
     const cachedUntil = new Date(Date.now() + 720 * 3600000);
     const report = await prisma.verificationReport.create({
@@ -54,3 +115,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

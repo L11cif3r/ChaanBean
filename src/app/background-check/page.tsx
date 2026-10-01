@@ -5,6 +5,7 @@ import { Search, ShieldAlert, Cpu } from "lucide-react";
 import { getAllKnowledgeEntities } from "@/lib/knowledge-source";
 import { cookies } from "next/headers";
 import { resolveTenantFromCookieStore } from "@/lib/tenant/tenant-resolver";
+import { GstRegistrationVerificationWidget } from "@/components/gst/GstRegistrationVerificationWidget";
 
 export const dynamic = "force-dynamic";
 
@@ -101,6 +102,17 @@ export default async function BackgroundCheckPage() {
 
       {/* Main Interactive Verification Hub */}
       <VerificationRunner companyId={company?.id || ""} ledgerMap={ledgerMap} sampleEntities={entities} />
+
+      {/* Official GSTN Registration Certificate (API Setu Live) Integration */}
+      <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+        <GstRegistrationVerificationWidget
+          companyId={company?.id || ""}
+          initialGstin="30MCBPH2034F2Z8"
+          initialLegalName="Amit"
+          initialEmail="abc@gmail.com"
+        />
+      </div>
     </div>
   );
 }
+

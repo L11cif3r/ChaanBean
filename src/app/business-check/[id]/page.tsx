@@ -6,8 +6,9 @@ import Link from "next/link";
 import {
   Building2, FileText, Shield, AlertTriangle, CheckCircle, XCircle,
   Clock, ExternalLink, ChevronLeft, Upload, RefreshCw, Info,
-  Banknote, Scale, Award, BarChart2, Activity, ChevronDown, ChevronUp
+  Banknote, Scale, Award, BarChart2, Activity, ChevronDown, ChevronUp, X, ShieldCheck
 } from "lucide-react";
+import { GstRegistrationVerificationWidget } from "@/components/gst/GstRegistrationVerificationWidget";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend
@@ -258,6 +259,7 @@ export default function BusinessProfilePage() {
   const [syncingMca, setSyncingMca] = useState(false);
   const [mcaSyncMsg, setMcaSyncMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [mcaSearchCin, setMcaSearchCin] = useState("");
+  const [showGstModal, setShowGstModal] = useState(false);
 
   const fetchBusiness = useCallback(async () => {
     try {
@@ -355,6 +357,14 @@ export default function BusinessProfilePage() {
           </Link>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowGstModal(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors shadow-xs"
+              title="Verify official GST Registration Certificate via GSTN API Setu"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              Verify GST
+            </button>
+            <button
               onClick={() => handleSyncMca()}
               disabled={syncingMca}
               className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-60 shadow-sm"
@@ -379,6 +389,39 @@ export default function BusinessProfilePage() {
             </button>
           </div>
         </div>
+
+        {/* GST Registration Verification Modal */}
+        {showGstModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="relative w-full max-w-3xl flex flex-col rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+              <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                <span className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <ShieldCheck className="text-emerald-500 w-5 h-5" />
+                  Statutory GST Registration Verification — {business.companyName}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowGstModal(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="p-4">
+                <GstRegistrationVerificationWidget
+                  initialGstin={business.gstin || "30MCBPH2034F2Z8"}
+                  initialLegalName={business.companyName || "Amit"}
+                  initialEmail="abc@gmail.com"
+                  businessId={id}
+                  onSuccess={() => {
+                    fetchBusiness();
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {/* MCA Sync Feedback Notification */}
         {mcaSyncMsg && (

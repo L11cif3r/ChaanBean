@@ -88,7 +88,7 @@ export function FeatureRunnerModal({
   // OTP State specifically for gst_supreme_report
   const isOtpReport = primaryReportType === "gst_supreme_report";
   const [otpSessionId, setOtpSessionId] = useState<string | null>(null);
-  const [otpCode, setOtpCode] = useState("482910");
+  const [otpCode, setOtpCode] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpNotice, setOtpNotice] = useState<string | null>(null);
 
@@ -159,20 +159,21 @@ export function FeatureRunnerModal({
     setOtpLoading(true);
     setOtpNotice(null);
     try {
-      const res = await fetch("/api/verification/otp-initiate", {
+      const res = await fetch("/api/gst/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           gstin: primaryInput.trim(),
-          mobile: secondaryInput.trim() || "9876543210",
+          legalName: secondaryInput.trim() || "Amit",
+          email: "abc@gmail.com",
         }),
       });
       const data = await res.json();
-      if (res.ok) {
-        setOtpSessionId(data.sessionId);
-        setOtpNotice(data.message || "OTP dispatched to authorized mobile");
+      if (res.ok && data.txnId) {
+        setOtpSessionId(data.txnId);
+        setOtpNotice(data.message || "OTP dispatched by GSTN to authorized contacts.");
       } else {
-        setOtpNotice(data.error || "Could not dispatch OTP");
+        setOtpNotice(data.error || "Could not dispatch OTP via GSTN");
       }
     } catch {
       setOtpNotice("Network error dispatching OTP");
@@ -186,23 +187,20 @@ export function FeatureRunnerModal({
     setOtpLoading(true);
     setOtpNotice(null);
     try {
-      const res = await fetch("/api/verification/otp-verify", {
+      const res = await fetch("/api/gst/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sessionId: otpSessionId,
+          txnId: otpSessionId,
+          gstin: primaryInput.trim(),
           otp: otpCode.trim(),
           companyId,
         }),
       });
       const data = await res.json();
-      if (res.ok && data.reports?.length) {
-        const rep = data.reports[0];
-        setReport(rep);
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("chaanbean:wallet-updated"));
-        }
-        if (onReportGenerated) onReportGenerated(rep);
+      if (res.ok && data.success) {
+        setOtpNotice("GST verified successfully! Registration certificate saved.");
+        await handleRunVerification();
       } else {
         setOtpNotice(data.error || "OTP verification failed");
       }
@@ -212,6 +210,7 @@ export function FeatureRunnerModal({
       setOtpLoading(false);
     }
   };
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">

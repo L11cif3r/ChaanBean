@@ -97,7 +97,21 @@ const ADAPTER_CONFIGS: Record<ReportType, AdapterConfig> = {
     defaultSecondary: "9876543210",
     subjectType: "business",
   },
+  gst_registration_certificate: {
+    reportType: "gst_registration_certificate",
+    title: "GST Registration Certificate",
+    category: "Tax & GST Intelligence",
+    description: "Official GST Registration Certificate (v1.0.1) fetched via API Setu with genuine Base64 PDF certificate.",
+    primaryInputLabel: "Target GSTIN (15 characters)",
+    primaryPlaceholder: "e.g. 30MCBPH2034F2Z8",
+    secondaryInputLabel: "Signatory Legal Name",
+    secondaryPlaceholder: "e.g. Amit",
+    defaultId: "30MCBPH2034F2Z8",
+    defaultSecondary: "Amit",
+    subjectType: "business",
+  },
   pan_to_gst: {
+
     reportType: "pan_to_gst",
     title: "PAN to GST Number Directory",
     category: "Tax & GST Intelligence",
@@ -386,7 +400,7 @@ export function AdapterCard({
 
   // OTP State specifically for gst_supreme_report
   const [otpSessionId, setOtpSessionId] = useState<string | null>(null);
-  const [otpCode, setOtpCode] = useState("482910");
+  const [otpCode, setOtpCode] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpNotice, setOtpNotice] = useState<string | null>(null);
 
@@ -434,20 +448,21 @@ export function AdapterCard({
     setOtpLoading(true);
     setOtpNotice(null);
     try {
-      const res = await fetch("/api/verification/otp-initiate", {
+      const res = await fetch("/api/gst/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           gstin: primaryInput.trim(),
-          mobile: secondaryInput.trim() || "9876543210",
+          legalName: secondaryInput.trim() || "Amit",
+          email: "abc@gmail.com",
         }),
       });
       const data = await res.json();
-      if (res.ok) {
-        setOtpSessionId(data.sessionId);
-        setOtpNotice(data.message || "OTP sent to authorized mobile");
+      if (res.ok && data.txnId) {
+        setOtpSessionId(data.txnId);
+        setOtpNotice(data.message || "OTP sent to registered contacts of Primary Authorised Signatory.");
       } else {
-        setOtpNotice(data.error || "Could not dispatch OTP");
+        setOtpNotice(data.error || "Could not dispatch OTP via GSTN.");
       }
     } catch {
       setOtpNotice("Network error requesting OTP");
@@ -461,19 +476,19 @@ export function AdapterCard({
     setOtpLoading(true);
     setOtpNotice(null);
     try {
-      const res = await fetch("/api/verification/otp-verify", {
+      const res = await fetch("/api/gst/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sessionId: otpSessionId,
+          txnId: otpSessionId,
+          gstin: primaryInput.trim(),
           otp: otpCode.trim(),
-          subjectId: primaryInput.trim(),
-          subjectType,
+          companyId,
         }),
       });
       const data = await res.json();
-      if (res.ok) {
-        setOtpNotice("OTP verified successfully! Pulling Supreme dossier...");
+      if (res.ok && data.success) {
+        setOtpNotice("GST verified successfully! Registration certificate saved.");
         await handleRun();
       } else {
         setOtpNotice(data.error || "Invalid OTP code entered");
@@ -485,6 +500,7 @@ export function AdapterCard({
     }
   };
 
+
   const getIcon = () => {
     switch (reportType) {
       case "gst_exact_turnover":
@@ -493,7 +509,9 @@ export function AdapterCard({
       case "gst_monthly_filings":
         return <Calendar className="text-chaan-brand" size={18} />;
       case "gst_supreme_report":
+      case "gst_registration_certificate":
         return <KeyRound className="text-amber-400" size={18} />;
+
       case "pan_to_gst":
         return <Layers className="text-chaan-brand" size={18} />;
       case "bureau_report":
@@ -663,8 +681,8 @@ export function AdapterCard({
               )}
             </div>
 
-            {/* Special 2-step OTP workflow for GST Supreme Report */}
-            {reportType === "gst_supreme_report" && (
+            {/* Special 2-step OTP workflow for GST Supreme Report & GST Registration Certificate */}
+            {(reportType === "gst_supreme_report" || reportType === "gst_registration_certificate") && (
               <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4 space-y-3 text-xs">
                 <div className="flex items-center gap-2 text-amber-300 font-semibold">
                   <KeyRound size={16} />
@@ -694,7 +712,7 @@ export function AdapterCard({
                         type="text"
                         value={otpCode}
                         onChange={(e) => setOtpCode(e.target.value)}
-                        placeholder="482910"
+                        placeholder="e.g. 565173"
                         maxLength={6}
                         className="w-36 rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-center font-mono font-bold tracking-widest text-slate-100 outline-none focus:border-amber-400"
                       />
@@ -751,7 +769,8 @@ export function AdapterCard({
             )}
 
             {/* Submit Action Button */}
-            {reportType !== "gst_supreme_report" && (
+            {reportType !== "gst_supreme_report" && reportType !== "gst_registration_certificate" && (
+
               <div className="pt-2 flex items-center justify-between">
                 <span className="text-[11px] text-slate-400">
                   Instant live lookup with 30-day cache debit

@@ -240,9 +240,86 @@ export function ReportResultView({ report, onRefresh, refreshing }: ReportResult
       }
 
       // -------------------------------------------------------------
+      // 3A. GST REGISTRATION CERTIFICATE (API Setu v1.0.1)
+      // -------------------------------------------------------------
+      case "gst_registration_certificate": {
+        const gstin = (data.gstin as string) || report.subjectId || "—";
+        const legalName = (data.legalName as string) || "—";
+        const tradeName = (data.tradeName as string) || legalName;
+        const constitution = (data.constitutionOfBusiness as string) || "Registered Taxpayer";
+        const certId = (data.certificateId as string) || "";
+        const viewUrl = (data.certificateViewUrl as string) || (data.viewUrl as string) || (certId ? `/api/gst/certificate/${certId}` : "");
+        const downloadUrl = (data.certificateDownloadUrl as string) || (data.downloadUrl as string) || (certId ? `/api/gst/certificate/${certId}?download=1` : "");
+
+        return (
+          <div className="space-y-4">
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold">
+                  ✓
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                    GST VERIFIED ✓
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-300 border border-emerald-700/60">
+                      API Setu UAT Live
+                    </span>
+                  </h4>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    Official GST Registration Certificate validated via Primary Authorized Signatory OTP.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {viewUrl && (
+                  <a
+                    href={viewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-xs font-semibold text-white hover:bg-slate-700 transition"
+                  >
+                    View Certificate
+                  </a>
+                )}
+                {downloadUrl && (
+                  <a
+                    href={downloadUrl}
+                    download={`GST-Certificate-${gstin}.pdf`}
+                    className="px-3 py-1.5 rounded-lg bg-[#FC8019] text-xs font-bold text-white hover:bg-[#E26D0A] transition"
+                  >
+                    Download Certificate
+                  </a>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="rounded-lg border border-chaan-border bg-slate-900/60 p-3">
+                <span className="text-[10px] text-slate-400 uppercase font-mono">GSTIN</span>
+                <div className="mt-1 font-mono font-bold text-slate-100">{gstin}</div>
+              </div>
+              <div className="rounded-lg border border-chaan-border bg-slate-900/60 p-3">
+                <span className="text-[10px] text-slate-400 uppercase font-mono">Legal Name</span>
+                <div className="mt-1 font-semibold text-slate-200 truncate">{legalName}</div>
+              </div>
+              <div className="rounded-lg border border-chaan-border bg-slate-900/60 p-3">
+                <span className="text-[10px] text-slate-400 uppercase font-mono">Trade Name</span>
+                <div className="mt-1 font-semibold text-slate-200 truncate">{tradeName}</div>
+              </div>
+              <div className="rounded-lg border border-chaan-border bg-slate-900/60 p-3">
+                <span className="text-[10px] text-slate-400 uppercase font-mono">Constitution of Business</span>
+                <div className="mt-1 font-medium text-slate-200 truncate">{constitution}</div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // -------------------------------------------------------------
       // 3. GST SUPREME REPORT
       // -------------------------------------------------------------
       case "gst_supreme_report": {
+
         const consistency = (data.filingConsistency as string) || "consistent";
         const last12 = Number(data.last12Filings ?? 12);
         const counterpartyCount = Number(data.counterpartyPanCount ?? 20);

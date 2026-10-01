@@ -11,6 +11,8 @@ export type ReportType =
   | "gst_monthly_filings"
   // 6. GST Supreme Report PAN Number for all Purchase and Sales
   | "gst_supreme_report"
+  // Official GSTN Registration Certificate (API Setu v1.0.1)
+  | "gst_registration_certificate"
   // 7. Trust Hub and Trust ID
   | "trust_hub_verification"
   // 8. Mobile to PAN
@@ -74,6 +76,7 @@ export const REPORT_CACHE_TTL_HOURS: Record<ReportType, number> = {
   gst_exact_turnover: 720,
   gst_monthly_filings: 168,
   gst_supreme_report: 720,
+  gst_registration_certificate: 720,
   trust_hub_verification: 168,
   mobile_to_pan: 168,
   mobile_identity: 168,
@@ -103,6 +106,7 @@ export const REPORT_LABELS: Record<ReportType, string> = {
   gst_exact_turnover: "GST Exact Turnover Filed",
   gst_monthly_filings: "GST Filing on Month Basis",
   gst_supreme_report: "GST Supreme Report (Purchase & Sales PANs)",
+  gst_registration_certificate: "GST Registration Certificate (API Setu v1.0.1)",
   trust_hub_verification: "Trust Network & Trust ID Verification",
   mobile_to_pan: "Mobile to PAN",
   mobile_identity: "Mobile Identity (All Alternate Numbers)",

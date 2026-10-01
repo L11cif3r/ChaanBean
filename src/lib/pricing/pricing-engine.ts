@@ -60,6 +60,15 @@ export const DEFAULT_PRICING: Record<string, FeaturePriceItem> = {
     defaultPrice: 299,
     description: "Complete PAN-level sales and supplier outward invoice registry.",
   },
+  gst_registration_certificate: {
+    key: "gst_registration_certificate",
+    name: "GST Registration Certificate (API Setu v1.0.1)",
+    category: "background_check",
+    price: 0,
+    defaultPrice: 0,
+    description: "Official taxpayer GST Registration Certificate fetched via API Setu with genuine PDF.",
+  },
+
   trust_hub_id: {
     key: "trust_hub_id",
     name: "Trust Network & Trust ID",
@@ -365,6 +374,7 @@ export function getAlaCarteRateCard(): RateCardItem[] {
     gst_exact_turnover: { category: "verification", categoryLabel: "Statutory Due Diligence", unit: "per filing dossier" },
     gst_filing_month_basis: { category: "verification", categoryLabel: "Statutory Due Diligence", unit: "Free (Included)" },
     gst_supreme_report: { category: "verification", categoryLabel: "Statutory Due Diligence", unit: "per PAN registry" },
+    gst_registration_certificate: { category: "verification", categoryLabel: "Statutory Due Diligence", unit: "Official GSTN v1.0.1" },
     mobile_to_pan: { category: "verification", categoryLabel: "Identity Resolution", unit: "per lookup" },
     mobile_identity: { category: "verification", categoryLabel: "Identity Resolution", unit: "per dossier" },
     court_case_history: { category: "verification", categoryLabel: "Dispute & Crime Screening", unit: "per e-Courts search" },
