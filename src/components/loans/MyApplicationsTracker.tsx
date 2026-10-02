@@ -58,7 +58,7 @@ export function MyApplicationsTracker({
   };
 
   const handleContactAdvisor = (app: LoanApplication) => {
-    setContactAdvisorToast(`Dedicated CapitalX Credit Manager assigned for ${app.applicationRef}. Contacting you shortly at ${app.phone}.`);
+    setContactAdvisorToast(`Dedicated Capital Access Credit Manager assigned for ${app.applicationRef}. Contacting you shortly at ${app.phone}.`);
     setTimeout(() => setContactAdvisorToast(null), 5000);
   };
 

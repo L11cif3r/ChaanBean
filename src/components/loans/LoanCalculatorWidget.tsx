@@ -109,7 +109,7 @@ export function LoanCalculatorWidget({
               <Calculator size={18} />
             </span>
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#FC8019]">
-              CapitalX Facility Simulator
+              Capital Access Facility Simulator
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">

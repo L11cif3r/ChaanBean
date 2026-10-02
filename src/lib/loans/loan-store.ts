@@ -1,8 +1,10 @@
 import type { LoanApplication } from "./types";
-import { CAPITALX_LOAN_PRODUCTS } from "./loan-catalog";
+import { CAPITAL_ACCESS_LOAN_PRODUCTS } from "./loan-catalog";
 
 // Global in-memory storage persisted across hot-reloads
 declare global {
+  // eslint-disable-next-line no-var
+  var __capital_access_loan_applications__: LoanApplication[] | undefined;
   // eslint-disable-next-line no-var
   var __capitalx_loan_applications__: LoanApplication[] | undefined;
 }
@@ -10,7 +12,7 @@ declare global {
 const INITIAL_DEMO_APPLICATIONS: LoanApplication[] = [
   {
     id: "app-init-001",
-    applicationRef: "CX-2026-481920",
+    applicationRef: "CA-2026-481920",
     productId: "sme-msme-loan",
     productName: "SME-MSME Loan",
     category: "Business & MSME",
@@ -36,13 +38,13 @@ const INITIAL_DEMO_APPLICATIONS: LoanApplication[] = [
     status: "lender_matched",
     statusLabel: "Lender Matched · Term Sheet Issued",
     preliminaryScore: 92,
-    matchedLenders: CAPITALX_LOAN_PRODUCTS.find((p) => p.id === "sme-msme-loan")?.matchedLenders || [],
+    matchedLenders: CAPITAL_ACCESS_LOAN_PRODUCTS.find((p) => p.id === "sme-msme-loan")?.matchedLenders || [],
     appliedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
     updatedAt: new Date(Date.now() - 3600000 * 4).toISOString(),
   },
   {
     id: "app-init-002",
-    applicationRef: "CX-2026-319084",
+    applicationRef: "CA-2026-319084",
     productId: "commercial-property-loan",
     productName: "Commercial Property Loan",
     category: "Property & Housing",
@@ -67,17 +69,17 @@ const INITIAL_DEMO_APPLICATIONS: LoanApplication[] = [
     status: "under_review",
     statusLabel: "Legal & Valuation Review in Progress",
     preliminaryScore: 88,
-    matchedLenders: CAPITALX_LOAN_PRODUCTS.find((p) => p.id === "commercial-property-loan")?.matchedLenders || [],
+    matchedLenders: CAPITAL_ACCESS_LOAN_PRODUCTS.find((p) => p.id === "commercial-property-loan")?.matchedLenders || [],
     appliedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
   },
 ];
 
 export function getLoanApplications(): LoanApplication[] {
-  if (!globalThis.__capitalx_loan_applications__) {
-    globalThis.__capitalx_loan_applications__ = [...INITIAL_DEMO_APPLICATIONS];
+  if (!globalThis.__capital_access_loan_applications__) {
+    globalThis.__capital_access_loan_applications__ = globalThis.__capitalx_loan_applications__ || [...INITIAL_DEMO_APPLICATIONS];
   }
-  return globalThis.__capitalx_loan_applications__;
+  return globalThis.__capital_access_loan_applications__;
 }
 
 export function saveLoanApplication(app: LoanApplication): LoanApplication {

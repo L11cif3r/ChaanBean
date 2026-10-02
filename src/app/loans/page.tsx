@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { CAPITALX_LOAN_PRODUCTS } from "@/lib/loans/loan-catalog";
+import { CAPITAL_ACCESS_LOAN_PRODUCTS } from "@/lib/loans/loan-catalog";
 import type { LoanProduct, LoanCategory, LoanApplication } from "@/lib/loans/types";
 import { LoanProductCard } from "@/components/loans/LoanProductCard";
 import { LoanCalculatorWidget } from "@/components/loans/LoanCalculatorWidget";
-import { CapitalXApplicationModal } from "@/components/loans/CapitalXApplicationModal";
+import { CapitalAccessApplicationModal } from "@/components/loans/CapitalAccessApplicationModal";
 import { MyApplicationsTracker } from "@/components/loans/MyApplicationsTracker";
 import {
   Landmark,
@@ -33,8 +33,8 @@ export default function LoansPage() {
   const [selectedProductId, setSelectedProductId] = useState<string>("sme-msme-loan");
   const currentProduct = useMemo(() => {
     return (
-      CAPITALX_LOAN_PRODUCTS.find((p) => p.id === selectedProductId) ||
-      CAPITALX_LOAN_PRODUCTS[0]
+      CAPITAL_ACCESS_LOAN_PRODUCTS.find((p) => p.id === selectedProductId) ||
+      CAPITAL_ACCESS_LOAN_PRODUCTS[0]
     );
   }, [selectedProductId]);
 
@@ -86,7 +86,7 @@ export default function LoansPage() {
     setTenureYears(prod.defaultTenureYears);
 
     // Smooth scroll to calculator widget
-    const el = document.getElementById("capitalx-calculator");
+    const el = document.getElementById("capital-access-calculator");
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -112,7 +112,7 @@ export default function LoansPage() {
 
   // Filtered Products
   const filteredProducts = useMemo(() => {
-    return CAPITALX_LOAN_PRODUCTS.filter((prod) => {
+    return CAPITAL_ACCESS_LOAN_PRODUCTS.filter((prod) => {
       if (selectedCategory !== "All" && prod.category !== selectedCategory) {
         return false;
       }
@@ -134,7 +134,7 @@ export default function LoansPage() {
   return (
     <div className="p-6 md:p-8 space-y-10 max-w-7xl mx-auto">
       {/* ------------------------------------------------------------- */}
-      {/* TOP HERO BANNER: CAPITALX INSTITUTIONAL CREDIT MARKETPLACE    */}
+      {/* TOP HERO BANNER: CAPITAL ACCESS INSTITUTIONAL CREDIT MARKETPLACE */}
       {/* ------------------------------------------------------------- */}
       <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-800 bg-gradient-to-r from-orange-50/80 via-white to-amber-50/50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 p-6 sm:p-8 shadow-xl space-y-5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -142,7 +142,7 @@ export default function LoansPage() {
             <div className="flex items-center gap-2.5">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-[#FC8019] text-white shadow-xs">
                 <Landmark size={14} />
-                <span>CapitalX · Institutional Lending Marketplace</span>
+                <span>Capital Access · Institutional Lending Marketplace</span>
               </span>
               <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 rounded-full">
                 20 Specialized Credit Facilities
@@ -227,7 +227,7 @@ export default function LoansPage() {
       {activeTab === "catalog" && (
         <div className="space-y-10">
           {/* Facility Calculator Section */}
-          <div id="capitalx-calculator" className="scroll-mt-8">
+          <div id="capital-access-calculator" className="scroll-mt-8">
             <LoanCalculatorWidget
               product={currentProduct}
               amount={amount}
@@ -246,7 +246,7 @@ export default function LoansPage() {
                   Comprehensive Institutional Loan Catalogue
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                  Showing {filteredProducts.length} of {CAPITALX_LOAN_PRODUCTS.length} specialized financing products with transparent rate structures.
+                  Showing {filteredProducts.length} of {CAPITAL_ACCESS_LOAN_PRODUCTS.length} specialized financing products with transparent rate structures.
                 </p>
               </div>
 
@@ -278,8 +278,8 @@ export default function LoansPage() {
                 const isSelected = selectedCategory === cat;
                 const count =
                   cat === "All"
-                    ? CAPITALX_LOAN_PRODUCTS.length
-                    : CAPITALX_LOAN_PRODUCTS.filter((p) => p.category === cat).length;
+                    ? CAPITAL_ACCESS_LOAN_PRODUCTS.length
+                    : CAPITAL_ACCESS_LOAN_PRODUCTS.filter((p) => p.category === cat).length;
 
                 return (
                   <button
@@ -348,7 +348,7 @@ export default function LoansPage() {
             <div className="flex items-center gap-2">
               <ShieldCheck size={20} className="text-[#FC8019]" />
               <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                Why Borrow Through the CapitalX Institutional Desk?
+                Why Borrow Through the Capital Access Institutional Desk?
               </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs text-slate-600 dark:text-slate-400">
@@ -395,7 +395,7 @@ export default function LoansPage() {
       {/* 4-STEP INSTITUTIONAL APPLICATION MODAL                        */}
       {/* ------------------------------------------------------------- */}
       {modalOpen && (
-        <CapitalXApplicationModal
+        <CapitalAccessApplicationModal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
           product={applyingProduct}

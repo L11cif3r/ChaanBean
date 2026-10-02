@@ -149,10 +149,10 @@ export function Sidebar() {
     {
       id: "capital-access",
       href: "/loans",
-      label: "CapitalX (Loans)",
+      label: "Capital Access",
       subtitle: "20 Institutional Facilities",
       icon: Landmark,
-      badge: "CapitalX",
+      badge: "Loans",
     },
   ];
 

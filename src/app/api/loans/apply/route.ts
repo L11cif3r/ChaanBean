@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { CAPITALX_LOAN_PRODUCTS } from "@/lib/loans/loan-catalog";
+import { CAPITAL_ACCESS_LOAN_PRODUCTS } from "@/lib/loans/loan-catalog";
 import { saveLoanApplication } from "@/lib/loans/loan-store";
 import type { LoanApplication } from "@/lib/loans/types";
 
@@ -33,10 +33,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const product = CAPITALX_LOAN_PRODUCTS.find((p) => p.id === productId);
+    const product = CAPITAL_ACCESS_LOAN_PRODUCTS.find((p) => p.id === productId);
     if (!product) {
       return NextResponse.json(
-        { error: `Loan product '${productId}' not found in CapitalX catalog.` },
+        { error: `Loan product '${productId}' not found in Capital Access catalog.` },
         { status: 404 }
       );
     }
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
 
     // Generate unique verifiable application reference
     const randomDigits = Math.floor(100000 + Math.random() * 900000);
-    const applicationRef = `CX-2026-${randomDigits}`;
+    const applicationRef = `CA-2026-${randomDigits}`;
 
     const newApplication: LoanApplication = {
       id: `loan-app-${Date.now()}-${randomDigits}`,
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       application: newApplication,
-      message: `Your application for ${product.name} (Ref: ${applicationRef}) has been submitted successfully to CapitalX partner banks.`,
+      message: `Your application for ${product.name} (Ref: ${applicationRef}) has been submitted successfully to Capital Access partner banks.`,
     });
   } catch (error) {
     console.error("Error processing loan application:", error);

@@ -1,6 +1,6 @@
 import type { LoanProduct } from "./types";
 
-export const CAPITALX_LOAN_PRODUCTS: LoanProduct[] = [
+export const CAPITAL_ACCESS_LOAN_PRODUCTS: LoanProduct[] = [
   {
     id: "home-loan",
     name: "Home Loan",
@@ -1135,3 +1135,6 @@ export const CAPITALX_LOAN_PRODUCTS: LoanProduct[] = [
     ],
   },
 ];
+
+/** Backward-compatibility alias */
+export const CAPITALX_LOAN_PRODUCTS = CAPITAL_ACCESS_LOAN_PRODUCTS;
