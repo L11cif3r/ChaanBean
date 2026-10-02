@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getDefaultCompany } from "@/lib/tenant/tenant-resolver";
+import { createOtpSession, verifyOtpSession } from "@/lib/auth/otp-service";
 
 export const dynamic = "force-dynamic";
 
@@ -70,27 +71,7 @@ export async function GET(req: Request) {
       }
     }
 
-    // 3. Fallback: check default tenant
-    const defaultCompany = await getDefaultCompany();
-    if (defaultCompany) {
-      return NextResponse.json({
-        authenticated: true,
-        type: "client",
-        isDefaultTenant: true,
-        user: {
-          id: defaultCompany.id,
-          name: defaultCompany.name,
-          email: "trade.ops@acmetraders.in",
-          role: "client_admin",
-          companyId: defaultCompany.id,
-          plan: defaultCompany.plan,
-          walletBalance: defaultCompany.walletBalance,
-          kycStatus: defaultCompany.kycStatus,
-          healthScore: defaultCompany.healthScore,
-        },
-      });
-    }
-
+    // 3. No active session found
     return NextResponse.json({
       authenticated: false,
       message: "No active user or client organization session found.",
@@ -169,33 +150,124 @@ export async function POST(req: Request) {
       return res;
     }
 
-    // 1b. CLIENT OTP LOGIN
-    if (action === "login_otp") {
-      const { mobile, otpCode } = body;
+    // 1b. SEND OTP (Sign-In or Registration Initiation)
+    if (action === "send_otp") {
+      const { mobile, purpose = "login", fullName, companyName, email, pan, gstin, plan, industry } = body;
       if (!mobile) {
         return NextResponse.json({ error: "Mobile number is required." }, { status: 400 });
       }
-      if (!otpCode || otpCode.length < 4) {
-        return NextResponse.json({ error: "Valid 6-digit OTP is required." }, { status: 400 });
+
+      const session = await createOtpSession({
+        mobile,
+        purpose: purpose === "register" ? "register" : "login",
+        metadata: {
+          fullName: fullName ? String(fullName).trim() : undefined,
+          companyName: companyName ? String(companyName).trim() : undefined,
+          email: email ? String(email).trim().toLowerCase() : undefined,
+          pan: pan ? String(pan).trim().toUpperCase() : undefined,
+          gstin: gstin ? String(gstin).trim().toUpperCase() : undefined,
+          plan: plan ? String(plan).trim() : undefined,
+          industry: industry ? String(industry).trim() : undefined,
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        txnId: session.txnId,
+        mobile: session.mobile,
+        expiresInSeconds: session.expiresInSeconds,
+        message: session.message,
+        ...(session.uatOtp ? { uatOtp: session.uatOtp } : {}),
+      });
+    }
+
+    // 1c. VERIFY OTP / CLIENT OTP LOGIN
+    if (action === "login_otp" || action === "verify_otp") {
+      const { mobile, otpCode, otp, txnId, companyName, fullName, email, pan, gstin, plan, industry } = body;
+      const finalOtp = otp || otpCode;
+
+      if (!mobile) {
+        return NextResponse.json({ error: "Mobile number is required." }, { status: 400 });
+      }
+      if (!finalOtp) {
+        return NextResponse.json({ error: "6-digit OTP code is required." }, { status: 400 });
       }
 
-      const company = await getDefaultCompany();
+      const verification = await verifyOtpSession({
+        mobile: String(mobile),
+        otp: String(finalOtp),
+        txnId: txnId ? String(txnId).trim() : undefined,
+      });
+
+      const cleanMobile = verification.mobile;
+      const meta = verification.metadata || {};
+      const finalCompanyName = (companyName || meta.companyName || "").trim();
+      const finalFullName = (fullName || meta.fullName || "").trim();
+      const finalEmail = (email || meta.email || "").trim().toLowerCase();
+      const finalPan = (pan || meta.pan || "").trim().toUpperCase();
+      const finalPlan = plan || meta.plan || "growth";
+      const finalIndustry = industry || meta.industry || "Wholesale & Industrial Distribution";
+
+      let company = null;
+      if (finalCompanyName) {
+        company = await prisma.company.findFirst({
+          where: { name: { contains: finalCompanyName, mode: "insensitive" } },
+        });
+      }
 
       if (!company) {
-        return NextResponse.json(
-          { error: "No active client organization account found." },
-          { status: 404 }
-        );
+        const buyerWithPhone = await prisma.buyerDebtor.findFirst({
+          where: { mobileNumbers: { contains: cleanMobile } },
+          include: { company: true },
+        });
+        if (buyerWithPhone?.company) {
+          company = buyerWithPhone.company;
+        }
       }
+
+      if (!company) {
+        const generatedName = finalCompanyName || `Enterprise Partner (${cleanMobile.slice(-4)})`;
+        company = await prisma.company.create({
+          data: {
+            name: generatedName,
+            plan: finalPlan,
+            walletBalance: 250000,
+            kycStatus: "verified",
+            industry: finalIndustry,
+            healthScore: "Healthy",
+          },
+        });
+
+        const cleanPanSlice = finalPan ? finalPan.slice(2, 6) : "ABCD";
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        await prisma.trustProfile.create({
+          data: {
+            companyId: company.id,
+            trustId: `TH-CB-${cleanPanSlice}-${randomSuffix}`,
+            visibility: "network",
+            linkedReports: JSON.stringify(["mobile_verified", "kyc_passed"]),
+            complianceBadges: JSON.stringify([
+              "Mobile Verified Enterprise",
+              "ChaanBean Authenticated Partner",
+            ]),
+          },
+        });
+      }
+
+      const userEmail = finalEmail || `${cleanMobile}@chaanbean-partner.in`;
+      const userFullName = finalFullName || (company.name.includes("Enterprise") ? "Trade Director" : company.name);
 
       const res = NextResponse.json({
         success: true,
         type: "client",
+        authenticated: true,
+        message: "Mobile verified successfully.",
         user: {
           id: company.id,
           name: company.name,
-          email: `${mobile.replace(/\D/g, "").slice(-10)}@acmetraders.in`,
-          phone: mobile,
+          fullName: userFullName,
+          email: userEmail,
+          phone: cleanMobile,
           role: "client_admin",
           companyId: company.id,
           plan: company.plan,
@@ -211,6 +283,16 @@ export async function POST(req: Request) {
       res.cookies.set("chaanbean_company_name", encodeURIComponent(company.name), {
         path: "/",
         maxAge: 86400,
+        sameSite: "lax",
+      });
+      res.cookies.set("chaanbean_session", "client", {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax",
+      });
+      res.cookies.set("chaanbean_subscription", "active", {
+        path: "/",
+        maxAge: 7776000,
         sameSite: "lax",
       });
 
@@ -243,7 +325,7 @@ export async function POST(req: Request) {
       });
 
       if (existingCompany) {
-        return NextResponse.json({
+        const res = NextResponse.json({
           success: true,
           type: "client",
           message: "Enterprise account already registered. Logged in successfully.",
@@ -258,6 +340,27 @@ export async function POST(req: Request) {
             walletBalance: existingCompany.walletBalance,
           },
         });
+        res.cookies.set("chaanbean_company_id", existingCompany.id, {
+          path: "/",
+          maxAge: 86400,
+          sameSite: "lax",
+        });
+        res.cookies.set("chaanbean_company_name", encodeURIComponent(existingCompany.name), {
+          path: "/",
+          maxAge: 86400,
+          sameSite: "lax",
+        });
+        res.cookies.set("chaanbean_session", "client", {
+          path: "/",
+          maxAge: 86400,
+          sameSite: "lax",
+        });
+        res.cookies.set("chaanbean_subscription", "active", {
+          path: "/",
+          maxAge: 7776000,
+          sameSite: "lax",
+        });
+        return res;
       }
 
       // Create new Company in Prisma
@@ -290,7 +393,7 @@ export async function POST(req: Request) {
         },
       });
 
-      return NextResponse.json({
+      const res = NextResponse.json({
         success: true,
         type: "client",
         message: "Enterprise account registered successfully.",
@@ -307,6 +410,27 @@ export async function POST(req: Request) {
           trustId,
         },
       });
+      res.cookies.set("chaanbean_company_id", newCompany.id, {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax",
+      });
+      res.cookies.set("chaanbean_company_name", encodeURIComponent(newCompany.name), {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax",
+      });
+      res.cookies.set("chaanbean_session", "client", {
+        path: "/",
+        maxAge: 86400,
+        sameSite: "lax",
+      });
+      res.cookies.set("chaanbean_subscription", "active", {
+        path: "/",
+        maxAge: 7776000,
+        sameSite: "lax",
+      });
+      return res;
     }
 
     // 3. ADMIN LOGIN

@@ -41,6 +41,8 @@ export default function LoginPage() {
   const [otpCode, setOtpCode] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpTimer, setOtpTimer] = useState(0);
+  const [otpTxnId, setOtpTxnId] = useState("");
+  const [sendingOtp, setSendingOtp] = useState(false);
 
   // Password Login state
   const [clientEmail, setClientEmail] = useState("");
@@ -81,31 +83,57 @@ export default function LoginPage() {
     return () => clearInterval(interval);
   }, [otpTimer]);
 
-  // Request OTP handler
-  const handleSendOtp = () => {
+  // Request OTP handler via API endpoint
+  const handleSendOtp = async () => {
     setError(null);
-    const cleanedMobile = otpMobile.replace(/\D/g, "");
-    if (cleanedMobile.length < 10) {
+    setSuccessMsg(null);
+    const cleanedMobile = otpMobile.replace(/\D/g, "").slice(-10);
+    if (cleanedMobile.length !== 10) {
       setError("Please enter a valid 10-digit mobile number.");
       return;
     }
-    setOtpSent(true);
-    setOtpTimer(30);
-    // Provide demo code in success message for convenience
-    setSuccessMsg(`One-Time Password (OTP) dispatched to +91 ${cleanedMobile.slice(-10)}. [Demo OTP: 482910]`);
-    if (!otpCode) {
-      setOtpCode("482910");
+
+    setSendingOtp(true);
+    try {
+      const res = await fetch("/api/auth/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mobile: cleanedMobile,
+          purpose: mode,
+          companyName: companyName || undefined,
+          fullName: fullName || undefined,
+          email: clientEmail || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to dispatch OTP.");
+      }
+
+      setOtpTxnId(data.txnId || "");
+      setOtpSent(true);
+      setOtpTimer(60);
+      setSuccessMsg(data.message || `OTP dispatched to +91 ${cleanedMobile}.`);
+      if (data.uatOtp) {
+        setOtpCode(data.uatOtp);
+        setSuccessMsg(`${data.message} [Code: ${data.uatOtp}]`);
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to send OTP. Please try again.");
+    } finally {
+      setSendingOtp(false);
     }
   };
 
   // Quick fill sample credentials
   const fillSampleOtp = () => {
     setOtpMobile("9876543210");
-    setOtpCode("482910");
-    setOtpSent(true);
-    setOtpTimer(30);
+    setOtpSent(false);
+    setOtpCode("");
     setError(null);
-    setSuccessMsg("Filled demo mobile & OTP: 9876543210 / 482910");
+    setSuccessMsg("Filled mobile 9876543210. Click 'Send OTP' to request a live verification code.");
   };
 
   const fillSampleClient = () => {
@@ -131,21 +159,22 @@ export default function LoginPage() {
     try {
       if (mode === "login") {
         if (loginMethod === "otp") {
-          // Mobile + OTP flow
+          // Mobile + OTP flow via dedicated verification endpoint
           if (!otpMobile) {
             throw new Error("Mobile number is required.");
           }
-          if (!otpCode || otpCode.length < 4) {
+          if (!otpCode || otpCode.length < 6) {
             throw new Error("Please enter the 6-digit OTP sent to your phone.");
           }
 
-          const res = await fetch("/api/auth", {
+          const res = await fetch("/api/auth/otp/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              action: "login_otp",
               mobile: otpMobile,
-              otpCode: otpCode,
+              otp: otpCode,
+              txnId: otpTxnId || undefined,
+              purpose: "login",
             }),
           });
           const data = await res.json();
@@ -514,10 +543,10 @@ export default function LoginPage() {
                           <button
                             type="button"
                             onClick={handleSendOtp}
-                            disabled={otpTimer > 0 || !otpMobile}
+                            disabled={otpTimer > 0 || !otpMobile || sendingOtp}
                             className="rounded-xl border border-[#FC8019] bg-orange-500/10 hover:bg-[#FC8019] hover:text-white text-[#FC8019] px-3.5 py-2.5 text-xs font-bold disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-[#FC8019] transition shrink-0"
                           >
-                            {otpTimer > 0 ? `Resend (${otpTimer}s)` : "Get OTP"}
+                            {sendingOtp ? "Sending..." : otpTimer > 0 ? `Resend (${otpTimer}s)` : "Get OTP"}
                           </button>
                         </div>
                       </div>
