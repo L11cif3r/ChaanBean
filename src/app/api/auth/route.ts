@@ -2,6 +2,107 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getDefaultCompany } from "@/lib/tenant/tenant-resolver";
 
+export const dynamic = "force-dynamic";
+
+/**
+ * GET /api/auth
+ * Retrieves current authenticated session details for client or admin.
+ */
+export async function GET(req: Request) {
+  try {
+    const cookieHeader = req.headers.get("cookie") || "";
+    const matchCompany = cookieHeader.match(/chaanbean_company_id=([^;]+)/);
+    const cookieCompanyId = matchCompany ? decodeURIComponent(matchCompany[1]) : undefined;
+    const headerCompanyId = req.headers.get("x-tenant-id");
+    const targetCompanyId = headerCompanyId || cookieCompanyId;
+
+    const matchAdminSession = cookieHeader.match(/chaanbean_admin_session=([^;]+)/);
+    const matchAdminId = cookieHeader.match(/chaanbean_admin_id=([^;]+)/);
+    const adminSessionActive = matchAdminSession && matchAdminSession[1] === "active";
+    const adminId = matchAdminId ? decodeURIComponent(matchAdminId[1]) : undefined;
+
+    // 1. Check if admin session is active
+    if (adminSessionActive) {
+      const adminUser = adminId
+        ? await prisma.adminUser.findUnique({ where: { id: adminId } })
+        : await prisma.adminUser.findFirst();
+
+      if (adminUser) {
+        return NextResponse.json({
+          authenticated: true,
+          type: "admin",
+          user: {
+            id: adminUser.id,
+            name: adminUser.name,
+            email: adminUser.email,
+            role: adminUser.role,
+          },
+        });
+      }
+    }
+
+    // 2. Check if client company session is active
+    if (targetCompanyId) {
+      const company = await prisma.company.findUnique({
+        where: { id: targetCompanyId },
+        include: { trustProfiles: true },
+      });
+
+      if (company) {
+        return NextResponse.json({
+          authenticated: true,
+          type: "client",
+          user: {
+            id: company.id,
+            name: company.name,
+            email: company.name.includes("ABC")
+              ? "enterprise@abcindustry.in"
+              : "trade.ops@acmetraders.in",
+            role: "client_admin",
+            companyId: company.id,
+            plan: company.plan,
+            walletBalance: company.walletBalance,
+            kycStatus: company.kycStatus,
+            healthScore: company.healthScore,
+            trustId: company.trustProfiles?.[0]?.trustId || null,
+          },
+        });
+      }
+    }
+
+    // 3. Fallback: check default tenant
+    const defaultCompany = await getDefaultCompany();
+    if (defaultCompany) {
+      return NextResponse.json({
+        authenticated: true,
+        type: "client",
+        isDefaultTenant: true,
+        user: {
+          id: defaultCompany.id,
+          name: defaultCompany.name,
+          email: "trade.ops@acmetraders.in",
+          role: "client_admin",
+          companyId: defaultCompany.id,
+          plan: defaultCompany.plan,
+          walletBalance: defaultCompany.walletBalance,
+          kycStatus: defaultCompany.kycStatus,
+          healthScore: defaultCompany.healthScore,
+        },
+      });
+    }
+
+    return NextResponse.json({
+      authenticated: false,
+      message: "No active user or client organization session found.",
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to retrieve session" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
