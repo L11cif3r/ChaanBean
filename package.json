@@ -4,19 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build && node scripts/copy-standalone-assets.js",
-    "build:vercel": "prisma migrate deploy && prisma generate && next build",
+    "build": "node scripts/prisma-generate.js && next build && node scripts/copy-standalone-assets.js",
+    "build:vercel": "node scripts/prisma-generate.js && next build",
     "start": "next start",
     "lint": "next lint",
-    "db:generate": "prisma generate",
-    "db:use:postgres": "node -e \"const fs=require('fs'); fs.copyFileSync('prisma/schema.postgresql.prisma', 'prisma/schema.prisma');\" && prisma generate",
-    "db:use:sqlite": "node -e \"const fs=require('fs'); fs.copyFileSync('prisma/schema.sqlite.prisma', 'prisma/schema.prisma');\" && prisma generate",
+    "db:generate": "node scripts/prisma-generate.js",
+    "db:use:postgres": "node -e \"const fs=require('fs'); fs.copyFileSync('prisma/schema.postgresql.prisma', 'prisma/schema.prisma');\" && node scripts/prisma-generate.js",
+    "db:use:sqlite": "node -e \"const fs=require('fs'); fs.copyFileSync('prisma/schema.sqlite.prisma', 'prisma/schema.prisma');\" && node scripts/prisma-generate.js",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:setup": "prisma db push && tsx prisma/seed.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "node scripts/prisma-generate.js"
   },
   "dependencies": {
     "@neon/config": "^1.8.2",
