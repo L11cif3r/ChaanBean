@@ -133,21 +133,40 @@ function getDatabaseUrl(): string | undefined {
 function createPrismaClient(): PrismaClient {
   const dbUrl = getDatabaseUrl();
 
-  // If connected to PostgreSQL/Neon, use the official Neon driver adapter over WSS (port 443)
+  // If connected to PostgreSQL (Neon or Supabase/Standard Postgres)
   if (dbUrl && (dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://"))) {
-    try {
-      const parsed = new URL(dbUrl);
-      console.log(`[db] Initializing Prisma with PrismaNeon adapter for ${parsed.hostname}`);
-    } catch {
-      console.log("[db] Initializing Prisma with PrismaNeon adapter");
+    const isNeon = dbUrl.includes("neon.tech");
+
+    if (isNeon) {
+      try {
+        const parsed = new URL(dbUrl);
+        console.log(`[db] Initializing Prisma with PrismaNeon adapter for ${parsed.hostname}`);
+      } catch {
+        console.log("[db] Initializing Prisma with PrismaNeon adapter");
+      }
+
+      const adapter = new PrismaNeon({ connectionString: dbUrl });
+      const client = new PrismaClient({
+        adapter,
+        log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+      });
+      globalForPrisma._prismaInitializedWithAdapter = true;
+      return client;
     }
 
-    const adapter = new PrismaNeon({ connectionString: dbUrl });
+    // Supabase or standard PostgreSQL connection pooler (e.g. Supavisor)
+    try {
+      const parsed = new URL(dbUrl);
+      console.log(`[db] Initializing Prisma PostgreSQL client for Supabase (${parsed.hostname})`);
+    } catch {
+      console.log("[db] Initializing Prisma PostgreSQL client for Supabase");
+    }
+
     const client = new PrismaClient({
-      adapter,
+      datasources: { db: { url: dbUrl } },
       log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
     });
-    globalForPrisma._prismaInitializedWithAdapter = true;
+    globalForPrisma._prismaInitializedWithAdapter = false;
     return client;
   }
 
