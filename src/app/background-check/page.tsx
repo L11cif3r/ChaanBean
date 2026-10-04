@@ -1,0 +1,118 @@
+import { prisma } from "@/lib/db";
+import Link from "next/link";
+import { VerificationRunner } from "@/components/VerificationRunner";
+import { Search, ShieldAlert, Cpu } from "lucide-react";
+import { getAllKnowledgeEntities } from "@/lib/knowledge-source";
+import { cookies } from "next/headers";
+import { resolveTenantFromCookieStore } from "@/lib/tenant/tenant-resolver";
+import { GstRegistrationVerificationWidget } from "@/components/gst/GstRegistrationVerificationWidget";
+
+export const dynamic = "force-dynamic";
+
+export default async function BackgroundCheckPage() {
+  const cookieStore = await cookies();
+  const company = await resolveTenantFromCookieStore(cookieStore);
+
+  const ledger = company
+    ? await prisma.walletUsageLedger.findMany({ where: { companyId: company.id } })
+    : [];
+
+  const ledgerMap = Object.fromEntries(
+    ledger.map((l) => [
+      l.reportType,
+      { timesUsed: l.timesUsed, available: l.available, cost: l.cost },
+    ])
+  );
+
+  // Fetch actual buyers and vendors from database
+  const buyers = await prisma.buyerDebtor.findMany({
+    where: { companyId: company?.id },
+    select: { name: true, pan: true, gstin: true },
+    take: 6,
+  });
+  const vendors = await prisma.vendor.findMany({
+    where: { companyId: company?.id },
+    select: { name: true, pan: true, gstin: true },
+    take: 4,
+  });
+
+  const dbEntities = [
+    ...buyers.map((b) => ({ name: b.name, id: b.gstin || b.pan || b.name, type: "debtor" as const })),
+    ...vendors.map((v) => ({ name: v.name, id: v.gstin || v.pan || v.name, type: "vendor" as const })),
+  ];
+
+  const knowledgeFallback = getAllKnowledgeEntities().slice(0, 4).map((k) => ({
+    name: k.legalName,
+    id: k.gstin || k.pan || k.cin,
+    type: "debtor" as const,
+  }));
+
+  const entities = dbEntities.length > 0 ? dbEntities : knowledgeFallback;
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+      {/* Page Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+        <div>
+          <div className="flex items-center gap-2">
+            <Search className="text-[#FC8019]" size={24} />
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">AI Credit Check</h1>
+          </div>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            Unified adapter gateway · 30-day cache-first lookup · Parallel fan-out · Statutory credit risk underwriting
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5 text-xs font-bold font-sans text-slate-900 dark:text-white bg-white dark:bg-slate-800 px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#FC8019] shrink-0 animate-pulse" />
+          <span>18 Statutory Verification Services</span>
+        </div>
+      </div>
+
+      {/* À La Carte Call-Only Restriction Notice */}
+      {company?.plan?.startsWith("alacarte") && (
+        <div className="p-4 rounded-xl border border-amber-300 dark:border-amber-800/80 bg-amber-50 dark:bg-amber-950/30 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5 text-amber-800 dark:text-amber-300">
+            <ShieldAlert size={20} className="shrink-0 text-amber-600 dark:text-amber-400" />
+            <div>
+              <span className="font-bold font-mono uppercase tracking-wider block">
+                À La Carte Plan Active (Dedicated Call Recovery Service)
+              </span>
+              <span className="text-amber-700/90 dark:text-amber-400/90">
+                Your subscription provides automated Asterisk voice recovery. To access statutory credit underwriting adapters, upgrade to Growth or Enterprise.
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/payment-recovery"
+              className="px-3.5 py-1.5 rounded-lg bg-[#FC8019] text-white font-bold text-xs hover:bg-[#E26D0A] transition shadow-xs"
+            >
+              Go to Payment Automation
+            </Link>
+            <Link
+              href="/landing/subscription"
+              className="px-3.5 py-1.5 rounded-lg border border-amber-400 dark:border-amber-700 bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-300 font-semibold text-xs hover:border-[#FC8019] transition"
+            >
+              Upgrade Plan
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Main Interactive Verification Hub */}
+      <VerificationRunner companyId={company?.id || ""} ledgerMap={ledgerMap} sampleEntities={entities} />
+
+      {/* Official GSTN Registration Certificate (API Setu Live) Integration */}
+      <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+        <GstRegistrationVerificationWidget
+          companyId={company?.id || ""}
+          initialGstin="30MCBPH2034F2Z8"
+          initialLegalName="Amit"
+          initialEmail="abc@gmail.com"
+        />
+      </div>
+    </div>
+  );
+}
+

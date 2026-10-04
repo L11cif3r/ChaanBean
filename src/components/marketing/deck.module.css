@@ -1,0 +1,364 @@
+/* Hero card deck: four service cards that rotate, with tabs underneath.
+   Tokens come from site.module.css (the deck always renders inside SiteShell). */
+
+.deckWrap {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+/* All cards share one grid cell, so the deck is as tall as the tallest card. */
+.deck {
+  display: grid;
+  padding-bottom: 30px;
+  touch-action: pan-y;
+}
+
+.card {
+  --t: var(--green);
+  --t-soft: var(--green-soft);
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  border-radius: 26px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  box-shadow: 0 40px 80px -30px rgba(90, 20, 0, 0.55);
+  transform-origin: 50% 100%;
+  transition: transform 0.7s var(--ease), opacity 0.5s ease;
+  will-change: transform, opacity;
+}
+
+:global(html.dark) .card {
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.95);
+}
+
+.card[data-tone="amber"] {
+  --t: var(--amber);
+  --t-soft: var(--amber-soft);
+}
+
+.card[data-tone="orange"] {
+  --t: var(--orange-text);
+  --t-soft: var(--orange-soft);
+}
+
+.card[data-tone="red"] {
+  --t: var(--red);
+  --t-soft: var(--red-soft);
+}
+
+/* Stack positions: 0 front, 1 and 2 peek out underneath, 3 is the card that just left. */
+.card[data-pos="0"] {
+  z-index: 4;
+}
+
+.card[data-pos="1"] {
+  z-index: 3;
+  transform: translateY(16px) scale(0.95);
+  cursor: pointer;
+}
+
+.card[data-pos="2"] {
+  z-index: 2;
+  transform: translateY(30px) scale(0.9);
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.card[data-pos="3"] {
+  z-index: 5;
+  transform: translate(-14%, -5%) rotate(-7deg) scale(0.97);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.7s var(--ease), opacity 0.3s ease;
+}
+
+/* Content fades out at once on the leaving card and in slightly later on the new front card. */
+.card > * {
+  transition: opacity 0.2s ease;
+}
+
+.card[data-pos="0"] > * {
+  transition: opacity 0.35s ease 0.22s;
+}
+
+.card:not([data-pos="0"]) > * {
+  opacity: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--t-soft);
+  color: var(--t);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.count {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.question {
+  margin-top: 12px !important;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.panel {
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--t-soft);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--t);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: deckPulse 1.8s ease-out infinite;
+}
+
+@keyframes deckPulse {
+  0% {
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  100% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+
+.headline {
+  margin-top: 8px !important;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--t);
+}
+
+.label {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.figure {
+  display: block;
+  min-height: 1.25em;
+  font-size: clamp(1.6rem, 1.4rem + 0.8vw, 1.85rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pinned to the bottom so every card fills the deck evenly. */
+.cells {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: auto 0 0;
+  padding-top: 12px;
+}
+
+.cell {
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+}
+
+.cell dt {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--faint);
+}
+
+.cell dd {
+  margin: 2px 0 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Tabs ---------- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 14px;
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+}
+
+:global(html.dark) .tabs {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Inactive tabs show their icon; the active tab opens up with its name. */
+.tab {
+  --t: var(--green);
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.tab[data-tone="amber"] {
+  --t: var(--amber);
+}
+
+.tab[data-tone="orange"] {
+  --t: var(--orange-text);
+}
+
+.tab[data-tone="red"] {
+  --t: var(--red);
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.tab svg {
+  flex: none;
+}
+
+.tabOn,
+.tabOn:hover {
+  flex: 1 1 auto;
+  background: #ffffff;
+  color: var(--t);
+}
+
+:global(html.dark) .tabOn,
+:global(html.dark) .tabOn:hover {
+  background: var(--surface-3);
+}
+
+.tabLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab:not(.tabOn) .tabLabel {
+  display: none;
+}
+
+/* Time left on the current card; the card changes when this bar fills. */
+.progress {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--t);
+  transform-origin: left center;
+  animation: deckProgress 5s linear forwards;
+}
+
+@keyframes deckProgress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.playBtn {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-left: auto;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  transition: background-color 0.2s;
+}
+
+.playBtn:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+:global(html.dark) .playBtn {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+@media (max-width: 520px) {
+  .tab {
+    padding: 0 12px;
+  }
+  .card {
+    padding: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card > * {
+    transition: none;
+  }
+  .dot {
+    animation: none;
+  }
+  .progress {
+    animation: none;
+    transform: none;
+  }
+}

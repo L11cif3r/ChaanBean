@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 48" height="48" width="170">
+  <rect x="1" y="1" width="168" height="46" rx="4" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+  <text x="85" y="14" text-anchor="middle" fill="#0A2540" font-family="system-ui, -apple-system, sans-serif" font-size="8.5" font-weight="700" letter-spacing="0.5">The national portal of India</text>
+  <g transform="translate(18, 38)">
+    <text font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="900">
+      <tspan fill="#E11D48">i</tspan>
+      <tspan fill="#16A34A">n</tspan>
+      <tspan fill="#0284C7">d</tspan>
+      <tspan fill="#F59E0B">i</tspan>
+      <tspan fill="#9333EA">a</tspan>
+      <tspan fill="#0F172A">.gov.in</tspan>
+    </text>
+  </g>
+</svg>
