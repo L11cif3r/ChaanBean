@@ -1,0 +1,652 @@
+{
+  "advisors": [
+    {
+      "id": "adv-1",
+      "name": "Siddharth Verma",
+      "email": "siddharth@chaanbean.in",
+      "role": "owner",
+      "specialization": "Executive Owner & Legal Counsel",
+      "phone": "+91 98112 34567"
+    },
+    {
+      "id": "adv-2",
+      "name": "Rajesh Nair",
+      "email": "rajesh.nair@chaanbean.in",
+      "role": "advisor",
+      "specialization": "Senior Collections & MSME Recovery",
+      "phone": "+91 98450 12345"
+    },
+    {
+      "id": "adv-3",
+      "name": "Pooja Deshmukh",
+      "email": "pooja.d@chaanbean.in",
+      "role": "advisor",
+      "specialization": "Enterprise Underwriting & Due Diligence",
+      "phone": "+91 97123 45678"
+    },
+    {
+      "id": "adv-4",
+      "name": "Sneha Kulkarni",
+      "email": "sneha.k@chaanbean.in",
+      "role": "advisor",
+      "specialization": "Statutory Disputes & Samadhaan Liaison",
+      "phone": "+91 99201 98765"
+    }
+  ],
+  "leads": [
+    {
+      "id": "lead-yt-1",
+      "name": "Dr. Ananya Sharma",
+      "companyName": "Nexus Bio-Pharma Distributorship",
+      "email": "ananya.s@nexusbiopharma.com",
+      "phone": "+91 98119 87654",
+      "source": "youtube",
+      "status": "converted",
+      "assignedTo": "Pooja Deshmukh",
+      "assignedToId": "adv-3",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Nexus Bio-Pharma Distributorship",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Defaulted"
+      },
+      "notes": "Converted into Annual Enterprise Tier after watching YouTube recovery case study.",
+      "createdAt": "2026-09-12T12:42:22.288Z"
+    },
+    {
+      "id": "lead-yt-2",
+      "name": "Sunil K. Agarwal",
+      "companyName": "Agarwal Timber & Plywood Mart",
+      "email": "sunil@agarwaltimbers.in",
+      "phone": "+91 94331 22890",
+      "source": "youtube",
+      "status": "demo_scheduled",
+      "assignedTo": "Siddharth Verma",
+      "assignedToId": "adv-1",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Agarwal Timber & Plywood Mart",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Both"
+      },
+      "notes": "Inbound via YouTube recovery dialer demo. Scheduled video walkthrough.",
+      "createdAt": "2026-09-11T12:42:22.289Z"
+    },
+    {
+      "id": "lead-yt-3",
+      "name": "Sneha Reddy",
+      "companyName": "Kalyani Forge & Foundry Ltd",
+      "email": "sneha.reddy@kalyaniforge.co.in",
+      "phone": "+91 98490 88765",
+      "source": "youtube",
+      "status": "converted",
+      "assignedTo": "Siddharth Verma",
+      "assignedToId": "adv-1",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Kalyani Forge & Foundry Ltd",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Delayed"
+      },
+      "notes": "Converted to Growth Tier with 10 user seats after YouTube dispute vault demo.",
+      "createdAt": "2026-09-10T12:42:22.289Z"
+    },
+    {
+      "id": "lead-yt-4",
+      "name": "Suresh Menon",
+      "companyName": "Apex Industrial Chemicals Ltd",
+      "email": "suresh@apexchemicals.in",
+      "phone": "+91 98470 99881",
+      "source": "youtube",
+      "status": "in_negotiation",
+      "assignedTo": "Rajesh Nair",
+      "assignedToId": "adv-2",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Apex Industrial Chemicals Ltd",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Defaulted"
+      },
+      "notes": "Formal proposal for Growth Tier + Company Add-on under negotiation.",
+      "createdAt": "2026-09-09T12:42:22.289Z"
+    },
+    {
+      "id": "lead-yt-5",
+      "name": "Harpreet Singh",
+      "companyName": "Precision Automotive Components",
+      "email": "harpreet@precisionauto.co.in",
+      "phone": "+91 98111 22334",
+      "source": "youtube",
+      "status": "converted",
+      "assignedTo": "Siddharth Verma",
+      "assignedToId": "adv-1",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Precision Automotive Components",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Both"
+      },
+      "notes": "Won deal! Subscribed to Enterprise plan for cross-state automotive receivables.",
+      "createdAt": "2026-09-08T12:42:22.289Z"
+    },
+    {
+      "id": "lead-yt-6",
+      "name": "Amit Shah",
+      "companyName": "Zenith Precision Castings",
+      "email": "amit@zenithcastings.com",
+      "phone": "+91 98450 77123",
+      "source": "youtube",
+      "status": "qualified",
+      "assignedTo": "Pooja Deshmukh",
+      "assignedToId": "adv-3",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Zenith Precision Castings",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Delayed"
+      },
+      "notes": "Qualified lead evaluating trade credit scoring for Gujarat casting units.",
+      "createdAt": "2026-09-07T12:42:22.289Z"
+    },
+    {
+      "id": "lead-yt-7",
+      "name": "Vikram Singhal",
+      "companyName": "Singhal Iron & Steel Traders",
+      "email": "vikram@singhaliron.in",
+      "phone": "+91 98102 33445",
+      "source": "youtube",
+      "status": "converted",
+      "assignedTo": "Rajesh Nair",
+      "assignedToId": "adv-2",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Singhal Iron & Steel Traders",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Defaulted"
+      },
+      "notes": "Converted customer! Activated subscription and recovered ?18L overdue invoices.",
+      "createdAt": "2026-09-06T12:42:22.289Z"
+    },
+    {
+      "id": "lead-yt-8",
+      "name": "Pravin Deshmukh",
+      "companyName": "Deshmukh Agro Warehousing",
+      "email": "pravin@deshmukhagro.in",
+      "phone": "+91 98230 44556",
+      "source": "youtube",
+      "status": "contacted",
+      "assignedTo": "Sneha Kulkarni",
+      "assignedToId": "adv-4",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Deshmukh Agro Warehousing",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Delayed"
+      },
+      "notes": "Initial consultation call on MSME 3x RBI interest claims completed.",
+      "createdAt": "2026-09-05T12:42:22.289Z"
+    },
+    {
+      "id": "lead-fb-1",
+      "name": "Vikram Malhotra",
+      "companyName": "Malhotra Metal & Alloys Pvt Ltd",
+      "email": "vikram@malhotrametals.in",
+      "phone": "+91 98201 44521",
+      "source": "facebook",
+      "status": "converted",
+      "assignedTo": "Rajesh Nair",
+      "assignedToId": "adv-2",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Malhotra Metal & Alloys Pvt Ltd",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Delayed"
+      },
+      "notes": "Converted to Growth Tier! Facebook retargeting campaign lead.",
+      "createdAt": "2026-09-13T10:42:22.289Z"
+    },
+    {
+      "id": "lead-fb-2",
+      "name": "Meera Krishnan",
+      "companyName": "Southern Electronic Components",
+      "email": "meera@southernelectronics.in",
+      "phone": "+91 94440 98124",
+      "source": "facebook",
+      "status": "qualified",
+      "assignedTo": "Pooja Deshmukh",
+      "assignedToId": "adv-3",
+      "adSurvey": {
+        "hasGst": "No",
+        "organizationName": "Southern Electronic Components",
+        "businessOnCredit": "No",
+        "paymentStatus": "Neither"
+      },
+      "notes": "Looking to set up GSTIN and evaluate trade credit scoring before opening credit accounts.",
+      "createdAt": "2026-09-10T12:42:22.289Z"
+    },
+    {
+      "id": "lead-fb-3",
+      "name": "Rajesh Gupta",
+      "companyName": "Bharat Logistics & Supply Chain",
+      "email": "rajesh.gupta@bharatlogistics.in",
+      "phone": "+91 98201 55678",
+      "source": "facebook",
+      "status": "converted",
+      "assignedTo": "Siddharth Verma",
+      "assignedToId": "adv-1",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Bharat Logistics & Supply Chain",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Both"
+      },
+      "notes": "Converted customer! Subscribed to Starter tier for fleet vendor verification.",
+      "createdAt": "2026-09-09T12:42:22.289Z"
+    },
+    {
+      "id": "lead-fb-4",
+      "name": "Manoj Sharma",
+      "companyName": "Royal Ceramic Tiles India",
+      "email": "manoj@royalceramics.in",
+      "phone": "+91 98290 66543",
+      "source": "facebook",
+      "status": "in_negotiation",
+      "assignedTo": "Pooja Deshmukh",
+      "assignedToId": "adv-3",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Royal Ceramic Tiles India",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Delayed"
+      },
+      "notes": "Reviewing commercial proposal for 10 user seats.",
+      "createdAt": "2026-09-08T12:42:22.289Z"
+    },
+    {
+      "id": "lead-fb-5",
+      "name": "Girish Goyal",
+      "companyName": "Goyal Hardware & Sanitary Fittings",
+      "email": "girish@goyalhardware.in",
+      "phone": "+91 98105 66778",
+      "source": "facebook",
+      "status": "converted",
+      "assignedTo": "Rajesh Nair",
+      "assignedToId": "adv-2",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Goyal Hardware & Sanitary Fittings",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Defaulted"
+      },
+      "notes": "Converted! Signed up for payment recovery suite + automated dialer.",
+      "createdAt": "2026-09-07T12:42:22.289Z"
+    },
+    {
+      "id": "lead-fb-6",
+      "name": "Vikram Patel",
+      "companyName": "Delta Agro Commodities",
+      "email": "vikram@deltaagro.co.in",
+      "phone": "+91 98790 12890",
+      "source": "facebook",
+      "status": "contacted",
+      "assignedTo": "Siddharth Verma",
+      "assignedToId": "adv-1",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Delta Agro Commodities",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Delayed"
+      },
+      "notes": "Discussed Section 43B(h) compliance and GSTR-3B matching.",
+      "createdAt": "2026-09-06T12:42:22.289Z"
+    },
+    {
+      "id": "lead-fb-7",
+      "name": "Ashok Singhania",
+      "companyName": "Singhania Heavy Machinery",
+      "email": "ashok@singhaniamachinery.in",
+      "phone": "+91 98310 99887",
+      "source": "facebook",
+      "status": "new",
+      "assignedTo": "Sneha Kulkarni",
+      "assignedToId": "adv-4",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Singhania Heavy Machinery",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Defaulted"
+      },
+      "notes": "Newly clicked Facebook ad on automated statutory legal notices.",
+      "createdAt": "2026-09-13T11:42:22.289Z"
+    },
+    {
+      "id": "lead-fb-8",
+      "name": "Devendra Joshi",
+      "companyName": "Joshi Electrical Engineering",
+      "email": "devendra@joshielectrical.com",
+      "phone": "+91 98221 55443",
+      "source": "facebook",
+      "status": "demo_scheduled",
+      "assignedTo": "Pooja Deshmukh",
+      "assignedToId": "adv-3",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Joshi Electrical Engineering",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Delayed"
+      },
+      "notes": "Demo booked for multi-state recovery follow-up ledger.",
+      "createdAt": "2026-09-05T12:42:22.289Z"
+    },
+    {
+      "id": "lead-fb-9",
+      "name": "Kavita Rao",
+      "companyName": "Rao Cotton Textiles",
+      "email": "kavita@raocotton.in",
+      "phone": "+91 98491 22334",
+      "source": "facebook",
+      "status": "lost",
+      "assignedTo": "Sneha Kulkarni",
+      "assignedToId": "adv-4",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Rao Cotton Textiles",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Delayed"
+      },
+      "notes": "Decided to maintain manual Excel follow-ups for this quarter.",
+      "createdAt": "2026-09-04T12:42:22.289Z"
+    },
+    {
+      "id": "lead-ig-1",
+      "name": "Alok Nair",
+      "companyName": "Surya Solar Energy Systems",
+      "email": "alok@suryasolar.in",
+      "phone": "+91 97110 33456",
+      "source": "instagram",
+      "status": "converted",
+      "assignedTo": "Pooja Deshmukh",
+      "assignedToId": "adv-3",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Surya Solar Energy Systems",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Defaulted"
+      },
+      "notes": "Won deal! Converted after seeing Instagram carousel on MSME default decrees.",
+      "createdAt": "2026-09-11T12:42:22.289Z"
+    },
+    {
+      "id": "lead-ig-2",
+      "name": "Rohan Kapoor",
+      "companyName": "Urban Fashion Garments",
+      "email": "rohan@urbanfashion.in",
+      "phone": "+91 98101 88776",
+      "source": "instagram",
+      "status": "converted",
+      "assignedTo": "Sneha Kulkarni",
+      "assignedToId": "adv-4",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Urban Fashion Garments",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Delayed"
+      },
+      "notes": "Converted into Starter plan with Trust Network verified badge.",
+      "createdAt": "2026-09-10T12:42:22.289Z"
+    },
+    {
+      "id": "lead-ig-3",
+      "name": "Deepa Iyer",
+      "companyName": "Metro Infotech Hardware",
+      "email": "deepa@metroinfotech.in",
+      "phone": "+91 98400 11998",
+      "source": "instagram",
+      "status": "lost",
+      "assignedTo": "Pooja Deshmukh",
+      "assignedToId": "adv-3",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Metro Infotech Hardware",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Delayed"
+      },
+      "notes": "Incurred budget freeze, delayed to next fiscal cycle.",
+      "createdAt": "2026-09-09T12:42:22.289Z"
+    },
+    {
+      "id": "lead-ig-4",
+      "name": "Siddharth Jain",
+      "companyName": "Lumina Lighting & Electronics",
+      "email": "sjain@luminalighting.in",
+      "phone": "+91 98112 44332",
+      "source": "instagram",
+      "status": "contacted",
+      "assignedTo": "Rajesh Nair",
+      "assignedToId": "adv-2",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Lumina Lighting & Electronics",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Both"
+      },
+      "notes": "Looking for skip-tracing and Find Someone phone verification.",
+      "createdAt": "2026-09-08T12:42:22.289Z"
+    },
+    {
+      "id": "lead-ig-5",
+      "name": "Nikhil Verma",
+      "companyName": "Nova Packagings & Containers",
+      "email": "nikhil@novapackagings.in",
+      "phone": "+91 98202 77889",
+      "source": "instagram",
+      "status": "new",
+      "assignedTo": "Siddharth Verma",
+      "assignedToId": "adv-1",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Nova Packagings & Containers",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Defaulted"
+      },
+      "notes": "Clicked Instagram reel on Section 16 interest calculator.",
+      "createdAt": "2026-09-13T11:42:22.289Z"
+    },
+    {
+      "id": "lead-ig-6",
+      "name": "Aakash Mehta",
+      "companyName": "Mehta Auto Spares",
+      "email": "aakash@mehtaautospares.in",
+      "phone": "+91 98791 22334",
+      "source": "instagram",
+      "status": "qualified",
+      "assignedTo": "Sneha Kulkarni",
+      "assignedToId": "adv-4",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Mehta Auto Spares",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Delayed"
+      },
+      "notes": "Interested in automated voice calls cadence for retail buyers.",
+      "createdAt": "2026-09-07T12:42:22.289Z"
+    },
+    {
+      "id": "lead-ig-7",
+      "name": "Tarun Batra",
+      "companyName": "Batra Footwear Manufacturing",
+      "email": "tarun@batrafootwear.com",
+      "phone": "+91 98141 55667",
+      "source": "instagram",
+      "status": "new",
+      "assignedTo": "Rajesh Nair",
+      "assignedToId": "adv-2",
+      "adSurvey": {
+        "hasGst": "No",
+        "organizationName": "Batra Footwear Manufacturing",
+        "businessOnCredit": "No",
+        "paymentStatus": "Neither"
+      },
+      "notes": "General inquiry on credit risk reports.",
+      "createdAt": "2026-09-06T12:42:22.289Z"
+    },
+    {
+      "id": "lead-dir-1",
+      "name": "Ramesh Patel",
+      "companyName": "Patel Agro Foods Processing",
+      "email": "ramesh@patelagro.co.in",
+      "phone": "+91 98790 65432",
+      "source": "direct",
+      "status": "converted",
+      "assignedTo": "Sneha Kulkarni",
+      "assignedToId": "adv-4",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Patel Agro Foods Processing",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Delayed"
+      },
+      "notes": "Direct website inquiry converted into Growth subscription.",
+      "createdAt": "2026-09-12T14:42:22.289Z"
+    },
+    {
+      "id": "lead-dir-2",
+      "name": "Mohan Lal",
+      "companyName": "Vardhman Polytech Fabrics",
+      "email": "mohan@vardhmanpoly.in",
+      "phone": "+91 98140 44321",
+      "source": "direct",
+      "status": "converted",
+      "assignedTo": "Pooja Deshmukh",
+      "assignedToId": "adv-3",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Vardhman Polytech Fabrics",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Both"
+      },
+      "notes": "Direct referral converted into Annual subscription.",
+      "createdAt": "2026-09-09T12:42:22.289Z"
+    },
+    {
+      "id": "lead-dir-3",
+      "name": "Rakesh Verma",
+      "companyName": "Classic Yarn Spinning Mills",
+      "email": "rakesh@classicyarn.in",
+      "phone": "+91 98220 77665",
+      "source": "direct",
+      "status": "lost",
+      "assignedTo": "Siddharth Verma",
+      "assignedToId": "adv-1",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Classic Yarn Spinning Mills",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Delayed"
+      },
+      "notes": "Direct lead postponed project to Q2.",
+      "createdAt": "2026-09-08T12:42:22.289Z"
+    },
+    {
+      "id": "lead-dir-4",
+      "name": "Gaurav Sen",
+      "companyName": "Sen Engineering Works",
+      "email": "gaurav@senworks.co.in",
+      "phone": "+91 98301 44556",
+      "source": "direct",
+      "status": "demo_scheduled",
+      "assignedTo": "Rajesh Nair",
+      "assignedToId": "adv-2",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Sen Engineering Works",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Defaulted"
+      },
+      "notes": "Inbound via website documentation. Demo scheduled.",
+      "createdAt": "2026-09-07T12:42:22.289Z"
+    },
+    {
+      "id": "lead-wom-1",
+      "name": "Karan Johar",
+      "companyName": "Zenith Textile Weaving Mills",
+      "email": "contact@zenithtextiles.com",
+      "phone": "+91 98300 11223",
+      "source": "word_of_mouth",
+      "status": "converted",
+      "assignedTo": "Rajesh Nair",
+      "assignedToId": "adv-2",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Zenith Textile Weaving Mills",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Defaulted"
+      },
+      "notes": "Referred by Acme Polymers. Converted into 5-seat Growth plan.",
+      "createdAt": "2026-09-12T00:42:22.289Z"
+    },
+    {
+      "id": "lead-wom-2",
+      "name": "Venkat Rao",
+      "companyName": "Godavari Sugar & Distilleries",
+      "email": "venkat.rao@godavarisugar.com",
+      "phone": "+91 98480 33211",
+      "source": "word_of_mouth",
+      "status": "converted",
+      "assignedTo": "Pooja Deshmukh",
+      "assignedToId": "adv-3",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Godavari Sugar & Distilleries",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Both"
+      },
+      "notes": "Referred by Singhania Steels. Subscribed to Enterprise plan.",
+      "createdAt": "2026-09-10T12:42:22.289Z"
+    },
+    {
+      "id": "lead-wom-3",
+      "name": "Harish Parekh",
+      "companyName": "Parekh Chemicals Distribution",
+      "email": "harish@parekhchem.in",
+      "phone": "+91 98200 99881",
+      "source": "word_of_mouth",
+      "status": "in_negotiation",
+      "assignedTo": "Siddharth Verma",
+      "assignedToId": "adv-1",
+      "adSurvey": {
+        "hasGst": "Yes",
+        "organizationName": "Parekh Chemicals Distribution",
+        "businessOnCredit": "Yes",
+        "paymentStatus": "Delayed"
+      },
+      "notes": "Peer referral evaluating multi-state recovery follow-up.",
+      "createdAt": "2026-09-09T12:42:22.289Z"
+    }
+  ],
+  "internalNotes": [
+    {
+      "id": "note-1",
+      "leadId": "lead-yt-1",
+      "author": "Pooja Deshmukh",
+      "text": "Nexus Bio-Pharma converted! Onboarded to Enterprise plan with full legal notice suite integration.",
+      "tag": "Customer Win",
+      "timestamp": "2026-09-12T12:42:22.289Z"
+    },
+    {
+      "id": "note-2",
+      "leadId": "lead-yt-3",
+      "author": "Siddharth Verma",
+      "text": "Kalyani Forge won! High-frequency dialer integration approved for 4 overdue construction contractors.",
+      "tag": "Customer Win",
+      "timestamp": "2026-09-11T12:42:22.289Z"
+    },
+    {
+      "id": "note-3",
+      "author": "Siddharth Verma (Owner)",
+      "text": "Ad ROI Analysis: YouTube ads are converting at 50% Win Rate (4 Wins / 8 Leads). Recommend increasing YouTube ad budget from ?40,000 to ?75,000 next month and scaling back on Instagram low-intent clicks.",
+      "tag": "Ad Spend Strategy",
+      "timestamp": "2026-09-13T00:42:22.289Z"
+    }
+  ]
+}
