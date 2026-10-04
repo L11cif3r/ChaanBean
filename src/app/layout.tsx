@@ -1,0 +1,59 @@
+import "@/app/globals.css";
+import type { Metadata } from "next";
+import { LanguageProvider } from "@/lib/i18n/context";
+import { AppShell } from "@/components/AppShell";
+
+export const metadata: Metadata = {
+  title: "ChaanBean | Credit Recovery & Verification",
+  description: "B2B credit recovery and business verification platform for the Indian market",
+  icons: {
+    icon: [
+      { url: "/icon.png", sizes: "512x512", type: "image/png" },
+      { url: "/favicon.ico", sizes: "64x64" },
+      { url: "/logo.png", sizes: "1024x742", type: "image/png" },
+    ],
+    shortcut: "/icon.png",
+    apple: "/apple-icon.png",
+  },
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className="light" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlTheme = urlParams.get("theme");
+                if (urlTheme === "light" || urlTheme === "dark") {
+                  localStorage.setItem("chaanbean_theme", urlTheme);
+                }
+                // One theme for the whole platform; drop the old site-only key if present.
+                localStorage.removeItem("chaanbean_site_theme");
+                const saved = localStorage.getItem("chaanbean_theme");
+                if (saved === "dark") {
+                  document.documentElement.classList.remove("light");
+                  document.documentElement.classList.add("dark");
+                } else {
+                  document.documentElement.classList.remove("dark");
+                  document.documentElement.classList.add("light");
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
+      {/* Browser extensions (e.g. ColorZilla's cz-shortcut-listen) add attributes to <body> before React hydrates. */}
+      <body
+        suppressHydrationWarning
+        className="min-h-screen bg-[#F8FAFC] dark:bg-[#090D16] text-slate-900 dark:text-slate-100 antialiased font-sans"
+      >
+        <LanguageProvider>
+          <AppShell>{children}</AppShell>
+        </LanguageProvider>
+      </body>
+    </html>
+  );
+}

@@ -1,0 +1,52 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing & coverage
+/coverage
+
+# next.js build output
+/.next/
+/out/
+/build
+
+# misc & OS files
+.DS_Store
+*.pem
+*.key
+*.cert
+*.crt
+
+# debug & logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# environment files
+.env
+.env.*
+!.env.example
+
+# prisma & local databases
+/prisma/*.db
+/prisma/*.db-journal
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# typescript build cache
+*.tsbuildinfo
+next-env.d.ts
+
+# vercel
+.vercel
+
+# agent skills & local neon context
+/.agents/
+skills-lock.json
+/.neon
+/scratch/

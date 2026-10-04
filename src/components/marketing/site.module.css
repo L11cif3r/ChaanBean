@@ -1,0 +1,1287 @@
+/* ==========================================================================
+   ChaanBean public site design system
+   Shared by /intro, /landing, /login and /subscription.
+   Scoped with CSS Modules so the portal's global overrides in globals.css
+   (html.light section, html.dark input, .text-white, ...) cannot leak in.
+   Dark mode is driven by html.dark, one platform-wide setting shared with
+   the portal (see src/lib/theme.ts and the script in app/layout.tsx).
+   ========================================================================== */
+
+.root {
+  /* Brand */
+  --orange-700: #e64a00;
+  --orange-600: #ff5200;
+  --orange-500: #fc8019;
+  --orange-400: #ff9a3d;
+  --orange-300: #ffb46b;
+  --grad-brand: linear-gradient(135deg, #ff5200 0%, #fc8019 55%, #ffa24a 100%);
+  --grad-text: linear-gradient(135deg, #ff5200 0%, #ff8a1f 60%, #ffb15c 100%);
+  --on-brand: #ffffff;
+
+  /* Surfaces (light) */
+  --bg: #fffdfb;
+  --bg-band: #fff6ee;
+  --surface: #ffffff;
+  --surface-2: #faf6f2;
+  --surface-3: #f3eee8;
+  --line: #ece6df;
+  --line-2: #f3eee8;
+  --text: #171717;
+  --text-2: #3b3b3b;
+  --muted: #666666;
+  --faint: #999999;
+  --orange-text: #e64a00;
+  --orange-soft: #fff0e3;
+  --orange-softer: #fff8f1;
+  --orange-line: #ffd2a8;
+  --green: #0b8a5c;
+  --green-soft: #e6f6ee;
+  --red: #d93a3a;
+  --red-soft: #fdecec;
+  --amber: #b86e00;
+  --amber-soft: #fff4dc;
+  --panel: #141414;
+  --panel-text: #ffffff;
+  --panel-muted: rgba(255, 255, 255, 0.66);
+  --panel-line: rgba(255, 255, 255, 0.1);
+  --nav-bg: rgba(255, 253, 251, 0.82);
+  --nav-bg-solid: rgba(255, 255, 255, 0.95);
+  --shadow-sm: 0 1px 2px rgba(23, 23, 23, 0.06), 0 2px 8px rgba(23, 23, 23, 0.04);
+  --shadow-md: 0 10px 30px -12px rgba(23, 23, 23, 0.18), 0 4px 10px -6px rgba(23, 23, 23, 0.08);
+  --shadow-lg: 0 30px 60px -24px rgba(23, 23, 23, 0.28), 0 12px 24px -16px rgba(23, 23, 23, 0.16);
+  --shadow-orange: 0 14px 30px -12px rgba(255, 82, 0, 0.55);
+  --field-bg: #fffdfb;
+  --dot: rgba(23, 23, 23, 0.08);
+
+  --radius-xl: 36px;
+  --radius-lg: 28px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  position: relative;
+  min-height: 100vh;
+  overflow-x: clip;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-jakarta), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  color-scheme: light;
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+/* True black dark mode. Warm orange accents, no navy or purple. */
+:global(html.dark) .root {
+  --bg: #000000;
+  --bg-band: #070605;
+  --surface: #0e0e0e;
+  --surface-2: #141414;
+  --surface-3: #1c1c1c;
+  --line: #242424;
+  --line-2: #1a1a1a;
+  --text: #f5f5f5;
+  --text-2: #d6d6d6;
+  --muted: #a3a3a3;
+  --faint: #707070;
+  --orange-text: #ff8a3d;
+  --orange-soft: rgba(255, 98, 20, 0.14);
+  --orange-softer: rgba(255, 98, 20, 0.06);
+  --orange-line: rgba(255, 122, 40, 0.38);
+  --green: #34c98f;
+  --green-soft: rgba(52, 201, 143, 0.13);
+  --red: #ff6b6b;
+  --red-soft: rgba(255, 107, 107, 0.13);
+  --amber: #ffb547;
+  --amber-soft: rgba(255, 181, 71, 0.13);
+  --panel: #111111;
+  --panel-line: rgba(255, 255, 255, 0.09);
+  --nav-bg: rgba(0, 0, 0, 0.72);
+  --nav-bg-solid: rgba(8, 8, 8, 0.92);
+  --shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 18px 40px -18px rgba(0, 0, 0, 0.9);
+  --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 30px 70px -28px rgba(0, 0, 0, 0.95);
+  --shadow-orange: 0 14px 34px -12px rgba(255, 82, 0, 0.6);
+  --field-bg: #0a0a0a;
+  --dot: rgba(255, 255, 255, 0.07);
+  color-scheme: dark;
+}
+
+/* Page background behind overscroll, and neutralise portal element overrides. */
+:global(html) body:has(.root) {
+  background-color: var(--site-body, #fffdfb) !important;
+}
+
+:global(html.dark) body:has(.root) {
+  background-color: #000 !important;
+}
+
+.root.root section,
+.root.root header,
+.root.root aside,
+.root.root main {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+:global(html):has(.root) {
+  scroll-behavior: smooth;
+}
+
+.root *,
+.root *::before,
+.root *::after {
+  box-sizing: border-box;
+}
+
+:where(.root) h1,
+:where(.root) h2,
+:where(.root) h3,
+:where(.root) h4,
+:where(.root) p,
+:where(.root) ul {
+  margin: 0;
+}
+
+/* :where keeps resets at zero specificity so component classes always win. */
+:where(.root) a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:where(.root) button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+:where(.root) button:disabled {
+  cursor: not-allowed;
+}
+
+.root :focus-visible {
+  outline: 3px solid rgba(252, 128, 25, 0.55);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-inline: 32px;
+  }
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 14px;
+  border: 1.5px solid transparent;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.005em;
+  text-align: center;
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease), background-color 0.2s, border-color 0.2s,
+    color 0.2s, opacity 0.2s;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+}
+
+.btnPrimary {
+  background: var(--grad-brand);
+  color: var(--on-brand);
+  box-shadow: var(--shadow-orange);
+}
+
+.btnPrimary:hover:not(:disabled) {
+  box-shadow: 0 18px 36px -12px rgba(255, 82, 0, 0.7);
+}
+
+.btnLight {
+  background: #ffffff;
+  color: #e64a00;
+  box-shadow: 0 14px 30px -14px rgba(90, 30, 0, 0.55);
+}
+
+.btnGlass {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #ffffff;
+}
+
+.btnGlass:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btnGhost {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--text);
+}
+
+.btnGhost:hover {
+  border-color: var(--orange-500);
+  color: var(--orange-text);
+}
+
+.btnDark {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.btnSmall {
+  white-space: nowrap;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+}
+
+.btnBlock {
+  width: 100%;
+}
+
+.textLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-weight: 700;
+  color: var(--text);
+  transition: gap 0.25s var(--ease), color 0.2s;
+}
+
+.textLink:hover {
+  gap: 10px;
+  color: var(--orange-text);
+}
+
+/* ---------- Type ---------- */
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--orange-soft);
+  color: var(--orange-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.sectionTitle {
+  margin-top: 16px !important;
+  font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem);
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+.sectionLead {
+  margin-top: 16px !important;
+  font-size: 1.08rem;
+  color: var(--muted);
+}
+
+.gradText {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.sectionHead {
+  max-width: 760px;
+  margin-bottom: 56px;
+}
+
+.center {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.section {
+  position: relative;
+  padding-block: 88px;
+  scroll-margin-top: 80px;
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding-block: 120px;
+  }
+}
+
+/* ---------- Reveal ---------- */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+  transition-delay: var(--delay, 0ms);
+}
+
+.revealIn {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Brand ---------- */
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.brandMark {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.brandMarkImg {
+  position: relative;
+  width: 36px;
+  height: 28px;
+}
+
+.brandName {
+  display: block;
+  font-size: 1.28rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.brandName span {
+  color: var(--orange-500);
+}
+
+.brandTag {
+  display: block;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* ---------- Theme switch ---------- */
+
+.themeSwitch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 64px;
+  height: 36px;
+  padding: 3px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.themeSwitch:hover {
+  border-color: var(--orange-line);
+}
+
+.themeKnob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--grad-brand);
+  color: #fff;
+  box-shadow: 0 4px 12px -4px rgba(255, 82, 0, 0.7);
+  transition: transform 0.4s var(--ease);
+}
+
+.themeSwitchDark .themeKnob {
+  transform: translateX(28px);
+}
+
+.themeIcons {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding-inline: 6px;
+  color: var(--faint);
+}
+
+/* ---------- Navigation ---------- */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+}
+
+.navBar {
+  background: var(--nav-bg);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+}
+
+.navScrolled {
+  background: var(--nav-bg-solid);
+  border-bottom-color: var(--line);
+  box-shadow: 0 8px 24px -18px rgba(0, 0, 0, 0.35);
+}
+
+.navInner {
+  max-width: 1340px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 72px;
+}
+
+.navLinks {
+  display: none;
+  align-items: center;
+  gap: 2px;
+}
+
+@media (min-width: 1100px) {
+  .navLinks {
+    display: flex;
+  }
+}
+
+.navLink {
+  display: inline-flex;
+  white-space: nowrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-2);
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.navLink:hover,
+.navLinkOpen {
+  color: var(--orange-text);
+  background: var(--orange-softer);
+}
+
+.navPill {
+  display: inline-flex;
+  white-space: nowrap;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--orange-line);
+  background: var(--orange-soft);
+  color: var(--orange-text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: transform 0.25s var(--ease);
+}
+
+.navPill:hover {
+  transform: translateY(-1px);
+}
+
+.navChevron {
+  transition: transform 0.25s var(--ease);
+}
+
+.navLinkOpen .navChevron {
+  transform: rotate(180deg);
+}
+
+.navDrop {
+  position: relative;
+}
+
+.mega {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  width: min(820px, 92vw);
+  padding: 20px;
+  border-radius: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 20px;
+  animation: dropIn 0.25s var(--ease);
+}
+
+.mega::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -14px;
+  height: 14px;
+}
+
+@keyframes dropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.megaLabel {
+  display: block;
+  margin: 4px 8px 10px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.megaGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.megaItem {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  text-align: left;
+  transition: background-color 0.2s;
+}
+
+.megaItem:hover {
+  background: var(--orange-softer);
+}
+
+.megaIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--tone-grad, var(--grad-brand));
+  color: #fff;
+}
+
+.megaItemTitle {
+  display: block;
+  font-weight: 700;
+  font-size: 0.93rem;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.megaItemText {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.megaSide {
+  padding-left: 20px;
+  border-left: 1px solid var(--line-2);
+}
+
+.megaSideItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-2);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.megaSideItem:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.loginLink {
+  display: none;
+  white-space: nowrap;
+  padding: 10px 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-2);
+  border-radius: 10px;
+  transition: color 0.2s;
+}
+
+.loginLink:hover {
+  color: var(--orange-text);
+}
+
+@media (min-width: 760px) {
+  .loginLink {
+    display: inline-flex;
+  }
+}
+
+.navCta {
+  display: none;
+}
+
+@media (min-width: 520px) {
+  .navCta {
+    display: inline-flex;
+  }
+}
+
+.menuBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+
+@media (min-width: 1100px) {
+  .menuBtn {
+    display: none;
+  }
+}
+
+.mobilePanel {
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  max-height: calc(100vh - 72px);
+  overflow-y: auto;
+  animation: dropIn 0.25s var(--ease);
+}
+
+.mobileInner {
+  display: grid;
+  gap: 4px;
+  padding-block: 16px 24px;
+}
+
+.mobilePillars {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mobilePillar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--orange-softer);
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.88rem;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.mobileLink {
+  display: block;
+  padding: 12px 8px;
+  font-weight: 600;
+  color: var(--text-2);
+  border-bottom: 1px solid var(--line-2);
+}
+
+.mobileActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+/* ---------- Forms ---------- */
+
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.formRow {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 560px) {
+  .formRow {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.req {
+  color: var(--orange-text);
+}
+
+.optional {
+  font-weight: 500;
+  color: var(--faint);
+}
+
+.root .field {
+  width: 100%;
+  min-height: 50px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line) !important;
+  background: var(--field-bg) !important;
+  color: var(--text) !important;
+  font: inherit;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.root .field::placeholder {
+  color: var(--faint) !important;
+}
+
+.root .field:focus {
+  outline: none;
+  border-color: var(--orange-500) !important;
+  background: var(--surface) !important;
+  box-shadow: 0 0 0 4px rgba(252, 128, 25, 0.16);
+}
+
+.root textarea.field {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.root select.field {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999999' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+}
+
+.root select.field option,
+.root select.field optgroup {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+
+.fieldIconWrap {
+  position: relative;
+}
+
+.fieldIcon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--faint);
+  pointer-events: none;
+}
+
+.root .fieldWithIcon {
+  padding-left: 44px;
+}
+
+.success {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 32px 8px 12px;
+  text-align: center;
+}
+
+.successIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--green-soft);
+  color: var(--green);
+  animation: pop 0.5s var(--ease);
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.success h4 {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.success p {
+  max-width: 400px;
+  color: var(--muted);
+}
+
+.successActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.whatsBtn {
+  background: #25d366;
+  color: #052e16;
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.alertError {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.alertSuccess {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+/* ---------- Cards ---------- */
+
+.card {
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-md);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.chipOrange {
+  background: var(--orange-soft);
+  color: var(--orange-text);
+}
+
+.chipGreen {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.chipRed {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.chipNeutral {
+  background: var(--surface-3);
+  color: var(--text-2);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 1.8s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/* ---------- Modal ---------- */
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: fade 0.2s ease;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding: 32px;
+  border-radius: 28px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lg);
+  animation: pop 0.35s var(--ease);
+}
+
+.modalWide {
+  max-width: 980px;
+}
+
+.modalClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 0;
+  background: var(--surface-3);
+  color: var(--text-2);
+  z-index: 2;
+}
+
+.modalTitle {
+  padding-right: 44px;
+  margin-top: 12px !important;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.modalLead {
+  margin-top: 8px !important;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* ---------- Footer ---------- */
+
+.footer {
+  margin-top: 96px;
+  background: #0a0a0a;
+  color: rgba(255, 255, 255, 0.7);
+  border-top: 1px solid #1a1a1a;
+}
+
+.footTop {
+  display: grid;
+  gap: 40px;
+  padding-block: 72px 48px;
+}
+
+/* Phones: brand on top, then the link lists two by two. */
+@media (max-width: 719px) {
+  .footTop {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px 20px;
+    padding-block: 56px 36px;
+  }
+  .footTop > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 720px) {
+  .footTop {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1100px) {
+  .footTop {
+    grid-template-columns: 1.5fr 1fr 1fr 1.1fr 1.1fr;
+  }
+}
+
+.footBrandName {
+  color: #fff;
+}
+
+.footAbout {
+  margin-top: 16px !important;
+  max-width: 340px;
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.footOffice {
+  margin-top: 14px !important;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.footOffice strong {
+  display: block;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 700;
+}
+
+.footHeading {
+  margin-bottom: 16px !important;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.footList {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.footLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  transition: color 0.2s;
+}
+
+.footLink:hover {
+  color: var(--orange-300);
+}
+
+.socials {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+  transition: background-color 0.2s, color 0.2s, transform 0.25s var(--ease);
+}
+
+.social:hover {
+  background: var(--orange-600);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.footBottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding-block: 24px 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.footBottomLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+
+/* ---------- Motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .root *,
+  .root *::before,
+  .root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Shared portal components rendered inside the site ----------
+   FooterModals and OfficialInitiativesBar use Tailwind classes that the
+   portal's dark theme paints navy. Inside the public site they follow the
+   black palette instead. */
+
+:global(html.dark) .root :global(.bg-white),
+:global(html.dark) .root :global(.bg-slate-900),
+:global(html.dark) .root :global(.bg-slate-900\/60),
+:global(html.dark) .root :global(.bg-slate-900\/80),
+:global(html.dark) .root :global(.bg-slate-950) {
+  background-color: #0e0e0e !important;
+  border-color: #242424 !important;
+  color: #f5f5f5 !important;
+}
+
+:global(html.dark) .root :global(.bg-slate-50),
+:global(html.dark) .root :global(.bg-slate-100),
+:global(html.dark) .root :global(.bg-slate-800),
+:global(html.dark) .root :global(.bg-slate-800\/40),
+:global(html.dark) .root :global(.bg-slate-800\/60) {
+  background-color: #161616 !important;
+  border-color: #242424 !important;
+}
+
+:global(html.dark) .root :global(.border-slate-800),
+:global(html.dark) .root :global(.border-slate-700) {
+  border-color: #242424 !important;
+}
+
+.initiatives {
+  padding-bottom: 32px;
+}
+
+/* Official logos are designed for a white ground, so the strip stays white in both themes. */
+.root.root .initiatives > div {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+
+.root.root .initiatives :is(span, a, div) {
+  color: #475569 !important;
+}
