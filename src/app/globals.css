@@ -1,0 +1,1068 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f8fafc;
+  --foreground: #111827;
+  --card-bg: #ffffff;
+  --border-color: #e5e7eb;
+  --swiggy-orange: #fc8019;
+  --swiggy-orange-hover: #e26d0a;
+  --swiggy-orange-light: #fff2e7;
+}
+
+html.light,
+html {
+  --background: #f8fafc;
+  --foreground: #111827;
+  --card-bg: #ffffff;
+  --border-color: #e5e7eb;
+  --swiggy-orange: #fc8019;
+  --swiggy-orange-hover: #e26d0a;
+  --swiggy-orange-light: #fff2e7;
+  font-size: 16.5px;
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 17px;
+  }
+}
+
+/* Ensure no text anywhere in the portal drops below comfortable reading threshold */
+.text-\[8px\],
+.text-\[9px\] {
+  font-size: 0.75rem !important; /* 12.75px */
+  line-height: 1.15rem !important;
+}
+
+.text-\[10px\] {
+  font-size: 0.8125rem !important; /* ~13.8px */
+  line-height: 1.2rem !important;
+}
+
+.text-\[11px\] {
+  font-size: 0.875rem !important; /* ~14.9px */
+  line-height: 1.25rem !important;
+}
+
+html.dark {
+  --background: #090d16;
+  --foreground: #f8fafc;
+  --card-bg: #111827;
+  --border-color: #1f293d;
+  --swiggy-orange: #fc8019;
+  --swiggy-orange-hover: #e26d0a;
+  --swiggy-orange-light: rgba(252, 128, 25, 0.15);
+}
+
+/* =========================================================
+   LIGHT / BRIGHT MODE SYSTEM OVERRIDES
+   Ensures 100% element visibility, enterprise contrast, and
+   harmonious secondary brand color matching.
+   ========================================================= */
+
+html.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* 1. Surfaces & Canvas Backgrounds */
+html.light .bg-\[\#070A10\],
+html.light .bg-chaan-bg,
+html.light main.bg-\[\#070A10\],
+html.light main {
+  background-color: #f8fafc !important;
+}
+
+/* 2. Cards, Sections, Modals & Elevated Surfaces */
+html.light section,
+html.light header,
+html.light .bg-chaan-card,
+html.light .bg-chaan-card\/60,
+html.light .bg-\[\#131B2A\],
+html.light .rounded-xl.bg-\[\#0B0F17\],
+html.light .rounded-2xl.bg-\[\#0E1523\],
+html.light .rounded-xl.bg-\[\#080C14\],
+html.light .bg-slate-900,
+html.light .bg-slate-900\/20,
+html.light .bg-slate-900\/30,
+html.light .bg-slate-900\/40,
+html.light .bg-slate-900\/50,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/70,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/90,
+html.light .bg-slate-950,
+html.light .bg-slate-950\/20,
+html.light .bg-slate-950\/30,
+html.light .bg-slate-950\/40,
+html.light .bg-slate-950\/50,
+html.light .bg-slate-950\/60,
+html.light .bg-slate-950\/70,
+html.light .bg-slate-950\/80,
+html.light .bg-slate-950\/90 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Neutralize legacy unadapted dark gradients in light theme */
+html.light .bg-gradient-to-r.from-sky-950\/40,
+html.light .bg-gradient-to-r.from-rose-950\/40,
+html.light .bg-gradient-to-r.from-amber-950\/30,
+html.light .bg-gradient-to-br.from-rose-950\/40,
+html.light .bg-gradient-to-r.from-emerald-950\/40 {
+  background-image: none !important;
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 3. Modal Dialog Containers & Backdrops */
+html.light .fixed.bg-black\/70,
+html.light .fixed.bg-black\/80 {
+  background-color: rgba(15, 23, 42, 0.5) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* 4. Secondary Containers, Pill Chips, Table Insets */
+html.light .bg-slate-800,
+html.light .bg-slate-800\/40,
+html.light .bg-slate-800\/50,
+html.light .bg-slate-800\/60,
+html.light .bg-slate-800\/70,
+html.light .bg-slate-800\/80,
+html.light .bg-slate-800\/90,
+html.light .bg-slate-700,
+html.light .bg-slate-700\/40,
+html.light .bg-slate-700\/60,
+html.light .bg-chaan-navy,
+html.light .bg-\[\#0B0F17\] {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* 5. Borders */
+html.light .border-chaan-border,
+html.light .border-slate-800,
+html.light .border-slate-800\/40,
+html.light .border-slate-800\/60,
+html.light .border-slate-800\/80,
+html.light .border-slate-800\/90,
+html.light .border-slate-700,
+html.light .border-slate-700\/60,
+html.light .border-slate-700\/80,
+html.light .border-slate-600 {
+  border-color: #e2e8f0 !important;
+}
+
+/* 6. Typography */
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-100,
+html.light .text-slate-200,
+html.light .text-slate-300 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-500,
+html.light .text-slate-600 {
+  color: #64748b !important;
+}
+
+/* Brand Accent & Secondary Typography */
+html.light .text-chaan-accent {
+  color: #fc8019 !important;
+}
+html.light .text-amber-400,
+html.light .text-amber-500 {
+  color: #b45309 !important;
+}
+html.light .text-amber-300 {
+  color: #92400e !important;
+}
+html.light .text-emerald-400,
+html.light .text-emerald-500,
+html.light .text-emerald-300 {
+  color: #059669 !important;
+}
+html.light .text-rose-400,
+html.light .text-rose-500,
+html.light .text-rose-300 {
+  color: #e11d48 !important;
+}
+html.light .text-blue-400,
+html.light .text-blue-500 {
+  color: #1d4ed8 !important;
+}
+html.light .text-indigo-400,
+html.light .text-indigo-500 {
+  color: #4338ca !important;
+}
+
+/* 7. Hover Contrast Inversion Fixes (Prevent White-on-White Invisibility) */
+html.light .hover\:text-white:hover,
+html.light .hover\:text-slate-200:hover,
+html.light .hover\:text-slate-100:hover {
+  color: #0f172a !important;
+}
+html.light button.text-slate-400:hover,
+html.light a.text-slate-400:hover {
+  color: #0f172a !important;
+}
+html.light .hover\:text-chaan-accent:hover,
+html.light .hover\:text-sky-400:hover {
+  color: #fc8019 !important;
+}
+
+/* 8. Buttons & High-Contrast Overrides */
+/* Solid buttons that MUST maintain white text */
+html.light .bg-chaan-brand,
+html.light .bg-chaan-brand *,
+html.light .bg-\[\#FC8019\],
+html.light .bg-\[\#FC8019\] *,
+html.light .bg-\[\#fc8019\],
+html.light .bg-\[\#fc8019\] *,
+html.light .bg-rose-600,
+html.light .bg-rose-600 *,
+html.light .bg-rose-500,
+html.light .bg-rose-500 *,
+html.light .bg-emerald-600,
+html.light .bg-emerald-600 *,
+html.light .bg-sky-600,
+html.light .bg-sky-600 *,
+html.light .bg-blue-600,
+html.light .bg-blue-600 *,
+html.light .bg-indigo-600,
+html.light .bg-indigo-600 *,
+html.light .bg-chaan-accent,
+html.light .bg-chaan-accent * {
+  color: #ffffff !important;
+}
+
+/* Hover on solid buttons maintains white text */
+html.light .bg-chaan-brand:hover,
+html.light .bg-chaan-brand:hover *,
+html.light .bg-\[\#FC8019\]:hover,
+html.light .bg-\[\#FC8019\]:hover *,
+html.light .bg-\[\#fc8019\]:hover,
+html.light .bg-\[\#fc8019\]:hover *,
+html.light .bg-rose-600:hover,
+html.light .bg-rose-600:hover *,
+html.light .bg-emerald-600:hover,
+html.light .bg-emerald-600:hover *,
+html.light .bg-sky-600:hover,
+html.light .bg-sky-600:hover *,
+html.light .bg-blue-600:hover,
+html.light .bg-blue-600:hover *,
+html.light .bg-indigo-600:hover,
+html.light .bg-indigo-600:hover *,
+html.light .bg-chaan-accent:hover,
+html.light .bg-chaan-accent:hover * {
+  color: #ffffff !important;
+}
+
+html.light .bg-chaan-accent,
+.bg-chaan-accent {
+  background-color: #fc8019 !important;
+  color: #ffffff !important;
+}
+
+/* Dedicated company title and heading contrast classes */
+.mca-company-title {
+  color: #0f172a !important;
+}
+html.dark .mca-company-title {
+  color: #ffffff !important;
+}
+
+/* Maintain white text on dark surfaces only when explicitly non-dark: */
+html.light .bg-slate-900 > .text-white,
+html.light .bg-slate-950 > .text-white,
+html.light .bg-slate-800 > .text-white,
+html.light .bg-black > .text-white {
+  color: #ffffff !important;
+}
+
+html.light .bg-chaan-brand,
+.bg-chaan-brand,
+.bg-\[\#FC8019\],
+.bg-\[\#fc8019\] {
+  background-color: #fc8019 !important;
+  color: #ffffff !important;
+}
+
+html.light .bg-chaan-brand:hover,
+.bg-chaan-brand:hover,
+.bg-\[\#FC8019\]:hover,
+.bg-\[\#fc8019\]:hover,
+.hover\:bg-chaan-brandDark:hover {
+  background-color: #e26d0a !important;
+  color: #ffffff !important;
+}
+
+html.light .text-chaan-brand,
+.text-chaan-brand,
+.text-\[\#FC8019\],
+.text-\[\#fc8019\] {
+  color: #fc8019 !important;
+}
+
+html.light .border-chaan-brand,
+.border-chaan-brand,
+.border-\[\#FC8019\],
+.border-\[\#fc8019\] {
+  border-color: #fc8019 !important;
+}
+
+html.light .hover\:bg-sky-400:hover {
+  background-color: #e26d0a !important;
+}
+
+/* Amber & Light Emerald buttons maintain crisp dark text */
+html.light .bg-amber-500,
+html.light .bg-amber-500 *,
+html.light .bg-amber-400,
+html.light .bg-amber-400 *,
+html.light .bg-emerald-500,
+html.light .bg-emerald-500 * {
+  color: #0f172a !important;
+}
+html.light .bg-amber-500:hover,
+html.light .bg-amber-500:hover *,
+html.light .bg-emerald-500:hover,
+html.light .bg-emerald-500:hover * {
+  color: #0f172a !important;
+}
+
+/* 9. Status Badges & Alert Pills (All Opacity Variants) */
+/* Emerald / Green (Verified / Safe / Clear) */
+html.light .bg-emerald-950,
+html.light .bg-emerald-950\/20,
+html.light .bg-emerald-950\/30,
+html.light .bg-emerald-950\/40,
+html.light .bg-emerald-950\/60,
+html.light .bg-emerald-950\/70,
+html.light .bg-emerald-950\/80,
+html.light .bg-emerald-900\/60,
+html.light .bg-emerald-500\/10,
+html.light .bg-emerald-500\/20 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #065f46 !important;
+}
+html.light .bg-emerald-950 *,
+html.light .bg-emerald-950\/20 *,
+html.light .bg-emerald-950\/30 *,
+html.light .bg-emerald-950\/40 *,
+html.light .bg-emerald-950\/60 *,
+html.light .bg-emerald-950\/70 *,
+html.light .bg-emerald-950\/80 *,
+html.light .bg-emerald-900\/60 *,
+html.light .bg-emerald-500\/10 *,
+html.light .bg-emerald-500\/20 * {
+  color: #065f46 !important;
+}
+
+/* Amber / Warning (Caution / Overdue / L2) */
+html.light .bg-amber-950,
+html.light .bg-amber-950\/20,
+html.light .bg-amber-950\/30,
+html.light .bg-amber-950\/40,
+html.light .bg-amber-950\/60,
+html.light .bg-amber-950\/70,
+html.light .bg-amber-950\/80,
+html.light .bg-amber-900\/60,
+html.light .bg-amber-500\/10,
+html.light .bg-amber-500\/20 {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
+}
+html.light .bg-amber-950 *,
+html.light .bg-amber-950\/20 *,
+html.light .bg-amber-950\/30 *,
+html.light .bg-amber-950\/40 *,
+html.light .bg-amber-950\/60 *,
+html.light .bg-amber-950\/70 *,
+html.light .bg-amber-950\/80 *,
+html.light .bg-amber-900\/60 *,
+html.light .bg-amber-500\/10 *,
+html.light .bg-amber-500\/20 * {
+  color: #92400e !important;
+}
+
+/* Rose / Red (High Risk / Defaulted / L3 / Legal) */
+html.light .bg-rose-950,
+html.light .bg-rose-950\/20,
+html.light .bg-rose-950\/30,
+html.light .bg-rose-950\/40,
+html.light .bg-rose-950\/60,
+html.light .bg-rose-950\/70,
+html.light .bg-rose-950\/80,
+html.light .bg-rose-900\/60,
+html.light .bg-rose-500\/10,
+html.light .bg-rose-500\/20,
+html.light .bg-red-950,
+html.light .bg-red-950\/60,
+html.light .bg-red-950\/80 {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #9f1239 !important;
+}
+html.light .bg-rose-950 *,
+html.light .bg-rose-950\/20 *,
+html.light .bg-rose-950\/30 *,
+html.light .bg-rose-950\/40 *,
+html.light .bg-rose-950\/60 *,
+html.light .bg-rose-950\/70 *,
+html.light .bg-rose-950\/80 *,
+html.light .bg-rose-900\/60 *,
+html.light .bg-rose-500\/10 *,
+html.light .bg-rose-500\/20 *,
+html.light .bg-red-950 *,
+html.light .bg-red-950\/60 *,
+html.light .bg-red-950\/80 * {
+  color: #9f1239 !important;
+}
+
+/* Sky / Blue (Information / KYC / L1) */
+html.light .bg-sky-950,
+html.light .bg-sky-950\/20,
+html.light .bg-sky-950\/40,
+html.light .bg-sky-950\/60,
+html.light .bg-sky-500\/10,
+html.light .bg-sky-500\/20,
+html.light .bg-blue-950,
+html.light .bg-blue-950\/40,
+html.light .bg-blue-950\/60,
+html.light .bg-blue-950\/70 {
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+  color: #0369a1 !important;
+}
+html.light .bg-sky-950 *,
+html.light .bg-sky-950\/20 *,
+html.light .bg-sky-950\/40 *,
+html.light .bg-sky-950\/60 *,
+html.light .bg-sky-500\/10 *,
+html.light .bg-sky-500\/20 *,
+html.light .bg-blue-950 *,
+html.light .bg-blue-950\/40 *,
+html.light .bg-blue-950\/60 *,
+html.light .bg-blue-950\/70 * {
+  color: #0369a1 !important;
+}
+
+/* Badge dot indicators in light mode */
+html.light .bg-emerald-400 {
+  background-color: #059669 !important;
+}
+html.light .bg-amber-400 {
+  background-color: #d97706 !important;
+}
+html.light .bg-rose-400 {
+  background-color: #e11d48 !important;
+}
+html.light .bg-sky-400 {
+  background-color: #0284c7 !important;
+}
+
+/* Gradients in light mode */
+html.light .from-emerald-950\/30 {
+  --tw-gradient-from: #ecfdf5 !important;
+}
+html.light .from-amber-950\/20 {
+  --tw-gradient-from: #fffbeb !important;
+}
+html.light .to-slate-900\/60 {
+  --tw-gradient-to: #ffffff !important;
+}
+
+/* 10. Table Elements */
+html.light thead,
+html.light th {
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light tbody tr {
+  border-color: #e2e8f0 !important;
+}
+
+html.light tbody tr:hover,
+html.light .hover\:bg-slate-800\/40:hover,
+html.light .hover\:bg-slate-800\/50:hover,
+html.light .hover\:bg-slate-800\/60:hover,
+html.light .hover\:bg-slate-800:hover,
+html.light .hover\:bg-slate-700:hover,
+html.light .hover\:bg-chaan-cardHover:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* 11. Sidebar and Navigation */
+html.light aside {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light aside a.bg-slate-800\/80 {
+  background-color: #fff2e7 !important;
+  color: #fc8019 !important;
+  border-color: #fed7aa !important;
+}
+
+html.light aside a.bg-amber-500\/10 {
+  background-color: #fffbeb !important;
+  color: #b45309 !important;
+  border-color: #fde68a !important;
+}
+
+/* 12. Form Controls & Dropdowns */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #fc8019 !important;
+  outline: none;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* =========================================================
+   DARK / OBSIDIAN MODE SYSTEM OVERRIDES
+   Ensures deep dark surfaces, high-contrast light typography,
+   and vibrant Swiggy Orange accents across the entire UI.
+   ========================================================= */
+
+html.dark body {
+  background-color: #090d16 !important;
+  color: #f8fafc !important;
+}
+
+/* 1. Surfaces & Canvas Backgrounds */
+html.dark .bg-\[\#F8FAFC\],
+html.dark .bg-\[\#f8fafc\],
+html.dark .bg-\[\#F8F9FA\],
+html.dark .bg-\[\#f8f9fa\],
+html.dark .bg-chaan-bg,
+html.dark main.bg-\[\#F8FAFC\],
+html.dark main {
+  background-color: #090d16 !important;
+  color: #f8fafc !important;
+}
+
+/* 2. Cards, Sections, Modals & Elevated Surfaces */
+html.dark section,
+html.dark aside,
+html.dark header,
+html.dark .bg-white,
+html.dark .bg-white\/95,
+html.dark .bg-white\/80,
+html.dark .bg-chaan-card,
+html.dark .bg-chaan-card\/80,
+html.dark .bg-chaan-card\/60,
+html.dark .rounded-xl.bg-white,
+html.dark .rounded-2xl.bg-white,
+html.dark .bg-slate-900,
+html.dark .bg-slate-900\/40,
+html.dark .bg-slate-900\/50,
+html.dark .bg-slate-900\/60,
+html.dark .bg-slate-900\/70,
+html.dark .bg-slate-900\/80,
+html.dark .bg-slate-900\/90,
+html.dark .bg-slate-950,
+html.dark .bg-slate-950\/40,
+html.dark .bg-slate-950\/60,
+html.dark .bg-slate-950\/80 {
+  background-color: #111827 !important;
+  border-color: #1f293d !important;
+  color: #f8fafc !important;
+}
+
+/* 3. Inset Containers, Pill Chips, Table Insets */
+html.dark .bg-slate-50,
+html.dark .bg-slate-100,
+html.dark .bg-slate-100\/80,
+html.dark .bg-slate-200,
+html.dark .bg-slate-800,
+html.dark .bg-slate-800\/40,
+html.dark .bg-slate-800\/50,
+html.dark .bg-slate-800\/60,
+html.dark .bg-slate-800\/70,
+html.dark .bg-slate-800\/80,
+html.dark .bg-slate-800\/90,
+html.dark .bg-slate-700,
+html.dark .bg-slate-700\/40,
+html.dark .bg-slate-700\/60,
+html.dark .bg-chaan-navy {
+  background-color: #151e32 !important;
+  color: #f1f5f9 !important;
+  border-color: #1f293d !important;
+}
+
+/* 4. Modal Dialog Containers & Backdrops */
+html.dark .fixed.bg-black\/70,
+html.dark .fixed.bg-black\/80 {
+  background-color: rgba(3, 7, 18, 0.82) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+html.dark .fixed .rounded-xl,
+html.dark .fixed .rounded-2xl {
+  background-color: #111827 !important;
+  border-color: #1f293d !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75) !important;
+}
+
+/* 5. Borders */
+html.dark .border-slate-200,
+html.dark .border-slate-300,
+html.dark .border-chaan-border,
+html.dark .border-slate-800,
+html.dark .border-slate-700,
+html.dark .border-slate-600 {
+  border-color: #1f293d !important;
+}
+
+/* 6. Typography in Dark Mode */
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-slate-700,
+html.dark .text-white {
+  color: #f8fafc !important;
+}
+
+html.dark .text-slate-100,
+html.dark .text-slate-200,
+html.dark .text-slate-300 {
+  color: #e2e8f0 !important;
+}
+
+html.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+html.dark .text-slate-500,
+html.dark .text-slate-600 {
+  color: #64748b !important;
+}
+
+/* 7. Hover Contrast in Dark Mode */
+html.dark .hover\:text-white:hover,
+html.dark .hover\:text-slate-200:hover,
+html.dark .hover\:text-slate-100:hover {
+  color: #ffffff !important;
+}
+html.dark button.text-slate-400:hover,
+html.dark a.text-slate-400:hover {
+  color: #f8fafc !important;
+}
+html.dark .hover\:bg-slate-100:hover,
+html.dark .hover\:bg-slate-200:hover,
+html.dark .hover\:bg-slate-800:hover,
+html.dark .hover\:bg-slate-700:hover,
+html.dark .hover\:bg-chaan-cardHover:hover {
+  background-color: #1a253c !important;
+}
+
+/* 8. Swiggy Orange Accent in Dark Mode */
+html.dark .bg-orange-50,
+html.dark .bg-orange-50\/80,
+html.dark .bg-orange-50\/70,
+html.dark .bg-orange-50\/60,
+html.dark .bg-orange-50\/20,
+html.dark .bg-orange-50\/15,
+html.dark .bg-orange-50\/10,
+html.dark .bg-orange-100,
+html.dark .bg-orange-100\/80 {
+  background-color: rgba(252, 128, 25, 0.14) !important;
+  border-color: rgba(252, 128, 25, 0.35) !important;
+  color: #fc8019 !important;
+}
+
+html.dark .hover\:bg-orange-50\/70:hover,
+html.dark .hover\:bg-orange-50:hover,
+html.dark .hover\:bg-orange-100:hover {
+  background-color: rgba(252, 128, 25, 0.22) !important;
+  color: #ffa34d !important;
+}
+
+html.dark .border-orange-200,
+html.dark .border-orange-100 {
+  border-color: rgba(252, 128, 25, 0.32) !important;
+}
+
+html.dark aside a.bg-orange-50 {
+  background-color: rgba(252, 128, 25, 0.18) !important;
+  color: #fc8019 !important;
+  border-color: rgba(252, 128, 25, 0.45) !important;
+}
+
+/* Solid Swiggy Orange Buttons in Dark Mode */
+html.dark .bg-chaan-brand,
+html.dark .bg-chaan-brand *,
+html.dark .bg-\[\#FC8019\],
+html.dark .bg-\[\#FC8019\] *,
+html.dark .bg-\[\#fc8019\],
+html.dark .bg-\[\#fc8019\] * {
+  background-color: #fc8019 !important;
+  color: #ffffff !important;
+}
+
+html.dark .bg-chaan-brand:hover,
+html.dark .bg-chaan-brand:hover *,
+html.dark .bg-\[\#FC8019\]:hover,
+html.dark .bg-\[\#FC8019\]:hover *,
+html.dark .bg-\[\#fc8019\]:hover,
+html.dark .bg-\[\#fc8019\]:hover * {
+  background-color: #e26d0a !important;
+  color: #ffffff !important;
+}
+
+/* 9. Form Controls in Dark Mode */
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: #0d1322 !important;
+  color: #f8fafc !important;
+  border-color: #1f293d !important;
+}
+
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus {
+  border-color: #fc8019 !important;
+  outline: none;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #475569 !important;
+}
+
+html.dark select option {
+  background-color: #0d1322 !important;
+  color: #f8fafc !important;
+}
+
+/* 10. Tables in Dark Mode */
+html.dark thead,
+html.dark th {
+  background-color: #0d1322 !important;
+  color: #94a3b8 !important;
+  border-color: #1f293d !important;
+}
+
+html.dark tbody tr {
+  border-color: #1f293d !important;
+}
+
+html.dark tbody tr:hover {
+  background-color: #151e32 !important;
+}
+
+/* 11. Status Badges in Dark Mode */
+html.dark .bg-emerald-50,
+html.dark .bg-emerald-50\/80,
+html.dark .bg-emerald-950 {
+  background-color: rgba(5, 150, 105, 0.16) !important;
+  border-color: rgba(5, 150, 105, 0.35) !important;
+  color: #34d399 !important;
+}
+
+html.dark .bg-amber-50,
+html.dark .bg-amber-50\/80,
+html.dark .bg-amber-950 {
+  background-color: rgba(217, 119, 6, 0.16) !important;
+  border-color: rgba(217, 119, 6, 0.35) !important;
+  color: #fbbf24 !important;
+}
+
+html.dark .bg-rose-50,
+html.dark .bg-rose-50\/80,
+html.dark .bg-rose-950,
+html.dark .bg-red-50 {
+  background-color: rgba(225, 29, 72, 0.16) !important;
+  border-color: rgba(225, 29, 72, 0.35) !important;
+  color: #fb7185 !important;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* -------------------------------------------------------------
+   CHAANBEAN CINEMATIC INTRO LOGO ANIMATIONS
+------------------------------------------------------------- */
+@keyframes flyInLeft {
+  0% {
+    transform: translateX(-180px) scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(8px) scale(1.02);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes flyInRight {
+  0% {
+    transform: translateX(180px) scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-8px) scale(1.02);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes dropInTop {
+  0% {
+    transform: translateY(-130px) scale(0.85);
+    opacity: 0;
+  }
+  65% {
+    transform: translateY(6px) scale(1.02);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes logoBloom {
+  0% {
+    filter: drop-shadow(0 0 0px rgba(252, 128, 25, 0));
+  }
+  50% {
+    filter: drop-shadow(0 0 35px rgba(252, 128, 25, 0.75)) drop-shadow(0 0 70px rgba(252, 128, 25, 0.35));
+    transform: scale(1.03);
+  }
+  100% {
+    filter: drop-shadow(0 0 20px rgba(252, 128, 25, 0.45));
+    transform: scale(1);
+  }
+}
+
+.animate-fly-in-left {
+  animation: flyInLeft 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fly-in-right {
+  animation: flyInRight 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-drop-in-top-1 {
+  opacity: 0;
+  animation: dropInTop 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+}
+
+.animate-drop-in-top-2 {
+  opacity: 0;
+  animation: dropInTop 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.55s forwards;
+}
+
+.animate-drop-in-top-3 {
+  opacity: 0;
+  animation: dropInTop 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.75s forwards;
+}
+
+.animate-logo-bloom {
+  animation: logoBloom 1.2s ease-in-out 1.25s forwards;
+}
+
+/* =========================================================
+   CUSTOM EMI CALCULATOR RANGE SLIDERS
+   Ensures a prominent, high-contrast visible line drawn from
+   left to right with an active fill and a distinctive draggable
+   ball (thumb) across all desktop and mobile browsers.
+   ========================================================= */
+
+:root {
+  --range-unfilled-color: #cbd5e1;
+  --range-border-color: #94a3b8;
+}
+
+html.dark {
+  --range-unfilled-color: #334155;
+  --range-border-color: #475569;
+}
+
+input[type="range"].emi-range-input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--range-unfilled-color, #cbd5e1);
+  border: 1px solid var(--range-border-color, #94a3b8);
+  outline: none;
+  margin: 10px 0;
+  cursor: pointer;
+  display: block;
+}
+
+/* Chrome / Safari / Edge Track */
+input[type="range"].emi-range-input::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 9999px;
+  background: transparent;
+  border: none;
+}
+
+/* Chrome / Safari / Edge Thumb (The draggable ball) */
+input[type="range"].emi-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fc8019;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 0 0 1.5px rgba(252, 128, 25, 0.5);
+  cursor: grab;
+  margin-top: -9px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+input[type="range"].emi-range-input::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.18);
+  box-shadow: 0 4px 14px rgba(252, 128, 25, 0.6), 0 0 0 4px rgba(252, 128, 25, 0.3);
+}
+
+/* Firefox Track */
+input[type="range"].emi-range-input::-moz-range-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--range-unfilled-color, #cbd5e1);
+  border: 1px solid var(--range-border-color, #94a3b8);
+}
+
+/* Firefox filled portion */
+input[type="range"].emi-range-input::-moz-range-progress {
+  height: 10px;
+  border-radius: 9999px;
+  background: #fc8019;
+}
+
+/* Firefox Thumb */
+input[type="range"].emi-range-input::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fc8019;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 0 0 1.5px rgba(252, 128, 25, 0.5);
+  cursor: grab;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+input[type="range"].emi-range-input::-moz-range-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.18);
+  box-shadow: 0 4px 14px rgba(252, 128, 25, 0.6), 0 0 0 4px rgba(252, 128, 25, 0.3);
+}
+
+/* =========================================================
+   CHAANBEAN HIGH-CONTRAST TOOLTIP ENGINE
+   Ensures 100% crystal-clear visibility and overrides any
+   light-mode cascade text color resets.
+   ========================================================= */
+.chaan-tooltip-bubble,
+html.light .chaan-tooltip-bubble,
+html.dark .chaan-tooltip-bubble {
+  background-color: #0b1120 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(252, 128, 25, 0.4) !important;
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.5), 0 0 16px rgba(252, 128, 25, 0.15) !important;
+  z-index: 99999 !important;
+}
+
+.chaan-tooltip-bubble *,
+html.light .chaan-tooltip-bubble *,
+html.dark .chaan-tooltip-bubble * {
+  color: #ffffff !important;
+}
+
+.chaan-tooltip-bubble .text-\[\#FC8019\],
+html.light .chaan-tooltip-bubble .text-\[\#FC8019\],
+html.dark .chaan-tooltip-bubble .text-\[\#FC8019\] {
+  color: #fc8019 !important;
+}
+
+/* =========================================================
+   CONTINUOUS LEFT-TO-RIGHT MARQUEE ANIMATION
+   ========================================================= */
+@keyframes marquee-ltr {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee-ltr {
+  display: flex;
+  width: max-content;
+  animation: marquee-ltr 28s linear infinite;
+}
+
+.animate-marquee-ltr:hover {
+  animation-play-state: paused;
+}
+
+/* =========================================================
+   SCROLLBAR UTILITIES
+   ========================================================= */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
+
+

@@ -1,0 +1,114 @@
+/* Flip Text styles from ObsidianUI (https://obsidianui.dev/docs/flip-text), MIT License. */
+
+.flip-char {
+  color: inherit;
+  -webkit-text-fill-color: transparent;
+  vertical-align: middle;
+  height: 1.2em;
+  line-height: 1.2em;
+  animation: obsidian-flip var(--flip-duration, 2.2s) var(--flip-delay, 0s) var(--flip-iteration, infinite) ease;
+}
+
+.flip-char::before,
+.flip-char::after {
+  content: attr(data-char);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  -webkit-text-fill-color: currentColor;
+  backface-visibility: hidden;
+  animation: obsidian-flip-fade var(--flip-duration, 2.2s) var(--flip-delay, 0s) var(--flip-iteration, infinite) ease;
+}
+
+.flip-char::after {
+  transform: translate(-50%, -50%) translateZ(0.6em);
+}
+
+.flip-char::before {
+  opacity: 0;
+  --opacity: 1;
+  transform: translate(-50%, -50%) rotateX(-90deg) translateZ(0.6em);
+}
+
+@keyframes obsidian-flip {
+  0% {
+    transform: rotateX(0);
+  }
+  25%,
+  to {
+    transform: rotateX(90deg);
+  }
+}
+
+@keyframes obsidian-flip-fade {
+  0% {
+    opacity: 1;
+  }
+  30%,
+  to {
+    opacity: var(--opacity, 0);
+  }
+}
+
+/* ---------- Reveal mode (ChaanBean): flip in once, then plain crisp letters ---------- */
+
+/* Baseline alignment so the words sit level with surrounding text in a sentence. */
+.flip-text--reveal .flip-char {
+  vertical-align: baseline;
+}
+
+.flip-text--reveal .flip-char--in,
+.flip-text--reveal .flip-char--rest {
+  -webkit-text-fill-color: currentColor;
+  transform-origin: 50% 85%;
+}
+
+.flip-text--reveal .flip-char--in::before,
+.flip-text--reveal .flip-char--in::after,
+.flip-text--reveal .flip-char--rest::before,
+.flip-text--reveal .flip-char--rest::after {
+  content: none;
+}
+
+.flip-text--reveal .flip-char--in {
+  animation: obsidian-flip-in var(--flip-duration, 1s) var(--flip-delay, 0s) 1 both cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.flip-text--reveal .flip-char--rest {
+  animation: none;
+}
+
+@keyframes obsidian-flip-in {
+  0% {
+    opacity: 0;
+    transform: perspective(520px) rotateX(-96deg);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip-char,
+  .flip-char::before,
+  .flip-char::after {
+    animation: none !important;
+  }
+  .flip-char {
+    -webkit-text-fill-color: currentColor;
+  }
+  .flip-char::before,
+  .flip-char::after {
+    display: none;
+  }
+}
