@@ -1246,3 +1246,699 @@ model WalletTransaction {
 
 
 
+
+// ============================================================================
+// Feature 1: Company Check (migration 20261008120000_company_check)
+// Generated from the database; see the migration for RLS policies, triggers and CHECK constraints.
+// ============================================================================
+
+model app_users {
+  id                   String                 @id @db.Uuid
+  phone                String?
+  email                String?                @db.Citext
+  full_name            String?
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  company_checks       company_checks[]
+  credit_decisions     credit_decisions[]
+  organisation_members organisation_members[]
+
+}
+
+model audit_events {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organisation_id String?       @db.Uuid
+  actor_type      cc_actor_type
+  actor_id        String?       @db.Uuid
+  action          String
+  entity_type     String?
+  entity_id       String?       @db.Uuid
+  correlation_id  String?       @db.Uuid
+  ip              String?
+  user_agent      String?
+  metadata        Json?
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+
+  @@index([organisation_id, created_at(sort: Desc)], map: "audit_events_org_idx")
+}
+
+model companies {
+  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entity_type               cc_entity_type
+  legal_name                String
+  trade_name                String?
+  cin                       String?                     @unique @db.VarChar(21)
+  llpin                     String?                     @unique @db.VarChar(8)
+  pan_enc                   Bytes?
+  pan_hash                  String?                     @unique @db.Char(64)
+  company_status            cc_company_status?
+  company_class             String?
+  category                  String?
+  sub_category              String?
+  roc_code                  String?
+  incorporation_date        DateTime?                   @db.Date
+  authorised_capital_paise  BigInt?
+  paid_up_capital_paise     BigInt?
+  listing_status            String?
+  registered_address        Json?
+  state_code                String?                     @db.Char(2)
+  registered_email          String?                     @db.Citext
+  last_agm_date             DateTime?                   @db.Date
+  last_balance_sheet_date   DateTime?                   @db.Date
+  mca_synced_at             DateTime?                   @db.Timestamptz(6)
+  gst_synced_at             DateTime?                   @db.Timestamptz(6)
+  financials_synced_at      DateTime?                   @db.Timestamptz(6)
+  is_test                   Boolean                     @default(false)
+  created_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  company_charges           company_charges[]
+  company_checks            company_checks[]
+  company_contacts          company_contacts[]
+  company_directors         company_directors[]
+  company_financials        company_financials[]
+  company_gst_registrations company_gst_registrations[]
+
+  @@index([legal_name(ops: raw("gin_trgm_ops"))], map: "companies_legal_name_trgm", type: Gin)
+  @@index([trade_name(ops: raw("gin_trgm_ops"))], map: "companies_trade_name_trgm", type: Gin)
+}
+
+model company_charges {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id    String            @db.Uuid
+  charge_id     String?
+  charge_holder String?
+  amount_paise  BigInt?
+  created_on    DateTime?         @db.Date
+  modified_on   DateTime?         @db.Date
+  satisfied_on  DateTime?         @db.Date
+  charge_status cc_charge_status?
+  source        String
+  fetched_at    DateTime          @db.Timestamptz(6)
+  companies     companies         @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([company_id], map: "company_charges_company_idx")
+}
+
+model company_check_sections {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_check_id  String            @db.Uuid
+  organisation_id   String            @db.Uuid
+  section           cc_section
+  status            cc_section_status @default(PENDING)
+  provider          String?
+  served_from_cache Boolean           @default(false)
+  attempts          Int               @default(0) @db.SmallInt
+  last_error        String?
+  completed_at      DateTime?         @db.Timestamptz(6)
+  company_checks    company_checks    @relation(fields: [company_check_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organisations     organisations     @relation(fields: [organisation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([company_check_id, section])
+}
+
+model company_checks {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organisation_id        String                   @db.Uuid
+  requested_by           String                   @db.Uuid
+  company_id             String?                  @db.Uuid
+  search_query           String?
+  input_identifiers      Json?
+  credit_requested_paise BigInt?
+  credit_period_days     Int?
+  purpose                cc_check_purpose
+  customer_reference     String?                  @db.VarChar(60)
+  consent_at             DateTime                 @db.Timestamptz(6)
+  status                 cc_check_status          @default(QUEUED)
+  price_paise            BigInt                   @default(0)
+  gst_paise              BigInt                   @default(0)
+  charge_status          cc_charge_state
+  reused_from_check_id   String?                  @db.Uuid
+  idempotency_key        String
+  correlation_id         String                   @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  error_code             String?
+  started_at             DateTime?                @db.Timestamptz(6)
+  completed_at           DateTime?                @db.Timestamptz(6)
+  created_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  company_check_sections company_check_sections[]
+  companies              companies?               @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organisations          organisations            @relation(fields: [organisation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  app_users              app_users                @relation(fields: [requested_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  company_checks         company_checks?          @relation("company_checksTocompany_checks", fields: [reused_from_check_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_company_checks   company_checks[]         @relation("company_checksTocompany_checks")
+  credit_assessments     credit_assessments[]
+  provider_calls         provider_calls[]
+  report_files           report_files[]
+
+  @@unique([organisation_id, idempotency_key])
+  @@index([organisation_id, company_id, created_at(sort: Desc)], map: "company_checks_org_company_idx")
+  @@index([organisation_id, created_at(sort: Desc)], map: "company_checks_org_created_idx")
+}
+
+model company_contacts {
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id   String          @db.Uuid
+  contact_type cc_contact_type
+  label        String?
+  value        Json
+  source       String
+  fetched_at   DateTime        @db.Timestamptz(6)
+  companies    companies       @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([company_id], map: "company_contacts_company_idx")
+}
+
+model company_directors {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id   String    @db.Uuid
+  director_id  String    @db.Uuid
+  designation  String?
+  appointed_on DateTime? @db.Date
+  ceased_on    DateTime? @db.Date
+  is_signatory Boolean?
+  source       String
+  fetched_at   DateTime  @db.Timestamptz(6)
+  companies    companies @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  directors    directors @relation(fields: [director_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+}
+
+model company_financials {
+  id                            String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id                    String                 @db.Uuid
+  fiscal_year                   String                 @db.VarChar(7)
+  period_end                    DateTime               @db.Date
+  statement_type                cc_statement_type
+  revenue_from_operations_paise BigInt?
+  other_income_paise            BigInt?
+  total_income_paise            BigInt?
+  profit_before_tax_paise       BigInt?
+  profit_after_tax_paise        BigInt?
+  net_worth_paise               BigInt?
+  total_borrowings_paise        BigInt?
+  total_assets_paise            BigInt?
+  current_assets_paise          BigInt?
+  current_liabilities_paise     BigInt?
+  filing_form                   String?
+  filed_on                      DateTime?              @db.Date
+  source_document_path          String?
+  verification_status           cc_verification_status
+  source                        String
+  fetched_at                    DateTime               @db.Timestamptz(6)
+  companies                     companies              @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([company_id, fiscal_year, statement_type])
+}
+
+model company_gst_registrations {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id         String               @db.Uuid
+  gstin              String               @unique @db.VarChar(15)
+  legal_name         String?
+  trade_name         String?
+  gst_status         cc_gst_status
+  registration_date  DateTime?            @db.Date
+  cancellation_date  DateTime?            @db.Date
+  constitution       String?
+  taxpayer_type      String?
+  principal_address  Json?
+  additional_places  Json?
+  state_code         String?              @db.Char(2)
+  nature_of_business String[]
+  turnover_slab      String?
+  turnover_slab_fy   String?              @db.VarChar(7)
+  einvoice_enabled   Boolean?
+  source             String
+  fetched_at         DateTime             @db.Timestamptz(6)
+  companies          companies            @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  gst_return_filings gst_return_filings[]
+
+  @@index([company_id], map: "company_gst_registrations_company_idx")
+}
+
+model credit_assessments {
+  id                      String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_check_id        String             @db.Uuid
+  organisation_id         String             @db.Uuid
+  policy_id               String             @db.Uuid
+  policy_version          Int
+  inputs                  Json
+  turnover_latest_paise   BigInt?
+  turnover_cagr           Decimal?           @db.Decimal(7, 4)
+  gst_ontime_ratio        Decimal?           @db.Decimal(5, 4)
+  multipliers             Json?
+  score                   Int?               @db.SmallInt
+  risk_band               cc_risk_band
+  confidence              cc_confidence
+  recommended_limit_paise BigInt?
+  requested_amount_paise  BigInt?
+  exceeds_limit           Boolean?
+  exceed_ratio            Decimal?           @db.Decimal(12, 2)
+  factors                 Json
+  hard_stops              String[]           @default([])
+  ai_explanation          String?
+  ai_model                String?
+  created_at              DateTime           @default(now()) @db.Timestamptz(6)
+  company_checks          company_checks     @relation(fields: [company_check_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organisations           organisations      @relation(fields: [organisation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  credit_policies         credit_policies    @relation(fields: [policy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  credit_decisions        credit_decisions[]
+  report_files            report_files[]
+
+  @@index([company_check_id, created_at(sort: Desc)], map: "credit_assessments_check_idx")
+}
+
+model credit_decisions {
+  id                    String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  credit_assessment_id  String             @db.Uuid
+  organisation_id       String             @db.Uuid
+  decided_by            String?            @db.Uuid
+  decision              cc_decision
+  approved_amount_paise BigInt?
+  credit_period_days    Int?
+  override_reason       String?            @db.VarChar(500)
+  notes                 String?            @db.VarChar(1000)
+  created_at            DateTime           @default(now()) @db.Timestamptz(6)
+  credit_assessments    credit_assessments @relation(fields: [credit_assessment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  app_users             app_users?         @relation(fields: [decided_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organisations         organisations      @relation(fields: [organisation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+}
+
+model credit_policies {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  version            Int                  @unique
+  status             cc_policy_status     @default(DRAFT)
+  params             Json
+  notes              String?
+  created_by         String?              @db.Uuid
+  approved_by        String?              @db.Uuid
+  activated_at       DateTime?            @db.Timestamptz(6)
+  retired_at         DateTime?            @db.Timestamptz(6)
+  created_at         DateTime             @default(now()) @db.Timestamptz(6)
+  credit_assessments credit_assessments[]
+
+}
+
+model directors {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  din               String              @unique @db.Char(8)
+  full_name         String
+  din_status        String?
+  source            String
+  fetched_at        DateTime            @db.Timestamptz(6)
+  company_directors company_directors[]
+
+}
+
+model gst_return_filings {
+  id                        String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gst_registration_id       String                    @db.Uuid
+  return_type               cc_gst_return_type
+  tax_period                String                    @db.Char(6)
+  fiscal_year               String?                   @db.VarChar(7)
+  due_date                  DateTime?                 @db.Date
+  filed_on                  DateTime?                 @db.Date
+  days_late                 Int?                      @default(dbgenerated("GREATEST((filed_on - due_date), 0)"))
+  filing_status             cc_filing_status
+  source                    String
+  fetched_at                DateTime                  @db.Timestamptz(6)
+  company_gst_registrations company_gst_registrations @relation(fields: [gst_registration_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([gst_registration_id, return_type, tax_period])
+}
+
+model lookup_prices {
+  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  product_code     cc_product_code
+  price_paise      BigInt
+  gst_rate         Decimal         @default(0.18) @db.Decimal(5, 4)
+  free_reopen_days Int             @default(30)
+  effective_from   DateTime        @default(now()) @db.Timestamptz(6)
+  effective_to     DateTime?       @db.Timestamptz(6)
+
+}
+
+model organisation_members {
+  organisation_id String         @db.Uuid
+  user_id         String         @db.Uuid
+  role            cc_member_role
+  status          String         @default("ACTIVE")
+  created_at      DateTime       @default(now()) @db.Timestamptz(6)
+  organisations   organisations  @relation(fields: [organisation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  app_users       app_users      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([organisation_id, user_id])
+  @@index([user_id], map: "organisation_members_user_idx")
+}
+
+model organisations {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  legal_name             String
+  gstin                  String?                  @db.VarChar(15)
+  kyc_status             cc_kyc_status            @default(PENDING)
+  created_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  company_check_sections company_check_sections[]
+  company_checks         company_checks[]
+  credit_assessments     credit_assessments[]
+  credit_decisions       credit_decisions[]
+  organisation_members   organisation_members[]
+  report_files           report_files[]
+  subscriptions          subscriptions[]
+  wallet_ledger          wallet_ledger[]
+  wallets                wallets?
+
+}
+
+model outbox_events {
+  id              BigInt    @id @default(autoincrement())
+  event_type      String
+  organisation_id String?   @db.Uuid
+  payload         Json
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  published_at    DateTime? @db.Timestamptz(6)
+
+}
+
+model provider_calls {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_check_id  String?             @db.Uuid
+  organisation_id   String?             @db.Uuid
+  provider          String
+  operation         String
+  mode              cc_provider_mode
+  request_hash      String?             @db.Char(64)
+  http_status       Int?
+  outcome           cc_provider_outcome
+  latency_ms        Int?
+  cost_paise        BigInt              @default(0)
+  raw_response_path String?
+  correlation_id    String?             @db.Uuid
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  company_checks    company_checks?     @relation(fields: [company_check_id], references: [id], onUpdate: NoAction)
+
+  @@index([provider, created_at(sort: Desc)], map: "provider_calls_provider_idx")
+}
+
+model report_files {
+  id                   String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_check_id     String              @db.Uuid
+  credit_assessment_id String?             @db.Uuid
+  organisation_id      String              @db.Uuid
+  storage_path         String
+  sha256               String              @db.Char(64)
+  size_bytes           Int?
+  version              Int                 @default(1)
+  created_at           DateTime            @default(now()) @db.Timestamptz(6)
+  company_checks       company_checks      @relation(fields: [company_check_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  credit_assessments   credit_assessments? @relation(fields: [credit_assessment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organisations        organisations       @relation(fields: [organisation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+}
+
+model subscriptions {
+  id                 String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organisation_id    String                 @db.Uuid
+  plan_code          String
+  status             cc_subscription_status
+  current_period_end DateTime               @db.Timestamptz(6)
+  created_at         DateTime               @default(now()) @db.Timestamptz(6)
+  organisations      organisations          @relation(fields: [organisation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([organisation_id, current_period_end(sort: Desc)], map: "subscriptions_org_idx")
+}
+
+model wallet_ledger {
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organisation_id     String          @db.Uuid
+  entry_type          cc_ledger_entry
+  amount_paise        BigInt
+  balance_after_paise BigInt
+  reference_type      String?
+  reference_id        String?         @db.Uuid
+  gateway_payment_id  String?         @unique
+  created_by          String?         @db.Uuid
+  created_at          DateTime        @default(now()) @db.Timestamptz(6)
+  organisations       organisations   @relation(fields: [organisation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([organisation_id, created_at(sort: Desc)], map: "wallet_ledger_org_idx")
+}
+
+model wallets {
+  organisation_id String        @id @db.Uuid
+  balance_paise   BigInt        @default(0)
+  updated_at      DateTime      @default(now()) @db.Timestamptz(6)
+  organisations   organisations @relation(fields: [organisation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+}
+
+enum cc_actor_type {
+  USER
+  ADMIN
+  SYSTEM
+  AGENT
+
+}
+
+enum cc_charge_state {
+  CHARGED
+  REFUNDED
+  FREE_REOPEN
+
+}
+
+enum cc_charge_status {
+  OPEN
+  SATISFIED
+
+}
+
+enum cc_check_purpose {
+  NEW_BUYER
+  LIMIT_INCREASE
+  PERIODIC_REVIEW
+
+}
+
+enum cc_check_status {
+  QUEUED
+  FETCHING
+  ASSESSING
+  COMPLETED
+  PARTIAL
+  FAILED
+  CANCELLED
+
+}
+
+enum cc_company_status {
+  ACTIVE
+  STRIKE_OFF
+  UNDER_LIQUIDATION
+  DISSOLVED
+  AMALGAMATED
+  DORMANT
+  UNDER_PROCESS_OF_STRIKE_OFF
+  OTHER
+
+}
+
+enum cc_confidence {
+  HIGH
+  MEDIUM
+  LOW
+
+}
+
+enum cc_contact_type {
+  ADDRESS
+  EMAIL
+  PHONE
+  WEBSITE
+
+}
+
+enum cc_decision {
+  APPROVED_AS_REQUESTED
+  APPROVED_REDUCED
+  DECLINED
+  ON_HOLD
+
+}
+
+enum cc_entity_type {
+  PRIVATE_LTD
+  PUBLIC_LTD
+  OPC
+  LLP
+  PROPRIETORSHIP
+  PARTNERSHIP
+  HUF
+  TRUST
+  OTHER
+
+}
+
+enum cc_filing_status {
+  FILED
+  NOT_FILED
+
+}
+
+enum cc_gst_return_type {
+  GSTR1
+  GSTR3B
+  GSTR4
+  GSTR9
+  CMP08
+
+}
+
+enum cc_gst_status {
+  ACTIVE
+  CANCELLED
+  SUSPENDED
+  INACTIVE
+  PROVISIONAL
+
+}
+
+enum cc_kyc_status {
+  PENDING
+  VERIFIED
+  REJECTED
+
+}
+
+enum cc_ledger_entry {
+  TOPUP
+  CHECK_DEBIT
+  REFUND
+  ADJUSTMENT
+
+}
+
+enum cc_member_role {
+  OWNER
+  FINANCE
+  READ_ONLY
+
+}
+
+enum cc_policy_status {
+  DRAFT
+  ACTIVE
+  RETIRED
+
+}
+
+enum cc_product_code {
+  COMPANY_CHECK
+  INDIVIDUAL_CHECK
+  FIND_SOMEONE
+
+}
+
+enum cc_provider_mode {
+  MOCK
+  SANDBOX
+  LIVE
+
+}
+
+enum cc_provider_outcome {
+  SUCCESS
+  NOT_FOUND
+  TIMEOUT
+  RATE_LIMITED
+  AUTH_ERROR
+  ERROR
+
+}
+
+enum cc_risk_band {
+  LOW
+  MODERATE
+  HIGH
+  VERY_HIGH
+  INSUFFICIENT_DATA
+
+}
+
+enum cc_section {
+  MCA_MASTER
+  DIRECTORS
+  GST_PROFILE
+  GST_FILINGS
+  FINANCIALS
+  CHARGES
+  MSME
+
+}
+
+enum cc_section_status {
+  PENDING
+  RUNNING
+  SUCCESS
+  NOT_AVAILABLE
+  SOURCE_ERROR
+  SKIPPED
+
+}
+
+enum cc_statement_type {
+  STANDALONE
+  CONSOLIDATED
+
+}
+
+enum cc_subscription_status {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+
+}
+
+enum cc_verification_status {
+  VERIFIED
+  PROVIDER_PARSED
+  USER_PROVIDED
+
+}
+
+enum cc_gst_verification_status {
+  OTP_SENT
+  VERIFIED
+  FAILED
+  EXPIRED
+}
+
+/// Buyer GSTIN verified by OTP to the primary authorised signatory (API Setu GSTN RC). FKs exist in the DB;
+/// relations are left undeclared here so existing models stay untouched.
+model gst_verifications {
+  id                     String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organisation_id        String                     @db.Uuid
+  company_check_id       String                     @db.Uuid
+  gstin                  String                     @db.VarChar(15)
+  legal_name_entered     String
+  signatory_email_masked String
+  signatory_email_hash   String                     @db.Char(64)
+  provider               String
+  txn_id                 String?
+  status                 cc_gst_verification_status
+  otp_attempts           Int                        @default(0) @db.SmallInt
+  otp_sent_at            DateTime?                  @db.Timestamptz(6)
+  expires_at             DateTime?                  @db.Timestamptz(6)
+  verified_at            DateTime?                  @db.Timestamptz(6)
+  legal_name             String?
+  trade_name             String?
+  constitution           String?
+  name_matches_company   Boolean?
+  certificate_pdf        Bytes?
+  certificate_sha256     String?                    @db.Char(64)
+  error_code             String?
+  initiated_by           String                     @db.Uuid
+  created_at             DateTime                   @default(now()) @db.Timestamptz(6)
+
+  @@index([company_check_id, created_at(sort: Desc)])
+  @@index([organisation_id, created_at(sort: Desc)])
+}
