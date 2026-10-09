@@ -1,4 +1,5 @@
 import { createDataGovProviders } from "./datagov";
+import { createFileSureProviders } from "./filesure";
 import { createApiSetuGstRcProvider, createMockGstRcProvider, type GstRcProvider } from "./gst-rc";
 import { createMockProviders, MOCK_FIXTURES, type MockOptions } from "./mock";
 import type { ProviderMeta, ProviderMode, ProviderResult, ProviderSet } from "./types";
@@ -30,9 +31,14 @@ export function getProviders(mockOptions?: MockOptions): ProviderSet {
     if (process.env.NODE_ENV === "production") throw new Error("Mock providers are not allowed in production");
     return createMockProviders(mockOptions);
   }
-  // Live sources connected so far: data.gov.in (company search + MCA company master).
-  // Still to plug in as access arrives: GST details/filings, directors/charges, financial statements.
+  // Live sources: FileSure (search, MCA master, directors, charges, financial statements) when
+  // FILESURE_API_KEY is set, otherwise data.gov.in (search + MCA master only).
+  // Still to plug in as access arrives: GST details and return filings without the buyer's OTP.
   const pending = notConfiguredProviders(mode);
+  if (process.env.FILESURE_API_KEY?.trim()) {
+    const filesure = createFileSureProviders();
+    return { ...pending, search: filesure.search, mca: filesure.mca, financials: filesure.financials };
+  }
   const datagov = createDataGovProviders({ mode });
   return { ...pending, search: datagov.search, mca: datagov.mca };
 }
