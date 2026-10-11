@@ -26,8 +26,6 @@ yarn-error.log*
 *.log
 
 # environment files
-.env
-.env.*
 !.env.example
 
 # prisma & local databases
@@ -50,3 +48,4 @@ next-env.d.ts
 skills-lock.json
 /.neon
 /scratch/
+config.bat
