@@ -230,6 +230,12 @@ describe.skipIf(process.env.RUN_DB_TESTS !== "1")("Call Automation (DB)", () => 
       SELECT organisation_id, case_id, id, 'SCHEDULED', 'MOCK', ${"race:" + id}, 'QUEUED' FROM call_schedules WHERE case_id = ${id}::uuid RETURNING id::text`;
     await prisma.$executeRaw`UPDATE call_schedules SET attempt_count = 1 WHERE case_id = ${id}::uuid`;
     await applyAction(ctx, id, { action: "RECORD_PAYMENT" }, T0);
+    // Payment cancels the queued call outright and returns the budget.
+    expect((await attempts(id))[0]).toMatchObject({ status: "FAILED", failure_reason: "SUPPRESSED_CASE_PAID" });
+    expect((await schedule(id)).attempt_count).toBe(0);
+    // Defence in depth: if a claim raced past the cancellation, the pre-dial re-check still suppresses it.
+    await prisma.$executeRaw`UPDATE call_attempts SET status = 'QUEUED', failure_reason = NULL WHERE id = ${ins[0].id}::uuid`;
+    await prisma.$executeRaw`UPDATE call_schedules SET attempt_count = 1 WHERE case_id = ${id}::uuid`;
     const spy: VoiceProvider = { ...mockProvider, initiateCall: async () => { throw new Error("must not dial"); } };
     expect(await dispatchAttempt(ins[0].id, spy, T0)).toBe("suppressed");
     expect((await attempts(id))[0]).toMatchObject({ status: "FAILED", failure_reason: "SUPPRESSED_CASE_PAID" });

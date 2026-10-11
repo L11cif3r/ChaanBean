@@ -139,6 +139,14 @@ export function Sidebar() {
       badge: "Recovery",
     },
     {
+      id: "collect-call-automation",
+      href: "/collect",
+      label: "Collect",
+      subtitle: "Automated payment reminder calls",
+      icon: Phone,
+      badge: "Calls",
+    },
+    {
       id: "legal",
       href: "/arbitration",
       label: "Legal",

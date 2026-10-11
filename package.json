@@ -15,6 +15,7 @@
     "db:migrate:dev": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "collect:tick": "tsx scripts/call-automation/run-scheduler.ts",
     "db:setup": "prisma db push && tsx prisma/seed.ts",
     "postinstall": "node scripts/prisma-generate.js"
   },

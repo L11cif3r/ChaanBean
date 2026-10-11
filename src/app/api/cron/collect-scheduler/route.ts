@@ -1,11 +1,12 @@
 // Scheduler tick for a cron caller (Vercel Cron / external). Bearer CRON_SECRET; fails closed if unset.
-// Not registered in vercel.json here (shared deploy config): see docs/call-automation/README.md.
+// Registered in vercel.json (every 5 minutes; Vercel sends GET with Authorization: Bearer $CRON_SECRET).
 
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { reconcileOpenAttempts, runDueSchedules } from "@/lib/call-automation/engine";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 function authorised(req: Request) {
   const secret = process.env.CRON_SECRET;

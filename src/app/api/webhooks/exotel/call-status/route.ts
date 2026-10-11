@@ -32,6 +32,7 @@ async function callback(req: Request) {
   const p = await payload(req);
   const status = normalizeProviderStatus(p.Status ?? p.CallStatus ?? p.status);
   const callSid = p.CallSid ?? p.Sid ?? p.call_sid;
+  if (p.CustomField && p.CustomField !== attemptId) return NextResponse.json({ ok: true, applied: false, reason: "ATTEMPT_MISMATCH" });
   if (!status) return NextResponse.json({ ok: true, applied: false, reason: "UNRECOGNISED_STATUS" });
 
   const rows = await prisma.$queryRaw<{ provider_call_id: string | null }[]>`

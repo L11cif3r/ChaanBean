@@ -31,7 +31,11 @@ export const mockProvider: VoiceProvider = {
   async initiateCall(req: CallRequest): Promise<CallResult> {
     const outcome = outcomeFor(req.toPhone);
     if (outcome === "reject") return { accepted: false, failureReason: "MOCK_PROVIDER_REJECTED" };
-    return { accepted: true, providerCallId: `mock_${outcome}_${req.attemptId}` };
+    const providerCallId = `mock_${outcome}_${req.attemptId}`;
+    if (req.callbackUrl && process.env.CALL_MOCK_SEND_CALLBACKS === "1" && process.env.NODE_ENV !== "production") {
+      emitCallbacks(req.callbackUrl, providerCallId, req.attemptId, outcome);
+    }
+    return { accepted: true, providerCallId };
   },
 
   async getCallStatus(providerCallId: string): Promise<CallStatusResult | null> {
@@ -41,3 +45,17 @@ export const mockProvider: VoiceProvider = {
     return { status: TO_STATUS[o], durationSeconds: o === "completed" ? 42 : 0 };
   },
 };
+
+const CALLBACK_STATUS: Record<Outcome, string> = { completed: "completed", noanswer: "no-answer", busy: "busy", failed: "failed" };
+
+/** Sends Exotel-shaped status callbacks to our own signed endpoint (dev only; never contacts a telephony network). */
+function emitCallbacks(url: string, sid: string, attemptId: string, outcome: Outcome) {
+  const send = (status: string, extra: Record<string, string> = {}) =>
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ CallSid: sid, Status: status, CustomField: attemptId, ...extra }),
+    }).catch(() => undefined);
+  if (outcome === "completed") setTimeout(() => void send("in-progress"), 1500);
+  setTimeout(() => void send(CALLBACK_STATUS[outcome], outcome === "completed" ? { ConversationDuration: "42" } : {}), 4000);
+}

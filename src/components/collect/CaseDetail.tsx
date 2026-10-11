@@ -16,11 +16,12 @@ interface Attempt {
 interface Ev { id: string; event_type: string; actor_type: string; occurred_at: string; attempt_id: string | null; metadata: Record<string, unknown> }
 interface Auto { state: string; frequency: string; next_call_at: string | null; max_attempts: number; attempt_count: number; stop_reason: string | null }
 interface Case {
-  id: string; invoice_id: string | null; debtor_name: string; phone_last4: string; amount_due_paise: number; due_date: string;
+  id: string; invoice_id: string | null; debtor_name: string; phone_last4: string; amount_due_paise: number; amount_original_paise: number; due_date: string;
   days_overdue: number; language: string; status: string; contact_authority: string; promised_pay_date: string | null;
   promised_amount_paise: number | null; automation: Auto | null;
 }
-interface Detail { case: Case; attempts: Attempt[]; events: Ev[]; provider: { name: string; ready: boolean; reason?: string } }
+interface Pay { id: string; payment_ref: string; amount_paise: number; source: string; created_at: string }
+interface Detail { case: Case; payments: Pay[]; attempts: Attempt[]; events: Ev[]; provider: { name: string; ready: boolean; reason?: string } }
 
 const FREQ: Record<string, string> = { DAILY: "Every day", EVERY_2_DAYS: "Every 2 days", WEEKLY: "Every week" };
 
@@ -32,6 +33,7 @@ export default function CaseDetail({ id }: { id: string }) {
   const [freq, setFreq] = useState("DAILY");
   const [max, setMax] = useState(3);
   const [promise, setPromise] = useState("");
+  const [payAmt, setPayAmt] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -116,7 +118,7 @@ export default function CaseDetail({ id }: { id: string }) {
       <ProviderBanner provider={d.provider} />
 
       <div className={s.stats}>
-        <div className={s.stat}><div className={s.statLabel}>Amount due</div><div className={s.statValue}>{inr(c.amount_due_paise)}</div></div>
+        <div className={s.stat}><div className={s.statLabel}>Amount due</div><div className={s.statValue}>{inr(c.amount_due_paise)}</div>{c.amount_original_paise !== c.amount_due_paise && <div className={`${s.small} ${s.muted}`}>of {inr(c.amount_original_paise)}</div>}</div>
         <div className={s.stat}>
           <div className={s.statLabel}>Due date</div>
           <div className={s.statValue}>{fmtDate(c.due_date)}</div>
@@ -176,8 +178,10 @@ export default function CaseDetail({ id }: { id: string }) {
                 <p className={s.hint}>Calls are only placed between 9:00 am and 6:00 pm IST. Outside those hours the next call waits for 9:00 am.</p>
                 <div className={s.btnRow}>
                   <button className={`${s.btn} ${s.btnPrimary}`} disabled={!confirmed || !!busy}
-                    onClick={() => run("cfg", () => api(`/api/collect/cases/${id}/automation`, { method: "POST", body: JSON.stringify({ frequency: freq, max_attempts: max }) }), a ? "Automation updated." : "Automation started.")}>
-                    {a ? (a.state === "ACTIVE" ? "Save changes" : "Save and restart") : "Start automation"}
+                    onClick={() => run("cfg", () => (a && a.state !== "COMPLETED")
+                      ? api(`/api/collect/cases/${id}/automation`, { method: "PATCH", body: JSON.stringify({ op: "UPDATE", frequency: freq, max_attempts: max }) })
+                      : api(`/api/collect/cases/${id}/automation`, { method: "POST", body: JSON.stringify({ frequency: freq, max_attempts: max }) }), a ? "Automation updated." : "Automation started.")}>
+                    {a ? (a.state !== "COMPLETED" ? "Save changes" : "Save and restart") : "Start automation"}
                   </button>
                   {a?.state === "ACTIVE" && <button className={s.btn} disabled={!!busy} onClick={() => run("pause", () => control("PAUSE"), "Automation paused.")}>Pause</button>}
                   {a?.state === "PAUSED" && <button className={s.btn} disabled={!!busy} onClick={() => run("resume", () => control("RESUME"), "Automation resumed.")}>Resume</button>}
@@ -216,7 +220,13 @@ export default function CaseDetail({ id }: { id: string }) {
               <div className={s.stack}>
                 <div className={s.btnRow}>
                   <button className={`${s.btn} ${s.btnPrimary}`} disabled={!!busy}
-                    onClick={() => confirmAction("Record this invoice as paid? Calls will stop.") && run("pay", () => action({ action: "RECORD_PAYMENT" }), "Payment recorded. Calls stopped.")}>
+                    onClick={() => {
+                      const amt = payAmt.trim() === "" ? undefined : Math.round(Number(payAmt) * 100);
+                      if (amt !== undefined && (!Number.isFinite(amt) || amt <= 0)) { setToast({ kind: "err", message: "Enter a valid amount." }); return; }
+                      const full = amt === undefined || amt >= c.amount_due_paise;
+                      if (!confirmAction(full ? "Record this invoice as fully paid? Calls will stop." : `Record a partial payment of ${inr(amt!)}?`)) return;
+                      void run("pay", async () => { await action({ action: "RECORD_PAYMENT", payment_ref: `ui:${crypto.randomUUID()}`, ...(amt !== undefined ? { amount_paise: amt } : {}) }); setPayAmt(""); }, full ? "Payment recorded. Calls stopped." : "Partial payment recorded.");
+                    }}>
                     Record payment
                   </button>
                   {c.status === "ACTIVE"
@@ -226,6 +236,10 @@ export default function CaseDetail({ id }: { id: string }) {
                     onClick={() => confirmAction("Close this case?") && run("close", () => action({ action: "CLOSE" }), "Case closed.")}>
                     Close case
                   </button>
+                </div>
+                <div className={s.field}>
+                  <label className={s.label} htmlFor="payamt">Amount received (₹, blank = full balance)</label>
+                  <input id="payamt" type="number" min={0} step="0.01" className={s.input} style={{ width: 190 }} value={payAmt} onChange={(e) => setPayAmt(e.target.value)} />
                 </div>
                 <div className={s.field}>
                   <label className={s.label} htmlFor="promise">Debtor promised to pay on</label>
@@ -252,6 +266,17 @@ export default function CaseDetail({ id }: { id: string }) {
               <div className={s.stack}>
                 {d.attempts.map((x) => <AttemptCard key={x.id} a={x} />)}
               </div>
+            )}
+          </div>
+
+          <div className={`${s.card} ${s.cardPad}`}>
+            <div className={s.cardTitle}>Payments</div>
+            {d.payments.length === 0 ? <p className={s.muted}>No payments recorded.</p> : (
+              <ul className={s.stack} style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                {d.payments.map((p) => (
+                  <li key={p.id} className={s.small}><span className={s.strong}>{inr(p.amount_paise)}</span> <span className={s.muted}>· {fmtDateTime(p.created_at)} · {p.source === "USER" ? "You" : p.source === "INVOICE_SYNC" ? "Invoice sync" : "Payment event"}</span></li>
+                ))}
+              </ul>
             )}
           </div>
 

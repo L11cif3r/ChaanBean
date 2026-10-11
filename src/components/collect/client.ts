@@ -15,6 +15,7 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   });
   const json = await res.json().catch(() => null);
   if (!res.ok) {
+    if (res.status === 401) throw new ApiError("Your session has expired or you're not signed in. Sign in at /login and try again.", "UNAUTHENTICATED", 401);
     throw new ApiError(json?.error?.message ?? "Something went wrong. Try again.", json?.error?.code ?? "ERROR", res.status);
   }
   return json as T;
@@ -98,6 +99,10 @@ const EVENTS: Record<string, string> = {
   CALL_BUSY: "Line busy",
   CALL_FAILED: "Call failed",
   PAYMENT_RECORDED: "Payment recorded",
+  PARTIAL_PAYMENT_RECORDED: "Partial payment recorded",
+  AMOUNT_SYNCED: "Amount updated from invoice",
+  DUE_DATE_SYNCED: "Due date updated from invoice",
+  AUTOMATION_UPDATED: "Automation settings changed",
   DISPUTE_RAISED: "Dispute raised",
   DISPUTE_RESOLVED: "Dispute resolved",
   PROMISE_RECORDED: "Promise to pay recorded",
