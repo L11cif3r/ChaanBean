@@ -1,0 +1,33 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "call-automation",
+    "feature/company-check",
+    "legan-2.0",
+    "main",
+    "mobile-app",
+    "mobile-app-2",
+    "origin",
+    "redesign-marketing-site"
+  ],
+  "parent": {
+    "call-automation": "main",
+    "feature/company-check": "main",
+    "legan-2.0": "main",
+    "main": null,
+    "mobile-app": "main",
+    "mobile-app-2": "mobile-app",
+    "origin": "main",
+    "redesign-marketing-site": "main"
+  },
+  "order": [
+    "main",
+    "call-automation",
+    "feature/company-check",
+    "legan-2.0",
+    "mobile-app",
+    "origin",
+    "redesign-marketing-site",
+    "mobile-app-2"
+  ]
+}
