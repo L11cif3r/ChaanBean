@@ -1,52 +1,30 @@
-import "@/app/globals.css";
-import type { Metadata } from "next";
-import { LanguageProvider } from "@/lib/i18n/context";
-import { AppShell } from "@/components/AppShell";
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { ToastProvider } from "@/components/ui/toast";
+import "./globals.css";
+
+const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: "ChaanBean — Credit Recovery & Verification",
-  description: "B2B credit recovery and business verification platform for the Indian market",
-  icons: {
-    icon: [
-      { url: "/icon.png", sizes: "512x512", type: "image/png" },
-      { url: "/favicon.ico", sizes: "64x64" },
-      { url: "/logo.png", sizes: "1024x742", type: "image/png" },
-    ],
-    shortcut: "/icon.png",
-    apple: "/apple-icon.png",
-  },
+  title: { default: "Chaanbean", template: "%s · Chaanbean" },
+  description: "Credit checks, case checks and secured transactions for Indian businesses.",
+  robots: { index: false, follow: false },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0f3d33",
+};
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className="light" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const urlTheme = urlParams.get("theme");
-                if (urlTheme === "light" || urlTheme === "dark") {
-                  localStorage.setItem("chaanbean_theme", urlTheme);
-                }
-                const saved = localStorage.getItem("chaanbean_theme");
-                if (saved === "dark") {
-                  document.documentElement.classList.remove("light");
-                  document.documentElement.classList.add("dark");
-                } else {
-                  document.documentElement.classList.remove("dark");
-                  document.documentElement.classList.add("light");
-                }
-              } catch (e) {}
-            `,
-          }}
-        />
-      </head>
-      <body className="min-h-screen bg-[#F8FAFC] dark:bg-[#090D16] text-slate-900 dark:text-slate-100 antialiased font-sans">
-        <LanguageProvider>
-          <AppShell>{children}</AppShell>
-        </LanguageProvider>
+    <html lang="en-IN" className={`${inter.variable} h-full antialiased`}>
+      <body className="min-h-full">
+        <NextIntlClientProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -1,43 +1,10 @@
-import { NextResponse } from "next/server";
-import { prisma, isNeonAdapterActive } from "@/lib/db";
+import { route } from "@/server/http";
+import { adminClient } from "@/server/supabase/admin";
 
-export const dynamic = "force-dynamic";
-
-export async function GET() {
-  let dbStatus = "connected";
-  let errorMessage: string | null = null;
-
-  try {
-    // Quick lightweight query to confirm database responsiveness
-    await prisma.company.count();
-  } catch (err: unknown) {
-    const rawMsg = err instanceof Error ? err.message : String(err);
-    console.error("[health] Database health check failed:", rawMsg);
-    // Sanitize credentials out of error message before responding
-    errorMessage = rawMsg.replace(/:\/\/[^:]+:[^@]+@/, "://***:***@");
-    dbStatus = "disconnected";
-  }
-
-  const isHealthy = dbStatus === "connected";
-
-  return NextResponse.json(
-    {
-      status: isHealthy ? "healthy" : "degraded",
-      database: dbStatus,
-      neonAdapter: isNeonAdapterActive(),
-      timestamp: new Date().toISOString(),
-      ...(isHealthy
-        ? {}
-        : {
-            error: errorMessage,
-            dbConfigured: Boolean(process.env.DATABASE_URL || process.env.POSTGRES_URL),
-          }),
-    },
-    {
-      status: isHealthy ? 200 : 503,
-      headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate",
-      },
-    }
-  );
-}
+// Uptime check for monitoring (NFR-09). Reports only whether the database answers; no data.
+export const GET = route({ auth: "public" }, async () => {
+  const started = Date.now();
+  const { error } = await adminClient().from("jobs").select("id", { head: true, count: "exact" }).limit(1);
+  const body = { ok: !error, database: error ? "unreachable" : "ok", latencyMs: Date.now() - started };
+  return Response.json(body, { status: error ? 503 : 200, headers: { "cache-control": "no-store" } });
+});

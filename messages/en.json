@@ -1,0 +1,156 @@
+{
+  "app": {
+    "name": "Chaanbean",
+    "tagline": "Credit checks and secured transactions for Indian businesses",
+    "skipToContent": "Skip to main content",
+    "securedBy": "Secured by Chaanbean"
+  },
+  "nav": {
+    "groups": {
+      "workspace": "Workspace",
+      "checks": "Checks",
+      "businessSecurity": "Business Security",
+      "account": "Account"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "counterparties": "Counterparties",
+      "creditCheck": "Credit Check",
+      "caseCheck": "Case Check",
+      "transactions": "Transactions",
+      "settlements": "E-Settlement",
+      "team": "Team and roles",
+      "billing": "Plan and usage",
+      "settings": "Settings"
+    },
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "mainNavigation": "Main navigation"
+  },
+  "topbar": {
+    "noPlan": "No plan yet",
+    "planUnits": "{plan}: {units} units left",
+    "wallet": "Wallet: {amount}",
+    "organisation": "Organisation",
+    "notSignedIn": "Not signed in",
+    "account": "Account menu"
+  },
+  "placeholder": {
+    "badge": "Coming in Part {part}",
+    "screen": "Screen {id}",
+    "body": "This page is part of the Phase 1 build plan. The layout and navigation are final; the content arrives with Part {part}.",
+    "backToDashboard": "Back to dashboard"
+  },
+  "screens": {
+    "S01": {
+      "title": "Sign in",
+      "purpose": "Sign in or start sign-up with your mobile number and a one-time password."
+    },
+    "S02": {
+      "title": "Verify your business",
+      "purpose": "Verify the business behind the account by GSTIN or PAN and create the organisation."
+    },
+    "S03": {
+      "title": "Plans and checkout",
+      "purpose": "Choose Plan A, Plan B or pay-per-use, apply a coupon and pay."
+    },
+    "S04": {
+      "title": "Dashboard",
+      "purpose": "Your credit exposure and what needs attention, with one-click entry to every action."
+    },
+    "S05": {
+      "title": "Counterparties",
+      "purpose": "Find and manage every buyer, debtor and borrower, with risk and exposure at a glance."
+    },
+    "S06": {
+      "title": "Add counterparty",
+      "purpose": "Register a buyer, debtor or borrower with verified identity and contact details."
+    },
+    "S07": {
+      "title": "Counterparty profile",
+      "purpose": "Everything known about a counterparty: risk, reports, cases, transactions, documents and history."
+    },
+    "S08": {
+      "title": "Credit check",
+      "purpose": "Choose which checks to run, see the price and plan balance of each, and which need consent."
+    },
+    "S09": {
+      "title": "Check details and consent",
+      "purpose": "Give the identifiers the selected checks need and send the consent request."
+    },
+    "S10": {
+      "title": "Consent request",
+      "purpose": "Review a request to view your business data and approve or decline it."
+    },
+    "S11": {
+      "title": "Credit report",
+      "purpose": "All check results as one report with a risk band, a suggested credit range and the signals behind them."
+    },
+    "S12": {
+      "title": "Case check",
+      "purpose": "Find court cases, FIRs and money laundering watchlist hits, and confirm which matches are real."
+    },
+    "TXL": {
+      "title": "Transactions",
+      "purpose": "Every secured transaction with its status, balance and due date."
+    },
+    "S13": {
+      "title": "New secured transaction",
+      "purpose": "Create a seller-initiated, buyer-initiated or lender transaction with all terms the counterparty will accept."
+    },
+    "S14": {
+      "title": "Review and send",
+      "purpose": "See the exact agreement the counterparty will see, and send it."
+    },
+    "S15": {
+      "title": "Agreement",
+      "purpose": "Review an agreement and accept, reject or ask for changes."
+    },
+    "S16": {
+      "title": "Transaction",
+      "purpose": "Track a transaction from draft to paid, record payments and get the evidence pack."
+    },
+    "STL": {
+      "title": "E-Settlement",
+      "purpose": "Settlement agreements and their instalments."
+    },
+    "S17": {
+      "title": "New E-Settlement",
+      "purpose": "Record a settlement when a debtor agrees to pay, but not in full or not at once."
+    },
+    "S18": {
+      "title": "Team and roles",
+      "purpose": "Manage who in your organisation can use Chaanbean and what they can do."
+    },
+    "S19": {
+      "title": "Plan, usage and wallet",
+      "purpose": "Your plan, units used and left, wallet balance, ledger and invoices."
+    },
+    "S20": {
+      "title": "Notification settings",
+      "purpose": "Choose how you are told about each event, and what counterparties see as the sender."
+    },
+    "S21": {
+      "title": "Operations console",
+      "purpose": "Prices, plans, provider routing, organisations, consent records and audit search."
+    },
+    "S22": {
+      "title": "Verify a document",
+      "purpose": "Confirm a Chaanbean agreement has not been altered since it was sealed."
+    }
+  },
+  "ui": {
+    "loading": "Loading",
+    "close": "Close",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "errorSummary": "Please fix the following:",
+    "reference": "Reference: {reference}",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} of {pages}",
+    "rowsPerPage": "Rows per page",
+    "sortBy": "Sort by {column}",
+    "noResults": "Nothing to show yet."
+  }
+}
