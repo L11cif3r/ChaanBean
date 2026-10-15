@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
+import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Card, EmptyState } from "@/components/ui";
 import { can } from "@/lib/permissions";
 import { getContext } from "@/server/context";
@@ -12,7 +14,16 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("S18.title") };
 }
 
-export default async function TeamPage() {
+// The page reads the session, so it streams behind its own boundary and client navigations into it stay instant.
+export default function TeamPage() {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <Team />
+    </Suspense>
+  );
+}
+
+async function Team() {
   const ctx = await getContext();
   if (!ctx.user || !ctx.orgId || !can(ctx.role, "team.manage")) {
     const t = await getTranslations("team");

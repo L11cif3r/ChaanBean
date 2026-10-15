@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { Wallet } from "lucide-react";
 import { AppShell, type NavGroup } from "@/components/shell/app-shell";
+import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { AccountArea, OrgBadge, OrgGate } from "@/components/shell/signed-in";
 import { ThemeToggle } from "@/components/shell/theme-switch";
 import { Pill, Skeleton } from "@/components/ui";
@@ -67,15 +68,5 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         <OrgGate>{children}</OrgGate>
       </Suspense>
     </AppShell>
-  );
-}
-
-function PageSkeleton() {
-  return (
-    <div className="space-y-4" aria-hidden="true">
-      <Skeleton className="h-8 w-56" />
-      <Skeleton className="h-4 w-80 max-w-full" />
-      <Skeleton className="h-40 w-full" />
-    </div>
   );
 }

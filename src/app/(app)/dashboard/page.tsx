@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
+import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Card, CardBody, CardHeader, PageHeader, Tag } from "@/components/ui";
 import { loadAccount } from "@/server/account";
 
@@ -11,7 +13,16 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("S04.title") };
 }
 
-export default async function DashboardPage() {
+// The page reads the session, so it streams behind its own boundary and client navigations into it stay instant.
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <Dashboard />
+    </Suspense>
+  );
+}
+
+async function Dashboard() {
   const t = await getTranslations("dashboard");
   const { ctx, profile, orgs } = await loadAccount();
   const org = orgs.find((o) => o.id === ctx.orgId);

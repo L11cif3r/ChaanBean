@@ -1,5 +1,6 @@
 import "server-only";
 import crypto from "node:crypto";
+import { io } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { cache } from "react";
 import { can, type Capability, type Role } from "@/lib/permissions";
@@ -47,6 +48,10 @@ export const getContext = cache(async function getContext(): Promise<RequestCont
     userAgent: h.get("user-agent")?.slice(0, 400) ?? null,
   };
 
+  // getClaims compares the token's expiry with Date.now(). With partial prefetching the App Shell prerender can read
+  // headers and cookies, so mark the time read as request-time IO: io() suspends while prerendering and resolves
+  // immediately on a real request.
+  await io();
   const supabase = await userClient();
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
