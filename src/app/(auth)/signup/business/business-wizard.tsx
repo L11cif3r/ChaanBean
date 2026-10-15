@@ -57,7 +57,7 @@ function Steps({ current }: { current: 1 | 2 }) {
             <span
               className={cn(
                 "flex h-6 w-6 items-center justify-center rounded-full border text-[11px]",
-                done ? "border-primary bg-primary text-primary-on" : active ? "border-primary text-primary" : "border-border-strong text-muted",
+                done ? "bg-brand border-transparent text-white" : active ? "border-primary text-primary-text" : "border-border text-muted",
               )}
             >
               {done ? "✓" : i + 1}
@@ -238,7 +238,7 @@ export function BusinessWizard() {
       {step === 1 ? (
         <Card>
           <CardBody className="space-y-5 p-5 sm:p-6">
-            <div className="inline-flex rounded-lg border border-border-strong p-1" role="radiogroup" aria-label={t("verifyWith")}>
+            <div className="inline-flex rounded-2xl bg-surface-strong p-[5px]" role="radiogroup" aria-label={t("verifyWith")}>
               {(["gstin", "pan"] as const).map((m) => (
                 <button
                   key={m}
@@ -249,7 +249,7 @@ export function BusinessWizard() {
                     setMode(m);
                     reset();
                   }}
-                  className={cn("rounded-md px-3 py-1.5 text-sm font-medium", mode === m ? "bg-primary text-primary-on" : "text-muted hover:text-text")}
+                  className={cn("rounded-xl px-4 py-2 text-sm font-bold transition", mode === m ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text")}
                 >
                   {t(m === "gstin" ? "useGstin" : "usePan")}
                 </button>
@@ -299,7 +299,7 @@ export function BusinessWizard() {
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-text">{t("alreadyRegistered")}</p>
                     {accessRequested ? (
-                      <p className="rounded-lg bg-success-bg px-3 py-2 text-sm text-success-fg">{t("accessRequested")}</p>
+                      <p className="rounded-[14px] bg-success-bg px-4 py-3 text-sm font-semibold text-success-fg">{t("accessRequested")}</p>
                     ) : (
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                         <FormField id="requester" label={t("yourName")} error={fields.requester ?? fields.name} className="flex-1">
@@ -337,13 +337,13 @@ export function BusinessWizard() {
                 ) : null}
 
                 {gst.state === "cancelled" || gst.state === "suspended" ? (
-                  <p className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger-fg">
+                  <p className="rounded-[14px] bg-danger-bg px-4 py-3 text-sm font-semibold text-danger-fg">
                     {t("statusBlocked", { status: details?.status ?? "", date: details?.statusDate ? formatDate(details.statusDate) : "—" })}
                   </p>
                 ) : null}
-                {gst.state === "not_found" ? <p className="rounded-lg bg-warning-bg px-3 py-2 text-sm text-warning-fg">{t("notFound")}</p> : null}
+                {gst.state === "not_found" ? <p className="rounded-[14px] bg-warning-bg px-4 py-3 text-sm font-semibold text-warning-fg">{t("notFound")}</p> : null}
                 {gst.state === "provider_unavailable" ? (
-                  <p className="rounded-lg bg-info-bg px-3 py-2 text-sm text-info-fg">{t("providerDown")}</p>
+                  <p className="rounded-[14px] bg-info-bg px-4 py-3 text-sm font-semibold text-info-fg">{t("providerDown")}</p>
                 ) : null}
 
                 {gst.state === "not_found" || gst.state === "provider_unavailable" ? manualFields : null}
@@ -354,7 +354,7 @@ export function BusinessWizard() {
                       id="file"
                       type="file"
                       accept="application/pdf,image/png,image/jpeg"
-                      className="block w-full text-sm text-muted file:mr-3 file:rounded-md file:border-0 file:bg-primary-soft file:px-3 file:py-2 file:text-sm file:font-medium file:text-primary"
+                      className="block w-full text-sm text-muted file:mr-3 file:rounded-xl file:border-0 file:bg-primary-soft file:px-4 file:py-2 file:text-sm file:font-bold file:text-primary-text"
                       onChange={(e) => void upload(e.target.files?.[0])}
                     />
                     {doc ? <p className="text-xs text-success-fg">{t("uploaded", { name: doc.name })}</p> : null}

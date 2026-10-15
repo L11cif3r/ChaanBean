@@ -23,6 +23,17 @@
       "billing": "Plan and usage",
       "settings": "Settings"
     },
+    "subtitles": {
+      "dashboard": "Your command centre",
+      "counterparties": "Buyers and suppliers",
+      "creditCheck": "Check before you give credit",
+      "caseCheck": "Court cases on record",
+      "transactions": "Secured deals and approvals",
+      "settlements": "Settle dues online",
+      "team": "People and their access",
+      "billing": "Plan, units and wallet",
+      "settings": "Notifications and preferences"
+    },
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "mainNavigation": "Main navigation"
@@ -33,7 +44,10 @@
     "wallet": "Wallet: {amount}",
     "organisation": "Organisation",
     "notSignedIn": "Not signed in",
-    "account": "Account menu"
+    "account": "Account menu",
+    "walletLabel": "Wallet balance",
+    "verified": "Verified",
+    "pendingVerification": "Verification pending"
   },
   "placeholder": {
     "badge": "Coming in Part {part}",
@@ -171,7 +185,20 @@
     "registerNew": "Register a different business instead",
     "legal": "By continuing you agree to the <terms>Terms of Use</terms> and <privacy>Privacy Notice</privacy>.",
     "reference": "Reference: {reference}",
-    "devHint": "Development: test numbers 90000 00001, 90000 00002 and 90000 00003 sign in with code 123456. No SMS is sent."
+    "devHint": "Development: test numbers 90000 00001, 90000 00002 and 90000 00003 sign in with code 123456. No SMS is sent.",
+    "portalChip": "Client Portal",
+    "secure": "Secure sign-in",
+    "asideLabel": "Why Chaanbean",
+    "asideChip": "B2B credit risk and recovery platform",
+    "asideTitle": "Never suffer bad debts or <accent>stuck receivables</accent> again.",
+    "asideLead": "Check a business's credit and court cases before you give credit, and secure large deals with approvals both sides sign.",
+    "loginFor": "One login for",
+    "modules": {
+      "creditCheck": "Credit Check",
+      "caseCheck": "Case Check",
+      "transactions": "Secured Transactions",
+      "settlements": "E-Settlement"
+    }
   },
   "signup": {
     "title": "Verify your business",

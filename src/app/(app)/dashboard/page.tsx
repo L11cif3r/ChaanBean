@@ -29,7 +29,7 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <PageHeader title={firstName ? t("greeting", { name: firstName }) : t("greetingNoName")} description={org ? t("subtitle", { organisation: org.name }) : undefined} />
       {org?.verification === "unverified" ? (
-        <p role="status" className="rounded-lg bg-info-bg px-4 py-3 text-sm text-info-fg">
+        <p role="status" className="rounded-[14px] bg-info-bg px-4 py-3 text-sm font-semibold text-info-fg">
           {t("verificationPending")}
         </p>
       ) : null}
@@ -40,11 +40,11 @@ export default async function DashboardPage() {
             <ol className="space-y-3">
               {steps.map((s, i) => (
                 <li key={s.key} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border-strong text-xs font-semibold text-muted">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-xs font-bold text-primary-text">
                     {i + 1}
                   </span>
                   <div>
-                    <Link href={s.href} className="text-sm font-semibold text-primary hover:underline">
+                    <Link href={s.href} className="text-sm font-bold text-primary-text hover:underline">
                       {t(`steps.${s.key}.title`)}
                     </Link>
                     <p className="text-xs text-muted">{t(`steps.${s.key}.body`)}</p>

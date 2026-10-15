@@ -13,14 +13,16 @@ export default async function Page() {
   const t = await getTranslations("signup");
   // Until Part 3 builds checkout, a new organisation continues straight to its dashboard.
   return (
-    <PlaceholderPage
-      id="S03"
-      showBack={false}
-      action={
-        <ButtonLink href="/dashboard" size="sm">
-          {t("continueToDashboard")}
-        </ButtonLink>
-      }
-    />
+    <div className="mx-auto max-w-2xl">
+      <PlaceholderPage
+        id="S03"
+        showBack={false}
+        action={
+          <ButtonLink href="/dashboard" size="sm">
+            {t("continueToDashboard")}
+          </ButtonLink>
+        }
+      />
+    </div>
   );
 }

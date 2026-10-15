@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Card, CardBody, Checkbox, FormField, Input } from "@/components/ui";
+import { ArrowRight, Lock } from "lucide-react";
+import { Button, Checkbox, FormField, Input } from "@/components/ui";
 import { OtpInput } from "@/components/ui/otp-input";
 import { api } from "@/lib/api-client";
 import { maskMobile } from "@/lib/mask";
@@ -75,125 +76,133 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="mx-auto max-w-md">
-      <CardBody className="space-y-6 p-6 sm:p-8">
-        <div>
-          <h1 className="text-xl font-bold text-text">{t("title")}</h1>
-          <p className="mt-1 text-sm text-muted">{t("subtitle")}</p>
+    <section className="space-y-6 rounded-[28px] border border-border bg-surface px-5 py-6 shadow-lg sm:p-8">
+      <div>
+        <div className="flex items-center justify-between gap-2.5">
+          <span className="inline-flex items-center rounded-full bg-primary-soft px-2.5 py-1 text-[0.74rem] font-bold leading-[1.4] text-primary-text">
+            {t("portalChip")}
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-[0.78rem] font-semibold text-muted">
+            <Lock size={13} aria-hidden="true" /> {t("secure")}
+          </span>
         </div>
+        <h1 className="mt-4 text-[1.7rem] font-extrabold leading-tight tracking-[-0.03em] text-text">{t("title")}</h1>
+        <p className="mt-1 text-[0.95rem] text-muted">{t("subtitle")}</p>
+      </div>
 
-        {reason === "idle" || reason === "expired" ? (
-          <p role="status" className="rounded-lg bg-info-bg px-3 py-2 text-sm text-info-fg">
-            {t(reason === "idle" ? "reasonIdle" : "reasonExpired")}
-          </p>
-        ) : null}
-
-        {step === "mobile" ? (
-          <form
-            className="space-y-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void sendOtp();
-            }}
-          >
-            <FormField id="mobile" label={t("mobileLabel")} error={error?.message} required>
-              <div className="flex">
-                <span className="inline-flex h-10 items-center rounded-l-lg border border-r-0 border-border-strong bg-surface-muted px-3 text-sm font-medium text-muted">
-                  +91
-                </span>
-                <Input
-                  id="mobile"
-                  className="rounded-l-none"
-                  inputMode="numeric"
-                  autoComplete="tel-national"
-                  placeholder="98765 43210"
-                  value={mobile}
-                  maxLength={14}
-                  onChange={(e) => setMobile(e.target.value.replace(/[^\d\s+]/g, ""))}
-                  error={error?.message}
-                />
-              </div>
-            </FormField>
-            <Checkbox id="trusted" label={t("trusted")} checked={trusted} onChange={(e) => setTrusted(e.target.checked)} />
-            <Button type="submit" className="w-full" disabled={!digits} loading={busy}>
-              {t("sendOtp")}
-            </Button>
-            {process.env.NODE_ENV !== "production" ? (
-              <p className="rounded-lg bg-warning-bg px-3 py-2 text-xs text-warning-fg">{t("devHint")}</p>
-            ) : null}
-            {error?.reference ? <p className="text-xs text-muted">{t("reference", { reference: error.reference })}</p> : null}
-          </form>
-        ) : null}
-
-        {step === "otp" && digits ? (
-          <form
-            className="space-y-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void verify();
-            }}
-          >
-            <p className="text-sm text-text">{t("otpSentTo", { mobile: `+91 ${maskMobile(digits)}` })}</p>
-            <div className="space-y-1.5">
-              <OtpInput
-                value={code}
-                onChange={setCode}
-                onComplete={(v) => void verify(v)}
-                disabled={busy}
-                invalid={Boolean(error)}
-                label={t("otpLabel")}
-                describedBy={error ? "otp-error" : undefined}
-              />
-              {error ? (
-                <p id="otp-error" role="alert" className="text-xs font-medium text-danger-fg">
-                  {error.message}
-                </p>
-              ) : null}
-            </div>
-            <Button type="submit" className="w-full" disabled={code.length !== 6} loading={busy}>
-              {t("verify")}
-            </Button>
-            <div className="flex items-center justify-between text-sm">
-              <button type="button" className="text-primary hover:underline" onClick={() => { setStep("mobile"); setError(null); }}>
-                {t("changeNumber")}
-              </button>
-              {resendIn > 0 ? (
-                <span className="tabular-nums text-muted">{t("resendIn", { seconds: resendIn })}</span>
-              ) : (
-                <button type="button" className="font-medium text-primary hover:underline" onClick={() => void sendOtp()} disabled={busy}>
-                  {t("resend")}
-                </button>
-              )}
-            </div>
-          </form>
-        ) : null}
-
-        {step === "removed" ? (
-          <div className="space-y-4">
-            <p role="alert" className="rounded-lg bg-warning-bg px-3 py-2 text-sm text-warning-fg">
-              {t("removed", { organisation: removedFrom })}
-            </p>
-            <Link href="/signup/business" className="text-sm font-medium text-primary hover:underline">
-              {t("registerNew")}
-            </Link>
-          </div>
-        ) : null}
-
-        <p className="text-xs text-muted">
-          {t.rich("legal", {
-            terms: (chunks) => (
-              <Link href="/legal/terms" target="_blank" className="underline underline-offset-2">
-                {chunks}
-              </Link>
-            ),
-            privacy: (chunks) => (
-              <Link href="/legal/privacy" target="_blank" className="underline underline-offset-2">
-                {chunks}
-              </Link>
-            ),
-          })}
+      {reason === "idle" || reason === "expired" ? (
+        <p role="status" className="rounded-[14px] bg-info-bg px-4 py-3 text-sm font-semibold text-info-fg">
+          {t(reason === "idle" ? "reasonIdle" : "reasonExpired")}
         </p>
-      </CardBody>
-    </Card>
+      ) : null}
+
+      {step === "mobile" ? (
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void sendOtp();
+          }}
+        >
+          <FormField id="mobile" label={t("mobileLabel")} error={error?.message} required>
+            <div className="relative">
+              <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[0.95rem] font-bold text-text-2" aria-hidden="true">
+                +91
+              </span>
+              <Input
+                id="mobile"
+                className="pl-12 site:pl-12"
+                inputMode="numeric"
+                autoComplete="tel-national"
+                placeholder="98765 43210"
+                value={mobile}
+                maxLength={14}
+                onChange={(e) => setMobile(e.target.value.replace(/[^\d\s+]/g, ""))}
+                error={error?.message}
+              />
+            </div>
+          </FormField>
+          <Checkbox id="trusted" label={t("trusted")} checked={trusted} onChange={(e) => setTrusted(e.target.checked)} />
+          <Button type="submit" className="w-full" disabled={!digits} loading={busy}>
+            {t("sendOtp")}
+            {busy ? null : <ArrowRight size={16} aria-hidden="true" />}
+          </Button>
+          {process.env.NODE_ENV !== "production" ? (
+            <p className="rounded-[14px] border border-dashed border-primary-line bg-primary-softer px-4 py-3 text-xs font-medium text-text-2">{t("devHint")}</p>
+          ) : null}
+          {error?.reference ? <p className="text-xs text-muted">{t("reference", { reference: error.reference })}</p> : null}
+        </form>
+      ) : null}
+
+      {step === "otp" && digits ? (
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void verify();
+          }}
+        >
+          <p className="text-sm text-text">{t("otpSentTo", { mobile: `+91 ${maskMobile(digits)}` })}</p>
+          <div className="space-y-1.5">
+            <OtpInput
+              value={code}
+              onChange={setCode}
+              onComplete={(v) => void verify(v)}
+              disabled={busy}
+              invalid={Boolean(error)}
+              label={t("otpLabel")}
+              describedBy={error ? "otp-error" : undefined}
+            />
+            {error ? (
+              <p id="otp-error" role="alert" className="text-xs font-medium text-danger-fg">
+                {error.message}
+              </p>
+            ) : null}
+          </div>
+          <Button type="submit" className="w-full" disabled={code.length !== 6} loading={busy}>
+            {t("verify")}
+            {busy ? null : <ArrowRight size={16} aria-hidden="true" />}
+          </Button>
+          <div className="flex items-center justify-between text-sm">
+            <button type="button" className="font-semibold text-primary-text hover:underline" onClick={() => { setStep("mobile"); setError(null); }}>
+              {t("changeNumber")}
+            </button>
+            {resendIn > 0 ? (
+              <span className="tabular-nums text-muted">{t("resendIn", { seconds: resendIn })}</span>
+            ) : (
+              <button type="button" className="font-bold text-primary-text hover:underline" onClick={() => void sendOtp()} disabled={busy}>
+                {t("resend")}
+              </button>
+            )}
+          </div>
+        </form>
+      ) : null}
+
+      {step === "removed" ? (
+        <div className="space-y-4">
+          <p role="alert" className="rounded-[14px] bg-warning-bg px-4 py-3 text-sm font-semibold text-warning-fg">
+            {t("removed", { organisation: removedFrom })}
+          </p>
+          <Link href="/signup/business" className="text-sm font-bold text-primary-text hover:underline">
+            {t("registerNew")}
+          </Link>
+        </div>
+      ) : null}
+
+      <p className="text-xs text-muted">
+        {t.rich("legal", {
+          terms: (chunks) => (
+            <Link href="/legal/terms" target="_blank" className="underline underline-offset-2">
+              {chunks}
+            </Link>
+          ),
+          privacy: (chunks) => (
+            <Link href="/legal/privacy" target="_blank" className="underline underline-offset-2">
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
+    </section>
   );
 }

@@ -1,69 +1,219 @@
 @import "tailwindcss";
 
+/* Dark mode follows the html.dark class (set before paint by the script in app/layout.tsx). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* site: styles that apply only on the public-site look (inside .site, see below). */
+@custom-variant site (&:where(.site, .site *));
+
 /*
-  Chaanbean design tokens. Colours follow the PRD wireframes (deep green sidebar, green primary, amber accent in the
-  wordmark) until Mohan supplies brand assets (PRD Q11): change them here and every component follows.
-  All text/background pairs meet WCAG 2.1 AA (NFR-08).
+  Chaanbean design tokens, taken from the redesign-marketing-site branch. That branch has two looks and we keep both:
+  - the signed-in portal (src/app/globals.css + components/Sidebar.tsx there): slate neutrals, #FC8019 orange,
+    system font, navy dark mode;
+  - the public site and sign-in (components/marketing/site.module.css there): warm neutrals, orange gradient,
+    Plus Jakarta Sans, true-black dark mode. Pages opt in with the .site class (auth and public layouts).
+  Every component reads these tokens; change them here and the whole portal follows.
 */
 :root {
-  --bg: #f4f6f5;
+  --grad-brand: linear-gradient(135deg, #ff5200 0%, #fc8019 55%, #ffa24a 100%);
+
+  --bg: #f8fafc;
   --surface: #ffffff;
-  --surface-muted: #f8faf9;
-  --border: #e2e8e5;
-  --border-strong: #c9d3cf;
-  --text: #10201c;
-  --text-muted: #56655f;
-  --text-subtle: #63716b;
+  --surface-muted: #f8fafc;
+  --surface-strong: #f1f5f9;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text: #0f172a;
+  --text-2: #334155;
+  --text-muted: #64748b;
+  --text-subtle: #475569;
+  --placeholder: #94a3b8;
 
-  --primary: #0f5a49;
-  --primary-hover: #0b4739;
-  --primary-soft: #e3f1ec;
+  --primary: #fc8019;
+  --primary-hover: #e26d0a;
+  --primary-text: #e26d0a;
+  --primary-soft: #fff7ed;
+  --primary-softer: #fffaf5;
+  --primary-line: #fed7aa;
   --primary-on: #ffffff;
-  --accent: #e8a33d;
-  --danger: #b42318;
-  --danger-hover: #912018;
-  --ring: #1f7a64;
+  --accent: #fc8019;
+  --danger: #e11d48;
+  --danger-hover: #be123c;
+  --ring: rgba(252, 128, 25, 0.35);
 
-  --sidebar: #0f3d33;
-  --sidebar-hover: #164c40;
-  --sidebar-active: #1d5a4c;
-  --sidebar-text: #d9e7e2;
-  --sidebar-muted: #8fb3a8;
+  --success-bg: #ecfdf5;
+  --success-fg: #047857;
+  --warning-bg: #fffbeb;
+  --warning-fg: #b45309;
+  --danger-bg: #fff1f2;
+  --danger-fg: #e11d48;
+  --info-bg: #fff7ed;
+  --info-fg: #c2410c;
+  --neutral-bg: #f1f5f9;
+  --neutral-fg: #334155;
 
-  --success-bg: #e6f4ec;
-  --success-fg: #11613b;
-  --warning-bg: #fdf1dc;
-  --warning-fg: #7a4e00;
-  --danger-bg: #fce8e8;
-  --danger-fg: #9f1d1d;
-  --info-bg: #e6eefa;
-  --info-fg: #1d4a86;
-  --neutral-bg: #edf1ef;
-  --neutral-fg: #3f4b47;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.06);
+  --shadow-orange: 0 10px 22px -10px rgba(252, 128, 25, 0.6);
+  --field-bg: #ffffff;
+  --nav-bg: rgba(255, 255, 255, 0.95);
+  --dot: rgba(15, 23, 42, 0.08);
+  --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+}
+
+html.dark {
+  --bg: #090d16;
+  --surface: #0d1322;
+  --surface-muted: #111827;
+  --surface-strong: #1e293b;
+  --border: #1f293d;
+  --border-strong: #334155;
+  --text: #f8fafc;
+  --text-2: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-subtle: #94a3b8;
+  --placeholder: #64748b;
+
+  --primary-text: #fb923c;
+  --primary-soft: rgba(252, 128, 25, 0.15);
+  --primary-softer: rgba(252, 128, 25, 0.07);
+  --primary-line: rgba(252, 128, 25, 0.4);
+  --danger: #fb7185;
+  --danger-hover: #fda4af;
+
+  --success-bg: rgba(16, 185, 129, 0.14);
+  --success-fg: #34d399;
+  --warning-bg: rgba(217, 119, 6, 0.16);
+  --warning-fg: #fbbf24;
+  --danger-bg: rgba(225, 29, 72, 0.16);
+  --danger-fg: #fb7185;
+  --info-bg: rgba(252, 128, 25, 0.15);
+  --info-fg: #fb923c;
+  --neutral-bg: #1e293b;
+  --neutral-fg: #e2e8f0;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 10px -2px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 18px 40px -18px rgba(0, 0, 0, 0.8);
+  --field-bg: #0b1120;
+  --nav-bg: rgba(13, 19, 34, 0.95);
+  --dot: rgba(255, 255, 255, 0.06);
+  color-scheme: dark;
+}
+
+/* Public site and sign-in look (site.module.css on the branch). */
+.site {
+  --bg: #fffdfb;
+  --surface: #ffffff;
+  --surface-muted: #faf6f2;
+  --surface-strong: #f3eee8;
+  --border: #ece6df;
+  --border-strong: #ddd5cc;
+  --text: #171717;
+  --text-2: #3b3b3b;
+  --text-muted: #666666;
+  --text-subtle: #999999;
+  --placeholder: #a3a3a3;
+
+  --primary-hover: #e64a00;
+  --primary-text: #e64a00;
+  --primary-soft: #fff0e3;
+  --primary-softer: #fff8f1;
+  --primary-line: #ffd2a8;
+  --danger: #d93a3a;
+  --danger-hover: #b92e2e;
+
+  --success-bg: #e6f6ee;
+  --success-fg: #0b8a5c;
+  --warning-bg: #fff4dc;
+  --warning-fg: #b86e00;
+  --danger-bg: #fdecec;
+  --danger-fg: #d93a3a;
+  --info-bg: #fff0e3;
+  --info-fg: #e64a00;
+  --neutral-bg: #f3eee8;
+  --neutral-fg: #3b3b3b;
+
+  --shadow-sm: 0 1px 2px rgba(23, 23, 23, 0.06), 0 2px 8px rgba(23, 23, 23, 0.04);
+  --shadow-md: 0 10px 30px -12px rgba(23, 23, 23, 0.18), 0 4px 10px -6px rgba(23, 23, 23, 0.08);
+  --shadow-lg: 0 30px 60px -24px rgba(23, 23, 23, 0.28), 0 12px 24px -16px rgba(23, 23, 23, 0.16);
+  --shadow-orange: 0 14px 30px -12px rgba(255, 82, 0, 0.55);
+  --field-bg: #fffdfb;
+  --nav-bg: rgba(255, 255, 255, 0.92);
+  --dot: rgba(23, 23, 23, 0.08);
+  --font-body: var(--font-jakarta), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+}
+
+/* True black dark mode with warm orange accents. */
+html.dark .site {
+  --bg: #000000;
+  --surface: #0e0e0e;
+  --surface-muted: #141414;
+  --surface-strong: #1c1c1c;
+  --border: #242424;
+  --border-strong: #333333;
+  --text: #f5f5f5;
+  --text-2: #d6d6d6;
+  --text-muted: #a3a3a3;
+  --text-subtle: #707070;
+  --placeholder: #5c5c5c;
+
+  --primary-text: #ff8a3d;
+  --primary-soft: rgba(255, 98, 20, 0.14);
+  --primary-softer: rgba(255, 98, 20, 0.06);
+  --primary-line: rgba(255, 122, 40, 0.38);
+  --danger: #ff6b6b;
+  --danger-hover: #ff8585;
+
+  --success-bg: rgba(52, 201, 143, 0.13);
+  --success-fg: #34c98f;
+  --warning-bg: rgba(255, 181, 71, 0.13);
+  --warning-fg: #ffb547;
+  --danger-bg: rgba(255, 107, 107, 0.13);
+  --danger-fg: #ff6b6b;
+  --info-bg: rgba(255, 98, 20, 0.14);
+  --info-fg: #ff8a3d;
+  --neutral-bg: #1c1c1c;
+  --neutral-fg: #d6d6d6;
+
+  --shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 18px 40px -18px rgba(0, 0, 0, 0.9);
+  --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 30px 70px -28px rgba(0, 0, 0, 0.95);
+  --shadow-orange: 0 14px 34px -12px rgba(255, 82, 0, 0.6);
+  --field-bg: #0a0a0a;
+  --nav-bg: rgba(8, 8, 8, 0.92);
+  --dot: rgba(255, 255, 255, 0.07);
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
+  --color-surface-strong: var(--surface-strong);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-text: var(--text);
+  --color-text-2: var(--text-2);
   --color-muted: var(--text-muted);
   --color-subtle: var(--text-subtle);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
+  --color-primary-text: var(--primary-text);
   --color-primary-soft: var(--primary-soft);
+  --color-primary-softer: var(--primary-softer);
+  --color-primary-line: var(--primary-line);
   --color-primary-on: var(--primary-on);
   --color-accent: var(--accent);
   --color-danger: var(--danger);
   --color-danger-hover: var(--danger-hover);
   --color-ring: var(--ring);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-hover: var(--sidebar-hover);
-  --color-sidebar-active: var(--sidebar-active);
-  --color-sidebar-text: var(--sidebar-text);
-  --color-sidebar-muted: var(--sidebar-muted);
+  --color-field: var(--field-bg);
+  --color-placeholder: var(--placeholder);
   --color-success-bg: var(--success-bg);
   --color-success-fg: var(--success-fg);
   --color-warning-bg: var(--warning-bg);
@@ -74,22 +224,47 @@
   --color-info-fg: var(--info-fg);
   --color-neutral-bg: var(--neutral-bg);
   --color-neutral-fg: var(--neutral-fg);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-body);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-orange: var(--shadow-orange);
 }
 
+/* The branch's portal reads at 16.5 px (17 px on desktop). */
 html {
   -webkit-text-size-adjust: 100%;
+  font-size: 16.5px;
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 17px;
+  }
 }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+}
+
+/* Brand gradient fill used by primary buttons, the theme knob and the sign-in panel (a utility, so variants work). */
+@utility bg-brand {
+  background-image: var(--grad-brand);
 }
 
 /* One visible focus style everywhere (keyboard use, NFR-08). */
 :focus-visible {
-  outline: 2px solid var(--ring);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 

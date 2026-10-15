@@ -50,8 +50,8 @@ export function Tabs({ items, initial, className }: { items: TabItem[]; initial?
               onClick={() => setActive(t.key)}
               onKeyDown={(e) => onKeyDown(e, i)}
               className={cn(
-                "-mb-px whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium",
-                selected ? "border-primary text-primary" : "border-transparent text-muted hover:text-text",
+                "-mb-px whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-bold transition-colors",
+                selected ? "border-primary text-primary-text" : "border-transparent text-muted hover:text-text",
               )}
             >
               {t.label}

@@ -1,7 +1,9 @@
+import { ShieldCheck } from "lucide-react";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 import { Card, CardBody, Tag } from "@/components/ui";
+import { cn } from "@/components/ui/cn";
 import { maskMobile } from "@/lib/mask";
 import { loadAccount } from "@/server/account";
 import { AccountMenu } from "./account-menu";
@@ -17,6 +19,29 @@ export async function AccountArea() {
       orgs={orgs.map((o) => ({ id: o.id, name: o.name, role: o.role }))}
       activeOrgId={ctx.orgId}
     />
+  );
+}
+
+/** Organisation name and verification chip on the left of the top bar (as on the redesigned portal). */
+export async function OrgBadge() {
+  const { ctx, orgs } = await loadAccount();
+  const active = orgs.find((o) => o.id === ctx.orgId);
+  if (!active) return null;
+  const t = await getTranslations("topbar");
+  const verified = active.verification === "gstin_verified" || active.verification === "pan_verified";
+  return (
+    <>
+      <span className="max-w-[140px] truncate text-sm font-bold tracking-tight text-text sm:max-w-[240px] sm:text-base md:max-w-none">{active.name}</span>
+      <span
+        className={cn(
+          "hidden items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-xs font-bold sm:inline-flex",
+          verified ? "border-success-fg/30 bg-success-bg text-success-fg" : "border-warning-fg/30 bg-warning-bg text-warning-fg",
+        )}
+      >
+        <ShieldCheck size={13} aria-hidden="true" />
+        {verified ? t("verified") : t("pendingVerification")}
+      </span>
+    </>
   );
 }
 

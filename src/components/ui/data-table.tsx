@@ -63,7 +63,7 @@ export function DataTable<T>({
     <div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-border bg-surface-muted text-xs font-semibold text-muted">
+          <thead className="border-b border-border bg-surface-muted font-mono text-xs font-bold uppercase tracking-wider text-subtle">
             <tr>
               {columns.map((c) => {
                 const active = sort?.key === c.key;
@@ -94,7 +94,7 @@ export function DataTable<T>({
           </thead>
           <tbody className="divide-y divide-border">
             {visible.map((row) => (
-              <tr key={rowKey(row)} className="hover:bg-surface-muted">
+              <tr key={rowKey(row)} className="transition-colors hover:bg-primary-softer">
                 {columns.map((c) => (
                   <td key={c.key} className={cn("px-4 py-3", c.align === "right" && "text-right tabular-nums", c.hideOnMobile && "hidden md:table-cell")}>
                     {c.render(row)}
@@ -109,7 +109,7 @@ export function DataTable<T>({
         <label className="inline-flex items-center gap-2">
           {t("rowsPerPage")}
           <select
-            className="h-8 rounded-md border border-border-strong bg-surface px-2 text-text"
+            className="h-8 rounded-lg border border-border bg-field px-2 text-text"
             value={pageSize}
             onChange={(e) => {
               setPageSize(Number(e.target.value));
@@ -124,11 +124,11 @@ export function DataTable<T>({
           </select>
         </label>
         <div className="flex items-center gap-2">
-          <button type="button" className="rounded-md border border-border-strong px-2.5 py-1 disabled:opacity-50" disabled={current <= 1} onClick={() => setPage(current - 1)}>
+          <button type="button" className="rounded-lg border border-border bg-surface px-2.5 py-1 font-semibold hover:border-primary hover:text-primary-text disabled:opacity-50" disabled={current <= 1} onClick={() => setPage(current - 1)}>
             {t("previous")}
           </button>
           <span className="tabular-nums">{t("pageOf", { page: current, pages })}</span>
-          <button type="button" className="rounded-md border border-border-strong px-2.5 py-1 disabled:opacity-50" disabled={current >= pages} onClick={() => setPage(current + 1)}>
+          <button type="button" className="rounded-lg border border-border bg-surface px-2.5 py-1 font-semibold hover:border-primary hover:text-primary-text disabled:opacity-50" disabled={current >= pages} onClick={() => setPage(current + 1)}>
             {t("next")}
           </button>
         </div>

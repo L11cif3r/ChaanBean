@@ -36,18 +36,18 @@ export function Dialog({
         e.preventDefault();
         onClose();
       }}
-      className="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-xl border border-border bg-surface p-0 text-text shadow-xl backdrop:bg-black/40"
+      className="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-3xl border border-border bg-surface p-0 text-text shadow-lg backdrop:bg-black/50 backdrop:backdrop-blur-sm"
     >
-      <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
-        <h2 className="text-base font-semibold">{title}</h2>
-        <button type="button" onClick={onClose} className="rounded-md p-1 text-muted hover:bg-surface-muted" aria-label={t("close")}>
+      <div className="flex items-start justify-between gap-4 border-b border-border px-6 py-4">
+        <h2 className="text-base font-bold tracking-tight">{title}</h2>
+        <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-muted hover:bg-surface-muted hover:text-text" aria-label={t("close")}>
           <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden="true">
             <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
       </div>
-      <div className="px-5 py-4 text-sm">{children}</div>
-      {footer ? <div className="flex justify-end gap-2 border-t border-border px-5 py-3">{footer}</div> : null}
+      <div className="px-6 py-5 text-sm">{children}</div>
+      {footer ? <div className="flex justify-end gap-2 border-t border-border px-6 py-4">{footer}</div> : null}
     </dialog>
   );
 }

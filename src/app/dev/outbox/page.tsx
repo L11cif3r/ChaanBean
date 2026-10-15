@@ -15,7 +15,7 @@ function Linkified({ text }: { text: string }) {
     <p className="whitespace-pre-wrap break-words text-sm text-text">
       {parts.map((p, i) =>
         /^https?:\/\//.test(p) ? (
-          <a key={i} href={p} className="font-medium text-primary underline underline-offset-2">
+          <a key={i} href={p} className="font-semibold text-primary-text underline underline-offset-2">
             {p}
           </a>
         ) : (

@@ -88,8 +88,8 @@ export function OtpInput({
           aria-label={`${label} digit ${i + 1}`}
           aria-invalid={invalid || undefined}
           className={cn(
-            "h-12 w-11 rounded-lg border bg-surface text-center text-lg font-semibold tabular-nums text-text sm:w-12",
-            invalid ? "border-danger" : "border-border-strong",
+            "h-[52px] w-11 rounded-[14px] border-[1.5px] bg-field text-center text-lg font-bold tabular-nums text-text outline-none transition-[border-color,box-shadow] focus:border-primary focus:shadow-[0_0_0_4px_rgba(252,128,25,0.16)] focus-visible:outline-none sm:w-12",
+            invalid ? "border-danger" : "border-border",
           )}
         />
       ))}

@@ -6,19 +6,21 @@ import { Spinner } from "./spinner";
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md";
 
+// Buttons as on the redesigned branch. In the portal: solid #FC8019, rounded-xl, bold. On the site look (sign-in and
+// public pages, inside .site): brand gradient with an orange glow, taller, and a small lift on hover.
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 whitespace-nowrap";
+  "inline-flex items-center justify-center gap-2 font-bold whitespace-nowrap transition-[transform,box-shadow,border-color,color,background-color] duration-200 ease-[cubic-bezier(.22,1,.36,1)] disabled:cursor-not-allowed disabled:opacity-55 site:enabled:hover:-translate-y-0.5 site:[a&]:hover:-translate-y-0.5";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-primary text-primary-on hover:bg-primary-hover",
-  secondary: "border border-border-strong bg-surface text-text hover:bg-surface-muted",
-  ghost: "text-primary hover:bg-primary-soft",
-  danger: "bg-danger text-white hover:bg-danger-hover",
+  primary: "bg-primary text-white shadow-sm hover:bg-primary-hover site:bg-brand site:shadow-orange",
+  secondary: "border border-border bg-surface text-text-2 shadow-sm hover:border-primary hover:text-primary-text",
+  ghost: "text-primary-text hover:bg-primary-soft",
+  danger: "bg-danger text-white shadow-sm hover:bg-danger-hover",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-sm",
-  md: "h-10 px-4 text-sm",
+  sm: "h-9 rounded-xl px-4 text-xs site:h-10 site:text-sm",
+  md: "h-11 rounded-xl px-5 text-sm site:h-12 site:rounded-[14px] site:px-[22px] site:text-[0.95rem]",
 };
 
 export function buttonClass(variant: Variant = "primary", size: Size = "md", className?: string) {
