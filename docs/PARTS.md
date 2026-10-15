@@ -6,7 +6,7 @@ mock provider and switched to the real one when keys arrive.
 
 | # | Part | Screens | Main PRD requirements | Target window | Status |
 |---|---|---|---|---|---|
-| 1 | Foundation: repo, Supabase, tenancy and roles, audit log, job runner, shared libraries, design system, app shell | shell for every route in 6.2 | FR-USR-02, FR-AUD-01, NFR-08/10/11 | 14–23 Oct 2026 | In progress |
+| 1 | Foundation: repo, Supabase, tenancy and roles, audit log, job runner, shared libraries, design system, app shell | shell for every route in 6.2 | FR-USR-02, FR-AUD-01, NFR-08/10/11 | 14–23 Oct 2026 | Done (15 Oct) |
 | 2 | Sign-in, organisations and team | S01, S02, S18 | FR-AUTH-01–06, FR-ORG-01–06, FR-USR-01 | 26–30 Oct | Not started |
 | 3 | Plans, wallet and billing: item codes, quota then wallet, hold/commit/reverse ledger, gateway (test mode), GST invoices | S03, S19 | FR-BIL-01–09 | 2–6 Nov | Not started |
 | 4 | Counterparties: three types, GSTIN auto-fill, UPI bank-linked check, duplicates, archive | S05, S06, S07 | FR-CP-01–08 | 9–13 Nov | Not started |
@@ -34,6 +34,6 @@ their part after its Must flow passes; most are likely to land in a 1.1 release.
 - [x] Database rules verified with SQL through the Supabase connector (15 Oct): row-level security per organisation
       and role, refused writes, anonymous access, function grants, private buckets, permission matrix identical to
       `src/lib/permissions.ts`, audit chain and tamper detection, job retry and backoff
-- [ ] `npm run test:db` (needs `SUPABASE_SECRET_KEY` in `.env.local`): still needed to prove truly simultaneous audit
-      writes and job claims (the connector runs queries one at a time), and the TypeScript audit writer, job runner and
-      encrypted storage end to end
+- [x] `npm run test:db` green (15 Oct, 17 tests): row-level security through real Supabase sign-ins, audit chain with 8
+      simultaneous writers, job claims by 3 simultaneous workers, audit writer masking, job runner, write-once and
+      encrypted storage. Server work uses the database connection in `.env` (no Supabase secret key)

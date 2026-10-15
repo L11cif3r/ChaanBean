@@ -2,7 +2,7 @@ import path from "node:path";
 import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
 
-// Unit tests: `npm test` (no network). Database tests: `npm run test:db` (needs SUPABASE_SECRET_KEY in .env.local).
+// Unit tests: `npm test` (no network). Database tests: `npm run test:db` (needs DIRECT_URL in .env).
 export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {

@@ -6,7 +6,7 @@ import { z } from "zod";
 const schema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(20),
-  SUPABASE_SECRET_KEY: z.string().min(20, "SUPABASE_SECRET_KEY is missing. Paste it into .env.local."),
+  DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//, "DATABASE_URL must be a Postgres connection string"),
   FIELD_ENCRYPTION_KEY: z.string().min(40),
   BLIND_INDEX_KEY: z.string().min(40),
   CRON_SECRET: z.string().min(32),

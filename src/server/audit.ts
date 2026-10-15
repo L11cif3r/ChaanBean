@@ -1,7 +1,7 @@
 import "server-only";
+import type { JSONValue } from "postgres";
 import { redact } from "@/lib/mask";
-import type { Json } from "@/server/db/types";
-import { adminClient } from "@/server/supabase/admin";
+import { sql } from "@/server/db/sql";
 import type { RequestContext } from "@/server/context";
 
 // Audit log writer (FR-AUD-01). Rows are append-only and hash-chained per organisation by the database trigger, so
@@ -27,23 +27,24 @@ type Actor = Pick<RequestContext, "requestId" | "ip" | "userAgent" | "orgId"> & 
 };
 
 export async function audit(actor: Actor, entry: AuditEntry): Promise<void> {
-  const actorType = actor.actorType ?? (actor.user ? "user" : "system");
-  const { error } = await adminClient()
-    .from("audit_log")
-    .insert({
-      org_id: entry.orgId === undefined ? actor.orgId : entry.orgId,
-      actor_type: actorType,
-      actor_id: actor.actorId ?? actor.user?.id ?? null,
-      action: entry.action,
-      entity: entry.entity ?? null,
-      entity_id: entry.entityId ?? null,
-      before: entry.before === undefined ? null : (redact(entry.before) as Json),
-      after: entry.after === undefined ? null : (redact(entry.after) as Json),
-      ip: actor.ip,
-      user_agent: actor.userAgent,
-      request_id: actor.requestId,
-    });
-  if (error) throw new Error(`Audit write failed: ${error.message}`);
+  const db = sql();
+  const json = (v: unknown) => (v === undefined || v === null ? null : db.json(redact(v) as JSONValue));
+  await db`
+    insert into public.audit_log
+      (org_id, actor_type, actor_id, action, entity, entity_id, before, after, ip, user_agent, request_id)
+    values (
+      ${entry.orgId === undefined ? actor.orgId : entry.orgId}::uuid,
+      ${actor.actorType ?? (actor.user ? "user" : "system")}::public.audit_actor,
+      ${actor.actorId ?? actor.user?.id ?? null},
+      ${entry.action},
+      ${entry.entity ?? null},
+      ${entry.entityId ?? null},
+      ${json(entry.before)}::jsonb,
+      ${json(entry.after)}::jsonb,
+      ${actor.ip}::inet,
+      ${actor.userAgent},
+      ${actor.requestId}
+    )`;
 }
 
 /** Actor for background jobs and scheduled work. */

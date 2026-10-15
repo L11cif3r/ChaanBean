@@ -1,7 +1,15 @@
 import "server-only";
-import type { Database } from "@/server/db/types";
 
-export type JobRow = Database["public"]["Tables"]["jobs"]["Row"];
+/** A claimed row of public.jobs. */
+export interface JobRow {
+  id: string;
+  kind: string;
+  payload: unknown;
+  org_id: string | null;
+  attempts: number;
+  max_attempts: number;
+  run_at: Date;
+}
 
 export interface JobDefinition<P = unknown> {
   kind: string;

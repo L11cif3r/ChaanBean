@@ -1,7 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { audit, systemActor } from "@/server/audit";
-import { adminClient } from "@/server/supabase/admin";
+import { sql } from "@/server/db/sql";
 import { defineJob } from "./registry";
 
 // Every job kind is registered here so the runner knows it. Later parts add their own files and import them below.
@@ -14,9 +14,8 @@ defineJob({
   kind: "audit.verify_chain",
   parse: (p) => z.object({ orgId: z.uuid() }).parse(p),
   async run({ orgId }, job) {
-    const { data, error } = await adminClient().rpc("verify_audit_chain", { p_org: orgId });
-    if (error) throw new Error(error.message);
-    const result = data?.[0];
+    const [result] = await sql()<{ broken_seq: string | null; checked: string }[]>`
+      select broken_seq, checked from public.verify_audit_chain(${orgId}::uuid)`;
     if (result && result.broken_seq !== null) {
       console.error(`[audit] chain broken for org ${orgId} at seq ${result.broken_seq}`);
       await audit(systemActor(`job:${job.id}`), {
@@ -24,7 +23,7 @@ defineJob({
         action: "audit.chain_broken",
         entity: "organisation",
         entityId: orgId,
-        after: { brokenSeq: result.broken_seq, checked: result.checked },
+        after: { brokenSeq: Number(result.broken_seq), checked: Number(result.checked) },
       });
     }
   },

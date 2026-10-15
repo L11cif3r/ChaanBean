@@ -14,8 +14,9 @@ next-intl · Vitest · Playwright. Architecture: [docs/ARCHITECTURE.md](docs/ARC
 
 1. Node 20.9 or later, then `npm install`.
 2. `cp .env.example .env.local` and fill it in:
-   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`: Supabase > Project Settings > API Keys for the
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: Supabase > Project Settings > API Keys for the
      project `ixhhgevmplfjqkdmpepw` (Sydney, used for development; see docs/ARCHITECTURE.md on moving to India).
+   - `DATABASE_URL` (transaction pooler, port 6543) and `DIRECT_URL` (session pooler, port 5432): Supabase > Connect.
    - `FIELD_ENCRYPTION_KEY`, `BLIND_INDEX_KEY`: `openssl rand -base64 32` each.
    - `CRON_SECRET`: `openssl rand -hex 24`.
 3. `npm run dev` and open http://localhost:3400. The design system is at http://localhost:3400/dev/ui.
@@ -26,7 +27,7 @@ next-intl · Vitest · Playwright. Architecture: [docs/ARCHITECTURE.md](docs/ARC
 |---|---|
 | `npm run dev` | Dev server on port 3400 (runs background jobs when `APP_LOCAL_JOBS=true`) |
 | `npm run check` | Lint, type check and unit tests |
-| `npm run test:db` | Database tests against Supabase staging (creates and removes `ZZ TEST` data) |
+| `npm run test:db` | Database tests against the development project over `DIRECT_URL` (creates and removes `ZZ TEST` data) |
 | `npm run test:e2e` | Playwright smoke test at 360 px and desktop (uses the installed Google Chrome locally) |
 | `npm run build` | Production build |
 

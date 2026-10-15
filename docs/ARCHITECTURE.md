@@ -24,8 +24,10 @@ Supabase                Postgres with row-level security · Auth · Storage · R
 
 - **User client** (`src/server/supabase/server.ts`) acts as the signed-in user. Row-level security applies, so a query
   can only ever see that user's organisations.
-- **Admin client** (`src/server/supabase/admin.ts`) uses the secret key and bypasses row-level security. It is used
-  for background jobs, audit writes and writes the route has already authorised.
+- **Database connection** (`src/server/db/sql.ts`, postgres.js) logs in with the database password in `DATABASE_URL`
+  (Supabase transaction pooler) and bypasses row-level security. It is used for background jobs, audit writes, stored
+  files and writes the route has already authorised, never to read data on a user's behalf. No Supabase secret key
+  is needed.
 - **Postgres functions** (`rpc()`) hold anything that must happen atomically: job claiming now; ledger holds,
   transaction state changes and their audit rows in later parts.
 - Schema changes are SQL files in `supabase/migrations/`, applied with the Supabase connector (`apply_migration`).
@@ -40,7 +42,7 @@ a capability (`route({ capability: "check.run" }, …)`), and the database enfor
 
 ## Audit log
 
-`public.audit_log` is append-only (triggers refuse UPDATE, DELETE and TRUNCATE, even with the secret key) and
+`public.audit_log` is append-only (triggers refuse UPDATE, DELETE and TRUNCATE, even for the database owner) and
 hash-chained per organisation: each row stores `prev_hash` and `row_hash = sha256(prev_hash | canonical row)`, and a
 per-organisation advisory lock keeps the chain ordered under concurrent writers. `verify_audit_chain(org)` finds the
 first broken row; the `audit.verify_chain` job runs it. Audit rows have no foreign key so they outlive the
@@ -61,9 +63,10 @@ keys in development, AWS KMS in production.
 
 ## Storage
 
-`EvidenceStore` (write-once) and `RawResponseStore` (encrypted) in `src/server/storage`. Development uses private
-Supabase buckets that only the server can reach. Production evidence moves to S3 with Object Lock, because Supabase
-Storage cannot lock objects (FR-TX-06).
+`EvidenceStore` (write-once) and `RawResponseStore` (encrypted) in `src/server/storage`. Development keeps objects in
+`app_private.stored_objects`, reachable only through the server's database connection: the database refuses to change
+an object or to delete evidence outside retention clean-up, and every read re-checks the SHA-256 recorded at write
+time. Production evidence moves to S3 with Object Lock (FR-TX-06).
 
 ## Rendering
 
