@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
-import { PlaceholderPage } from "@/components/shell/placeholder";
+import { LoginForm } from "./login-form";
 
-// S01: built in Part 2 (docs/PARTS.md).
+// S01: sign in or start sign-up with a mobile number and a one-time password.
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("screens");
   return { title: t("S01.title") };
 }
 
-export default function Page() {
-  return <PlaceholderPage id="S01" showBack={false} />;
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  );
 }

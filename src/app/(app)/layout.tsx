@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { AppShell, type NavGroup } from "@/components/shell/app-shell";
-import { Pill } from "@/components/ui";
+import { AccountArea, OrgGate } from "@/components/shell/signed-in";
+import { Pill, Skeleton } from "@/components/ui";
 import { NAV, screen } from "@/lib/screens";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
@@ -18,14 +20,9 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         <Pill href="/account/billing">{t("topbar.noPlan")}</Pill>
         <Pill href="/account/billing">{t("topbar.wallet", { amount: "₹0" })}</Pill>
       </div>
-      <span className="hidden truncate text-sm font-medium text-text md:inline">{t("topbar.organisation")}</span>
-      <span
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-on"
-        aria-label={t("topbar.notSignedIn")}
-        role="img"
-      >
-        ?
-      </span>
+      <Suspense fallback={<Skeleton className="h-8 w-8 rounded-full" />}>
+        <AccountArea />
+      </Suspense>
     </>
   );
 
@@ -40,7 +37,19 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         skipToContent: t("app.skipToContent"),
       }}
     >
-      {children}
+      <Suspense fallback={<PageSkeleton />}>
+        <OrgGate>{children}</OrgGate>
+      </Suspense>
     </AppShell>
+  );
+}
+
+function PageSkeleton() {
+  return (
+    <div className="space-y-4" aria-hidden="true">
+      <Skeleton className="h-8 w-56" />
+      <Skeleton className="h-4 w-80 max-w-full" />
+      <Skeleton className="h-40 w-full" />
+    </div>
   );
 }

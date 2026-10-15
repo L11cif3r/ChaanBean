@@ -5,6 +5,7 @@ import { sql } from "@/server/db/sql";
 import { defineJob } from "./registry";
 
 // Every job kind is registered here so the runner knows it. Later parts add their own files and import them below.
+import "@/server/onboarding/jobs";
 
 /**
  * Re-checks an organisation's audit hash chain. A broken chain means someone changed the log outside the

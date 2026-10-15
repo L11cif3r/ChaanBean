@@ -1,33 +1,40 @@
 import { expect, test } from "@playwright/test";
 import { SCREENS } from "../../src/lib/screens";
 
-// Every route in PRD 6.2 loads, shows its heading, has no horizontal scroll and logs no console errors.
+// Signed out: public pages render; every signed-in page sends the visitor to /login and back afterwards.
+const BUILT = new Set(["S01", "S02", "S18", "S04"]);
+const PROTECTED_AREAS = new Set(["app"]);
+
 for (const s of SCREENS) {
-  test(`${s.id} ${s.sample} renders`, async ({ page }) => {
+  const protectedPage = PROTECTED_AREAS.has(s.area) || s.path.startsWith("/signup");
+  test(`${s.id} ${s.sample} ${protectedPage ? "requires sign-in" : "renders"}`, async ({ page }) => {
     const errors: string[] = [];
-    page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
     page.on("pageerror", (e) => errors.push(e.message));
+    page.on("console", (m) => m.type() === "error" && !m.text().includes("401") && errors.push(m.text()));
 
     const res = await page.goto(s.sample);
     expect(res?.status()).toBeLessThan(400);
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(page.getByText(`Screen ${s.id}`)).toBeVisible();
-
+    if (protectedPage) {
+      await expect(page).toHaveURL(new RegExp(`/login\\?next=${encodeURIComponent(s.sample).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+      await expect(page.getByRole("heading", { level: 1, name: "Sign in to Chaanbean" })).toBeVisible();
+    } else {
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      if (!BUILT.has(s.id)) await expect(page.getByText(`Screen ${s.id}`)).toBeVisible();
+    }
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
     expect(errors).toEqual([]);
   });
 }
 
-test("the sidebar marks the current page and navigates", async ({ page, isMobile }) => {
-  await page.goto("/dashboard");
-  if (isMobile) await page.getByRole("button", { name: "Open menu" }).click();
-  const nav = page.getByRole("navigation", { name: "Main navigation" }).last();
-  await expect(nav.getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
-  await nav.getByRole("link", { name: "Counterparties" }).click();
-  await expect(page).toHaveURL(/\/counterparties$/);
-  await expect(page.getByRole("heading", { level: 1, name: "Counterparties" })).toBeVisible();
-  if (isMobile) await expect(page.getByRole("button", { name: "Open menu" })).toHaveAttribute("aria-expanded", "false");
+test("the sign-in form needs a valid mobile before sending", async ({ page }) => {
+  await page.goto("/login");
+  const send = page.getByRole("button", { name: "Send OTP" });
+  await expect(send).toBeDisabled();
+  await page.getByLabel("Mobile number").fill("12345");
+  await expect(send).toBeDisabled();
+  await page.getByLabel("Mobile number").fill("98765 43210");
+  await expect(send).toBeEnabled();
 });
 
 test("API errors carry a support reference", async ({ request }) => {

@@ -10,6 +10,8 @@ const schema = z.object({
   FIELD_ENCRYPTION_KEY: z.string().min(40),
   BLIND_INDEX_KEY: z.string().min(40),
   CRON_SECRET: z.string().min(32),
+  SESSION_COOKIE_SECRET: z.string().min(40),
+  IDENTITY_PROVIDER: z.enum(["mock"]).default("mock"),
   APP_LOCAL_JOBS: z.enum(["true", "false"]).optional(),
 });
 

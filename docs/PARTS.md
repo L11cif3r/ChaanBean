@@ -7,7 +7,7 @@ mock provider and switched to the real one when keys arrive.
 | # | Part | Screens | Main PRD requirements | Target window | Status |
 |---|---|---|---|---|---|
 | 1 | Foundation: repo, Supabase, tenancy and roles, audit log, job runner, shared libraries, design system, app shell | shell for every route in 6.2 | FR-USR-02, FR-AUD-01, NFR-08/10/11 | 14–23 Oct 2026 | Done (15 Oct) |
-| 2 | Sign-in, organisations and team | S01, S02, S18 | FR-AUTH-01–06, FR-ORG-01–06, FR-USR-01 | 26–30 Oct | Not started |
+| 2 | Sign-in, organisations and team | S01, S02, S18 | FR-AUTH-01–06, FR-ORG-01–06, FR-USR-01 | 26–30 Oct | Done (15 Oct) |
 | 3 | Plans, wallet and billing: item codes, quota then wallet, hold/commit/reverse ledger, gateway (test mode), GST invoices | S03, S19 | FR-BIL-01–09 | 2–6 Nov | Not started |
 | 4 | Counterparties: three types, GSTIN auto-fill, UPI bank-linked check, duplicates, archive | S05, S06, S07 | FR-CP-01–08 | 9–13 Nov | Not started |
 | 5 | Check engine, public checks and credit report: adapter layer (12.3/12.4), routing, fallback, circuit breaker, result reuse; GST, MCA, Director, MSME, PAN, IEC; risk band 9.2; credit range 9.3; report PDF | S08, S09 (public), S11 | FR-CW-01, 04–07, FR-RPT-01–06 | 16–27 Nov | Not started |
@@ -37,3 +37,16 @@ their part after its Must flow passes; most are likely to land in a 1.1 release.
 - [x] `npm run test:db` green (15 Oct, 17 tests): row-level security through real Supabase sign-ins, audit chain with 8
       simultaneous writers, job claims by 3 simultaneous workers, audit writer masking, job runner, write-once and
       encrypted storage. Server work uses the database connection in `.env` (no Supabase secret key)
+
+## Part 2 notes (15 Oct)
+
+- Sign-in: mobile OTP through Supabase Auth with the PRD limits (5 sends an hour, 5 wrong codes lock for 30 minutes) and
+  session rules in the signed `cb_sess` cookie (12 hours, 30 days trusted, 60 minutes idle for Owner and Admin).
+- Development test numbers 90000 00001 to 00003 sign in with code 123456 through `src/server/auth/dev-signin.ts`
+  (never in production). Real phone sign-in needs Supabase Auth: Phone provider on and the Send SMS hook
+  (`public.dev_send_sms_hook` until Part 6).
+- GST search and PAN verification use the mock provider (`src/server/providers/identity`); the GSTIN's 13th character
+  picks the scenario: 9 cancelled, 8 suspended, 7 not found, 6 provider down.
+- Invite, access-request and email-verification messages go to `/dev/outbox` until Part 6.
+- Tests: 56 unit, 24 database, 54 smoke, 8-step identity flow (`tests/e2e/identity-flow.spec.ts`).
+- Known: each sign-in takes about 8 s against the Sydney database (many round trips); improves with the Mumbai move.

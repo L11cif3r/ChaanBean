@@ -1,6 +1,7 @@
 import "server-only";
 import crypto from "node:crypto";
 import { cookies, headers } from "next/headers";
+import { cache } from "react";
 import { can, type Capability, type Role } from "@/lib/permissions";
 import { userClient } from "@/server/supabase/server";
 import { forbidden, unauthenticated } from "@/server/errors";
@@ -38,7 +39,7 @@ function clientIp(h: Headers): string | null {
  * Who is calling and in which organisation. The user is taken from the verified Supabase session (JWT signature
  * checked by getClaims); memberships are read through row-level security, so they can only be the user's own.
  */
-export async function getContext(): Promise<RequestContext> {
+export const getContext = cache(async function getContext(): Promise<RequestContext> {
   const h = await headers();
   const base = {
     requestId: h.get("x-request-id") ?? newRequestId(),
@@ -74,7 +75,7 @@ export async function getContext(): Promise<RequestContext> {
     role: active?.role ?? null,
     memberships,
   };
-}
+});
 
 export function requireUser(ctx: RequestContext): asserts ctx is RequestContext & { user: NonNullable<RequestContext["user"]> } {
   if (!ctx.user) throw unauthenticated();

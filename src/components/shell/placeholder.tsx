@@ -1,9 +1,10 @@
+import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 import { ButtonLink, Card, CardBody, PageHeader, Tag } from "@/components/ui";
 import { screen, type ScreenId } from "@/lib/screens";
 
 /** Stand-in for a screen that a later part builds. Shows what the screen is for and when it arrives. */
-export async function PlaceholderPage({ id, showBack = true }: { id: ScreenId; showBack?: boolean }) {
+export async function PlaceholderPage({ id, showBack = true, action }: { id: ScreenId; showBack?: boolean; action?: ReactNode }) {
   const t = await getTranslations();
   const s = screen(id);
   return (
@@ -16,6 +17,7 @@ export async function PlaceholderPage({ id, showBack = true }: { id: ScreenId; s
             <Tag>{t("placeholder.screen", { id })}</Tag>
           </div>
           <p className="max-w-2xl text-sm text-muted">{t("placeholder.body", { part: s.part })}</p>
+          {action}
           {showBack ? (
             <ButtonLink href="/dashboard" variant="secondary" size="sm">
               {t("placeholder.backToDashboard")}

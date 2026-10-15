@@ -1,4 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
+import { loadEnvConfig } from "@next/env";
+
+// Tests that touch the database read DIRECT_URL and BLIND_INDEX_KEY from .env / .env.local.
+loadEnvConfig(process.cwd());
 
 // End-to-end tests: `npm run test:e2e`. Starts the dev server on port 3400 unless one is already running.
 const PORT = 3400;
