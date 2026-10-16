@@ -9,7 +9,7 @@ export const TOPUP_MAX_PAISE = 50_000_000n; // ₹5,00,000
 export const ALERT_MAX_PAISE = 10_000_000n; // ₹1,00,000
 
 /** S03 marker 1: the six items each plan card shows before "See all items" (PRD v2.0 section 10). */
-export const HEADLINE_ITEMS = ["CW_GST_SEARCH", "CW_GST_TURNOVER", "CW_CIBIL_COMPANY", "CW_DIRECTOR", "CC_COURT", "BS_SETTLEMENT"] as const;
+export const HEADLINE_ITEMS = ["CW_GST_SEARCH", "CW_GST_TURNOVER_4Y", "CW_CIBIL_COMPANY", "CW_DIRECTORS", "CC_COURT", "BS_SETTLEMENT"] as const;
 
 export type PlanCode = "plan_a" | "plan_b";
 export const PLAN_CODES: readonly PlanCode[] = ["plan_a", "plan_b"];

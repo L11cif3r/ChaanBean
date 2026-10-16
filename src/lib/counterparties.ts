@@ -64,6 +64,7 @@ export const createCounterpartySchema = z
     tradeName: optionalText,
     cin: optionalText.transform((v) => (v ? normaliseIdentifier(v) : undefined)),
     udyam: optionalText.transform((v) => (v ? normaliseIdentifier(v) : undefined)),
+    iec: optionalText.transform((v) => (v ? normaliseIdentifier(v) : undefined)),
     ...contactSchema,
     address,
     ...defaultsSchema,
@@ -81,6 +82,7 @@ export const createCounterpartySchema = z
     }
     if (v.cin && !isValidCin(v.cin)) ctx.addIssue({ code: "custom", path: ["cin"], message: "This CIN is not valid." });
     if (v.udyam && !isValidUdyam(v.udyam)) ctx.addIssue({ code: "custom", path: ["udyam"], message: "This Udyam number is not valid." });
+    if (v.iec && !/^[A-Z0-9]{10}$/.test(v.iec)) ctx.addIssue({ code: "custom", path: ["iec"], message: "An IEC has 10 letters or digits." });
   });
 
 export type CreateCounterpartyInput = z.input<typeof createCounterpartySchema>;

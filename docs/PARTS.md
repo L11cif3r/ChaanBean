@@ -193,3 +193,28 @@ for a new buyer stay in Phase 1?
 - Tests: 83 unit (6 for consent rules), 50 database (4 for consent), end-to-end flow 19 steps (approve with the GST
   portal and bureau steps, withdraw, decline, expiry, the 3-in-7-days limit).
 
+## Changes from PRD v3.0 (16 Oct 2026, replaces v1.0 and v2.0)
+
+Applied to Parts 3 to 7 (migration `20261016165108_prd_v3_catalogue_and_fields`):
+
+- Item codes as in v3: `CW_GST_TURNOVER_4Y`, `CW_DIRECTORS`, `CP_ADD`. The old codes stay as inactive items because ledger
+  rows are never changed; prices and quantities moved to the new codes in plan version 3 (Appendix A, Plan B 450 units).
+- MSME report, PAN check, Import export profile and Import export turnover are back as the "Business identity and trade"
+  group, with mock providers, a report section and an information-only "MSME registered" sign. Buyers have an IEC field.
+- Adding a buyer is charged (CP_ADD, ₹10 + GST from the wallet unless a plan covers it); the form shows the cost.
+- Personal CIBIL: the user enters the person's name, PAN, date of birth and mobile. If that person is not the buyer's
+  contact they get their own consent request and confirm their PAN and date of birth on the page.
+- Current-year-only turnover gives a safe range from that year scaled to 12 months ("Based on current year so far").
+- Quotes are stored for 10 minutes and confirming passes the quote id; paid POSTs take an `Idempotency-Key`, so a repeated
+  click returns the same request. "Run each one myself" opens a cost popup for every check.
+- API paths as in v3 section 15: `/checks/requests`, `/checks/requests/{id}/items/{code}/quote|run`,
+  `/checks/requests/{id}/consents/{cid}/resend`, `/public/consent/{token}` with `/otp`, `/verify`, `/gst-otp`,
+  `/gst-verify` (ours: v3 lists only gst-otp), `/decision`, `/withdraw`. JSON stays camelCase (v3 examples use snake_case).
+- Defaults: GST turnover "Last 4 years", CIBIL "Company". A wrong input (4xx) is not retried.
+- Organisations have display name, contact mobile, reply-to email and a Business Security switch; buyers see the display
+  name and contact mobile (falling back to the legal name and the requesting user's phone). Editing them comes with
+  Settings (Part 10).
+
+Still to do from v3: Exotel WhatsApp OTP with SMS fallback (Part 6, needs keys), CAPTCHA and per-IP OTP limit, share
+link for reports (Should), low-units alert at 10% (Should), retention clean-up, Mumbai hosting.
+

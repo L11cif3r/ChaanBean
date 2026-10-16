@@ -21,7 +21,7 @@ type Errors = Record<string, string>;
 export function ConsentFlow({ token, initial: v }: { token: string; initial: ConsentPageView }) {
   const t = useTranslations("consent");
   const router = useRouter();
-  const base = `/api/v1/consent/${token}`;
+  const base = `/api/v1/public/consent/${token}`;
   const when = (iso: string) => formatDateTimeIst(new Date(iso));
 
   const [verified, setVerified] = useState(v.verified);
@@ -65,30 +65,31 @@ export function ConsentFlow({ token, initial: v }: { token: string; initial: Con
   }
 
   async function verifyOtp(code: string) {
-    if ((await call("verify", "/otp/verify", { otp: code })) !== null) setVerified(true);
+    if ((await call("verify", "/verify", { otp: code })) !== null) setVerified(true);
     else setOtp("");
   }
 
   async function sendGstOtp() {
-    if ((await call("gst", "/gst/otp", { gstUsername: gstUser })) !== null) setGstSent(true);
+    if ((await call("gst", "/gst-otp", { gstUsername: gstUser })) !== null) setGstSent(true);
   }
 
   async function verifyGstOtp(code: string) {
-    if ((await call("gstVerify", "/gst/verify", { gstOtp: code })) !== null) setGstOk(true);
+    if ((await call("gstVerify", "/gst-verify", { gstOtp: code })) !== null) setGstOk(true);
     else setGstOtp("");
   }
 
   async function approve() {
     const body = {
+      decision: "APPROVE",
       agree: true,
       ...(v.needs.companyBureau ? { companyPan: bureau.companyPan, incorporatedOn: bureau.incorporatedOn || undefined } : {}),
       ...(v.needs.personalBureau ? { personalPan: bureau.personalPan, birthDate: bureau.birthDate || undefined } : {}),
     };
-    if ((await call("approve", "/approve", body)) !== null) router.refresh();
+    if ((await call("approve", "/decision", body)) !== null) router.refresh();
   }
 
   async function finish(kind: "decline" | "withdraw") {
-    const done = await call(kind, `/${kind}`);
+    const done = await call(kind, kind === "decline" ? "/decision" : "/withdraw", kind === "decline" ? { decision: "DECLINE" } : undefined);
     setConfirm(null);
     if (done !== null) router.refresh();
   }
@@ -96,7 +97,9 @@ export function ConsentFlow({ token, initial: v }: { token: string; initial: Con
   const header = (
     <div className="space-y-1">
       <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t("eyebrow")}</p>
-      <h1 className="text-xl font-extrabold leading-tight text-text">{t("title", { requester: v.requester.name })}</h1>
+      <h1 className="text-xl font-extrabold leading-tight text-text">
+        {v.subjectKind === "person" ? t("titlePerson", { requester: v.requester.name }) : t("title", { requester: v.requester.name })}
+      </h1>
     </div>
   );
 
@@ -258,10 +261,10 @@ export function ConsentFlow({ token, initial: v }: { token: string; initial: Con
             ) : null}
             {v.needs.personalBureau ? (
               <div className="grid gap-3 sm:grid-cols-2">
-                <FormField id="personal-pan" label={t("personalPan")} hint={v.panHint.personal ? t("panHint", { pan: v.panHint.personal }) : t("personalPanHint")} error={errors.personalPan}>
+                <FormField id="personal-pan" label={v.subjectKind === "person" ? t("yourPan") : t("personalPan")} hint={v.panHint.personal ? t("panHint", { pan: v.panHint.personal }) : t("personalPanHint")} error={errors.personalPan}>
                   <Input id="personal-pan" maxLength={10} autoCapitalize="characters" spellCheck={false} disabled={!verified} {...field("personalPan")} />
                 </FormField>
-                <FormField id="birth-date" label={t("birthDate")} error={errors.birthDate}>
+                <FormField id="birth-date" label={v.subjectKind === "person" ? t("yourBirthDate") : t("birthDate")} error={errors.birthDate}>
                   <Input id="birth-date" type="date" disabled={!verified} {...field("birthDate")} />
                 </FormField>
               </div>
@@ -316,7 +319,7 @@ function WhatAndWhy({ v }: { v: ConsentPageView }) {
       <p><span className="font-bold text-text">{t("keptFor")}</span> {t("keptForValue")}</p>
       <p className="text-muted">{t("withdrawHow")}</p>
       <div className="flex flex-wrap gap-2 pt-1">
-        <Tag tone="info">{t("forBusiness", { name: v.buyerName })}</Tag>
+        <Tag tone="info">{v.subjectKind === "person" ? t("forPerson", { name: v.subjectName ?? "", business: v.buyerName }) : t("forBusiness", { name: v.buyerName })}</Tag>
       </div>
     </section>
   );

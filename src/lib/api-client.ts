@@ -12,11 +12,17 @@ export interface ApiError {
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: ApiError };
 
-export async function api<T = unknown>(path: string, opts: { method?: string; body?: unknown; form?: FormData } = {}): Promise<ApiResult<T>> {
+export async function api<T = unknown>(
+  path: string,
+  opts: { method?: string; body?: unknown; form?: FormData; /** v3 section 15: sent on POSTs that charge. */ idempotencyKey?: string } = {},
+): Promise<ApiResult<T>> {
   try {
     const res = await fetch(path, {
       method: opts.method ?? (opts.body || opts.form ? "POST" : "GET"),
-      headers: opts.form ? undefined : { "content-type": "application/json" },
+      headers: {
+        ...(opts.form ? {} : { "content-type": "application/json" }),
+        ...(opts.idempotencyKey ? { "idempotency-key": opts.idempotencyKey } : {}),
+      },
       body: opts.form ?? (opts.body === undefined ? undefined : JSON.stringify(opts.body)),
       credentials: "same-origin",
     });

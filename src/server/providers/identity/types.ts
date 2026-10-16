@@ -8,7 +8,8 @@ export interface ProviderResult<T> {
   provider: string;
   fetchedAt: string;
   data?: T;
-  error?: { code: string; message: string };
+  /** retryable false: a wrong input, so the engine does not try again (v3 16.1). */
+  error?: { code: string; message: string; retryable?: boolean };
 }
 
 export type GstStatus = "Active" | "Cancelled" | "Suspended";

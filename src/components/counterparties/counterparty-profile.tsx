@@ -140,6 +140,7 @@ export function CounterpartyProfile({
               {profile.pan ? <Row label={t("pan")} value={<span className="font-mono">{profile.pan}</span>} /> : null}
               {profile.cin ? <Row label={t("cin")} value={<span className="font-mono">{profile.cin}</span>} /> : null}
               {profile.udyam ? <Row label={t("udyam")} value={<span className="font-mono">{profile.udyam}</span>} /> : null}
+              {profile.iec ? <Row label={t("iec")} value={<span className="font-mono">{profile.iec}</span>} /> : null}
               {profile.tradeName ? <Row label={t("tradeName")} value={profile.tradeName} /> : null}
             </dl>
           </CardBody>

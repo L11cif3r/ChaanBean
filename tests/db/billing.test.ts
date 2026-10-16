@@ -150,13 +150,13 @@ run("billing (Part 3)", () => {
   it("moves to the wallet once an item's quota is used up (zero quota charges the wallet)", async () => {
     // Plan B includes Director Details 15 times.
     for (let i = 0; i < 15; i++) {
-      const [h] = await hold(planOrg, "CW_DIRECTOR");
+      const [h] = await hold(planOrg, "CW_DIRECTORS");
       expect(h.source).toBe("plan");
       await close(planOrg, h.id, true);
     }
-    await expect(hold(planOrg, "CW_DIRECTOR")).rejects.toThrow(/INSUFFICIENT_BALANCE/);
+    await expect(hold(planOrg, "CW_DIRECTORS")).rejects.toThrow(/INSUFFICIENT_BALANCE/);
     const [used] = await db`
-      select -sum(units)::int as used from public.usage_ledger where org_id = ${planOrg} and item_code = 'CW_DIRECTOR'`;
+      select -sum(units)::int as used from public.usage_ledger where org_id = ${planOrg} and item_code = 'CW_DIRECTORS'`;
     expect(used.used).toBe(15);
   });
 
@@ -180,9 +180,18 @@ run("billing (Part 3)", () => {
     expect([beforeReverse, afterReverse]).toEqual([20, 21]);
   });
 
-  it("follows the PRD v2.0 catalogue: removed items are refused, unpriced items cannot be charged", async () => {
-    // Removed from Phase 1 in v2.0 (MSME, PAN Check, the old single bureau item): inactive, so no hold is placed.
-    for (const code of ["CW_MSME", "CW_PAN", "CW_BUREAU"]) await expect(hold(walletOrg, code)).rejects.toThrow(/UNKNOWN_ITEM/);
+  it("follows the PRD v3.0 catalogue: removed and renamed items are refused, unpriced items cannot be charged", async () => {
+    // Removed (the old single bureau item) or renamed in v3 (CW_GST_TURNOVER, CW_DIRECTOR): inactive, so no hold.
+    for (const code of ["CW_BUREAU", "CW_GST_TURNOVER", "CW_DIRECTOR", "CW_MOBILE_PAN"]) await expect(hold(walletOrg, code)).rejects.toThrow(/UNKNOWN_ITEM/);
+    // Back in v3: MSME report, PAN check and Import export, each with plan units in Plan B.
+    const back = await db<{ item_code: string; quantity: number }[]>`
+      select i.item_code, i.quantity from public.subscriptions s
+        join public.plan_version_items i on i.plan_version_id = s.plan_version_id
+       where s.org_id = ${planOrg} and i.item_code in ('CW_MSME', 'CW_PAN', 'CW_IEC_PROFILE', 'CW_IEC_TURNOVER') order by i.item_code`;
+    expect(back).toEqual([
+      { item_code: "CW_IEC_PROFILE", quantity: 42 }, { item_code: "CW_IEC_TURNOVER", quantity: 42 },
+      { item_code: "CW_MSME", quantity: 42 }, { item_code: "CW_PAN", quantity: 40 },
+    ]);
     // GST turnover for the current year has no price until Mohan sets one, and is in no plan.
     await expect(hold(walletOrg, "CW_GST_TURNOVER_CY")).rejects.toThrow(/NO_PRICE/);
     // Company and personal CIBIL are separate items, each with Plan B's 30 units.
@@ -206,7 +215,7 @@ run("billing (Part 3)", () => {
 
   it("reverses holds that are still open after they expire", async () => {
     const before = await balance(walletOrg);
-    const [h] = await hold(walletOrg, "CW_GST_TURNOVER", null, "-1 second");
+    const [h] = await hold(walletOrg, "CW_GST_TURNOVER_4Y", null, "-1 second");
     expect(await balance(walletOrg)).toBeLessThan(before);
     await db`select app_private.release_expired_holds()`;
     const [closing] = await db`select type::text, note from public.usage_ledger where hold_id = ${h.id}`;

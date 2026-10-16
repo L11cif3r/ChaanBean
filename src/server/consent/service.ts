@@ -45,7 +45,7 @@ const codeHash = (consentId: string, code: string) =>
 const safeEqual = (a: string, b: string) => a.length === b.length && crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 
 export const SCOPE_WORDS: Record<string, string> = {
-  CW_GST_TURNOVER: "GST turnover you filed in the last 4 years",
+  CW_GST_TURNOVER_4Y: "GST turnover you filed in the last 4 years",
   CW_GST_TURNOVER_CY: "GST turnover you filed this year",
   CW_CIBIL_COMPANY: "Company credit report (CIBIL)",
   CW_CIBIL_PERSONAL: "Personal credit report (CIBIL) of the owner",
@@ -63,11 +63,12 @@ interface ConsentRow {
   channels: ConsentChannel[]; mobile_ciphertext: string; mobile_masked: string; status: ConsentStatus; token_ciphertext: string;
   link_base: string; expires_at: Date; reminded_at: Date | null; approved_at: Date | null; declined_at: Date | null;
   withdrawn_at: Date | null; visible_until: Date | null; created_by: string | null; created_at: Date;
+  subject_kind: "buyer" | "person"; subject_name: string | null;
 }
 
 const cols = () => sql()`id, org_id, counterparty_id, check_request_id, scope, purpose, channels, mobile_ciphertext, mobile_masked,
   status, token_ciphertext, link_base, expires_at, reminded_at, approved_at, declined_at, withdrawn_at, visible_until,
-  created_by, created_at`;
+  created_by, created_at, subject_kind, subject_name`;
 
 async function byToken(token: string): Promise<ConsentRow | null> {
   if (!/^[A-Za-z0-9_-]{20,64}$/.test(token)) return null;
@@ -134,11 +135,12 @@ async function requireVerified(c: ConsentRow) {
 // ---------------------------------------------------------------- requester side (S08 popup, S09 rules)
 
 /** Consents for a buyer, newest first, for the reuse and limit rules. */
-export async function consentHistory(orgId: string, counterpartyId: string): Promise<(ConsentSummary & { createdAt: Date })[]> {
+export async function consentHistory(orgId: string, counterpartyId: string, mobile10?: string): Promise<(ConsentSummary & { createdAt: Date })[]> {
+  const byMobile = mobile10 ? sql()`and c.mobile_hash = ${blindIndex(mobile10, "mobile")}` : sql()``;
   const rows = await sql()<{ id: string; status: ConsentStatus; scope: string[]; approved_at: Date | null; declined_at: Date | null; created_at: Date; gst_token_expires_at: Date | null }[]>`
     select c.id, c.status, c.scope, c.approved_at, c.declined_at, c.created_at, p.gst_token_expires_at
       from public.consent_requests c left join app_private.consent_private p on p.consent_id = c.id
-     where c.org_id = ${orgId} and c.counterparty_id = ${counterpartyId} and c.created_at > now() - interval '31 days'
+     where c.org_id = ${orgId} and c.counterparty_id = ${counterpartyId} and c.created_at > now() - interval '31 days' ${byMobile}
      order by c.created_at desc`;
   return rows.map((r) => ({
     id: r.id, status: r.status, scope: r.scope, approvedAt: r.approved_at, declinedAt: r.declined_at,
@@ -159,21 +161,36 @@ export async function counterpartyContacts(orgId: string, counterpartyId: string
   return cp;
 }
 
-function linkMessage(org: string, scope: string[], link: string, reminder: boolean, expiresAt: Date) {
+/** What buyers see as the requester (v3 section 13: display name and contact mobile). */
+async function requesterOf(orgId: string, createdBy: string | null) {
+  const [r] = await sql()<{ name: string; contact_mobile: string | null; user_phone: string | null; contact_name: string | null }[]>`
+    select coalesce(o.display_name, o.legal_name) as name, o.contact_mobile, u.phone as user_phone, p.full_name as contact_name
+      from public.organisations o
+      left join auth.users u on u.id = ${createdBy}::uuid
+      left join public.user_profiles p on p.id = ${createdBy}::uuid
+     where o.id = ${orgId}`;
+  return { name: r.name, phone: r.contact_mobile ?? r.user_phone, contactName: r.contact_name };
+}
+
+function linkMessage(org: string, scope: string[], link: string, reminder: boolean, expiresAt: Date, kind: "buyer" | "person") {
+  const what = kind === "person" ? "your personal credit report (CIBIL)" : "your business credit";
   const items = scope.map((s) => SCOPE_WORDS[s] ?? s).join(", ");
   return reminder
     ? `Reminder: ${org} is waiting for your reply on Chaanbean. They asked to see: ${items}. The link works until ${formatDateTimeIst(expiresAt)}: ${link}`
-    : `${org} wants to check your business credit on Chaanbean. They asked to see: ${items}. See the details and say yes or no within 72 hours: ${link}`;
+    : `${org} wants to check ${what} on Chaanbean. They asked to see: ${items}. See the details and say yes or no within 72 hours: ${link}`;
 }
 
 async function sendLink(c: ConsentRow, reminder: boolean) {
-  const [[org], [cp]] = await Promise.all([
-    sql()<{ legal_name: string }[]>`select legal_name from public.organisations where id = ${c.org_id}`,
+  const [requester, [buyer]] = await Promise.all([
+    requesterOf(c.org_id, c.created_by),
     sql()<Pick<CounterpartyContacts, "whatsapp_ciphertext" | "email_ciphertext">[]>`
       select whatsapp_ciphertext, email_ciphertext from public.counterparties where id = ${c.counterparty_id}`,
   ]);
+  const org = { legal_name: requester.name };
+  // A separate person (personal CIBIL) is reached on their own mobile only.
+  const cp = c.subject_kind === "buyer" ? buyer : null;
   const link = `${c.link_base}/c/${decryptField(c.token_ciphertext, "consent.token")}`;
-  const body = linkMessage(org.legal_name, c.scope, link, reminder, c.expires_at);
+  const body = linkMessage(org.legal_name, c.scope, link, reminder, c.expires_at, c.subject_kind);
   const template = reminder ? "consent_reminder" : "consent_request";
   const mobile = decryptField(c.mobile_ciphertext, "consent.mobile");
   const messages = c.channels.flatMap((channel): { channel: ConsentChannel; recipientMasked: string; subject?: string }[] => {
@@ -195,24 +212,34 @@ async function sendLink(c: ConsentRow, reminder: boolean) {
 /** Creates and sends the consent request for the waiting items of a check request (S09 marker 7). */
 export async function createConsent(
   ctx: Ctx,
-  input: { checkRequestId: string; counterpartyId: string; scope: CwCode[]; purpose: ConsentPurpose; channels: ConsentChannel[]; origin: string },
+  input: {
+    checkRequestId: string; counterpartyId: string; scope: CwCode[]; purpose: ConsentPurpose; channels: ConsentChannel[]; origin: string;
+    /** Who is asked: the buyer's contact, or the person whose personal CIBIL is asked for (v3 6.2). */
+    subject: { kind: "buyer" | "person"; name: string; mobile10: string; expected: { pan: string; birthDate: string } | null };
+  },
 ) {
   const cp = await counterpartyContacts(ctx.orgId, input.counterpartyId);
-  if (input.channels.includes("email") && !cp.email_ciphertext) {
+  if (input.subject.kind === "buyer" && input.channels.includes("email") && !cp.email_ciphertext) {
     throw new AppError("validation_failed", "This buyer has no email on file.", { channels: "This buyer has no email on file. Choose SMS or WhatsApp." });
   }
-  const mobile = decryptField(cp.mobile_ciphertext, "counterparties.mobile");
+  if (!input.channels.length) throw new AppError("validation_failed", "Choose SMS or WhatsApp for the person.", { channels: "Choose SMS or WhatsApp." });
+  const mobile = input.subject.mobile10;
   const token = crypto.randomBytes(24).toString("base64url");
   const expiresAt = new Date(Date.now() + CONSENT_RULES.linkMs);
   const [c] = await sql()<ConsentRow[]>`
     insert into public.consent_requests
       (org_id, counterparty_id, check_request_id, scope, purpose, channels, mobile_hash, mobile_ciphertext, mobile_masked,
-       token_hash, token_ciphertext, link_base, expires_at, created_by)
+       token_hash, token_ciphertext, link_base, expires_at, created_by, subject_kind, subject_name)
     values (${ctx.orgId}, ${cp.id}, ${input.checkRequestId}, ${input.scope}, ${input.purpose}, ${[...new Set(input.channels)]},
             ${blindIndex(mobile, "mobile")},
             ${encryptField(mobile, "consent.mobile")}, ${maskMobile(mobile)}, ${hashToken(token)}, ${encryptField(token, "consent.token")},
-            ${input.origin.replace(/\/$/, "")}, ${expiresAt}, ${ctx.user.id})
+            ${input.origin.replace(/\/$/, "")}, ${expiresAt}, ${ctx.user.id}, ${input.subject.kind}, ${input.subject.name})
     returning ${cols()}`;
+  if (input.subject.expected) {
+    await sql()`
+      insert into app_private.consent_private (consent_id, subject_ciphertext)
+      values (${c.id}, ${encryptField(JSON.stringify(input.subject.expected), "consent.subject")})`;
+  }
   await Promise.all([
     recordEvent(c, "sent", ctx, { expiresAt, detail: { channels: c.channels } }),
     sendLink(c, false),
@@ -285,6 +312,24 @@ export async function remindConsent(consentId: string) {
   return true;
 }
 
+/** The requester sends the link again (v3 15). At most once an hour; the 72 hours do not restart. */
+export async function resendConsent(ctx: Ctx, requestId: string, consentId: string) {
+  const [c] = await sql()<ConsentRow[]>`
+    select ${cols()} from public.consent_requests
+     where id = ${consentId} and org_id = ${ctx.orgId}
+       and id in (select consent_id from public.check_items where request_id = ${requestId})`;
+  if (!c) throw notFound("This consent request");
+  if (c.status !== "pending" || c.expires_at <= new Date()) throw new AppError("conflict", "This request is no longer waiting for an answer.");
+  const [recent] = await sql()`
+    select 1 from app_private.consent_events
+     where consent_id = ${c.id} and kind in ('sent', 'reminded') and at > now() - interval '1 hour' limit 1`;
+  if (recent) throw new AppError("rate_limited", "The link was sent less than an hour ago. Please try again later.");
+  await sendLink(c, true);
+  await recordEvent(c, "reminded", ctx, { expiresAt: c.expires_at, detail: { by: "requester" } });
+  await audit(ctx, { action: "consent.resent", entity: "consent_request", entityId: c.id });
+  return { sent: true };
+}
+
 /** For a consent check about to run: is the consent still good, and what the buyer gave. */
 export async function consentAccessFor(consentId: string): Promise<{ status: ConsentStatus; access: ConsentAccess }> {
   const [r] = await sql()<{ status: ConsentStatus; gst_token_ciphertext: string | null; gst_token_expires_at: Date | null; bureau_ciphertext: string | null }[]>`
@@ -317,6 +362,9 @@ export async function logDataFetched(consentId: string, code: string, ok: boolea
 
 export interface ConsentPageView {
   status: ConsentStatus;
+  /** "person": the owner or director asked only for their personal CIBIL. */
+  subjectKind: "buyer" | "person";
+  subjectName: string | null;
   requester: { name: string; contactName: string | null; contactPhone: string | null };
   buyerName: string;
   purpose: ConsentPurpose;
@@ -344,25 +392,24 @@ export async function consentPage(token: string, who: Visitor): Promise<ConsentP
   const c = await byToken(token);
   if (!c) return null;
   const db = sql();
-  const [[info], [priv], opened] = await Promise.all([
-    db<{ org_name: string; contact_name: string | null; contact_phone: string | null; buyer_name: string; type: string; gstin: string | null; pan_ciphertext: string | null }[]>`
-      select o.legal_name as org_name, p.full_name as contact_name, u.phone as contact_phone, cp.legal_name as buyer_name,
-             cp.type::text as type, cp.gstin, cp.pan_ciphertext
-        from public.consent_requests c
-        join public.organisations o on o.id = c.org_id
-        join public.counterparties cp on cp.id = c.counterparty_id
-        left join public.user_profiles p on p.id = c.created_by
-        left join auth.users u on u.id = c.created_by
-       where c.id = ${c.id}`,
-    db<{ gst_verified_at: Date | null }[]>`select gst_verified_at from app_private.consent_private where consent_id = ${c.id}`,
+  const [[info], [priv], opened, requester] = await Promise.all([
+    db<{ buyer_name: string; type: string; gstin: string | null; pan_ciphertext: string | null }[]>`
+      select cp.legal_name as buyer_name, cp.type::text as type, cp.gstin, cp.pan_ciphertext
+        from public.counterparties cp where cp.id = ${c.counterparty_id}`,
+    db<{ gst_verified_at: Date | null; subject_ciphertext: string | null }[]>`
+      select gst_verified_at, subject_ciphertext from app_private.consent_private where consent_id = ${c.id}`,
     db`select 1 from app_private.consent_events where consent_id = ${c.id} and kind = 'opened' limit 1`,
+    requesterOf(c.org_id, c.created_by),
   ]);
   if (!opened.length) await recordEvent(c, "opened", who);
   const pan = info.pan_ciphertext ? decryptField(info.pan_ciphertext, "counterparties.pan") : info.gstin ? panFromGstin(info.gstin) : null;
+  const expected = priv?.subject_ciphertext ? (JSON.parse(decryptField(priv.subject_ciphertext, "consent.subject")) as { pan: string }) : null;
   const mask = (p: string) => `${p.slice(0, 5)}••••${p.slice(-1)}`;
   return {
     status: c.status,
-    requester: { name: info.org_name, contactName: info.contact_name, contactPhone: formatPhone(info.contact_phone) },
+    subjectKind: c.subject_kind,
+    subjectName: c.subject_name,
+    requester: { name: requester.name, contactName: requester.contactName, contactPhone: formatPhone(requester.phone) },
     buyerName: info.buyer_name,
     purpose: c.purpose,
     scope: c.scope,
@@ -375,7 +422,7 @@ export async function consentPage(token: string, who: Visitor): Promise<ConsentP
     needs: { gst: needsGst(c.scope), companyBureau: needsCompanyBureau(c.scope), personalBureau: needsPersonalBureau(c.scope) },
     panHint: {
       company: pan && info.type !== "individual" ? mask(pan) : null,
-      personal: pan && info.type === "individual" ? mask(pan) : null,
+      personal: expected?.pan ? mask(expected.pan) : null,
     },
     verified: await isVerified(c.id),
     gstVerified: Boolean(priv?.gst_verified_at),
@@ -411,8 +458,8 @@ export async function sendConsentOtp(token: string) {
     const at = new Date(sends[sends.length - CONSENT_RULES.otpSendsPerHour].sent_at.getTime() + 3600_000);
     throw new AppError("rate_limited", `Too many codes asked for. Try again after ${formatDateTimeIst(at)}.`);
   }
-  const [org] = await db<{ legal_name: string }[]>`select legal_name from public.organisations where id = ${c.org_id}`;
-  const sent = await otpSender().send({ mobile10: decryptField(c.mobile_ciphertext, "consent.mobile"), purpose: "consent", requester: org.legal_name });
+  const requester = await requesterOf(c.org_id, c.created_by);
+  const sent = await otpSender().send({ mobile10: decryptField(c.mobile_ciphertext, "consent.mobile"), purpose: "consent", requester: requester.name });
   const expiresAt = new Date(Date.now() + CONSENT_RULES.otpMs);
   await db`
     insert into app_private.consent_otps (consent_id, kind, code_hash, ref, expires_at)
@@ -571,9 +618,14 @@ async function bureauDetails(c: ConsentRow, input: ApproveInput) {
   }
   if (personal) {
     const pan = normaliseIdentifier(input.personalPan ?? "");
+    const [priv] = await sql()<{ subject_ciphertext: string | null }[]>`select subject_ciphertext from app_private.consent_private where consent_id = ${c.id}`;
+    const expected = priv?.subject_ciphertext ? (JSON.parse(decryptField(priv.subject_ciphertext, "consent.subject")) as { pan: string; birthDate: string }) : null;
+    const mismatch = "This does not match the details on the request. Please contact the business that sent it.";
     if (!isValidPan(pan) || !isIndividualPan(pan)) fields.personalPan = "Enter a personal PAN (the fourth letter is P).";
-    else if (recordPan && cp.type === "individual" && pan !== recordPan) fields.personalPan = "This PAN does not match the one on the request. Please contact the business that sent it.";
+    else if (expected && pan !== expected.pan) fields.personalPan = mismatch;
+    else if (!expected && recordPan && cp.type === "individual" && pan !== recordPan) fields.personalPan = mismatch;
     if (!validDate(input.birthDate)) fields.birthDate = "Enter a valid date.";
+    else if (expected && input.birthDate !== expected.birthDate) fields.birthDate = mismatch;
     else if (ageOn(input.birthDate!, today) < 18) fields.birthDate = "The person must be 18 or older.";
     out.personalPan = pan;
     out.birthDate = input.birthDate ?? null;
@@ -627,12 +679,14 @@ export interface ConsentOnReport {
   visibleUntil: string | null;
   /** Asked for an earlier report and used again (S09). */
   reused: boolean;
+  subjectKind: "buyer" | "person";
+  subjectName: string | null;
 }
 
 export async function consentsForRequest(orgId: string, requestId: string): Promise<ConsentOnReport[]> {
   const rows = await sql()<(Omit<ConsentRow, "token_ciphertext" | "mobile_ciphertext" | "link_base"> & { check_request_id: string })[]>`
     select c.id, c.status, c.scope, c.channels, c.purpose, c.mobile_masked, c.created_at, c.expires_at, c.reminded_at, c.approved_at,
-           c.declined_at, c.withdrawn_at, c.visible_until, c.check_request_id
+           c.declined_at, c.withdrawn_at, c.visible_until, c.check_request_id, c.subject_kind, c.subject_name
       from public.consent_requests c
      where c.org_id = ${orgId}
        and c.id in (select consent_id from public.check_items where request_id = ${requestId} and consent_id is not null)
@@ -643,5 +697,7 @@ export async function consentsForRequest(orgId: string, requestId: string): Prom
     approvedAt: c.approved_at?.toISOString() ?? null, declinedAt: c.declined_at?.toISOString() ?? null,
     withdrawnAt: c.withdrawn_at?.toISOString() ?? null, visibleUntil: c.visible_until?.toISOString() ?? null,
     reused: c.check_request_id !== requestId,
+    subjectKind: c.subject_kind,
+    subjectName: c.subject_name,
   }));
 }

@@ -7,7 +7,7 @@ import {
 const now = new Date("2026-10-16T10:00:00Z");
 const daysAgo = (n: number) => new Date(now.getTime() - n * 86_400_000);
 const consent = (over: Partial<ConsentSummary>): ConsentSummary => ({
-  id: "c1", status: "approved", scope: ["CW_GST_TURNOVER", "CW_CIBIL_COMPANY"], approvedAt: daysAgo(3), declinedAt: null,
+  id: "c1", status: "approved", scope: ["CW_GST_TURNOVER_4Y", "CW_CIBIL_COMPANY"], approvedAt: daysAgo(3), declinedAt: null,
   gstAccessUntil: daysAgo(-10), ...over,
 });
 
@@ -20,15 +20,15 @@ describe("consent rules", () => {
   });
 
   it("uses a yes from the last 30 days again only when it covers everything asked", () => {
-    expect(reusableConsent([consent({})], ["CW_GST_TURNOVER"], now)?.id).toBe("c1");
-    expect(reusableConsent([consent({})], ["CW_GST_TURNOVER", "CW_CIBIL_PERSONAL"], now)).toBeNull();
-    expect(reusableConsent([consent({ approvedAt: daysAgo(31) })], ["CW_GST_TURNOVER"], now)).toBeNull();
-    expect(reusableConsent([consent({ status: "withdrawn" })], ["CW_GST_TURNOVER"], now)).toBeNull();
+    expect(reusableConsent([consent({})], ["CW_GST_TURNOVER_4Y"], now)?.id).toBe("c1");
+    expect(reusableConsent([consent({})], ["CW_GST_TURNOVER_4Y", "CW_CIBIL_PERSONAL"], now)).toBeNull();
+    expect(reusableConsent([consent({ approvedAt: daysAgo(31) })], ["CW_GST_TURNOVER_4Y"], now)).toBeNull();
+    expect(reusableConsent([consent({ status: "withdrawn" })], ["CW_GST_TURNOVER_4Y"], now)).toBeNull();
   });
 
   it("does not reuse GST consent once the GST portal access has ended", () => {
     const lapsed = consent({ gstAccessUntil: daysAgo(1) });
-    expect(reusableConsent([lapsed], ["CW_GST_TURNOVER"], now)).toBeNull();
+    expect(reusableConsent([lapsed], ["CW_GST_TURNOVER_4Y"], now)).toBeNull();
     expect(reusableConsent([lapsed], ["CW_CIBIL_COMPANY"], now)?.id).toBe("c1");
   });
 

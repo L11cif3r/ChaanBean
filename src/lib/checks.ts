@@ -1,9 +1,9 @@
-// Credit Worthiness checks (PRD v2.0 section 4) and the normalised result each one stores (adapter contract 12.3).
+// Credit Worthiness checks (PRD v3.0 section 6.1) and the normalised result each one stores (adapter contract 12.3).
 // Shared by the server and the screens. Item codes are the Part 3 price list codes.
 
 import type { CounterpartyType } from "@/lib/counterparties";
 
-export type CheckGroup = "gst" | "cibil" | "company";
+export type CheckGroup = "gst" | "cibil" | "identity" | "company";
 
 export interface CheckDef {
   code: CwCode;
@@ -15,31 +15,57 @@ export interface CheckDef {
 }
 
 export const CW_CODES = [
-  "CW_GST_SEARCH", "CW_GST_TURNOVER_CY", "CW_GST_TURNOVER", "CW_CIBIL_COMPANY", "CW_CIBIL_PERSONAL",
-  "CW_COMPANY", "CW_DIRECTOR", "CW_CREDIT_RATING",
+  "CW_GST_SEARCH", "CW_GST_TURNOVER_CY", "CW_GST_TURNOVER_4Y", "CW_CIBIL_COMPANY", "CW_CIBIL_PERSONAL",
+  "CW_MSME", "CW_PAN", "CW_IEC_PROFILE", "CW_IEC_TURNOVER", "CW_COMPANY", "CW_DIRECTORS", "CW_CREDIT_RATING",
 ] as const;
 export type CwCode = (typeof CW_CODES)[number];
 
 export const CW_CHECKS: CheckDef[] = [
   { code: "CW_GST_SEARCH", group: "gst", consent: false, reuseDays: 7 },
   { code: "CW_GST_TURNOVER_CY", group: "gst", consent: true, reuseDays: 30 },
-  { code: "CW_GST_TURNOVER", group: "gst", consent: true, reuseDays: 30 },
+  { code: "CW_GST_TURNOVER_4Y", group: "gst", consent: true, reuseDays: 30 },
   { code: "CW_CIBIL_COMPANY", group: "cibil", consent: true, reuseDays: 30 },
   { code: "CW_CIBIL_PERSONAL", group: "cibil", consent: true, reuseDays: 30 },
+  { code: "CW_MSME", group: "identity", consent: false, reuseDays: 30 },
+  { code: "CW_PAN", group: "identity", consent: false, reuseDays: 30 },
+  { code: "CW_IEC_PROFILE", group: "identity", consent: false, reuseDays: 30 },
+  { code: "CW_IEC_TURNOVER", group: "identity", consent: false, reuseDays: 30 },
   { code: "CW_COMPANY", group: "company", consent: false, reuseDays: 15 },
-  { code: "CW_DIRECTOR", group: "company", consent: false, reuseDays: 15 },
+  { code: "CW_DIRECTORS", group: "company", consent: false, reuseDays: 15 },
   { code: "CW_CREDIT_RATING", group: "company", consent: false, reuseDays: 30 },
 ];
 
 export const checkDef = (code: string) => CW_CHECKS.find((c) => c.code === code);
 export const isCwCode = (code: string): code is CwCode => (CW_CODES as readonly string[]).includes(code);
 
-/** Why a check cannot run for this counterparty, or null when it can (S08 marker 4: disabled with a reason). */
-export function unavailableReason(code: CwCode, type: CounterpartyType): string | null {
-  if ((code === "CW_GST_TURNOVER" || code === "CW_GST_TURNOVER_CY") && type !== "business_gstin") return "needsGstin";
-  if ((code === "CW_COMPANY" || code === "CW_DIRECTOR" || code === "CW_CREDIT_RATING") && type === "individual") return "businessOnly";
-  if (code === "CW_CIBIL_COMPANY" && type === "individual") return "businessOnly";
-  return null;
+/** The identifiers on the counterparty that decide which checks can run. */
+export interface CheckIdentifiers {
+  type: CounterpartyType;
+  gstin: string | null;
+  /** PAN on record, or the PAN inside the GSTIN. */
+  pan: string | null;
+  cin: string | null;
+  udyam: string | null;
+  iec: string | null;
+}
+
+/** Why a check cannot run for this counterparty, or null when it can (v3 6.5: disabled with a reason). */
+export function unavailableReason(code: CwCode, id: CheckIdentifiers): string | null {
+  const business = id.type !== "individual";
+  switch (code) {
+    case "CW_GST_SEARCH": return id.gstin || id.pan ? null : "needsGstinOrPan";
+    case "CW_GST_TURNOVER_CY":
+    case "CW_GST_TURNOVER_4Y": return id.type === "business_gstin" ? null : "needsGstin";
+    case "CW_CIBIL_COMPANY": return business ? null : "businessOnly";
+    case "CW_CIBIL_PERSONAL": return null; // the person's details are entered with the choice
+    case "CW_MSME": return id.udyam || id.pan ? null : "needsUdyamOrPan";
+    case "CW_PAN": return id.pan || id.gstin || id.cin ? null : "needsPan";
+    case "CW_IEC_PROFILE": return id.iec || id.pan ? null : "needsIecOrPan";
+    case "CW_IEC_TURNOVER": return id.iec || business ? null : "needsIecOrPan";
+    case "CW_COMPANY":
+    case "CW_DIRECTORS":
+    case "CW_CREDIT_RATING": return business ? null : "businessOnly";
+  }
 }
 
 // ---------------------------------------------------------------- normalised results
@@ -84,7 +110,7 @@ export interface CreditRatingData {
 
 /** GST turnover from filed GSTR-3B (Part 7). Years oldest first; the current year is marked partial. */
 export interface TurnoverData {
-  years: { fy: string; turnoverPaise: number; partial: boolean }[];
+  years: { fy: string; turnoverPaise: number; partial: boolean; months: { month: string; turnoverPaise: number }[] }[];
 }
 
 /** CIBIL report, company or personal (Part 7). */
@@ -100,4 +126,42 @@ export interface CibilData {
   suitFiled: boolean;
 }
 
-export type CheckData = GstSearchData | CompanyData | DirectorData | CreditRatingData | TurnoverData | CibilData;
+/** MSME (Udyam) registration (v3 6.1). */
+export interface MsmeData {
+  udyamNumber: string;
+  name: string;
+  category: "Micro" | "Small" | "Medium";
+  majorActivity: "Manufacturing" | "Services" | "Trading";
+  nicCodes: string[];
+  registeredOn: string;
+  address: string;
+}
+
+/** PAN check (v3 6.1). */
+export interface PanData {
+  pan: string;
+  name: string;
+  status: "Valid" | "Inactive" | "Deleted";
+  aadhaarLinked: boolean | null;
+}
+
+/** Import export profile from DGFT (v3 6.1). */
+export interface IecProfileData {
+  iec: string;
+  status: "Active" | "Suspended" | "Cancelled";
+  issuedOn: string;
+  name: string;
+  address: string;
+  branches: number;
+  partners: string[];
+}
+
+/** Import and export value by financial year (v3 6.1). */
+export interface IecTurnoverData {
+  iec: string | null;
+  years: { fy: string; exportPaise: number; importPaise: number }[];
+  topPorts: string[];
+  topHs: string[];
+}
+
+export type CheckData = GstSearchData | CompanyData | DirectorData | CreditRatingData | TurnoverData | CibilData | MsmeData | PanData | IecProfileData | IecTurnoverData;

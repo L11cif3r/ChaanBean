@@ -5,6 +5,7 @@ import { CounterpartyForm } from "@/components/counterparties/counterparty-form"
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Card, EmptyState } from "@/components/ui";
 import { can } from "@/lib/permissions";
+import { usageTable } from "@/server/billing/service";
 import { getContext } from "@/server/context";
 
 // S06: register a buyer, debtor or borrower (Owner, Admin and Member).
@@ -31,5 +32,9 @@ async function New() {
       </Card>
     );
   }
-  return <CounterpartyForm />;
+  const item = ctx.orgId ? (await usageTable(ctx.orgId)).find((u) => u.code === "CP_ADD") : undefined;
+  const addCost = item
+    ? { fromPlan: item.included > 0 && item.remaining > 0, totalPaise: Number(item.pricePaise) + Number(item.gstPaise), pricePaise: Number(item.pricePaise) }
+    : null;
+  return <CounterpartyForm addCost={addCost} />;
 }

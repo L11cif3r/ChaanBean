@@ -1,4 +1,4 @@
-// Risk level and safe credit range for the credit report (PRD v2.0 section 6, v1.0 sections 9.2 and 9.3).
+// Risk level and safe credit range for the credit report (PRD v3.0 section 6.7).
 // Pure functions, so the server can store the result on the request and the tests can pin every rule.
 //
 //   High: any serious problem (red signal).
@@ -6,17 +6,19 @@
 //   Medium: some warning signs, or too few good signs to call it Low.
 //   Low: no warning signs and at least 3 good signs.
 // Safe credit range: 1% to 2% of last year's filed turnover; 0.5% to 1% if turnover is falling; none when High.
+// With only current-year turnover, the base is that year so far scaled to 12 months ("Based on current year so far").
+// "MSME registered" is shown as information and does not count towards Low.
 
-import type { CibilData, CompanyData, CreditRatingData, DirectorData, GstSearchData, TurnoverData } from "./checks";
+import type { CibilData, CompanyData, CreditRatingData, DirectorData, GstSearchData, MsmeData, TurnoverData } from "./checks";
 
 export type RiskLevel = "high" | "medium" | "low" | "not_enough_data";
-export type SignalTone = "red" | "caution" | "positive";
+export type SignalTone = "red" | "caution" | "positive" | "info";
 
 export interface Signal {
   key: string;
   tone: SignalTone;
   /** The report section the signal comes from, for the "Why" list links. */
-  section: "gst" | "turnover" | "cibil" | "company" | "directors" | "cases";
+  section: "gst" | "turnover" | "cibil" | "identity" | "company" | "directors" | "cases";
   /** Values the screen puts into the signal's sentence. */
   values?: Record<string, string | number>;
 }
@@ -29,6 +31,7 @@ export interface ReportInputs {
   turnover?: TurnoverData | null;
   turnoverCurrentYear?: TurnoverData | null;
   cibil?: CibilData[];
+  msme?: MsmeData | null;
   /** Confirmed Case Check results (Part 8). */
   cases?: { pendingChequeBounce: number; amlHit: boolean } | null;
   /** "Today" in IST as YYYY-MM-DD, so tests are stable. */
@@ -41,6 +44,10 @@ export interface CreditRange {
   basePaise: number;
   baseYear: string;
   reduced: boolean;
+  /** full_year: latest full financial year; annualised_cy: current year so far scaled to 12 months. */
+  baseType: "full_year" | "annualised_cy";
+  /** Months of the current year the annualised base is built from. */
+  monthsFiled?: number;
 }
 
 export interface ReportOutcome {
@@ -48,8 +55,8 @@ export interface ReportOutcome {
   signals: Signal[];
   counts: { positive: number; caution: number; red: number };
   range: CreditRange | null;
-  /** Why there is no range: high risk, no turnover, or only current-year turnover. */
-  rangeNote: "high_risk" | "no_turnover" | "needs_full_year" | null;
+  /** Why there is no range: high risk or no turnover. */
+  rangeNote: "high_risk" | "no_turnover" | null;
 }
 
 /** Thresholds from 9.2 and 9.3 (ops can change them later from the admin panel). */
@@ -130,6 +137,9 @@ export function evaluateReport(input: ReportInputs): ReportOutcome {
     if (c.enquiries6m >= RULES.manyEnquiries) add({ key: "many_enquiries", tone: "caution", section: "cibil", values: { count: c.enquiries6m } });
   }
 
+  // ---- Business identity
+  if (input.msme) add({ key: "msme_registered", tone: "info", section: "identity", values: { category: input.msme.category } });
+
   // ---- Case Check (confirmed matches only)
   if (input.cases?.amlHit) add({ key: "aml_hit", tone: "red", section: "cases" });
   if ((input.cases?.pendingChequeBounce ?? 0) > 0) {
@@ -156,8 +166,15 @@ export function evaluateReport(input: ReportInputs): ReportOutcome {
   let range: CreditRange | null = null;
   let rangeNote: ReportOutcome["rangeNote"] = null;
   const latest = years[years.length - 1];
+  const current = [...(input.turnoverCurrentYear?.years ?? []), ...(input.turnover?.years ?? [])].find((y) => y.partial && y.months?.length);
   if (level === "high") rangeNote = "high_risk";
-  else if (!latest) rangeNote = input.turnoverCurrentYear?.years.length ? "needs_full_year" : "no_turnover";
+  else if (!latest && current) {
+    const base = Math.round((current.turnoverPaise / current.months.length) * 12);
+    range = {
+      basePaise: base, baseYear: current.fy, baseType: "annualised_cy", monthsFiled: current.months.length, reduced: false,
+      lowPaise: Math.round((base * RULES.rangeLowPct) / 100), highPaise: Math.round((base * RULES.rangeHighPct) / 100),
+    };
+  } else if (!latest) rangeNote = "no_turnover";
   else {
     const reduced = unique.some((s) => s.key === "falling_turnover");
     const lowPct = reduced ? RULES.reducedLowPct : RULES.rangeLowPct;
@@ -168,6 +185,7 @@ export function evaluateReport(input: ReportInputs): ReportOutcome {
       lowPaise: Math.round((latest.turnoverPaise * lowPct) / 100),
       highPaise: Math.round((latest.turnoverPaise * highPct) / 100),
       reduced,
+      baseType: "full_year",
     };
   }
 

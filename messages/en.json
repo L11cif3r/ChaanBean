@@ -752,7 +752,11 @@
     },
     "reportRow": "{number} · {date}",
     "openReport": "Open report",
-    "inProgress": "Running"
+    "inProgress": "Running",
+    "iec": "IEC",
+    "iecHint": "Importer Exporter Code, if they import or export.",
+    "addCostPlan": "Adding a buyer uses 1 unit from your plan.",
+    "addCostWallet": "Adding a buyer costs {total} ({price} + GST) from your wallet."
   },
   "checks": {
     "title": "Credit Worthiness",
@@ -774,15 +778,19 @@
       "turnover": "Exact turnover the buyer filed with GST.",
       "cibil": "Loans, overdue payments and credit score. Choose whose report you want.",
       "CW_COMPANY": "MCA: company status, capital, loans against assets.",
-      "CW_DIRECTOR": "Directors and the other companies they run.",
-      "CW_CREDIT_RATING": "Rating from rating agencies, if the company has one."
+      "CW_DIRECTORS": "Directors and the other companies they run.",
+      "CW_CREDIT_RATING": "Rating from rating agencies, if the company has one.",
+      "CW_MSME": "Udyam registration: micro, small or medium, activity and registration date.",
+      "CW_PAN": "Name as per PAN, PAN status and Aadhaar link.",
+      "CW_IEC_PROFILE": "Importer Exporter Code from DGFT: status, branches, partners.",
+      "CW_IEC_TURNOVER": "Import and export value by year, top ports and goods."
     },
     "turnoverTitle": "GST turnover filed",
     "turnoverCy": "Current year only",
     "turnover4y": "Last 4 years",
     "cibilTitle": "CIBIL report",
     "cibilCompany": "Company CIBIL",
-    "cibilPersonal": "Personal CIBIL (owner or director)",
+    "cibilPersonal": "Personal (owner or director)",
     "cibilBoth": "Both",
     "priceOrUnit": "{price} or 1 unit",
     "price": "{price}",
@@ -794,7 +802,11 @@
       "needsGstin": "Needs a GSTIN. This buyer is not registered for GST.",
       "businessOnly": "Only for businesses.",
       "noPrice": "Price to be set. Not available yet.",
-      "archived": "This buyer is archived. Restore them to run checks."
+      "archived": "This buyer is archived. Restore them to run checks.",
+      "needsGstinOrPan": "Needs a GSTIN or PAN.",
+      "needsUdyamOrPan": "MSME report needs a Udyam number or PAN.",
+      "needsPan": "PAN check needs a PAN, GSTIN or CIN.",
+      "needsIecOrPan": "Import export needs an IEC or PAN."
     },
     "recent": "Done on {date}.",
     "openResult": "Open result",
@@ -824,10 +836,10 @@
     "notIncluded": "Don't include",
     "consent": {
       "title": "Ask the buyer to say yes",
-      "lead": "{count, plural, one {# item needs} other {# items need}} the buyer's yes by OTP: {items}. We will send a link to {mobile}. It works for 72 hours.",
-      "reuse": "The buyer already said yes on {date}. We will use that, so no new request is sent.",
-      "limit": "You have sent 3 requests to this buyer in the last 7 days. You can send the next one on {date}.",
-      "declinedRecently": "This buyer said no on {date}. Check with them before asking again.",
+      "lead": "{count, plural, one {# item needs} other {# items need}} a yes by OTP from {name}: {items}. We will send a link to {mobile}. It works for 72 hours.",
+      "reuse": "{name} already said yes on {date} for {items}. We will use that, so no new request is sent.",
+      "limit": "You have sent 3 requests to {name} in the last 7 days. You can send the next one on {date}.",
+      "declinedRecently": "{name} said no on {date}. Check with them before asking again.",
       "channels": "Send the link by",
       "channel": {
         "sms": "SMS",
@@ -848,7 +860,21 @@
       "previewText": "“Your business wants to check your business credit on Chaanbean. They asked to see the items above. See the details and say yes or no within 72 hours: chbn.in/c/…”",
       "next1": "The other checks start now.",
       "next2": "The buyer opens the link and says yes by OTP. We remind them once after 24 hours.",
-      "next3": "Their checks run as soon as they say yes. If they say no or do not reply in 72 hours, nothing is charged for them."
+      "next3": "Their checks run as soon as they say yes. If they say no or do not reply in 72 hours, nothing is charged for them.",
+      "personChannels": "The person for personal CIBIL gets the link by SMS and WhatsApp on their own mobile."
+    },
+    "groupIdentity": "Business identity and trade",
+    "turnoverPeriod": "Which years",
+    "cibilWhose": "Whose report",
+    "person": {
+      "title": "Whose personal CIBIL?",
+      "sameAsContact": "The buyer's contact, {name} ({mobile})",
+      "name": "Full name",
+      "mobile": "Their mobile",
+      "mobileHint": "The OTP for their consent goes to this number.",
+      "pan": "Their PAN",
+      "panHint": "A personal PAN has P as the 4th letter.",
+      "birthDate": "Date of birth"
     }
   },
   "report": {
@@ -874,8 +900,7 @@
     "rangeReduced": "Reduced because turnover is falling.",
     "rangeNote": {
       "high_risk": "Credit is not advised without an advance or security.",
-      "no_turnover": "Run GST turnover to get a safe credit range.",
-      "needs_full_year": "Needs last year's turnover. Run GST turnover for the last 4 years."
+      "no_turnover": "Run GST turnover to get a safe credit range."
     },
     "whyTitle": "Why",
     "noSignals": "No signals yet. They appear as the checks finish.",
@@ -895,7 +920,8 @@
       "clean_bureau": "No overdue loans",
       "many_enquiries": "{count} loan enquiries in 6 months",
       "aml_hit": "Match on a money laundering or sanctions list",
-      "pending_cases": "{count, plural, one {# pending cheque bounce or recovery case} other {# pending cheque bounce or recovery cases}}"
+      "pending_cases": "{count, plural, one {# pending cheque bounce or recovery case} other {# pending cheque bounce or recovery cases}}",
+      "msme_registered": "MSME registered ({category})"
     },
     "sectionGst": "GST",
     "sectionTurnover": "Turnover filed",
@@ -970,8 +996,35 @@
         "sms": "SMS",
         "whatsapp": "WhatsApp",
         "email": "email"
-      }
-    }
+      },
+      "titlePerson": "Consent from {name} (personal CIBIL)",
+      "resend": "Send again",
+      "resent": "The link was sent again."
+    },
+    "rangeBasisCy": "1% to 2% of {base}: turnover so far in {year} ({months} months), scaled to a full year. Based on current year so far.",
+    "sectionIdentity": "Business identity",
+    "msme": "MSME (Udyam)",
+    "msmeCategory": {
+      "Micro": "Micro",
+      "Small": "Small",
+      "Medium": "Medium"
+    },
+    "panCheck": "PAN",
+    "panStatus": "{status} · {name}",
+    "aadhaarLinked": "Linked to Aadhaar",
+    "yes": "Yes",
+    "no": "No",
+    "iecProfile": "Import export code",
+    "since": "since {date}",
+    "iecTurnover": "Trade in {fy}",
+    "iecValue": "Exports {exports} · Imports {imports}",
+    "cibilCompanyTitle": "Company",
+    "cibilPersonalTitle": "Personal: {name}",
+    "runTitle": "Run {name}?",
+    "runConfirm": "Yes, run search",
+    "cancel": "Cancel",
+    "notEnough": "Not enough plan units or wallet money for this search.",
+    "addMoney": "Add money or change plan"
   },
   "consent": {
     "eyebrow": "Consent request",
@@ -988,7 +1041,7 @@
     },
     "theyWillSee": "They will see:",
     "scope": {
-      "CW_GST_TURNOVER": "GST turnover you filed in the last 4 years",
+      "CW_GST_TURNOVER_4Y": "GST turnover you filed in the last 4 years",
       "CW_GST_TURNOVER_CY": "GST turnover you filed this year",
       "CW_CIBIL_COMPANY": "Company credit report (CIBIL)",
       "CW_CIBIL_PERSONAL": "Personal credit report (CIBIL) of the owner"
@@ -1041,6 +1094,10 @@
     "questions": "Questions? Contact {requester}: {phone}.",
     "questionsNoPhone": "Questions? Contact {requester}.",
     "poweredBy": "Powered by Chaanbean.",
-    "privacy": "Privacy Notice"
+    "privacy": "Privacy Notice",
+    "titlePerson": "{requester} wants to check your personal credit report",
+    "yourPan": "Your PAN",
+    "yourBirthDate": "Your date of birth",
+    "forPerson": "For {name}, {business}"
   }
 }

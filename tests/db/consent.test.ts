@@ -28,13 +28,13 @@ run("buyer consent (Part 7)", () => {
     const [c] = await db<{ id: string }[]>`
       insert into public.consent_requests (org_id, counterparty_id, check_request_id, scope, purpose, channels, mobile_hash,
                                            mobile_ciphertext, mobile_masked, token_hash, token_ciphertext, link_base, expires_at)
-      values (${org}, ${cp.id}, ${req.id}, ${["CW_GST_TURNOVER"]}, 'supply_on_credit', ${["sms"]}, ${`mob-${tag}`}, 'v1.x', '98••••3213',
+      values (${org}, ${cp.id}, ${req.id}, ${["CW_GST_TURNOVER_4Y"]}, 'supply_on_credit', ${["sms"]}, ${`mob-${tag}`}, 'v1.x', '98••••3213',
               ${`tok-${tag}`}, 'v1.y', 'http://localhost:3000', now() + interval '72 hours') returning id`;
     consentId = c.id;
     await db`insert into app_private.consent_private (consent_id, gst_token_ciphertext) values (${c.id}, 'v1.secret')`;
     await db`
       insert into app_private.consent_events (consent_id, org_id, kind, scope, purpose)
-      values (${c.id}, ${org}, 'sent', ${["CW_GST_TURNOVER"]}, 'supply_on_credit')`;
+      values (${c.id}, ${org}, 'sent', ${["CW_GST_TURNOVER_4Y"]}, 'supply_on_credit')`;
   });
 
   afterAll(async () => {

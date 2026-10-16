@@ -19,6 +19,8 @@ export function Dialog({
   footer?: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  /** Set while the dialog is closed by cleanup rather than by the user, so that close does not call onClose. */
+  const silent = useRef(false);
   const t = useTranslations("ui");
 
   useEffect(() => {
@@ -26,12 +28,23 @@ export function Dialog({
     if (!d) return;
     if (open && !d.open) d.showModal();
     if (!open && d.open) d.close();
+    // Close on unmount and when Next hides the page (Cache Components keep the previous page alive but hidden): an open
+    // modal dialog would otherwise stay in the top layer and make the new page inert.
+    return () => {
+      if (d.open) {
+        silent.current = true;
+        d.close();
+      }
+    };
   }, [open]);
 
   return (
     <dialog
       ref={ref}
-      onClose={onClose}
+      onClose={() => {
+        if (silent.current) silent.current = false;
+        else onClose();
+      }}
       onCancel={(e) => {
         e.preventDefault();
         onClose();

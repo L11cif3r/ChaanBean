@@ -1,7 +1,8 @@
 import "server-only";
 import crypto from "node:crypto";
 import type {
-  CibilData, CompanyData, CreditRatingData, CwCode, DirectorData, GstSearchData, TurnoverData,
+  CibilData, CompanyData, CreditRatingData, CwCode, DirectorData, GstSearchData, IecProfileData, IecTurnoverData, MsmeData,
+  PanData, TurnoverData,
 } from "@/lib/checks";
 import { normaliseIdentifier, panFromGstin } from "@/lib/validators";
 import { mockIdentityProvider } from "@/server/providers/identity/mock";
@@ -16,12 +17,16 @@ import type { ProviderResult } from "@/server/providers/identity";
 //   GSTIN 13th character: 9 cancelled, 8 suspended, 7 not found, 6 provider down, 5 irregular GST filing (3 late).
 //   CIN last six digits: 999999 struck off, 888888 one director disqualified, 000000 not found.
 //   GSTIN or PAN: last character 'Z' falling turnover; 'Y' a loan 95 days overdue; 'X' 45 days overdue.
+//   PAN 4th-to-last digit '9': PAN inactive; no Udyam and PAN digit '8': not MSME registered; IEC ending '0': no
+//   import export record.
 
 export interface CheckSubject {
   type: "business_gstin" | "business_pan" | "individual";
   gstin: string | null;
   pan: string | null;
   cin: string | null;
+  udyam: string | null;
+  iec: string | null;
   legalName: string;
   stateCode: string | null;
 }
@@ -157,6 +162,15 @@ function rating(s: CheckSubject) {
   });
 }
 
+function monthsOfFy(fy: string, today: string) {
+  const start = Number(fy.slice(0, 4));
+  const d = new Date(`${today}T00:00:00Z`);
+  return Array.from({ length: 12 }, (_, i) => {
+    const m = new Date(Date.UTC(start, 3 + i, 1));
+    return `${m.getUTCFullYear()}-${String(m.getUTCMonth() + 1).padStart(2, "0")}`;
+  }).filter((m) => m < `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`); // filed months only
+}
+
 function turnover(s: CheckSubject, today: string, years: number) {
   if (!s.gstin) return noData("No GSTIN");
   const base = 6_00_00_000_00 + (seed(s.gstin).readUInt32BE(0) % 10) * 50_00_000_00; // ₹6 Cr to ₹10.5 Cr
@@ -167,7 +181,11 @@ function turnover(s: CheckSubject, today: string, years: number) {
   const list = fys.map((fy, i) => {
     const step = falling ? 1.25 - i * 0.18 : 0.62 + i * 0.16;
     const partial = fy === current;
-    return { fy, turnoverPaise: Math.round((base * step * (partial ? 0.55 : 1)) / 100) * 100, partial };
+    const filed = monthsOfFy(fy, today);
+    const total = Math.round((base * step * (partial ? filed.length / 12 : 1)) / 100) * 100;
+    const each = Math.floor(total / Math.max(1, filed.length) / 100) * 100;
+    const months = filed.map((month, m) => ({ month, turnoverPaise: m === filed.length - 1 ? total - each * (filed.length - 1) : each }));
+    return { fy, turnoverPaise: total, partial, months };
   });
   return ok<TurnoverData>({ years: list });
 }
@@ -189,23 +207,73 @@ function cibil(s: CheckSubject, personal: boolean) {
   });
 }
 
+const panOf = (s: CheckSubject) => s.pan ?? (s.gstin ? panFromGstin(s.gstin) : null);
+
+function msme(s: CheckSubject) {
+  const pan = panOf(s);
+  if (!s.udyam && pan?.[8] === "8") return noData("No Udyam registration found");
+  const udyam = s.udyam ?? `UDYAM-${(s.stateCode && GST_STATES[s.stateCode]?.slice(0, 2).toUpperCase()) || "KR"}-03-${String(seed(pan ?? s.legalName).readUInt32BE(0) % 10_000_000).padStart(7, "0")}`;
+  return ok<MsmeData>({
+    udyamNumber: udyam,
+    name: s.legalName,
+    category: pick(s.legalName + "c", ["Micro", "Small", "Small", "Medium"] as const),
+    majorActivity: pick(s.legalName + "a", ["Trading", "Manufacturing", "Services"] as const),
+    nicCodes: ["46699", "46900"],
+    registeredOn: "2020-08-14",
+    address: "Industrial Area, Phase 2",
+  });
+}
+
+function pan(s: CheckSubject) {
+  const p = panOf(s);
+  if (!p) return { ...noAccess("No PAN to check"), error: { code: "INPUT_INVALID", message: "PAN not found at source", retryable: false } };
+  return ok<PanData>({ pan: p, name: s.legalName, status: p[8] === "9" ? "Inactive" : "Valid", aadhaarLinked: p[3] === "P" ? true : null });
+}
+
+function iecProfile(s: CheckSubject) {
+  const iec = s.iec ?? panOf(s);
+  if (!iec || iec.endsWith("0")) return noData("No import export code found");
+  return ok<IecProfileData>({
+    iec, status: "Active", issuedOn: "2018-02-09", name: s.legalName, address: "Industrial Area, Phase 2",
+    branches: 1 + (seed(iec)[1] % 3), partners: ["R. Kumar", "S. Iyer"],
+  });
+}
+
+function iecTurnover(s: CheckSubject, today: string) {
+  const iec = s.iec ?? panOf(s);
+  if (iec?.endsWith("0")) return noData("No shipments found");
+  const d = new Date(`${today}T00:00:00Z`);
+  const years = Array.from({ length: 3 }, (_, i) => fyOf(new Date(Date.UTC(d.getUTCFullYear() - (3 - i), d.getUTCMonth(), 1))));
+  const base = 40_00_000_00 + (seed(s.legalName).readUInt32BE(4) % 8) * 10_00_000_00;
+  return ok<IecTurnoverData>({
+    iec,
+    years: years.map((fy, i) => ({ fy, exportPaise: Math.round(base * (0.8 + i * 0.15)), importPaise: Math.round(base * 0.35) })),
+    topPorts: ["Nhava Sheva (INNSA1)", "Chennai (INMAA1)"],
+    topHs: ["7208 Flat-rolled iron or steel", "7214 Bars and rods of iron"],
+  });
+}
+
 export const mockCheckProvider: CheckProvider = {
   name: "mock_checks",
   isMock: true,
   async run(code, subject, { today, consent }) {
     // Consent checks need what the buyer gave on the consent page, as the real GSP and bureau do.
-    if ((code === "CW_GST_TURNOVER" || code === "CW_GST_TURNOVER_CY") && !consent?.gstToken) return noAccess("No GST portal access from the buyer");
+    if ((code === "CW_GST_TURNOVER_4Y" || code === "CW_GST_TURNOVER_CY") && !consent?.gstToken) return noAccess("No GST portal access from the buyer");
     if (code === "CW_CIBIL_COMPANY" && !(consent?.companyPan && consent.incorporatedOn)) return noAccess("No bureau consent from the buyer");
     if (code === "CW_CIBIL_PERSONAL" && !(consent?.personalPan && consent.birthDate)) return noAccess("No bureau consent from the buyer");
     switch (code) {
       case "CW_GST_SEARCH": return gstSearch(subject, today);
       case "CW_COMPANY": return company(subject);
-      case "CW_DIRECTOR": return directors(subject);
+      case "CW_DIRECTORS": return directors(subject);
       case "CW_CREDIT_RATING": return rating(subject);
-      case "CW_GST_TURNOVER": return turnover(subject, today, 5); // 4 full years plus the current one
+      case "CW_GST_TURNOVER_4Y": return turnover(subject, today, 5); // 4 full years plus the current one
       case "CW_GST_TURNOVER_CY": return turnover(subject, today, 1);
       case "CW_CIBIL_COMPANY": return cibil(subject, false);
       case "CW_CIBIL_PERSONAL": return cibil(subject, true);
+      case "CW_MSME": return msme(subject);
+      case "CW_PAN": return pan(subject);
+      case "CW_IEC_PROFILE": return iecProfile(subject);
+      case "CW_IEC_TURNOVER": return iecTurnover(subject, today);
     }
   },
 };

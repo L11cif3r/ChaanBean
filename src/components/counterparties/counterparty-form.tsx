@@ -9,6 +9,7 @@ import { Button, ButtonLink, Card, CardBody, CardHeader, Checkbox, ErrorSummary,
 import { cn } from "@/components/ui/cn";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api-client";
+import { formatInr } from "@/lib/money";
 import { COUNTERPARTY_TYPES, type CounterpartyType, type UpiStatus } from "@/lib/counterparties";
 import { isValidGstin, normaliseIdentifier, normaliseMobile, panFromGstin } from "@/lib/validators";
 import { GST_STATES } from "@/server/providers/identity/states";
@@ -44,7 +45,14 @@ function namesDiffer(upi: string, legal: string, contact: string) {
   return u.size > 0 && ![...u].some((w) => known.has(w));
 }
 
-export function CounterpartyForm() {
+/** What adding the buyer costs (v3 section 5): a plan unit, or the wallet price including GST. */
+export interface AddCost {
+  fromPlan: boolean;
+  totalPaise: number;
+  pricePaise: number;
+}
+
+export function CounterpartyForm({ addCost }: { addCost: AddCost | null }) {
   const t = useTranslations("counterparties");
   const router = useRouter();
   const toast = useToast();
@@ -56,6 +64,7 @@ export function CounterpartyForm() {
   const [tradeName, setTradeName] = useState("");
   const [cin, setCin] = useState("");
   const [udyam, setUdyam] = useState("");
+  const [iec, setIec] = useState("");
   const [contactName, setContactName] = useState("");
   const [mobile, setMobile] = useState("");
   const [whatsappSame, setWhatsappSame] = useState(true);
@@ -126,6 +135,7 @@ export function CounterpartyForm() {
       tradeName: tradeName || undefined,
       cin: type === "individual" ? undefined : cin || undefined,
       udyam: type === "individual" ? undefined : udyam || undefined,
+      iec: type === "individual" ? undefined : iec || undefined,
       contactName,
       mobile,
       whatsapp: whatsappSame ? undefined : whatsapp || undefined,
@@ -291,12 +301,15 @@ export function CounterpartyForm() {
             </FormField>
           </div>
           {type !== "individual" ? (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <FormField id="cin" label={`${t("cin")} (${t("optional")})`} error={fieldError("cin")}>
                 <Input id="cin" value={cin} onChange={(e) => setCin(e.target.value.toUpperCase())} maxLength={21} className="font-mono uppercase" error={fieldError("cin")} />
               </FormField>
               <FormField id="udyam" label={`${t("udyam")} (${t("optional")})`} error={fieldError("udyam")}>
                 <Input id="udyam" value={udyam} onChange={(e) => setUdyam(e.target.value.toUpperCase())} maxLength={19} placeholder="UDYAM-XX-00-0000000" className="font-mono uppercase" error={fieldError("udyam")} />
+              </FormField>
+              <FormField id="iec" label={`${t("iec")} (${t("optional")})`} hint={t("iecHint")} error={fieldError("iec")}>
+                <Input id="iec" value={iec} onChange={(e) => setIec(e.target.value.toUpperCase())} maxLength={10} className="font-mono uppercase" error={fieldError("iec")} />
               </FormField>
             </div>
           ) : null}
@@ -419,6 +432,13 @@ export function CounterpartyForm() {
         </CardBody>
       </Card>
 
+      {addCost ? (
+        <p className="text-right text-sm text-muted">
+          {addCost.fromPlan
+            ? t("addCostPlan")
+            : t("addCostWallet", { total: formatInr(BigInt(addCost.totalPaise), { withPaise: true }), price: formatInr(BigInt(addCost.pricePaise)) })}
+        </p>
+      ) : null}
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <ButtonLink href="/counterparties" variant="ghost">
           {t("cancel")}

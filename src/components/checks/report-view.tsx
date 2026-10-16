@@ -3,18 +3,22 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, Info, XCircle } from "lucide-react";
 import { Button, ButtonLink, Card, CardBody, CardHeader, Tag, type Tone } from "@/components/ui";
+import { Dialog } from "@/components/ui/dialog";
+import { CostSummary, newIdempotencyKey } from "@/components/checks/choose-checks";
 import { cn } from "@/components/ui/cn";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api-client";
 import { formatDate, formatDateTimeIst, istDate } from "@/lib/dates";
 import { formatInr, formatInrShort } from "@/lib/money";
-import type { CibilData, CompanyData, CreditRatingData, CwCode, DirectorData, GstSearchData, TurnoverData } from "@/lib/checks";
+import type {
+  CibilData, CompanyData, CreditRatingData, CwCode, DirectorData, GstSearchData, IecProfileData, IecTurnoverData, MsmeData, PanData, TurnoverData,
+} from "@/lib/checks";
 import type { RiskLevel, Signal } from "@/lib/report-rules";
-import type { ReportView as Report } from "@/server/checks/service";
+import type { Quote, ReportView as Report } from "@/server/checks/service";
 
-// PRD v2.0 section 6 (Figure 8) and v1.0 S11: one report with the risk level, the safe credit range, why, and a
+// PRD v3.0 section 6.7 (Figure 15): one report with the risk level, the safe credit range, why, and a
 // section per check. Sections fill in as checks finish; the page polls while anything is still running.
 
 const RISK_TONE: Record<RiskLevel, string> = {
@@ -33,6 +37,7 @@ export function ReportView({ initial, canRun }: { initial: Report; canRun: boole
   const toast = useToast();
   const [report, setReport] = useState(initial);
   const [running, setRunning] = useState<string | null>(null);
+  const [runQuote, setRunQuote] = useState<{ code: string; name: string; quote: Quote; key: string } | null>(null);
 
   const reload = useCallback(async () => {
     const res = await api<Report>(`/api/v1/reports/${report.id}`);
@@ -48,11 +53,29 @@ export function ReportView({ initial, canRun }: { initial: Report; canRun: boole
     return () => clearInterval(timer);
   }, [pending, waiting, reload]);
 
-  async function runOne(code: string) {
+  // v3 FR-CW-05: each one-by-one run has its own cost popup.
+  async function askToRun(code: string) {
     setRunning(code);
-    const res = await api(`/api/v1/checks/${report.id}/run`, { body: { code } });
+    const res = await api<Quote>(`/api/v1/checks/requests/${report.id}/items/${code}/quote`, { body: {} });
     setRunning(null);
     if (!res.ok) return toast(res.error.message, "danger");
+    setRunQuote({ code, name: report.items.find((i) => i.code === code)?.name ?? code, quote: res.data, key: newIdempotencyKey() });
+  }
+
+  async function runOne() {
+    if (!runQuote) return;
+    setRunning(runQuote.code);
+    const res = await api(`/api/v1/checks/requests/${report.id}/items/${runQuote.code}/run`, { body: { quoteId: runQuote.quote.quoteId }, idempotencyKey: runQuote.key });
+    setRunning(null);
+    setRunQuote(null);
+    if (!res.ok) return toast(res.error.message, "danger");
+    await reload();
+  }
+
+  async function resend(consentId: string) {
+    const res = await api(`/api/v1/checks/requests/${report.id}/consents/${consentId}/resend`, { body: {} });
+    if (!res.ok) return toast(res.error.message, "danger");
+    toast(t("consent.resent"), "success");
     await reload();
   }
 
@@ -89,7 +112,7 @@ export function ReportView({ initial, canRun }: { initial: Report; canRun: boole
         {pending ? <p className="mt-3 text-sm font-semibold text-primary-text" role="status">{t("inProgress")}</p> : null}
       </header>
 
-      {report.consents.map((c) => <ConsentCard key={c.id} consent={c} />)}
+      {report.consents.map((c) => <ConsentCard key={c.id} consent={c} canResend={canRun} onResend={() => void resend(c.id)} />)}
 
       <div className="grid gap-4 md:grid-cols-3">
         <section aria-labelledby="risk-title" className={cn("rounded-3xl border p-5", RISK_TONE[outcome.level])}>
@@ -106,12 +129,14 @@ export function ReportView({ initial, canRun }: { initial: Report; canRun: boole
             <>
               <p className="mt-2 text-2xl font-extrabold tracking-tight text-text">{t("rangeValue", { low: short(outcome.range.lowPaise), high: short(outcome.range.highPaise) })}</p>
               <p className="mt-1 text-sm text-muted">
-                {t("rangeBasis", {
-                  low: outcome.range.reduced ? 0.5 : 1,
-                  high: outcome.range.reduced ? 1 : 2,
-                  base: short(outcome.range.basePaise),
-                  year: outcome.range.baseYear,
-                })}
+                {outcome.range.baseType === "annualised_cy"
+                  ? t("rangeBasisCy", { base: short(outcome.range.basePaise), year: outcome.range.baseYear, months: outcome.range.monthsFiled ?? 0 })
+                  : t("rangeBasis", {
+                      low: outcome.range.reduced ? 0.5 : 1,
+                      high: outcome.range.reduced ? 1 : 2,
+                      base: short(outcome.range.basePaise),
+                      year: outcome.range.baseYear,
+                    })}
               </p>
               {outcome.range.reduced ? <p className="mt-1 text-sm font-semibold text-warning-fg">{t("rangeReduced")}</p> : null}
             </>
@@ -133,22 +158,26 @@ export function ReportView({ initial, canRun }: { initial: Report; canRun: boole
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <Section title={t("sectionGst")} codes={["CW_GST_SEARCH"]} report={report} canRun={canRun} running={running} onRun={runOne}>
+        <Section title={t("sectionGst")} codes={["CW_GST_SEARCH"]} report={report} canRun={canRun} running={running} onRun={(code) => void askToRun(code)}>
           {data<GstSearchData>("CW_GST_SEARCH") ? <GstBody d={data<GstSearchData>("CW_GST_SEARCH")!} /> : null}
         </Section>
-        <Section title={t("sectionCibil")} codes={["CW_CIBIL_COMPANY", "CW_CIBIL_PERSONAL"]} report={report} canRun={canRun} running={running} onRun={runOne}>
-          {[data<CibilData>("CW_CIBIL_COMPANY"), data<CibilData>("CW_CIBIL_PERSONAL")].filter(Boolean).map((c, i) => <CibilBody key={i} d={c!} />)}
+        <Section title={t("sectionCibil")} codes={["CW_CIBIL_COMPANY", "CW_CIBIL_PERSONAL"]} report={report} canRun={canRun} running={running} onRun={(code) => void askToRun(code)}>
+          {data<CibilData>("CW_CIBIL_COMPANY") ? <CibilBody d={data<CibilData>("CW_CIBIL_COMPANY")!} title={item("CW_CIBIL_PERSONAL") ? t("cibilCompanyTitle") : null} /> : null}
+          {data<CibilData>("CW_CIBIL_PERSONAL") ? <CibilBody d={data<CibilData>("CW_CIBIL_PERSONAL")!} title={t("cibilPersonalTitle", { name: item("CW_CIBIL_PERSONAL")?.subjectName ?? "" })} /> : null}
         </Section>
-        <Section title={t("sectionTurnover")} codes={["CW_GST_TURNOVER", "CW_GST_TURNOVER_CY"]} report={report} canRun={canRun} running={running} onRun={runOne}>
-          {data<TurnoverData>("CW_GST_TURNOVER") ?? data<TurnoverData>("CW_GST_TURNOVER_CY") ? (
-            <TurnoverBody d={(data<TurnoverData>("CW_GST_TURNOVER") ?? data<TurnoverData>("CW_GST_TURNOVER_CY"))!} />
+        <Section title={t("sectionTurnover")} codes={["CW_GST_TURNOVER_4Y", "CW_GST_TURNOVER_CY"]} report={report} canRun={canRun} running={running} onRun={(code) => void askToRun(code)}>
+          {data<TurnoverData>("CW_GST_TURNOVER_4Y") ?? data<TurnoverData>("CW_GST_TURNOVER_CY") ? (
+            <TurnoverBody d={(data<TurnoverData>("CW_GST_TURNOVER_4Y") ?? data<TurnoverData>("CW_GST_TURNOVER_CY"))!} />
           ) : null}
         </Section>
-        <Section title={t("sectionCompany")} codes={["CW_COMPANY", "CW_DIRECTOR"]} report={report} canRun={canRun} running={running} onRun={runOne}>
-          {data<CompanyData>("CW_COMPANY") ? <CompanyBody d={data<CompanyData>("CW_COMPANY")!} /> : null}
-          {data<DirectorData>("CW_DIRECTOR") ? <DirectorBody d={data<DirectorData>("CW_DIRECTOR")!} /> : null}
+        <Section title={t("sectionIdentity")} codes={["CW_MSME", "CW_PAN", "CW_IEC_PROFILE", "CW_IEC_TURNOVER"]} report={report} canRun={canRun} running={running} onRun={(code) => void askToRun(code)}>
+          <IdentityBody msme={data<MsmeData>("CW_MSME")} pan={data<PanData>("CW_PAN")} iec={data<IecProfileData>("CW_IEC_PROFILE")} trade={data<IecTurnoverData>("CW_IEC_TURNOVER")} />
         </Section>
-        <Section title={t("sectionRating")} codes={["CW_CREDIT_RATING"]} report={report} canRun={canRun} running={running} onRun={runOne}>
+        <Section title={t("sectionCompany")} codes={["CW_COMPANY", "CW_DIRECTORS"]} report={report} canRun={canRun} running={running} onRun={(code) => void askToRun(code)}>
+          {data<CompanyData>("CW_COMPANY") ? <CompanyBody d={data<CompanyData>("CW_COMPANY")!} /> : null}
+          {data<DirectorData>("CW_DIRECTORS") ? <DirectorBody d={data<DirectorData>("CW_DIRECTORS")!} /> : null}
+        </Section>
+        <Section title={t("sectionRating")} codes={["CW_CREDIT_RATING"]} report={report} canRun={canRun} running={running} onRun={(code) => void askToRun(code)}>
           {data<CreditRatingData>("CW_CREDIT_RATING") ? <RatingBody d={data<CreditRatingData>("CW_CREDIT_RATING")!} /> : null}
         </Section>
         <Card>
@@ -159,14 +188,38 @@ export function ReportView({ initial, canRun }: { initial: Report; canRun: boole
           </CardBody>
         </Card>
       </div>
+
+      {runQuote ? (
+        <Dialog
+          open
+          onClose={() => setRunQuote(null)}
+          title={t("runTitle", { name: runQuote.name })}
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setRunQuote(null)}>{t("cancel")}</Button>
+              <Button onClick={() => void runOne()} loading={running === runQuote.code} disabled={!runQuote.quote.enough}>{t("runConfirm")}</Button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <CostSummary quote={runQuote.quote} />
+            {!runQuote.quote.enough ? (
+              <p role="alert" className="rounded-[14px] bg-danger-bg px-4 py-3 text-sm font-semibold text-danger-fg">
+                {t("notEnough")}{" "}
+                <Link href="/account/billing" className="underline underline-offset-2">{t("addMoney")}</Link>
+              </p>
+            ) : null}
+          </div>
+        </Dialog>
+      ) : null}
     </div>
   );
 }
 
 function SignalRow({ signal }: { signal: Signal }) {
   const t = useTranslations("report");
-  const Icon = signal.tone === "positive" ? CheckCircle2 : signal.tone === "red" ? XCircle : AlertTriangle;
-  const color = signal.tone === "positive" ? "text-success-fg" : signal.tone === "red" ? "text-danger-fg" : "text-warning-fg";
+  const Icon = signal.tone === "positive" ? CheckCircle2 : signal.tone === "red" ? XCircle : signal.tone === "info" ? Info : AlertTriangle;
+  const color = signal.tone === "positive" ? "text-success-fg" : signal.tone === "red" ? "text-danger-fg" : signal.tone === "info" ? "text-info-fg" : "text-warning-fg";
   return (
     <li className="flex items-start gap-2">
       <Icon size={16} className={cn("mt-0.5 shrink-0", color)} aria-hidden="true" />
@@ -233,7 +286,7 @@ const CONSENT_TONE: Record<Report["consents"][number]["status"], Tone> = {
 };
 
 /** S11 "Waiting for consent since …": where the buyer's yes stands, by which channels, and until when. */
-function ConsentCard({ consent: c }: { consent: Report["consents"][number] }) {
+function ConsentCard({ consent: c, canResend, onResend }: { consent: Report["consents"][number]; canResend: boolean; onResend: () => void }) {
   const t = useTranslations("report.consent");
   const when = (iso: string) => formatDateTimeIst(new Date(iso));
   const line =
@@ -245,8 +298,15 @@ function ConsentCard({ consent: c }: { consent: Report["consents"][number] }) {
   return (
     <section aria-labelledby={`consent-${c.id}`} className="rounded-3xl border border-border bg-surface p-5 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id={`consent-${c.id}`} className="font-bold text-text">{t("title")}</h2>
-        <Tag tone={CONSENT_TONE[c.status]}>{t(`status.${c.status}`)}</Tag>
+        <h2 id={`consent-${c.id}`} className="font-bold text-text">
+          {c.subjectKind === "person" ? t("titlePerson", { name: c.subjectName ?? "" }) : t("title")}
+        </h2>
+        <span className="flex items-center gap-2">
+          {c.status === "pending" && canResend && !c.reused ? (
+            <Button size="sm" variant="secondary" onClick={onResend}>{t("resend")}</Button>
+          ) : null}
+          <Tag tone={CONSENT_TONE[c.status]}>{t(`status.${c.status}`)}</Tag>
+        </span>
       </div>
       <p className="mt-2 text-sm text-text-2">{line}</p>
       <p className="mt-1 text-xs text-muted">
@@ -363,10 +423,12 @@ function TurnoverBody({ d }: { d: TurnoverData }) {
   );
 }
 
-function CibilBody({ d }: { d: CibilData }) {
+function CibilBody({ d, title }: { d: CibilData; title: string | null }) {
   const t = useTranslations("report");
   const worst = Math.max(0, ...d.overdue.map((o) => o.daysPastDue));
   return (
+    <div className="space-y-2">
+    {title ? <p className="font-bold text-text">{title}</p> : null}
     <Rows
       rows={[
         [t("cibilRank"), `${d.bureau} ${d.scoreOrRank}`],
@@ -376,5 +438,22 @@ function CibilBody({ d }: { d: CibilData }) {
         [t("enquiries"), String(d.enquiries6m)],
       ]}
     />
+    </div>
   );
+}
+
+/** v3 FR-CW-10: MSME, PAN check and Import export in one "Business identity" section. */
+function IdentityBody({ msme, pan, iec, trade }: { msme: MsmeData | null; pan: PanData | null; iec: IecProfileData | null; trade: IecTurnoverData | null }) {
+  const t = useTranslations("report");
+  const rows: [string, React.ReactNode][] = [];
+  if (msme) rows.push([t("msme"), `${msme.udyamNumber} · ${t(`msmeCategory.${msme.category}`)} · ${msme.majorActivity}`]);
+  if (pan) rows.push([t("panCheck"), <Tag key="p" tone={pan.status === "Valid" ? "success" : "danger"}>{t("panStatus", { status: pan.status, name: pan.name })}</Tag>]);
+  if (pan && pan.aadhaarLinked !== null) rows.push([t("aadhaarLinked"), pan.aadhaarLinked ? t("yes") : t("no")]);
+  if (iec) rows.push([t("iecProfile"), `${iec.iec} · ${iec.status} · ${t("since", { date: day(iec.issuedOn) })}`]);
+  if (trade?.years.length) {
+    const last = trade.years[trade.years.length - 1];
+    rows.push([t("iecTurnover", { fy: last.fy }), t("iecValue", { exports: short(last.exportPaise), imports: short(last.importPaise) })]);
+  }
+  if (!rows.length) return null;
+  return <Rows rows={rows} />;
 }

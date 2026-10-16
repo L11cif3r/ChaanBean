@@ -107,7 +107,7 @@ test("a new user signs up with OTP and verifies the business by GSTIN", async ({
   await expect(page.getByText("Payment received")).toBeVisible();
   await page.getByRole("link", { name: "Go to dashboard" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Welcome, Rakesh" })).toBeVisible();
-  await expect(page.getByText("Plan B: 284 units left")).toBeVisible();
+  await expect(page.getByText("Plan B: 450 units left")).toBeVisible();
   await expect(page.getByText(orgName).first()).toBeVisible();
 });
 
@@ -116,7 +116,7 @@ test("the Owner tops up the wallet; a failed payment changes nothing and the led
   await signIn(page, OWNER);
   await page.goto("/account/billing");
   await expect(page.getByRole("heading", { level: 1, name: "Plan, usage and wallet" })).toBeVisible();
-  await expect(page.getByText("284 plan units left · 5 users")).toBeVisible();
+  await expect(page.getByText("450 plan units left · 5 users")).toBeVisible();
 
   const topUp = async (amount: string, outcome: "Pay successfully" | "Fail the payment") => {
     await page.getByRole("button", { name: "Add money" }).click();
@@ -209,6 +209,7 @@ test.describe("counterparties", () => {
     expect(buyerName.length).toBeGreaterThan(2);
     await page.getByLabel("Contact person").fill("Suresh Buyer");
     await page.getByLabel(/^Mobile/).fill(buyerMobile);
+    await expect(page.getByText(/Adding a buyer costs ₹11\.80 \(₹10 \+ GST\) from your wallet/)).toBeVisible(); // v3 CP_ADD
     await page.getByRole("button", { name: "Check bank-linked mobile" }).click();
     await expect(page.getByText(/Linked to a bank account/)).toBeVisible();
     await page.getByLabel(/Credit days/).fill("30");
@@ -317,8 +318,10 @@ test.describe("counterparties", () => {
 
   test("the Owner asks for GST turnover and company CIBIL: the link goes out and those checks wait", async () => {
     const dialog = await askBuyer(async () => {
-      await page.getByRole("radio", { name: /Last 4 years/ }).check();
-      await page.getByRole("radio", { name: "Company CIBIL" }).check();
+      await page.getByRole("checkbox", { name: "GST turnover filed" }).check();
+      await expect(page.getByRole("radio", { name: /Last 4 years/ })).toBeChecked(); // v3 6.2 default
+      await page.getByRole("checkbox", { name: "CIBIL report" }).check();
+      await expect(page.getByRole("radio", { name: "Company CIBIL" })).toBeChecked();
     });
     await expect(dialog.getByRole("checkbox", { name: /^SMS/ })).toBeChecked();
     await expect(dialog.getByRole("checkbox", { name: /^Email/ })).toBeDisabled(); // no email on file
@@ -330,6 +333,7 @@ test.describe("counterparties", () => {
   });
 
   test("the buyer verifies by OTP, gives GST portal access and bureau details, and approves", async ({ browser, baseURL }) => {
+    test.slow(); // several round trips to the Sydney database
     const buyer = await buyerPage(browser, baseURL);
     await expect(buyer.getByText("GST turnover you filed in the last 4 years")).toBeVisible();
     await expect(buyer.getByText("Company credit report (CIBIL)")).toBeVisible();
@@ -380,7 +384,13 @@ test.describe("counterparties", () => {
   });
 
   test("a buyer who says no is not asked for OTP, and nothing is charged for those checks", async ({ browser, baseURL }) => {
-    const dialog = await askBuyer(() => page.getByRole("radio", { name: /Personal CIBIL/ }).check());
+    test.slow(); // several round trips to the Sydney database
+    const dialog = await askBuyer(async () => {
+      await page.getByRole("checkbox", { name: "CIBIL report" }).check();
+      await page.getByRole("radio", { name: /^Personal/ }).check();
+      await page.getByLabel("Their PAN").fill("ABCPS1234K");
+      await page.getByLabel("Date of birth").fill("1980-05-12");
+    });
     await sendAndGetLink(dialog);
     const buyer = await buyerPage(browser, baseURL);
     await expect(buyer.getByLabel("Owner's PAN")).toBeVisible();
@@ -394,8 +404,9 @@ test.describe("counterparties", () => {
   });
 
   test("after 72 hours the link expires; then the 3-in-7-days limit stops a fourth request", async ({ browser, baseURL }) => {
-    const dialog = await askBuyer(() => page.getByRole("radio", { name: "Company CIBIL" }).check());
-    await expect(dialog.getByText(/This buyer said no on/)).toBeVisible(); // the "no" from the step above
+    test.slow(); // several round trips to the Sydney database
+    const dialog = await askBuyer(() => page.getByRole("checkbox", { name: "CIBIL report" }).check());
+    await expect(dialog.getByText(/said no on/)).toBeVisible(); // the "no" from the step above
     await sendAndGetLink(dialog);
     const tokenHash = crypto.createHash("sha256").update(consentLink.split("/c/")[1]).digest("hex");
     await db`update public.consent_requests set expires_at = now() - interval '1 minute' where token_hash = ${tokenHash}`;
@@ -407,10 +418,66 @@ test.describe("counterparties", () => {
     await expect(page.getByText("No reply", { exact: true })).toBeVisible();
     await expect(page.getByText(/did not reply in 72 hours\. Not charged\./).first()).toBeVisible();
 
-    const fourth = await askBuyer(() => page.getByRole("radio", { name: "Company CIBIL" }).check());
-    await expect(fourth.getByText(/You have sent 3 requests to this buyer in the last 7 days/)).toBeVisible();
+    const fourth = await askBuyer(() => page.getByRole("checkbox", { name: "CIBIL report" }).check());
+    await expect(fourth.getByText(/You have sent 3 requests to .* in the last 7 days/)).toBeVisible();
     await expect(fourth.getByRole("button", { name: "Yes, run search" })).toBeDisabled();
     await fourth.getByRole("button", { name: "Cancel" }).click();
+  });
+
+  test("personal CIBIL for a director goes to that person's own mobile, who confirms their PAN and date of birth", async ({ browser, baseURL }) => {
+    test.slow(); // several round trips to the Sydney database
+    const dialog = await askBuyer(async () => {
+      await page.getByRole("checkbox", { name: "CIBIL report" }).check();
+      await page.getByRole("radio", { name: /^Personal/ }).check();
+      await page.getByRole("checkbox", { name: /The buyer's contact/ }).uncheck();
+      await page.getByLabel("Full name").fill("Ravi Director");
+      await page.getByLabel("Their mobile").fill("9876500011");
+      await page.getByLabel("Their PAN").fill("ABCPR1234K");
+      await page.getByLabel("Date of birth").fill("1979-03-02");
+    });
+    await expect(dialog.getByText(/a yes by OTP from Ravi Director/)).toBeVisible();
+    await sendAndGetLink(dialog);
+
+    const person = await (await browser.newContext({ baseURL, viewport: { width: 390, height: 844 } })).newPage();
+    await person.goto(consentLink);
+    await expect(person.getByRole("heading", { level: 1, name: /wants to check your personal credit report/ })).toBeVisible();
+    await buyerOtp(person);
+    await person.getByLabel("Your PAN").fill("ABCPR9999K");
+    await person.getByLabel("Your date of birth").fill("1979-03-02");
+    await person.getByRole("checkbox", { name: /I consent to share the data above/ }).check();
+    await person.getByRole("button", { name: "Approve and continue" }).click();
+    await expect(person.getByText(/does not match the details on the request/).first()).toBeVisible();
+    await person.getByLabel("Your PAN").fill("ABCPR1234K");
+    await person.getByRole("button", { name: "Approve and continue" }).click();
+    await expect(person.getByText(/You said yes on/)).toBeVisible();
+    await person.context().close();
+
+    await page.goto(reportPath);
+    await expect(page.getByText("Consent from Ravi Director (personal CIBIL)")).toBeVisible();
+    await expect(page.getByText("Personal: Ravi Director")).toBeVisible();
+  });
+
+  test("one by one: each check has its own cost popup, and Business identity fills in", async () => {
+    test.slow(); // several round trips to the Sydney database
+    await page.goto(buyerPath.replace("/counterparties/", "/checks/new?counterparty="));
+    await expect(page.getByText("This search will cost")).toBeVisible();
+    for (const name of [/^GST search/, /^Company check/, /^Director details/]) await page.getByRole("checkbox", { name }).uncheck();
+    await page.getByRole("checkbox", { name: /^PAN check/ }).check();
+    await page.getByRole("checkbox", { name: /^MSME report/ }).check();
+    await page.getByRole("button", { name: "Continue" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("radio", { name: "I will run each one myself" }).check();
+    await expect(dialog.getByText("Will be deducted as you run each one")).toBeVisible();
+    await dialog.getByRole("button", { name: "Yes, run search" }).click();
+    await expect(page).toHaveURL(/\/reports\/[0-9a-f-]{36}$/);
+    await expect(page.getByText("Ready to run").first()).toBeVisible();
+    await page.getByRole("button", { name: "Run this check" }).first().click();
+    const one = page.getByRole("dialog");
+    await expect(one.getByText(/^Run (MSME report|PAN check)\?$/)).toBeVisible();
+    await expect(one.getByText(/1 unit from plan · ₹0 from wallet/)).toBeVisible();
+    await one.getByRole("button", { name: "Yes, run search" }).click();
+    await expect(page.getByRole("heading", { name: "Business identity" })).toBeVisible();
+    await expect(page.getByText(/^(MSME \(Udyam\)|PAN)$/).first()).toBeVisible();
   });
 
   test("the list finds the buyer by name and by full mobile, and masks the mobile", async () => {

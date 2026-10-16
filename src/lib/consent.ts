@@ -32,7 +32,7 @@ export type ConsentChannel = (typeof CONSENT_CHANNELS)[number];
 
 export type ConsentStatus = "pending" | "approved" | "declined" | "expired" | "withdrawn";
 
-export const needsGst = (scope: readonly string[]) => scope.includes("CW_GST_TURNOVER") || scope.includes("CW_GST_TURNOVER_CY");
+export const needsGst = (scope: readonly string[]) => scope.includes("CW_GST_TURNOVER_4Y") || scope.includes("CW_GST_TURNOVER_CY");
 export const needsCompanyBureau = (scope: readonly string[]) => scope.includes("CW_CIBIL_COMPANY");
 export const needsPersonalBureau = (scope: readonly string[]) => scope.includes("CW_CIBIL_PERSONAL");
 

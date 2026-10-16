@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Button, ButtonLink, Card, CardBody, CardHeader, EmptyState, FormField, PageHeader, Select, Skeleton, Tag } from "@/components/ui";
+import { Button, ButtonLink, Card, CardBody, CardHeader, Checkbox, EmptyState, FormField, Input, PageHeader, Select, Skeleton, Tag } from "@/components/ui";
 import { cn } from "@/components/ui/cn";
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
@@ -13,20 +13,31 @@ import { formatDate, istDate } from "@/lib/dates";
 import { formatInr } from "@/lib/money";
 import type { CwCode } from "@/lib/checks";
 import { CONSENT_CHANNELS, CONSENT_PURPOSES, type ConsentChannel, type ConsentPurpose } from "@/lib/consent";
-import type { CatalogueEntry, Quote } from "@/server/checks/service";
+import type { CatalogueEntry, Quote, SubjectQuote } from "@/server/checks/service";
 
-// PRD v2.0 section 4.1 (Figures 4 and 5): choose checks, see the cost as you tick, confirm what will be deducted, then
-// run all together or one by one.
+// PRD v3.0 section 6.5 (Figures 11 and 5): choose checks, see the cost as you tick, confirm what will be deducted,
+// then run all together or one by one. GST turnover defaults to the last 4 years and CIBIL to the company (6.2);
+// personal CIBIL asks for the person's details, and their OTP goes to their own mobile.
 
-type Turnover = "none" | "cy" | "4y";
-type Cibil = "none" | "company" | "personal" | "both";
+type Period = "4y" | "cy";
+type CibilSubject = "company" | "personal" | "both";
 
 interface Catalogue {
-  counterparty: { id: string; name: string; type: string };
+  counterparty: { id: string; name: string; type: string; contactName: string; mobileMasked: string };
   checks: CatalogueEntry[];
 }
 
+interface Person {
+  sameAsContact: boolean;
+  name: string;
+  pan: string;
+  birthDate: string;
+  mobile: string;
+}
+
 const inr = (paise: number) => formatInr(BigInt(Math.round(paise)), { withPaise: true });
+export const newIdempotencyKey = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`.replace(".", "");
 
 export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; name: string }[]; initialBuyer: string | null }) {
   const t = useTranslations("checks");
@@ -35,14 +46,19 @@ export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; n
   const [buyer, setBuyer] = useState<string | null>(initialBuyer);
   const [catalogue, setCatalogue] = useState<Catalogue | null>(null);
   const [picked, setPicked] = useState<Record<string, boolean>>({});
-  const [turnover, setTurnover] = useState<Turnover>("none");
-  const [cibil, setCibil] = useState<Cibil>("none");
+  const [turnoverOn, setTurnoverOn] = useState(false);
+  const [period, setPeriod] = useState<Period>("4y");
+  const [cibilOn, setCibilOn] = useState(false);
+  const [cibilSubject, setCibilSubject] = useState<CibilSubject>("company");
+  const [person, setPerson] = useState<Person>({ sameAsContact: true, name: "", pan: "", birthDate: "", mobile: "" });
+  const [personErrors, setPersonErrors] = useState<Record<string, string>>({});
   const [confirm, setConfirm] = useState(false);
   const [mode, setMode] = useState<"together" | "manual">("together");
   const [quote, setQuote] = useState<Quote | null>(null);
   const [busy, setBusy] = useState(false);
   const [purpose, setPurpose] = useState<ConsentPurpose>("supply_on_credit");
   const [channels, setChannels] = useState<Record<ConsentChannel, boolean>>({ sms: true, whatsapp: true, email: false });
+  const [runKey, setRunKey] = useState("");
 
   useEffect(() => {
     if (!buyer) return;
@@ -51,10 +67,14 @@ export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; n
       if (!live) return;
       if (!res.ok) return toast(res.error.message, "danger");
       setCatalogue(res.data);
-      // Pre-tick the public checks that can run, as in Figure 4.
-      setPicked(Object.fromEntries(res.data.checks.filter((c) => !c.consent && !c.disabled && c.code !== "CW_CREDIT_RATING").map((c) => [c.code, true])));
-      setTurnover("none");
-      setCibil("none");
+      // Pre-tick the public checks that can run, as in Figure 11.
+      setPicked(Object.fromEntries(res.data.checks.filter((c) => ["CW_GST_SEARCH", "CW_COMPANY", "CW_DIRECTORS"].includes(c.code) && !c.disabled).map((c) => [c.code, true])));
+      setTurnoverOn(false);
+      setPeriod("4y");
+      setCibilOn(false);
+      const companyOk = !res.data.checks.find((c) => c.code === "CW_CIBIL_COMPANY")?.disabled;
+      setCibilSubject(companyOk ? "company" : "personal");
+      setPerson({ sameAsContact: true, name: res.data.counterparty.contactName, pan: "", birthDate: "", mobile: "" });
     });
     return () => {
       live = false;
@@ -64,14 +84,14 @@ export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; n
   const byCode = useMemo(() => new Map((catalogue?.checks ?? []).map((c) => [c.code, c])), [catalogue]);
   const selected: CwCode[] = useMemo(() => {
     const codes = Object.entries(picked).filter(([, v]) => v).map(([k]) => k as CwCode);
-    if (turnover === "cy") codes.push("CW_GST_TURNOVER_CY");
-    if (turnover === "4y") codes.push("CW_GST_TURNOVER");
-    if (cibil === "company" || cibil === "both") codes.push("CW_CIBIL_COMPANY");
-    if (cibil === "personal" || cibil === "both") codes.push("CW_CIBIL_PERSONAL");
+    if (turnoverOn) codes.push(period === "cy" ? "CW_GST_TURNOVER_CY" : "CW_GST_TURNOVER_4Y");
+    if (cibilOn && cibilSubject !== "personal") codes.push("CW_CIBIL_COMPANY");
+    if (cibilOn && cibilSubject !== "company") codes.push("CW_CIBIL_PERSONAL");
     return codes.filter((c) => byCode.get(c) && !byCode.get(c)!.disabled);
-  }, [picked, turnover, cibil, byCode]);
+  }, [picked, turnoverOn, period, cibilOn, cibilSubject, byCode]);
+  const needsPerson = selected.includes("CW_CIBIL_PERSONAL");
 
-  // The cost box (marker 5) is worked out here as the user ticks; the popup asks the server for the exact figures.
+  // The cost box (marker 6) is worked out here as the user ticks; the popup asks the server for the exact figures.
   const cost = useMemo(() => {
     let units = 0;
     let money = 0;
@@ -85,25 +105,39 @@ export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; n
     return { lines, units, money, consent: selected.filter((c) => byCode.get(c)?.consent).length };
   }, [selected, byCode, t]);
 
+  const personBody = () =>
+    needsPerson
+      ? { sameAsContact: person.sameAsContact, name: person.name, pan: person.pan, birthDate: person.birthDate, mobile: person.sameAsContact ? undefined : person.mobile }
+      : undefined;
+
   async function openConfirm() {
     if (!buyer || !selected.length) return;
     setBusy(true);
-    const res = await api<Quote>("/api/v1/checks/quote", { body: { counterpartyId: buyer, items: selected } });
+    setPersonErrors({});
+    const res = await api<Quote>("/api/v1/checks/quote", { body: { counterpartyId: buyer, items: selected, person: personBody() } });
     setBusy(false);
-    if (!res.ok) return toast(res.error.message, "danger");
+    if (!res.ok) {
+      if (res.error.fields) setPersonErrors(res.error.fields);
+      return toast(res.error.message, "danger");
+    }
     setQuote(res.data);
     setChannels((c) => ({ ...c, email: c.email && Boolean(res.data.consent?.emailMasked) }));
+    setRunKey(newIdempotencyKey());
     setConfirm(true);
   }
 
   async function run() {
-    if (!buyer) return;
+    if (!buyer || !quote) return;
     setBusy(true);
-    const askBuyer = quote?.consent && !quote.consent.reuse;
-    const consent = askBuyer ? { purpose, channels: CONSENT_CHANNELS.filter((c) => channels[c]) } : undefined;
-    const res = await api<{ id: string }>("/api/v1/checks", { body: { counterpartyId: buyer, items: selected, mode, consent } });
+    const askSomeone = quote.consent?.subjects.some((s) => !s.reuse);
+    const consent = askSomeone ? { purpose, channels: CONSENT_CHANNELS.filter((c) => channels[c]) } : undefined;
+    const res = await api<{ id: string }>("/api/v1/checks/requests", {
+      body: { quoteId: quote.quoteId, counterpartyId: buyer, items: selected, mode, consent, person: personBody() },
+      idempotencyKey: runKey,
+    });
     setBusy(false);
     if (!res.ok) return toast(res.error.message, "danger");
+    setConfirm(false);
     router.push(`/reports/${res.data.id}`);
   }
 
@@ -118,12 +152,13 @@ export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; n
     );
   }
 
-  const card = (code: CwCode, title: string, desc: string, extra?: React.ReactNode) => {
+  const card = (code: CwCode) => {
     const c = byCode.get(code);
     if (!c) return null;
     const on = Boolean(picked[code]);
     return (
       <label
+        key={code}
         className={cn(
           "flex cursor-pointer gap-3 rounded-2xl border p-4 transition-all",
           c.disabled ? "cursor-not-allowed border-border bg-surface-muted opacity-70" : on ? "border-primary bg-primary-softer shadow-sm" : "border-border bg-surface hover:border-border-strong",
@@ -139,27 +174,27 @@ export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; n
         />
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center justify-between gap-2">
-            <span className="font-bold text-text">{title}</span>
+            <span className="font-bold text-text">{c.name}</span>
             <Tag tone="neutral">{t("publicRecord")}</Tag>
           </span>
           <span id={`${code}-desc`} className="mt-1 block text-sm text-muted">
-            {desc}
+            {t(`desc.${code}`)}
           </span>
           <PriceLine entry={c} />
           {c.recent ? <RecentLine recent={c.recent} /> : null}
           {c.disabled ? <span className="mt-1 block text-xs font-semibold text-warning-fg">{t(`disabled.${c.disabled}`)}</span> : null}
-          {extra}
         </span>
       </label>
     );
   };
 
   const turnoverCy = byCode.get("CW_GST_TURNOVER_CY");
-  const turnover4y = byCode.get("CW_GST_TURNOVER");
+  const turnover4y = byCode.get("CW_GST_TURNOVER_4Y");
   const cibilCo = byCode.get("CW_CIBIL_COMPANY");
   const cibilPe = byCode.get("CW_CIBIL_PERSONAL");
-  const turnoverDisabled = turnover4y?.disabled ?? null;
-  const cibilDisabled = cibilPe?.disabled ?? null;
+  const turnoverDisabled = turnover4y?.disabled && turnoverCy?.disabled ? turnover4y.disabled : null;
+  const cibilDisabled = cibilPe?.disabled && cibilCo?.disabled ? cibilPe.disabled : null;
+  const periodEntry = period === "cy" ? turnoverCy : turnover4y;
 
   return (
     <div className="space-y-6">
@@ -196,65 +231,62 @@ export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; n
             <Card>
               <CardHeader title={t("groupGst")} />
               <CardBody className="grid gap-3 md:grid-cols-2">
-                {card("CW_GST_SEARCH", byCode.get("CW_GST_SEARCH")!.name, t("desc.CW_GST_SEARCH"))}
-                <fieldset className={cn("rounded-2xl border p-4", turnoverDisabled ? "border-border bg-surface-muted opacity-70" : turnover !== "none" ? "border-primary bg-primary-softer shadow-sm" : "border-border bg-surface")}>
-                  <legend className="sr-only">{t("turnoverTitle")}</legend>
-                  <span className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-bold text-text">{t("turnoverTitle")}</span>
-                    <Tag tone="info">{t("buyerConsent")}</Tag>
-                  </span>
-                  <span className="mt-1 block text-sm text-muted">{t("desc.turnover")}</span>
-                  <div className="mt-3 space-y-2 text-sm">
-                    {(["none", "cy", "4y"] as const).map((v) => {
-                      const entry = v === "cy" ? turnoverCy : v === "4y" ? turnover4y : null;
-                      const off = v !== "none" && (Boolean(turnoverDisabled) || Boolean(entry?.disabled));
+                {card("CW_GST_SEARCH")}
+                <ConsentCard id="turnover" title={t("turnoverTitle")} desc={t("desc.turnover")} on={turnoverOn} onToggle={setTurnoverOn} disabled={turnoverDisabled}>
+                  <fieldset className="mt-3 space-y-2 text-sm" disabled={!turnoverOn}>
+                    <legend className="sr-only">{t("turnoverPeriod")}</legend>
+                    {(["4y", "cy"] as const).map((v) => {
+                      const entry = v === "cy" ? turnoverCy : turnover4y;
+                      const off = Boolean(entry?.disabled);
                       return (
-                        <label key={v} className={cn("flex items-center gap-2", off && "text-muted")}>
-                          <input type="radio" name="turnover" className="accent-[var(--primary)]" checked={turnover === v} disabled={off} onChange={() => setTurnover(v)} />
-                          {v === "none" ? t("notIncluded") : v === "cy" ? t("turnoverCy") : t("turnover4y")}
+                        <label key={v} className={cn("flex items-center gap-2", (off || !turnoverOn) && "text-muted")}>
+                          <input type="radio" name="turnover" className="accent-[var(--primary)]" checked={period === v} disabled={off} onChange={() => setPeriod(v)} />
+                          {v === "cy" ? t("turnoverCy") : t("turnover4y")}
                           {entry ? <span className="text-xs text-muted">· {entry.pricePaise ? inr(entry.pricePaise) : t("priceNotSet")}</span> : null}
                         </label>
                       );
                     })}
-                  </div>
-                  {turnoverDisabled ? <span className="mt-2 block text-xs font-semibold text-warning-fg">{t(`disabled.${turnoverDisabled}`)}</span> : null}
-                </fieldset>
+                  </fieldset>
+                  {periodEntry && turnoverOn ? <PriceLine entry={periodEntry} /> : null}
+                </ConsentCard>
               </CardBody>
             </Card>
 
             <Card>
               <CardHeader title={t("groupCibil")} />
               <CardBody>
-                <fieldset className={cn("rounded-2xl border p-4", cibilDisabled ? "border-border bg-surface-muted opacity-70" : cibil !== "none" ? "border-primary bg-primary-softer shadow-sm" : "border-border bg-surface")}>
-                  <legend className="sr-only">{t("cibilTitle")}</legend>
-                  <span className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-bold text-text">{t("cibilTitle")}</span>
-                    <Tag tone="info">{t("buyerConsent")}</Tag>
-                  </span>
-                  <span className="mt-1 block text-sm text-muted">{t("desc.cibil")}</span>
-                  <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm">
-                    {(["none", "company", "personal", "both"] as const).map((v) => {
-                      const off = v !== "none" && (Boolean(cibilDisabled) || ((v === "company" || v === "both") && Boolean(cibilCo?.disabled)));
+                <ConsentCard id="cibil" title={t("cibilTitle")} desc={t("desc.cibil")} on={cibilOn} onToggle={setCibilOn} disabled={cibilDisabled}>
+                  <fieldset className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm" disabled={!cibilOn}>
+                    <legend className="sr-only">{t("cibilWhose")}</legend>
+                    {(["company", "personal", "both"] as const).map((v) => {
+                      const off = (v !== "personal" && Boolean(cibilCo?.disabled)) || (v !== "company" && Boolean(cibilPe?.disabled));
                       return (
-                        <label key={v} className={cn("flex items-center gap-2", off && "text-muted")}>
-                          <input type="radio" name="cibil" className="accent-[var(--primary)]" checked={cibil === v} disabled={off} onChange={() => setCibil(v)} />
-                          {v === "none" ? t("notIncluded") : v === "company" ? t("cibilCompany") : v === "personal" ? t("cibilPersonal") : t("cibilBoth")}
+                        <label key={v} className={cn("flex items-center gap-2", (off || !cibilOn) && "text-muted")}>
+                          <input type="radio" name="cibil" className="accent-[var(--primary)]" checked={cibilSubject === v} disabled={off} onChange={() => setCibilSubject(v)} />
+                          {v === "company" ? t("cibilCompany") : v === "personal" ? t("cibilPersonal") : t("cibilBoth")}
                         </label>
                       );
                     })}
-                  </div>
+                  </fieldset>
                   {cibilPe ? <span className="mt-2 block text-xs text-muted">{t("perReport", { price: inr(cibilPe.pricePaise ?? 0) })}</span> : null}
-                  {cibilDisabled ? <span className="mt-2 block text-xs font-semibold text-warning-fg">{t(`disabled.${cibilDisabled}`)}</span> : null}
-                </fieldset>
+                  {cibilOn && cibilSubject !== "company" ? (
+                    <PersonForm person={person} onChange={setPerson} errors={personErrors} contact={catalogue.counterparty} />
+                  ) : null}
+                </ConsentCard>
+              </CardBody>
+            </Card>
+
+            <Card>
+              <CardHeader title={t("groupIdentity")} />
+              <CardBody className="grid gap-3 md:grid-cols-2">
+                {(["CW_MSME", "CW_PAN", "CW_IEC_PROFILE", "CW_IEC_TURNOVER"] as const).map((c) => card(c))}
               </CardBody>
             </Card>
 
             <Card>
               <CardHeader title={t("groupCompany")} />
               <CardBody className="grid gap-3 md:grid-cols-3">
-                {card("CW_COMPANY", byCode.get("CW_COMPANY")!.name, t("desc.CW_COMPANY"))}
-                {card("CW_DIRECTOR", byCode.get("CW_DIRECTOR")!.name, t("desc.CW_DIRECTOR"))}
-                {card("CW_CREDIT_RATING", byCode.get("CW_CREDIT_RATING")!.name, t("desc.CW_CREDIT_RATING"))}
+                {(["CW_COMPANY", "CW_DIRECTORS", "CW_CREDIT_RATING"] as const).map((c) => card(c))}
               </CardBody>
             </Card>
           </div>
@@ -302,7 +334,11 @@ export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; n
               <Button
                 onClick={() => void run()}
                 loading={busy}
-                disabled={(!quote.enough && mode === "together") || Boolean(quote.consent && !quote.consent.reuse && (quote.consent.limitReached || !CONSENT_CHANNELS.some((c) => channels[c])))}
+                disabled={
+                  (!quote.enough && mode === "together") ||
+                  Boolean(quote.consent?.subjects.some((s) => s.limitReached)) ||
+                  Boolean(quote.consent?.subjects.some((s) => !s.reuse) && !CONSENT_CHANNELS.some((c) => channels[c]))
+                }
               >
                 {t("run")}
               </Button>
@@ -322,29 +358,16 @@ export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; n
                 {t("runManual")}
               </label>
             </fieldset>
-            <dl className="divide-y divide-border rounded-2xl border border-border">
-              <div className="flex justify-between gap-3 px-4 py-2.5">
-                <dt className="text-muted">{mode === "together" ? t("deductNow") : t("deductAsYouRun")}</dt>
-                <dd className="text-right font-bold tabular-nums">{t("deductSummary", { units: t("units", { count: quote.planUnits }), money: inr(quote.walletPaise) })}</dd>
-              </div>
-              <div className="flex justify-between gap-3 px-4 py-2.5">
-                <dt className="text-muted">{t("planLeftAfter")}</dt>
-                <dd className="font-bold tabular-nums">{quote.planUnitsLeftAfter}</dd>
-              </div>
-              <div className="flex justify-between gap-3 px-4 py-2.5">
-                <dt className="text-muted">{t("walletAfter")}</dt>
-                <dd className={cn("font-bold tabular-nums", quote.walletAfterPaise < 0 && "text-danger-fg")}>{inr(quote.walletAfterPaise)}</dd>
-              </div>
-            </dl>
+            <CostSummary quote={quote} later={mode === "manual"} />
             {quote.consent ? (
               <ConsentBlock
                 consent={quote.consent}
                 buyerName={catalogue?.counterparty.name ?? ""}
-                items={quote.lines.filter((l) => byCode.get(l.code)?.consent).map((l) => l.name)}
                 purpose={purpose}
                 onPurpose={setPurpose}
                 channels={channels}
                 onChannels={setChannels}
+                names={new Map(quote.lines.map((l) => [l.code, l.name]))}
               />
             ) : null}
             {!quote.enough ? (
@@ -362,78 +385,186 @@ export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; n
   );
 }
 
-/** S09 markers 2 to 6, folded into the confirm popup in v2.0: who is asked, how, why, and the exact message. */
+/** Figure 5 rows, shared by this popup and the one-by-one popup on the report. */
+export function CostSummary({ quote, later }: { quote: Quote; later?: boolean }) {
+  const t = useTranslations("checks");
+  return (
+    <dl className="divide-y divide-border rounded-2xl border border-border">
+      <div className="flex justify-between gap-3 px-4 py-2.5">
+        <dt className="text-muted">{later ? t("deductAsYouRun") : t("deductNow")}</dt>
+        <dd className="text-right font-bold tabular-nums">{t("deductSummary", { units: t("units", { count: quote.planUnits }), money: inr(quote.walletPaise) })}</dd>
+      </div>
+      <div className="flex justify-between gap-3 px-4 py-2.5">
+        <dt className="text-muted">{t("planLeftAfter")}</dt>
+        <dd className="font-bold tabular-nums">{quote.planUnitsLeftAfter}</dd>
+      </div>
+      <div className="flex justify-between gap-3 px-4 py-2.5">
+        <dt className="text-muted">{t("walletAfter")}</dt>
+        <dd className={cn("font-bold tabular-nums", quote.walletAfterPaise < 0 && "text-danger-fg")}>{inr(quote.walletAfterPaise)}</dd>
+      </div>
+    </dl>
+  );
+}
+
+/** A check card that needs a yes: an include box, then its options. */
+function ConsentCard({
+  id, title, desc, on, onToggle, disabled, children,
+}: { id: string; title: string; desc: string; on: boolean; onToggle: (v: boolean) => void; disabled: string | null; children: React.ReactNode }) {
+  const t = useTranslations("checks");
+  return (
+    <div className={cn("rounded-2xl border p-4", disabled ? "border-border bg-surface-muted opacity-70" : on ? "border-primary bg-primary-softer shadow-sm" : "border-border bg-surface")}>
+      <div className="flex gap-3">
+        <input
+          id={`${id}-on`}
+          type="checkbox"
+          className="mt-1 h-[18px] w-[18px] shrink-0 accent-[var(--primary)]"
+          checked={on}
+          disabled={Boolean(disabled)}
+          onChange={(e) => onToggle(e.target.checked)}
+          aria-describedby={`${id}-desc`}
+        />
+        <div className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center justify-between gap-2">
+            <label htmlFor={`${id}-on`} className="cursor-pointer font-bold text-text">{title}</label>
+            <Tag tone="info">{t("buyerConsent")}</Tag>
+          </span>
+          <span id={`${id}-desc`} className="mt-1 block text-sm text-muted">{desc}</span>
+          {children}
+          {disabled ? <span className="mt-2 block text-xs font-semibold text-warning-fg">{t(`disabled.${disabled}`)}</span> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** v3 6.5 marker 3: personal CIBIL opens a small form for the person. */
+function PersonForm({
+  person, onChange, errors, contact,
+}: { person: Person; onChange: (p: Person) => void; errors: Record<string, string>; contact: Catalogue["counterparty"] }) {
+  const t = useTranslations("checks.person");
+  const set = (patch: Partial<Person>) => onChange({ ...person, ...patch });
+  return (
+    <div className="mt-4 space-y-3 rounded-2xl border border-border bg-surface p-4">
+      <p className="text-sm font-bold text-text">{t("title")}</p>
+      <Checkbox
+        id="person-same"
+        checked={person.sameAsContact}
+        onChange={(e) => set({ sameAsContact: e.target.checked, name: e.target.checked ? contact.contactName : "" })}
+        label={t("sameAsContact", { name: contact.contactName, mobile: contact.mobileMasked })}
+      />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <FormField id="person-name" label={t("name")} error={errors["person.name"]}>
+          <Input id="person-name" value={person.name} maxLength={120} invalid={Boolean(errors["person.name"])} onChange={(e) => set({ name: e.target.value })} />
+        </FormField>
+        {!person.sameAsContact ? (
+          <FormField id="person-mobile" label={t("mobile")} hint={t("mobileHint")} error={errors["person.mobile"]}>
+            <Input id="person-mobile" type="tel" inputMode="numeric" maxLength={10} value={person.mobile} invalid={Boolean(errors["person.mobile"])} onChange={(e) => set({ mobile: e.target.value.replace(/\D/g, "") })} />
+          </FormField>
+        ) : null}
+        <FormField id="person-pan" label={t("pan")} hint={t("panHint")} error={errors["person.pan"]}>
+          <Input id="person-pan" value={person.pan} maxLength={10} className="font-mono uppercase" invalid={Boolean(errors["person.pan"])} onChange={(e) => set({ pan: e.target.value.toUpperCase() })} />
+        </FormField>
+        <FormField id="person-birth" label={t("birthDate")} error={errors["person.birthDate"]}>
+          <Input id="person-birth" type="date" value={person.birthDate} invalid={Boolean(errors["person.birthDate"])} onChange={(e) => set({ birthDate: e.target.value })} />
+        </FormField>
+      </div>
+      {errors.person ? <p role="alert" className="text-sm font-medium text-danger-fg">{errors.person}</p> : null}
+    </div>
+  );
+}
+
+/** S09 markers 2 to 6, folded into the confirm popup: who is asked, how, why, and the exact message. */
 function ConsentBlock({
-  consent, buyerName, items, purpose, onPurpose, channels, onChannels,
+  consent, buyerName, purpose, onPurpose, channels, onChannels, names,
 }: {
   consent: NonNullable<Quote["consent"]>;
   buyerName: string;
-  items: string[];
   purpose: ConsentPurpose;
   onPurpose: (p: ConsentPurpose) => void;
   channels: Record<ConsentChannel, boolean>;
   onChannels: (c: Record<ConsentChannel, boolean>) => void;
+  names: Map<CwCode, string>;
 }) {
   const t = useTranslations("checks.consent");
-  if (consent.reuse) {
-    return (
-      <p className="rounded-[14px] bg-success-bg px-4 py-3 text-sm font-semibold text-success-fg">
-        {t("reuse", { date: formatDate(istDate(new Date(consent.reuse.approvedAt))) })}
-      </p>
-    );
-  }
-  const recipient: Record<ConsentChannel, string | null> = { sms: consent.mobileMasked, whatsapp: consent.whatsappMasked, email: consent.emailMasked };
-  const none = !CONSENT_CHANNELS.some((c) => channels[c]);
+  const asking = consent.subjects.filter((s) => !s.reuse);
+  const buyerAsked = asking.find((s) => s.kind === "buyer");
+  const recipient: Record<ConsentChannel, string | null> = {
+    sms: asking[0]?.mobileMasked ?? null,
+    whatsapp: buyerAsked ? consent.whatsappMasked : (asking[0]?.mobileMasked ?? null),
+    email: buyerAsked ? consent.emailMasked : null,
+  };
+  const none = asking.length > 0 && !CONSENT_CHANNELS.some((c) => channels[c]);
   return (
     <div className="space-y-3 rounded-2xl border border-border p-4">
-      <div>
-        <p className="font-bold text-text">{t("title")}</p>
-        <p className="text-sm text-muted">{t("lead", { count: items.length, items: items.join(", "), mobile: consent.mobileMasked })}</p>
-      </div>
-      {consent.limitReached ? (
+      <p className="font-bold text-text">{t("title")}</p>
+      {consent.subjects.map((s) => (
+        <SubjectLine key={s.kind} s={s} items={s.scope.map((c) => names.get(c) ?? c)} />
+      ))}
+      {asking.length ? (
+        <>
+          <fieldset>
+            <legend className="mb-1 text-sm font-bold text-text-2">{t("channels")}</legend>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+              {CONSENT_CHANNELS.map((c) => (
+                <label key={c} className={cn("flex items-center gap-2", !recipient[c] && "text-muted")}>
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 accent-[var(--primary)]"
+                    checked={channels[c] && Boolean(recipient[c])}
+                    disabled={!recipient[c]}
+                    onChange={(e) => onChannels({ ...channels, [c]: e.target.checked })}
+                  />
+                  {t(`channel.${c}`)} <span className="text-xs text-muted">{recipient[c] ?? t("noEmail")}</span>
+                </label>
+              ))}
+            </div>
+            {asking.length > 1 ? <p className="mt-1 text-xs text-muted">{t("personChannels")}</p> : null}
+            {none ? <p className="mt-1 text-xs font-semibold text-danger-fg">{t("chooseChannel")}</p> : null}
+          </fieldset>
+          <FormField id="consent-purpose" label={t("purpose")} hint={t("purposeHint")}>
+            <Select id="consent-purpose" value={purpose} onChange={(e) => onPurpose(e.target.value as ConsentPurpose)}>
+              {CONSENT_PURPOSES.map((p) => (
+                <option key={p} value={p}>{t(`purposes.${p}`)}</option>
+              ))}
+            </Select>
+          </FormField>
+          <div>
+            <p className="text-sm font-bold text-text-2">{t("preview")}</p>
+            <p className="mt-1 rounded-xl bg-surface-muted px-3 py-2 text-xs text-text-2">{t("previewText", { buyer: buyerName })}</p>
+          </div>
+          <ol className="list-decimal space-y-0.5 pl-5 text-xs text-muted">
+            <li>{t("next1")}</li>
+            <li>{t("next2")}</li>
+            <li>{t("next3")}</li>
+          </ol>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+function SubjectLine({ s, items }: { s: SubjectQuote; items: string[] }) {
+  const t = useTranslations("checks.consent");
+  const day = (iso: string) => formatDate(istDate(new Date(iso)));
+  return (
+    <div className="space-y-2">
+      {s.reuse ? (
+        <p className="rounded-[14px] bg-success-bg px-4 py-3 text-sm font-semibold text-success-fg">
+          {t("reuse", { name: s.name, date: day(s.reuse.approvedAt), items: items.join(", ") })}
+        </p>
+      ) : (
+        <p className="text-sm text-muted">{t("lead", { count: items.length, items: items.join(", "), name: s.name, mobile: s.mobileMasked })}</p>
+      )}
+      {s.limitReached ? (
         <p role="alert" className="rounded-[14px] bg-danger-bg px-4 py-3 text-sm font-semibold text-danger-fg">
-          {t("limit", { date: consent.nextAllowedAt ? formatDate(istDate(new Date(consent.nextAllowedAt))) : "" })}
+          {t("limit", { name: s.name, date: s.nextAllowedAt ? day(s.nextAllowedAt) : "" })}
         </p>
       ) : null}
-      {consent.declinedAt ? (
+      {s.declinedAt ? (
         <p role="status" className="rounded-[14px] bg-warning-bg px-4 py-3 text-sm font-semibold text-warning-fg">
-          {t("declinedRecently", { date: formatDate(istDate(new Date(consent.declinedAt))) })}
+          {t("declinedRecently", { name: s.name, date: day(s.declinedAt) })}
         </p>
       ) : null}
-      <fieldset>
-        <legend className="mb-1 text-sm font-bold text-text-2">{t("channels")}</legend>
-        <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
-          {CONSENT_CHANNELS.map((c) => (
-            <label key={c} className={cn("flex items-center gap-2", !recipient[c] && "text-muted")}>
-              <input
-                type="checkbox"
-                className="h-4 w-4 accent-[var(--primary)]"
-                checked={channels[c]}
-                disabled={!recipient[c]}
-                onChange={(e) => onChannels({ ...channels, [c]: e.target.checked })}
-              />
-              {t(`channel.${c}`)} <span className="text-xs text-muted">{recipient[c] ?? t("noEmail")}</span>
-            </label>
-          ))}
-        </div>
-        {none ? <p className="mt-1 text-xs font-semibold text-danger-fg">{t("chooseChannel")}</p> : null}
-      </fieldset>
-      <FormField id="consent-purpose" label={t("purpose")} hint={t("purposeHint")}>
-        <Select id="consent-purpose" value={purpose} onChange={(e) => onPurpose(e.target.value as ConsentPurpose)}>
-          {CONSENT_PURPOSES.map((p) => (
-            <option key={p} value={p}>{t(`purposes.${p}`)}</option>
-          ))}
-        </Select>
-      </FormField>
-      <div>
-        <p className="text-sm font-bold text-text-2">{t("preview")}</p>
-        <p className="mt-1 rounded-xl bg-surface-muted px-3 py-2 text-xs text-text-2">{t("previewText", { buyer: buyerName })}</p>
-      </div>
-      <ol className="list-decimal space-y-0.5 pl-5 text-xs text-muted">
-        <li>{t("next1")}</li>
-        <li>{t("next2")}</li>
-        <li>{t("next3")}</li>
-      </ol>
     </div>
   );
 }

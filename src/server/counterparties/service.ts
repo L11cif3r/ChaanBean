@@ -1,4 +1,5 @@
 import "server-only";
+import crypto from "node:crypto";
 import type { JSONValue } from "postgres";
 import { maskEmail, maskMobile, maskPan } from "@/lib/mask";
 import {
@@ -6,6 +7,7 @@ import {
 } from "@/lib/counterparties";
 import { isValidGstin, isValidPan, normaliseIdentifier, normaliseMobile, panFromGstin } from "@/lib/validators";
 import { audit } from "@/server/audit";
+import { commitHold, placeHold, reverseHold } from "@/server/billing/charge";
 import { blindIndex, decryptField, encryptField } from "@/server/crypto";
 import { sql } from "@/server/db/sql";
 import { AppError, notFound } from "@/server/errors";
@@ -242,18 +244,25 @@ export async function createCounterparty(ctx: Ctx, input: z.output<typeof create
   const stateCode = gstin ? gstin.slice(0, 2) : stateCodeFor(input.address.state);
   const whatsapp = input.whatsapp && input.whatsapp !== input.mobile ? input.whatsapp : null;
 
+  // v3 section 5: adding a buyer is charged (CP_ADD: a plan unit if the plan has one, else ₹10 + GST from the wallet).
+  // Held before saving so a short wallet stops the save; committed once the buyer is saved, given back if it fails.
+  const newId = crypto.randomUUID();
+  const hold = await placeHold({
+    orgId: ctx.orgId, itemCode: "CP_ADD", refType: "counterparty", refId: newId, idempotencyKey: `cp-add:${newId}`,
+    actorId: ctx.user.id, requestId: ctx.requestId,
+  });
   let id: string;
   try {
     const [row] = await sql()<{ id: string }[]>`
       insert into public.counterparties (
-        org_id, type, legal_name, trade_name, gstin, gst_status, pan_hash, pan_ciphertext, pan_masked, cin, udyam,
+        id, org_id, type, legal_name, trade_name, gstin, gst_status, pan_hash, pan_ciphertext, pan_masked, cin, udyam, iec,
         contact_name, mobile_hash, mobile_ciphertext, mobile_masked, whatsapp_ciphertext, whatsapp_masked,
         email_ciphertext, email_masked, address, state_code, city, credit_days, interest_rate_bp, tags,
         upi_status, upi_name, upi_checked_at, created_by)
       values (
-        ${ctx.orgId}, ${input.type}::public.counterparty_type, ${input.legalName}, ${input.tradeName ?? null}, ${gstin},
+        ${newId}, ${ctx.orgId}, ${input.type}::public.counterparty_type, ${input.legalName}, ${input.tradeName ?? null}, ${gstin},
         ${gst?.state === "found" ? gst.gstStatus : null}, ${blindIndex(pan, "pan")}, ${enc.pan(pan)}, ${maskPan(pan)},
-        ${input.cin ?? null}, ${input.udyam ?? null}, ${input.contactName}, ${mobileHash}, ${enc.mobile(input.mobile)},
+        ${input.cin ?? null}, ${input.udyam ?? null}, ${input.iec ?? null}, ${input.contactName}, ${mobileHash}, ${enc.mobile(input.mobile)},
         ${maskMobile(input.mobile)}, ${whatsapp ? enc.whatsapp(whatsapp) : null}, ${whatsapp ? maskMobile(whatsapp) : null},
         ${input.email ? enc.email(input.email.toLowerCase()) : null}, ${input.email ? maskEmail(input.email) : null},
         ${sql().json(input.address as JSONValue)}, ${stateCode}, ${input.address.city}, ${input.creditDays ?? null},
@@ -267,8 +276,10 @@ export async function createCounterparty(ctx: Ctx, input: z.output<typeof create
       const again = await findDuplicates(ctx, { gstin: gstin ?? undefined, pan, mobile: input.mobile });
       if (again.length) throw duplicateError(again);
     }
+    await reverseHold(ctx.orgId, hold.id, "Buyer not saved", ctx.user.id, ctx.requestId);
     throw e;
   }
+  await commitHold(ctx.orgId, hold.id, ctx.user.id, ctx.requestId);
 
   await audit(ctx, {
     action: "counterparty.created",
@@ -297,6 +308,7 @@ export interface CounterpartyProfile {
   pan: string | null;
   cin: string | null;
   udyam: string | null;
+  iec: string | null;
   contactName: string;
   mobile: string;
   whatsapp: string | null;
@@ -317,19 +329,19 @@ export async function getCounterparty(ctx: Ctx, id: string): Promise<Counterpart
   if (!/^[0-9a-f-]{36}$/i.test(id)) throw notFound("This counterparty");
   const [r] = await sql()<{
     id: string; type: CounterpartyType; legal_name: string; trade_name: string | null; gstin: string | null; gst_status: string | null;
-    pan_masked: string | null; cin: string | null; udyam: string | null; contact_name: string; mobile_masked: string;
+    pan_masked: string | null; cin: string | null; udyam: string | null; iec: string | null; contact_name: string; mobile_masked: string;
     whatsapp_masked: string | null; email_masked: string | null; address: CounterpartyProfile["address"]; state_code: string | null;
     credit_days: number | null; interest_rate_bp: number | null; tags: string[]; notes: string | null; upi_status: UpiStatus;
     upi_name: string | null; upi_checked_at: Date | null; status: "active" | "archived"; archived_at: Date | null; created_at: Date;
   }[]>`
-    select id, type, legal_name, trade_name, gstin, gst_status, pan_masked, cin, udyam, contact_name, mobile_masked,
+    select id, type, legal_name, trade_name, gstin, gst_status, pan_masked, cin, udyam, iec, contact_name, mobile_masked,
            whatsapp_masked, email_masked, address, state_code, credit_days, interest_rate_bp, tags, notes, upi_status,
            upi_name, upi_checked_at, status, archived_at, created_at
       from public.counterparties where id = ${id} and org_id = ${ctx.orgId}`;
   if (!r) throw notFound("This counterparty");
   return {
     id: r.id, type: r.type, legalName: r.legal_name, tradeName: r.trade_name, gstin: r.gstin, gstStatus: r.gst_status,
-    pan: r.pan_masked, cin: r.cin, udyam: r.udyam, contactName: r.contact_name, mobile: r.mobile_masked,
+    pan: r.pan_masked, cin: r.cin, udyam: r.udyam, iec: r.iec, contactName: r.contact_name, mobile: r.mobile_masked,
     whatsapp: r.whatsapp_masked, email: r.email_masked, address: r.address,
     stateName: r.state_code ? GST_STATES[r.state_code] ?? null : null, creditDays: r.credit_days,
     interestRate: bpToRate(r.interest_rate_bp), tags: r.tags, notes: r.notes,

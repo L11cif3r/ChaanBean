@@ -1,5 +1,7 @@
 import "server-only";
-import type { CibilData, CompanyData, CreditRatingData, DirectorData, GstSearchData, TurnoverData } from "@/lib/checks";
+import type {
+  CibilData, CompanyData, CreditRatingData, DirectorData, GstSearchData, IecProfileData, IecTurnoverData, MsmeData, PanData, TurnoverData,
+} from "@/lib/checks";
 import { formatDate, formatDateTimeIst, istDate } from "@/lib/dates";
 import { formatInrShort } from "@/lib/money";
 import type { ReportView } from "./service";
@@ -46,14 +48,30 @@ export function reportHtml(report: ReportView, t: T): string {
 
   const gst = data<GstSearchData>("CW_GST_SEARCH");
   const company = data<CompanyData>("CW_COMPANY");
-  const directors = data<DirectorData>("CW_DIRECTOR");
+  const directors = data<DirectorData>("CW_DIRECTORS");
   const rating = data<CreditRatingData>("CW_CREDIT_RATING");
-  const turnover = data<TurnoverData>("CW_GST_TURNOVER") ?? data<TurnoverData>("CW_GST_TURNOVER_CY");
+  const turnover = data<TurnoverData>("CW_GST_TURNOVER_4Y") ?? data<TurnoverData>("CW_GST_TURNOVER_CY");
   const cibil = [data<CibilData>("CW_CIBIL_COMPANY"), data<CibilData>("CW_CIBIL_PERSONAL")].filter(Boolean) as CibilData[];
+
+  const identity = () => {
+    const msme = data<MsmeData>("CW_MSME");
+    const pan = data<PanData>("CW_PAN");
+    const iec = data<IecProfileData>("CW_IEC_PROFILE");
+    const trade = data<IecTurnoverData>("CW_IEC_TURNOVER");
+    const r: [string, string][] = [];
+    if (msme) r.push([t("msme"), esc(`${msme.udyamNumber} · ${t(`msmeCategory.${msme.category}`)} · ${msme.majorActivity}`)]);
+    if (pan) r.push([t("panCheck"), esc(t("panStatus", { status: pan.status, name: pan.name }))]);
+    if (iec) r.push([t("iecProfile"), esc(`${iec.iec} · ${iec.status} · ${t("since", { date: day(iec.issuedOn) })}`)]);
+    const last = trade?.years[trade.years.length - 1];
+    if (last) r.push([t("iecTurnover", { fy: last.fy }), esc(t("iecValue", { exports: short(last.exportPaise), imports: short(last.importPaise) }))]);
+    return r.length ? rows(r) : "";
+  };
 
   const range = o.range
     ? `<p class="big">${esc(t("rangeValue", { low: short(o.range.lowPaise), high: short(o.range.highPaise) }))}</p>
-       <p class="muted">${esc(t("rangeBasis", { low: o.range.reduced ? 0.5 : 1, high: o.range.reduced ? 1 : 2, base: short(o.range.basePaise), year: o.range.baseYear }))}</p>`
+       <p class="muted">${esc(o.range.baseType === "annualised_cy"
+         ? t("rangeBasisCy", { base: short(o.range.basePaise), year: o.range.baseYear, months: o.range.monthsFiled ?? 0 })
+         : t("rangeBasis", { low: o.range.reduced ? 0.5 : 1, high: o.range.reduced ? 1 : 2, base: short(o.range.basePaise), year: o.range.baseYear }))}</p>`
     : `<p>${esc(o.rangeNote ? t(`rangeNote.${o.rangeNote}`) : "—")}</p>`;
 
   return `<!doctype html>
@@ -107,7 +125,7 @@ export function reportHtml(report: ReportView, t: T): string {
     [t("gstinsOnPan"), String(gst.gstinsOnPan.length)], [t("lastReturn"), esc(gst.lastReturnPeriod ?? "—")],
     [t("onTime"), esc(t("onTimeValue", { ok: gst.filings.filter((f) => f.filed && f.onTime).length, total: gst.filings.length }))],
   ]) : "")}
-  ${section(t("sectionTurnover"), ["CW_GST_TURNOVER", "CW_GST_TURNOVER_CY"], turnover ? `<div class="bars">${turnover.years.map((y) => {
+  ${section(t("sectionTurnover"), ["CW_GST_TURNOVER_4Y", "CW_GST_TURNOVER_CY"], turnover ? `<div class="bars">${turnover.years.map((y) => {
     const max = Math.max(1, ...turnover.years.map((x) => x.turnoverPaise));
     return `<div class="bar"><strong>${esc(short(y.turnoverPaise))}</strong><div style="height:${Math.max(4, (y.turnoverPaise / max) * 80)}px"></div>${esc(y.partial ? t("partialYear", { fy: y.fy }) : y.fy)}</div>`;
   }).join("")}</div>` : "")}
@@ -116,7 +134,8 @@ export function reportHtml(report: ReportView, t: T): string {
     [t("overdueLoans"), c.overdue.length ? esc(t("overdueValue", { count: c.overdue.length, days: Math.max(...c.overdue.map((x) => x.daysPastDue)) })) : esc(t("noneOverdue"))],
     [t("enquiries"), String(c.enquiries6m)],
   ])).join(""))}
-  ${section(t("sectionCompany"), ["CW_COMPANY", "CW_DIRECTOR"], `${company ? rows([
+  ${section(t("sectionIdentity"), ["CW_MSME", "CW_PAN", "CW_IEC_PROFILE", "CW_IEC_TURNOVER"], identity())}
+  ${section(t("sectionCompany"), ["CW_COMPANY", "CW_DIRECTORS"], `${company ? rows([
     [t("status"), esc(company.status)], [t("cin"), esc(company.cin)], [t("incorporated"), esc(day(company.incorporationDate))],
     [t("capital"), esc(short(company.paidUpCapitalPaise))],
   ]) : ""}${directors ? `<p><strong>${esc(t("directors"))}</strong></p><ul>${directors.directors.map((d) => `<li>${esc(d.name)}, ${esc(d.designation)}, DIN ${esc(d.din)}${d.disqualified ? ` (${esc(t("disqualified"))})` : ""}</li>`).join("")}</ul>` : ""}`)}
