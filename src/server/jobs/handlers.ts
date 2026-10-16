@@ -7,6 +7,8 @@ import { defineJob } from "./registry";
 // Every job kind is registered here so the runner knows it. Later parts add their own files and import them below.
 import "@/server/onboarding/jobs";
 import "@/server/billing/jobs";
+import "@/server/checks/jobs";
+import "@/server/consent/jobs";
 
 /**
  * Re-checks an organisation's audit hash chain. A broken chain means someone changed the log outside the

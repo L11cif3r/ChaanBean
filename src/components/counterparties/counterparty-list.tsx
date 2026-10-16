@@ -8,7 +8,9 @@ import { Button, ButtonLink, Card, EmptyState, PageHeader, Select, Tag } from "@
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api-client";
-import { formatInr } from "@/lib/money";
+import { formatDate, istDate } from "@/lib/dates";
+import { formatInr, formatInrShort } from "@/lib/money";
+import { RiskTag } from "./risk-tag";
 import { UpiBadge } from "./upi-badge";
 import type { CounterpartyRow } from "@/server/counterparties/service";
 
@@ -201,12 +203,12 @@ export function CounterpartyList({ initial, canManage, canExport }: { initial: C
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <Tag tone="neutral">{t("riskNotChecked")}</Tag>
+                        <RiskTag risk={r.risk} />
                       </td>
-                      <td className="hidden px-4 py-3 text-muted xl:table-cell">{t("never")}</td>
+                      <td className="hidden px-4 py-3 text-muted xl:table-cell">{r.lastCheckedAt ? formatDate(istDate(new Date(r.lastCheckedAt))) : t("never")}</td>
                       <td className="hidden px-4 py-3 text-right tabular-nums xl:table-cell">0</td>
                       <td className="hidden px-4 py-3 text-right tabular-nums lg:table-cell">{formatInr(0n)}</td>
-                      <td className="hidden px-4 py-3 text-right text-muted xl:table-cell">—</td>
+                      <td className="hidden px-4 py-3 text-right tabular-nums xl:table-cell">{r.creditHighPaise ? formatInrShort(BigInt(r.creditHighPaise)) : "—"}</td>
                       <td className="px-2 py-3 text-right">
                         <RowMenu row={r} canManage={canManage} onArchive={() => setArchiving(r)} />
                       </td>

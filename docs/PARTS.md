@@ -12,9 +12,9 @@ mock provider and switched to the real one when keys arrive.
 | 2 | Sign-in, organisations and team | S01, S02, S18 | FR-AUTH-01–06, FR-ORG-01–06, FR-USR-01 | 26–30 Oct | Done (15 Oct) |
 | 3 | Plans, wallet and billing: item codes, quota then wallet, hold/commit/reverse ledger, gateway (test mode), GST invoices | S03, S19 | FR-BIL-01–09 | 2–6 Nov | Must items built (15 Oct); see notes |
 | 4 | Counterparties (buyers): three types, GSTIN auto-fill, duplicates, archive; UPI bank-linked check (mock until a provider) | S05, S06, S07 | FR-CP-01–08 | 9–13 Nov | Must and Should built (16 Oct); see notes |
-| 5 | Credit Worthiness, public checks: adapter layer (12.3/12.4), routing, fallback, result reuse; GST search, Company check, Director details, Credit rating; choose-checks screen with cost box; confirm popup ("Yes, run search"); run all together or one by one; one report with risk level and safe credit range; report PDF | S08, S11 | FR-CW-01, 04–07, FR-RPT-01–06 | 16–27 Nov | Not started |
+| 5 | Credit Worthiness, public checks: adapter layer (12.3/12.4), routing, fallback, result reuse; GST search, Company check, Director details, Credit rating; choose-checks screen with cost box; confirm popup ("Yes, run search"); run all together or one by one; one report with risk level and safe credit range; report PDF | S08, S11 | FR-CW-01, 04–07, FR-RPT-01–06 | 16–27 Nov | Public checks built (16 Oct); see notes |
 | 6 | Notifications: SMS (DLT), WhatsApp, email (SES), in-app; message list from v2.0 section 9.1; delivery status; preferences; sender profile | S20 | FR-NTF-01/02, FR-AUTH-03 | 30 Nov–4 Dec | Not started |
-| 7 | Credit Worthiness, consent checks: buyer consent link and OTP, GST portal API-access step, 72-hour expiry with no charge, withdrawal; GST turnover (current year or last 4 years) via GSP; CIBIL company, personal or both via one bureau partner | S09 (consent), S10 | FR-CON-01–07, FR-CW-02/03 | 7–18 Dec | Not started |
+| 7 | Credit Worthiness, consent checks: buyer consent link and OTP, GST portal API-access step, 72-hour expiry with no charge, withdrawal; GST turnover (current year or last 4 years) via GSP; CIBIL company, personal or both via one bureau partner | S09 (consent), S10 | FR-CON-01–07, FR-CW-02/03 | 7–18 Dec | Consent checks built (16 Oct) on mock GSP, bureau and OTP; see notes |
 | 8 | Case Check (optional tab): user picks court case, FIR and/or money laundering; same cost popup; match confidence; "This is him / Not him / Not sure"; only confirmed cases change the risk level | S12 | FR-CC-01–06 | 21 Dec–1 Jan | Not started |
 | 9 | Business Security (optional tab): seller, buyer and lender agreements, agreement PDF, OTP acceptance, sealing, verify page, overdue job and interest, payments, E-Settlement | S13–S17, S22 | FR-TX-01–12, FR-ES-01–05 | 28 Dec–8 Jan 2027 | Not started |
 | 10 | Dashboard, admin panel and launch: free dashboard (buyers, searches this month, credit given, overdue, units left); admin panel (prices, plan units, data partners); security pass; testing with a few real businesses; pilot | S04, S21 | FR-DSH-01, FR-ADM-01–03, NFR-01–12, section 15, 18.3 | 11–22 Jan 2027 | Not started |
@@ -138,4 +138,58 @@ for a new buyer stay in Phase 1?
 - Fixed in passing: `claim_jobs` could hand one worker more jobs than asked (migration
   `20261016140251_claim_jobs_materialized`); masking is idempotent so audit rows keep their dots.
 - Tests: 68 unit, 43 database, end-to-end flow now 13 steps (4 for counterparties), smoke at 360 px and desktop.
+
+## Part 5 notes (16 Oct)
+
+- Migrations `20261016145055_part5_checks` and `20261016145147_part5_raw_ref_text`: `check_requests` (one request = one
+  report, numbered `CR-2026-000001`, valid 30 days, risk level and range stored) and `check_items` (one row per check:
+  status, hold, normalised result, encrypted raw response reference). Read by every role (report.view); no direct writes.
+- S08 (v2.0 Figure 4): buyer, GST / CIBIL / company basics cards with price, plan units left and "Done on" for recent
+  results (FR-CW-06); live cost box. Confirm popup (Figure 5) from the server's quote: units from plan, wallet money,
+  units and balance after, "run all together" or "I will run each one myself". S09 redirects to S08 (folded in v2.0).
+- Engine (`src/server/checks/service.ts`): holds every check first (all or nothing), then one background job per check
+  with a 15 s timeout (30 s for GST returns), one retry after 2 s, then "Not available" with the hold reversed.
+  Data or a clean "nothing found" commits the hold. The report is worked out again after every check.
+- Report rules (`src/lib/report-rules.ts`, v2.0 section 6 and v1.0 9.2/9.3): High / Medium / Low / Not enough data with
+  signals; safe range 1%–2% of last year's filed turnover, 0.5%–1% if falling, none when High. "Low" needs at least 3
+  good signs; with fewer good signs and no warnings the level is Medium (the PRD leaves this case open).
+- S11 (Figure 8): risk, safe range, why, sections per check with source and time, polling while running, "Run this
+  check" in manual mode. Download PDF opens a branded printable page (`/api/v1/reports/:id/pdf`, export logged).
+- Providers: one mock for all Credit Worthiness checks (`src/server/providers/checks`), with scenarios for every rule.
+  GST turnover and CIBIL run on the same mock once Part 7 adds buyer consent; until then their cards say so.
+- Counterparty list and profile show the latest risk level, last checked date, safe range and a Reports tab.
+- Fixed in passing: the S06 duplicate warning could be cleared by a slower, earlier check (only the newest answer counts).
+- Not built yet: secure share link (FR-RPT-05, Should), provider fallback and circuit breaker (12.4) until there is a
+  second provider, Hindi.
+- Tests: 77 unit (9 for report rules and mock scenarios), 46 database, end-to-end flow 14 steps.
+
+## Part 7 notes (16 Oct)
+
+- Migrations `20261016155049_part7_consent` and `20261016155156_part7_consent_bureau`: `consent_requests` (one per check
+  request: scope, purpose, channels, the only mobile that can approve, hashed link token, 72-hour expiry, status,
+  30-day "visible until"); `check_items.consent_id`; server-only `consent_private` (encrypted GST username, GSP token,
+  bureau PAN and date), `consent_otps` (mobile OTP hashed; GSTN OTP reference) and `consent_events`, the append-only
+  consent record (FR-CON-05: time, IP, device, OTP reference, scope, purpose, expiry). The browser can read the status
+  but never the token or the buyer's mobile.
+- Confirm popup (S09 folded into v2.0 Figure 5): who is asked, channels (SMS, WhatsApp, email when on file), purpose,
+  the message text and what happens next. Rules: a yes from the last 30 days that covers the items is used again
+  (and GST access still valid); a "no" in the last 7 days warns; at most 3 requests to one buyer in 7 days.
+- Engine: "run together" holds every check at once; checks needing consent wait with a hold kept until the link
+  expires. Approval queues them ("one by one" mode makes them ready to run by hand). A "no", expiry (job
+  `consent.expire`, also checked when the link is opened) or withdrawal cancels them and reverses the holds. One
+  reminder after 24 hours (job `consent.remind`). Every use of the buyer's access is logged ("data_fetched").
+- S10 `/c/[token]` (Figure 7), phone first: who and why, mobile OTP (5 minutes, 5 tries, 5 sends an hour, resend
+  after 30 s), GST portal steps (username, then the GSTN OTP), company PAN and date of incorporation and/or owner's PAN
+  and date of birth (18 or over; must match the PAN on record), consent box, approve, decline with one confirmation.
+  Afterwards the same link shows the yes and lets the buyer withdraw after an OTP; withdrawn or lapsed data is hidden
+  from the report at once and left out of the risk level.
+- Report: a "Buyer consent" card (waiting since, link valid until, said yes / no / no reply / withdrawn) and clear
+  per-check messages, also in the PDF page.
+- Mocks until keys arrive: OTP sender (no message sent, code 123456), GSP (username with "noapi" = API access off,
+  "unknown" = not a GST user, "down" = GSP down; GSTN OTP 123456), CIBIL and turnover need the buyer's access.
+- Faster "Yes, run search": holds, jobs and messages now go out side by side (was ~20 to 30 s on the Sydney database).
+- Not built yet: telling the requester outside the app when the buyer answers (Part 6 notifications); counsel's
+  consent text (placeholder v0.1-draft); ops search of consent records (Part 10); Hindi.
+- Tests: 83 unit (6 for consent rules), 50 database (4 for consent), end-to-end flow 19 steps (approve with the GST
+  portal and bureau steps, withdraw, decline, expiry, the 3-in-7-days limit).
 

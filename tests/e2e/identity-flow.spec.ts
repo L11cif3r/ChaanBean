@@ -8,7 +8,8 @@ import { gstinChecksumChar } from "../../src/lib/validators";
 
 // Part 2 end to end with Supabase test phone numbers (fixed OTP 123456; no message is sent):
 // sign-up → business verification → Plan B through the mock gateway (Part 3) → dashboard → wallet top-up → invite →
-// accept as a second user → counterparties (Part 4: add by GSTIN, duplicates, edit, archive, search) → roles →
+// accept as a second user → counterparties (Part 4: add by GSTIN, duplicates, edit, archive, search) → Credit Worthiness
+// (Part 5) → buyer consent: approve, withdraw, decline, expiry and the request limit (Part 7) → roles →
 // deactivate → removed, plus the cancelled-GSTIN (manual review) and duplicate-GSTIN paths.
 // Needs: Phone provider + test numbers 919000000001..3 enabled in Supabase (see docs/PARTS.md, Part 2).
 
@@ -37,10 +38,15 @@ test.beforeAll(async ({ request }) => {
   const phones = [OWNER, MEMBER, OTHER].map((m) => `91${m}`);
   await db`delete from public.organisations where created_by in (select id from auth.users where phone in ${db(phones)})`;
   await db`delete from auth.users where phone in ${db(phones)}`;
-  const key = Buffer.from(process.env.BLIND_INDEX_KEY!, "base64");
-  const hashes = [OWNER, MEMBER, OTHER].map((m) => crypto.createHmac("sha256", key).update(`mobile:${m}`).digest("hex"));
-  await db`delete from app_private.otp_events where phone_hash in ${db(hashes)}`;
+  await resetOtpLimits(OWNER, MEMBER, OTHER);
 });
+
+/** The suite signs the Owner in more often than the 5 OTPs an hour a real user may ask for. */
+async function resetOtpLimits(...mobiles: string[]) {
+  const key = Buffer.from(process.env.BLIND_INDEX_KEY!, "base64");
+  const hashes = mobiles.map((m) => crypto.createHmac("sha256", key).update(`mobile:${m}`).digest("hex"));
+  await db`delete from app_private.otp_events where phone_hash in ${db(hashes)}`;
+}
 
 test.afterAll(async () => {
   await db?.end();
@@ -249,6 +255,164 @@ test.describe("counterparties", () => {
     }
   });
 
+  // Part 5: Credit Worthiness public checks (PRD v2.0 Figures 4, 5 and 8).
+  test("the Owner runs Credit Worthiness: sees the cost, confirms, and gets one report", async () => {
+    await page.goto(`${buyerPath.replace("/counterparties/", "/checks/new?counterparty=")}`);
+    await expect(page.getByText("This search will cost")).toBeVisible();
+    await page.getByRole("checkbox", { name: /Credit rating/ }).check();
+    await page.getByRole("button", { name: "Continue" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText("Confirm your search")).toBeVisible();
+    await expect(dialog.getByText(/3 units from plan · ₹223\.02 from wallet/)).toBeVisible();
+    await dialog.getByRole("button", { name: "Yes, run search" }).click();
+    await expect(page).toHaveURL(/\/reports\/[0-9a-f-]{36}$/);
+    await expect(page.getByRole("heading", { level: 1, name: buyerName })).toBeVisible();
+    // Public checks only, so no turnover or CIBIL yet: "Not enough data" and no safe range.
+    await expect(page.getByText("Not enough data", { exact: true })).toBeVisible();
+    await expect(page.getByText("Run GST turnover to get a safe credit range.")).toBeVisible();
+    await expect(page.getByText("GST returns filed on time")).toBeVisible();
+    await expect(page.getByText("12 of 12")).toBeVisible();
+    await page.goto(buyerPath);
+    await expect(page.getByRole("tab", { name: /Reports\s*\(1\)/ })).toBeVisible();
+  });
+
+  // Part 7: buyer consent for GST turnover and CIBIL (PRD v2.0 Figures 6 and 7, S09 rules, S10).
+  let consentLink = "";
+  let reportPath = "";
+
+  async function askBuyer(choose: () => Promise<void>) {
+    await page.goto(buyerPath.replace("/counterparties/", "/checks/new?counterparty="));
+    await expect(page.getByText("This search will cost")).toBeVisible();
+    await choose();
+    await page.getByRole("button", { name: "Continue" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText("Ask the buyer to say yes")).toBeVisible();
+    return dialog;
+  }
+
+  async function sendAndGetLink(dialog: ReturnType<Page["getByRole"]>) {
+    await dialog.getByRole("button", { name: "Yes, run search" }).click();
+    await expect(page).toHaveURL(/\/reports\/[0-9a-f-]{36}$/);
+    reportPath = new URL(page.url()).pathname;
+    await expect(page.getByText(/Waiting for the buyer to say yes since/)).toBeVisible();
+    await page.goto("/dev/outbox");
+    consentLink = (await page.locator('a[href*="/c/"]').first().getAttribute("href")) ?? "";
+    expect(consentLink).toMatch(/\/c\/[A-Za-z0-9_-]+$/);
+  }
+
+  async function buyerPage(browser: import("@playwright/test").Browser, baseURL: string | undefined) {
+    // The buyer has no account and opens the link on a phone.
+    const buyer = await (await browser.newContext({ baseURL, viewport: { width: 390, height: 844 } })).newPage();
+    await buyer.goto(consentLink);
+    await expect(buyer.getByRole("heading", { level: 1, name: /wants to check your business credit/ })).toBeVisible();
+    return buyer;
+  }
+
+  async function buyerOtp(buyer: Page) {
+    await buyer.getByRole("button", { name: "Send OTP" }).click();
+    await buyer.getByLabel("Mobile OTP digit 1").click();
+    await buyer.keyboard.type(OTP);
+    await expect(buyer.getByText("Mobile verified")).toBeVisible();
+  }
+
+  test("the Owner asks for GST turnover and company CIBIL: the link goes out and those checks wait", async () => {
+    const dialog = await askBuyer(async () => {
+      await page.getByRole("radio", { name: /Last 4 years/ }).check();
+      await page.getByRole("radio", { name: "Company CIBIL" }).check();
+    });
+    await expect(dialog.getByRole("checkbox", { name: /^SMS/ })).toBeChecked();
+    await expect(dialog.getByRole("checkbox", { name: /^Email/ })).toBeDisabled(); // no email on file
+    await dialog.getByLabel("Purpose").selectOption("supply_on_credit");
+    await sendAndGetLink(dialog);
+    await page.goto(reportPath);
+    await expect(page.getByText("Buyer consent")).toBeVisible();
+    await expect(page.getByText("Waiting for the buyer to say yes", { exact: true }).first()).toBeVisible();
+  });
+
+  test("the buyer verifies by OTP, gives GST portal access and bureau details, and approves", async ({ browser, baseURL }) => {
+    const buyer = await buyerPage(browser, baseURL);
+    await expect(buyer.getByText("GST turnover you filed in the last 4 years")).toBeVisible();
+    await expect(buyer.getByText("Company credit report (CIBIL)")).toBeVisible();
+    await expect(buyer.getByRole("button", { name: "Approve and continue" })).toBeDisabled();
+    await buyerOtp(buyer);
+
+    // GST portal: API access off first, then a wrong GSTN OTP, then the right one.
+    await buyer.getByLabel("GST portal username").fill("noapi_trader");
+    await buyer.getByRole("button", { name: "Get GST portal OTP" }).click();
+    await expect(buyer.getByText(/API access is not turned on/).first()).toBeVisible();
+    await buyer.getByLabel("GST portal username").fill("trader_blr");
+    await buyer.getByRole("button", { name: "Get GST portal OTP" }).click();
+    await buyer.getByLabel("GST portal OTP digit 1").click();
+    await buyer.keyboard.type("111111");
+    await expect(buyer.getByText(/GST portal did not accept this OTP/).first()).toBeVisible();
+    await buyer.getByLabel("GST portal OTP digit 1").click();
+    await buyer.keyboard.type(OTP);
+    await expect(buyer.getByText("GST portal access given")).toBeVisible();
+
+    await buyer.getByLabel("Company PAN").fill(buyerGstin.slice(2, 12));
+    await buyer.getByLabel("Date of incorporation").fill("2015-04-01");
+    await buyer.getByRole("checkbox", { name: /I consent to share the data above/ }).check();
+    await buyer.getByRole("button", { name: "Approve and continue" }).click();
+    await expect(buyer.getByText(/You said yes on/)).toBeVisible();
+    await buyer.context().close();
+
+    // The waiting checks run at once: turnover and CIBIL fill in, and the report gets a safe credit range.
+    await page.goto(reportPath);
+    await expect(page.getByText("Said yes", { exact: true })).toBeVisible();
+    await expect(page.getByText(/^CIBIL CMR-\d$/)).toBeVisible();
+    await expect(page.getByText("Run GST turnover to get a safe credit range.")).toHaveCount(0);
+  });
+
+  test("the buyer withdraws from the same link: their data leaves the report at once", async ({ browser, baseURL }) => {
+    const buyer = await buyerPage(browser, baseURL);
+    await expect(buyer.getByText(/You said yes on/)).toBeVisible();
+    await expect(buyer.getByRole("button", { name: "Withdraw consent" })).toBeDisabled();
+    await buyerOtp(buyer);
+    await buyer.getByRole("button", { name: "Withdraw consent" }).click();
+    await buyer.getByRole("dialog").getByRole("button", { name: "Withdraw consent" }).click();
+    await expect(buyer.getByText(/You withdrew your consent on/)).toBeVisible();
+    await buyer.context().close();
+
+    await page.goto(reportPath);
+    await expect(page.getByText("Withdrawn", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Consent withdrawn\. The buyer took back their yes/).first()).toBeVisible();
+    await expect(page.getByText(/^CIBIL CMR-\d$/)).toHaveCount(0);
+  });
+
+  test("a buyer who says no is not asked for OTP, and nothing is charged for those checks", async ({ browser, baseURL }) => {
+    const dialog = await askBuyer(() => page.getByRole("radio", { name: /Personal CIBIL/ }).check());
+    await sendAndGetLink(dialog);
+    const buyer = await buyerPage(browser, baseURL);
+    await expect(buyer.getByLabel("Owner's PAN")).toBeVisible();
+    await buyer.getByRole("button", { name: "Decline" }).click();
+    await buyer.getByRole("dialog").getByRole("button", { name: "Decline" }).click();
+    await expect(buyer.getByText(/You said no on/)).toBeVisible();
+    await buyer.context().close();
+    await page.goto(reportPath);
+    await expect(page.getByText("Said no", { exact: true })).toBeVisible();
+    await expect(page.getByText(/The buyer said no\. Not charged\./).first()).toBeVisible();
+  });
+
+  test("after 72 hours the link expires; then the 3-in-7-days limit stops a fourth request", async ({ browser, baseURL }) => {
+    const dialog = await askBuyer(() => page.getByRole("radio", { name: "Company CIBIL" }).check());
+    await expect(dialog.getByText(/This buyer said no on/)).toBeVisible(); // the "no" from the step above
+    await sendAndGetLink(dialog);
+    const tokenHash = crypto.createHash("sha256").update(consentLink.split("/c/")[1]).digest("hex");
+    await db`update public.consent_requests set expires_at = now() - interval '1 minute' where token_hash = ${tokenHash}`;
+    const buyer = await (await browser.newContext({ baseURL })).newPage();
+    await buyer.goto(consentLink);
+    await expect(buyer.getByText(/This request has expired/)).toBeVisible();
+    await buyer.context().close();
+    await page.goto(reportPath);
+    await expect(page.getByText("No reply", { exact: true })).toBeVisible();
+    await expect(page.getByText(/did not reply in 72 hours\. Not charged\./).first()).toBeVisible();
+
+    const fourth = await askBuyer(() => page.getByRole("radio", { name: "Company CIBIL" }).check());
+    await expect(fourth.getByText(/You have sent 3 requests to this buyer in the last 7 days/)).toBeVisible();
+    await expect(fourth.getByRole("button", { name: "Yes, run search" })).toBeDisabled();
+    await fourth.getByRole("button", { name: "Cancel" }).click();
+  });
+
   test("the list finds the buyer by name and by full mobile, and masks the mobile", async () => {
     await page.goto("/counterparties");
     const search = page.getByLabel("Search counterparties");
@@ -285,6 +449,7 @@ test("a cancelled GSTIN goes to manual review with a document", async ({ page })
 });
 
 test("the Owner sees the access request, changes a role and deactivates the Member", async ({ page }) => {
+  await resetOtpLimits(OWNER);
   await signIn(page, OWNER);
   await page.goto("/account/team");
   await expect(page.getByText("Access requests")).toBeVisible();

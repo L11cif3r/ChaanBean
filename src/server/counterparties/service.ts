@@ -43,6 +43,10 @@ export interface CounterpartyRow {
   tags: string[];
   status: "active" | "archived";
   createdAt: string;
+  /** From the latest credit report (Part 5). */
+  risk: "high" | "medium" | "low" | "not_enough_data" | null;
+  lastCheckedAt: string | null;
+  creditHighPaise: number | null;
 }
 
 export interface ListQuery {
@@ -58,11 +62,14 @@ export interface ListQuery {
 type DbRow = {
   id: string; type: CounterpartyType; legal_name: string; gstin: string | null; pan_masked: string | null;
   mobile_masked: string; upi_status: UpiStatus; city: string | null; tags: string[]; status: "active" | "archived"; created_at: Date;
+  risk_level?: CounterpartyRow["risk"]; last_checked_at?: Date | null; credit_high_paise?: string | null;
 };
 
 const toRow = (r: DbRow): CounterpartyRow => ({
   id: r.id, type: r.type, legalName: r.legal_name, identifier: r.gstin ?? r.pan_masked ?? "", mobile: r.mobile_masked,
   upiStatus: r.upi_status, city: r.city, tags: r.tags, status: r.status, createdAt: r.created_at.toISOString(),
+  risk: r.risk_level ?? null, lastCheckedAt: r.last_checked_at?.toISOString() ?? null,
+  creditHighPaise: r.credit_high_paise == null ? null : Number(r.credit_high_paise),
 });
 
 /** What the search box matches: a full mobile or PAN by hash, a GSTIN by prefix, otherwise name or GSTIN by substring. */
@@ -92,8 +99,13 @@ export async function listCounterparties(ctx: Ctx, query: ListQuery) {
     : (query.dir === "asc" ? db`c.created_at asc` : db`c.created_at desc`);
   const [rows, [{ total }], tags] = await Promise.all([
     db<DbRow[]>`
-      select c.id, c.type, c.legal_name, c.gstin, c.pan_masked, c.mobile_masked, c.upi_status, c.city, c.tags, c.status, c.created_at
-        from public.counterparties c where ${where} order by ${order} limit ${size} offset ${(page - 1) * size}`,
+      select c.id, c.type, c.legal_name, c.gstin, c.pan_masked, c.mobile_masked, c.upi_status, c.city, c.tags, c.status, c.created_at,
+             r.risk_level, r.created_at as last_checked_at, r.credit_high_paise
+        from public.counterparties c
+        left join lateral (
+          select risk_level, created_at, credit_high_paise from public.check_requests
+           where counterparty_id = c.id order by created_at desc limit 1) r on true
+       where ${where} order by ${order} limit ${size} offset ${(page - 1) * size}`,
     db<{ total: number }[]>`select count(*)::int as total from public.counterparties c where ${where}`,
     db<{ tag: string }[]>`
       select distinct unnest(tags) as tag from public.counterparties where org_id = ${ctx.orgId} order by 1 limit 100`,

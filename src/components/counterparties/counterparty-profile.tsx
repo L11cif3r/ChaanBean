@@ -11,7 +11,8 @@ import { Tabs } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api-client";
 import { formatDate, formatDateTimeIst, istDate } from "@/lib/dates";
-import { formatInr } from "@/lib/money";
+import { formatInr, formatInrShort } from "@/lib/money";
+import { RiskTag } from "./risk-tag";
 import { GST_STATES } from "@/server/providers/identity/states";
 import { UpiBadge } from "./upi-badge";
 import type { ActivityItem, CounterpartyProfile as Profile } from "@/server/counterparties/service";
@@ -21,7 +22,11 @@ import type { ActivityItem, CounterpartyProfile as Profile } from "@/server/coun
 
 const STATE_NAMES = Object.values(GST_STATES).sort((a, b) => a.localeCompare(b, "en-IN"));
 
-export function CounterpartyProfile({ profile, activity, canManage }: { profile: Profile; activity: ActivityItem[]; canManage: boolean }) {
+type ReportRow = Awaited<ReturnType<typeof import("@/server/checks/service").reportsFor>>[number];
+
+export function CounterpartyProfile({
+  profile, activity, reports, canManage, canRun,
+}: { profile: Profile; activity: ActivityItem[]; reports: ReportRow[]; canManage: boolean; canRun: boolean }) {
   const t = useTranslations("counterparties");
   const router = useRouter();
   const toast = useToast();
@@ -51,16 +56,22 @@ export function CounterpartyProfile({ profile, activity, canManage }: { profile:
   }
 
   const identifier = profile.gstin ?? profile.pan ?? "";
+  const latest = reports[0] ?? null;
+  const withRange = reports.find((r) => r.creditHighPaise !== null) ?? null;
   const overview = (
     <div className="grid gap-5 lg:grid-cols-3">
       <div className="space-y-5 lg:col-span-2">
-        <Card>
-          <EmptyState
-            title={t("noChecksTitle")}
-            body={t("noChecksBody")}
-            action={editable ? <ButtonLink href={`/checks/new?counterparty=${profile.id}`}>{t("runChecks")}</ButtonLink> : null}
-          />
-        </Card>
+        {latest ? (
+          <ReportList reports={reports.slice(0, 3)} />
+        ) : (
+          <Card>
+            <EmptyState
+              title={t("noChecksTitle")}
+              body={t("noChecksBody")}
+              action={editable && canRun ? <ButtonLink href={`/checks/new?counterparty=${profile.id}`}>{t("runChecks")}</ButtonLink> : null}
+            />
+          </Card>
+        )}
         <Card>
           <CardHeader title={t("exposureTitle")} />
           <CardBody>
@@ -179,7 +190,7 @@ export function CounterpartyProfile({ profile, activity, canManage }: { profile:
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-extrabold tracking-tight text-text sm:text-[1.75rem]">{profile.legalName}</h1>
-              <Tag tone="neutral">{t("riskNotChecked")}</Tag>
+              <RiskTag risk={latest?.riskLevel ?? null} />
               {profile.gstStatus && profile.gstStatus !== "Active" ? <Tag tone="danger">GST {profile.gstStatus.toLowerCase()}</Tag> : null}
             </div>
             <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted">
@@ -205,17 +216,20 @@ export function CounterpartyProfile({ profile, activity, canManage }: { profile:
           ) : null}
         </div>
         <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4 sm:grid-cols-4">
-          <Stat label={t("headerRange")} value={t("notYet")} />
+          <Stat
+            label={t("headerRange")}
+            value={withRange ? `${formatInrShort(BigInt(withRange.creditLowPaise ?? 0))} – ${formatInrShort(BigInt(withRange.creditHighPaise!))}` : t("notYet")}
+          />
           <Stat label={t("headerOutstanding")} value={formatInr(0n)} />
           <Stat label={t("headerTurnover")} value={t("notYet")} />
-          <Stat label={t("headerLastReport")} value={t("notYet")} />
+          <Stat label={t("headerLastReport")} value={latest ? formatDate(istDate(new Date(latest.createdAt))) : t("notYet")} />
         </dl>
       </header>
 
       <Tabs
         items={[
           { key: "overview", label: t("tabOverview"), content: overview },
-          { key: "reports", label: t("tabReports"), count: 0, content: empty(t("emptyReports")) },
+          { key: "reports", label: t("tabReports"), count: reports.length, content: reports.length ? <ReportList reports={reports} /> : empty(t("emptyReports")) },
           { key: "cases", label: t("tabCases"), count: 0, content: empty(t("emptyCases")) },
           { key: "transactions", label: t("tabTransactions"), count: 0, content: empty(t("emptyTransactions")) },
           { key: "documents", label: t("tabDocuments"), count: 0, content: empty(t("emptyDocuments")) },
@@ -236,6 +250,33 @@ export function CounterpartyProfile({ profile, activity, canManage }: { profile:
         confirmLabel={t("archive")}
       />
     </div>
+  );
+}
+
+function ReportList({ reports }: { reports: ReportRow[] }) {
+  const t = useTranslations("counterparties");
+  return (
+    <Card>
+      <CardHeader title={t("tabReports")} />
+      <ul className="divide-y divide-border">
+        {reports.map((r) => (
+          <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 text-sm">
+            <span className="min-w-0">
+              <Link href={`/reports/${r.id}`} className="font-bold text-text hover:text-primary-text">
+                {t("reportRow", { number: r.reportNo, date: formatDate(istDate(new Date(r.createdAt))) })}
+              </Link>
+              <span className="mt-0.5 block text-xs text-muted">
+                {r.creditHighPaise !== null ? `${formatInrShort(BigInt(r.creditLowPaise ?? 0))} – ${formatInrShort(BigInt(r.creditHighPaise))}` : null}
+              </span>
+            </span>
+            <span className="flex items-center gap-2">
+              {r.status === "in_progress" ? <Tag tone="info">{t("inProgress")}</Tag> : null}
+              <RiskTag risk={r.riskLevel} />
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 }
 

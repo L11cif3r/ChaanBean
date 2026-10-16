@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Building2, Landmark, User } from "lucide-react";
 import { Button, ButtonLink, Card, CardBody, CardHeader, Checkbox, ErrorSummary, FormField, Input, PageHeader, Select, Tag } from "@/components/ui";
@@ -74,11 +74,15 @@ export function CounterpartyForm() {
 
   const digits = normaliseMobile(mobile);
 
+  // Each check sends every identifier entered so far; only the newest answer is used, so a slower earlier check
+  // (for example the PAN field's) cannot clear a warning that a later one (the mobile's) has just shown.
+  const dupSeq = useRef(0);
   async function checkDuplicates(next: { gstin?: string; pan?: string; mobile?: string }) {
     const body = { gstin: type === "business_gstin" ? gstin : undefined, pan: type === "business_gstin" ? undefined : pan, mobile, ...next };
     if (!body.gstin && !body.pan && !body.mobile) return;
+    const seq = ++dupSeq.current;
     const res = await api<{ matches: DuplicateMatch[] }>("/api/v1/counterparties/duplicates", { body });
-    if (res.ok) setDuplicate(res.data.matches[0] ?? null);
+    if (res.ok && seq === dupSeq.current) setDuplicate(res.data.matches[0] ?? null);
   }
 
   async function fetchGst() {
