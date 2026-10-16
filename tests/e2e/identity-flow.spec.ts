@@ -7,8 +7,9 @@ import postgres from "postgres";
 import { gstinChecksumChar } from "../../src/lib/validators";
 
 // Part 2 end to end with Supabase test phone numbers (fixed OTP 123456; no message is sent):
-// sign-up → business verification → dashboard → invite → accept as a second user → roles → deactivate → removed,
-// plus the cancelled-GSTIN (manual review) and duplicate-GSTIN paths.
+// sign-up → business verification → Plan B through the mock gateway (Part 3) → dashboard → wallet top-up → invite →
+// accept as a second user → roles → deactivate → removed, plus the cancelled-GSTIN (manual review) and duplicate-GSTIN
+// paths.
 // Needs: Phone provider + test numbers 919000000001..3 enabled in Supabase (see docs/PARTS.md, Part 2).
 
 const OWNER = "9000000001";
@@ -82,6 +83,7 @@ let orgName = "";
 let inviteLink = "";
 
 test("a new user signs up with OTP and verifies the business by GSTIN", async ({ page }) => {
+  test.slow(); // sign-up, business verification, plan purchase and the first compile of each page
   await signIn(page, OWNER);
   await expect(page).toHaveURL(/\/signup\/business/);
   await verifyBusiness(page, firstGstin, "Rakesh Owner", "rakesh@steeltraders.in");
@@ -90,16 +92,58 @@ test("a new user signs up with OTP and verifies the business by GSTIN", async ({
   orgName = (await page.locator("dt", { hasText: "Trade name" }).locator("+ dd").textContent()) ?? "";
   await profileAndCreate(page, "Rakesh Owner", "rakesh@steeltraders.in", /Create account/);
   await expect(page).toHaveURL(/\/signup\/plan/);
-  await page.getByRole("link", { name: "Continue to dashboard" }).click();
+
+  // S03: Plan B is recommended and preselected; ₹17,599 + 18% GST, paid through the mock gateway's signed webhook.
+  await page.getByRole("button", { name: "Pay ₹20,766.82" }).click();
+  await expect(page).toHaveURL(/\/dev\/pay\/mock_order_/);
+  await page.getByRole("button", { name: "Pay successfully" }).click();
+  await expect(page).toHaveURL(/\/signup\/plan\?order=/);
+  await expect(page.getByText("Payment received")).toBeVisible();
+  await page.getByRole("link", { name: "Go to dashboard" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Welcome, Rakesh" })).toBeVisible();
+  await expect(page.getByText("Plan B: 546 units left")).toBeVisible();
   await expect(page.getByText(orgName).first()).toBeVisible();
+});
+
+test("the Owner tops up the wallet; a failed payment changes nothing and the ledger and invoices show the rest", async ({ page }) => {
+  test.slow(); // three trips through the mock gateway
+  await signIn(page, OWNER);
+  await page.goto("/account/billing");
+  await expect(page.getByRole("heading", { level: 1, name: "Plan, usage and wallet" })).toBeVisible();
+  await expect(page.getByText("546 plan units left · 5 users")).toBeVisible();
+
+  const topUp = async (amount: string, outcome: "Pay successfully" | "Fail the payment") => {
+    await page.getByRole("button", { name: "Add money" }).click();
+    await page.getByLabel("Amount (₹)").fill(amount);
+    await page.getByRole("button", { name: "Continue to pay" }).click();
+    await expect(page).toHaveURL(/\/dev\/pay\/mock_order_/);
+    await page.getByRole("button", { name: outcome }).click();
+    await expect(page).toHaveURL(/\/account\/billing\?order=/);
+  };
+
+  await page.getByRole("button", { name: "Add money" }).click();
+  await page.getByLabel("Amount (₹)").fill("500");
+  await page.getByRole("button", { name: "Continue to pay" }).click();
+  await expect(page.getByText("Enter an amount between ₹1,000 and ₹5,00,000.")).toBeVisible();
+  await page.getByRole("button", { name: "Close" }).click();
+
+  await topUp("1500", "Fail the payment");
+  await expect(page.getByText("Payment failed")).toBeVisible();
+  await expect(page.getByText("The bank declined this payment (test).")).toBeVisible();
+
+  await page.goto("/account/billing");
+  await topUp("2000", "Pay successfully");
+  await expect(page.getByText("₹2,000 was added to your wallet. The GST invoice is ready.")).toBeVisible();
+  await expect(page.getByText("Wallet top-up", { exact: true })).toBeVisible();
+  await expect(page.getByText("Chaanbean wallet top-up", { exact: true })).toBeVisible();
+  await expect(page.getByText("Plan B subscription, 12 months")).toBeVisible();
 });
 
 test("the Owner invites a Member; the link arrives in the outbox", async ({ page }) => {
   await signIn(page, OWNER);
   await expect(page).toHaveURL(/\/dashboard/);
   await page.goto("/account/team");
-  await expect(page.getByText("1 of 3 seats used")).toBeVisible();
+  await expect(page.getByText("1 of 5 seats used")).toBeVisible();
   await page.getByRole("button", { name: "Invite user" }).click();
   await page.getByLabel("Full name").last().fill("Anita Member");
   await page.getByLabel("Mobile").last().fill(MEMBER);
@@ -107,7 +151,7 @@ test("the Owner invites a Member; the link arrives in the outbox", async ({ page
   await page.getByLabel("Role").last().selectOption("member");
   await page.getByRole("button", { name: "Send invitation" }).click();
   await expect(page.getByText("Pending invitations")).toBeVisible();
-  await expect(page.getByText("2 of 3 seats used")).toBeVisible();
+  await expect(page.getByText("2 of 5 seats used")).toBeVisible();
 
   await page.goto("/dev/outbox");
   inviteLink = (await page.locator('a[href*="/invite/"]').first().getAttribute("href")) ?? "";
@@ -126,6 +170,8 @@ test("the invited Member signs in with the invited mobile and accepts", async ({
   // Members cannot manage the team (PRD 4.3).
   await page.goto("/account/team");
   await expect(page.getByText("Only Owners and Admins can manage the team")).toBeVisible();
+  await page.goto("/account/billing");
+  await expect(page.getByText("Only Owners and Admins can see billing")).toBeVisible();
 });
 
 test("someone else cannot register the same GSTIN and can ask for access instead", async ({ page }) => {

@@ -52,10 +52,12 @@ export const screen = (id: ScreenId): Screen => {
   return s;
 };
 
-/** Sidebar groups, in the order of wireframe S04. */
+/** Sidebar groups, as in the PRD v2.0 screens: Workspace, the three main tabs (plus E-Settlement), Account. */
 export const NAV = [
   { group: "workspace", items: [{ id: "S04", key: "dashboard" }, { id: "S05", key: "counterparties" }] },
-  { group: "checks", items: [{ id: "S08", key: "creditCheck" }, { id: "S12", key: "caseCheck" }] },
-  { group: "businessSecurity", items: [{ id: "TXL", key: "transactions" }, { id: "STL", key: "settlements" }] },
+  {
+    group: "mainTabs",
+    items: [{ id: "S08", key: "creditCheck" }, { id: "S12", key: "caseCheck" }, { id: "TXL", key: "transactions" }, { id: "STL", key: "settlements" }],
+  },
   { group: "account", items: [{ id: "S18", key: "team" }, { id: "S19", key: "billing" }, { id: "S20", key: "settings" }] },
 ] as const satisfies readonly { group: string; items: readonly { id: ScreenId; key: string }[] }[];

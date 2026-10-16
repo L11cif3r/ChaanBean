@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import { SignupSteps } from "@/components/shell/signup-steps";
 import { Button, Card, CardBody, Checkbox, ErrorSummary, FormField, Input, Select, Tag } from "@/components/ui";
 import { cn } from "@/components/ui/cn";
 import { api } from "@/lib/api-client";
@@ -43,32 +44,6 @@ interface PanLookup {
 
 const DESIGNATIONS = ["Proprietor", "Partner", "Director", "Manager", "Accountant", "Other"] as const;
 const emptyManual = { legalName: "", addressLine: "", city: "", pincode: "" };
-
-function Steps({ current }: { current: 1 | 2 }) {
-  const t = useTranslations("signup");
-  const steps = [t("stepMobile"), t("stepBusiness"), t("stepProfile"), t("stepPlan")];
-  return (
-    <ol className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium" aria-label={t("progress")}>
-      {steps.map((s, i) => {
-        const done = i < current;
-        const active = i === current;
-        return (
-          <li key={s} className="flex items-center gap-2" aria-current={active ? "step" : undefined}>
-            <span
-              className={cn(
-                "flex h-6 w-6 items-center justify-center rounded-full border text-[11px]",
-                done ? "bg-brand border-transparent text-white" : active ? "border-primary text-primary-text" : "border-border text-muted",
-              )}
-            >
-              {done ? "✓" : i + 1}
-            </span>
-            <span className={active ? "text-text" : "text-muted"}>{s}</span>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
 
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -231,7 +206,7 @@ export function BusinessWizard() {
     <div className="space-y-6">
       <div className="space-y-3">
         <h1 className="text-xl font-bold text-text sm:text-2xl">{t("title")}</h1>
-        <Steps current={step} />
+        <SignupSteps current={step} />
       </div>
       {errorList.length ? <ErrorSummary title={t("fixErrors")} errors={errorList} /> : null}
 

@@ -1,6 +1,8 @@
 # Phase 1 in 10 parts
 
-Source: *Chaanbean Phase 1 PRD v1.0* (14 Oct 2026). Build plan: `../Chaanbean_Phase1_Build_Plan.md` (outside this repo).
+Source: *Chaanbean Phase 1 PRD v1.0* (14 Oct 2026), updated by the *ChaanBean High Level PRD v2.0* (15 Oct 2026, after
+the meeting with Mohan; see "Changes from PRD v2.0" below). Where the two differ, v2.0 wins. Build plan:
+`../Chaanbean_Phase1_Build_Plan.md` (outside this repo).
 Each part ends with something working and tested. Anything that needs a vendor we do not have yet is built against a
 mock provider and switched to the real one when keys arrive.
 
@@ -8,18 +10,57 @@ mock provider and switched to the real one when keys arrive.
 |---|---|---|---|---|---|
 | 1 | Foundation: repo, Supabase, tenancy and roles, audit log, job runner, shared libraries, design system, app shell | shell for every route in 6.2 | FR-USR-02, FR-AUD-01, NFR-08/10/11 | 14–23 Oct 2026 | Done (15 Oct) |
 | 2 | Sign-in, organisations and team | S01, S02, S18 | FR-AUTH-01–06, FR-ORG-01–06, FR-USR-01 | 26–30 Oct | Done (15 Oct) |
-| 3 | Plans, wallet and billing: item codes, quota then wallet, hold/commit/reverse ledger, gateway (test mode), GST invoices | S03, S19 | FR-BIL-01–09 | 2–6 Nov | Not started |
-| 4 | Counterparties: three types, GSTIN auto-fill, UPI bank-linked check, duplicates, archive | S05, S06, S07 | FR-CP-01–08 | 9–13 Nov | Not started |
-| 5 | Check engine, public checks and credit report: adapter layer (12.3/12.4), routing, fallback, circuit breaker, result reuse; GST, MCA, Director, MSME, PAN, IEC; risk band 9.2; credit range 9.3; report PDF | S08, S09 (public), S11 | FR-CW-01, 04–07, FR-RPT-01–06 | 16–27 Nov | Not started |
-| 6 | Notifications: SMS (DLT), WhatsApp, email (SES), in-app; templates T01–T14; delivery status; preferences; sender profile | S20 | FR-NTF-01/02, FR-AUTH-03 | 30 Nov–4 Dec | Not started |
-| 7 | Business Security: transactions, agreement PDF, OTP acceptance, sealing, evidence pack, verify page, overdue job and interest, payments, E-Settlement | S13–S17, S22 | FR-TX-01–12, FR-ES-01–05 | 7–18 Dec | Not started |
-| 8 | Consent and consent checks: consent links, OTP, GSTN OTP step, withdrawal, limits; Filed GST Turnover via GSP; bureau; contact lookups (flagged) | S09 (consent), S10 | FR-CON-01–07, FR-CW-02/03/08 | 21 Dec–1 Jan | Not started |
-| 9 | Case Check: court cases, AML, FIR where covered; match confidence; Confirm / Not this / Unsure review | S12 | FR-CC-01–06 | 4–8 Jan 2027 | Not started |
-| 10 | Dashboard, ops console and launch: full dashboard; console (two-person pricing, provider routing, org support, consent and audit search, support sessions); security pass, pen-test fixes, UAT, pilot | S04, S21 | FR-DSH-01, FR-ADM-01–03, NFR-01–12, section 15, 18.3 | 11–22 Jan 2027 | Not started |
+| 3 | Plans, wallet and billing: item codes, quota then wallet, hold/commit/reverse ledger, gateway (test mode), GST invoices | S03, S19 | FR-BIL-01–09 | 2–6 Nov | Must items built (15 Oct); see notes |
+| 4 | Counterparties (buyers): three types, GSTIN auto-fill, duplicates, archive; UPI bank-linked check only if v2.0 keeps it (open) | S05, S06, S07 | FR-CP-01–08 | 9–13 Nov | Not started |
+| 5 | Credit Worthiness, public checks: adapter layer (12.3/12.4), routing, fallback, result reuse; GST search, Company check, Director details, Credit rating; choose-checks screen with cost box; confirm popup ("Yes, run search"); run all together or one by one; one report with risk level and safe credit range; report PDF | S08, S11 | FR-CW-01, 04–07, FR-RPT-01–06 | 16–27 Nov | Not started |
+| 6 | Notifications: SMS (DLT), WhatsApp, email (SES), in-app; message list from v2.0 section 9.1; delivery status; preferences; sender profile | S20 | FR-NTF-01/02, FR-AUTH-03 | 30 Nov–4 Dec | Not started |
+| 7 | Credit Worthiness, consent checks: buyer consent link and OTP, GST portal API-access step, 72-hour expiry with no charge, withdrawal; GST turnover (current year or last 4 years) via GSP; CIBIL company, personal or both via one bureau partner | S09 (consent), S10 | FR-CON-01–07, FR-CW-02/03 | 7–18 Dec | Not started |
+| 8 | Case Check (optional tab): user picks court case, FIR and/or money laundering; same cost popup; match confidence; "This is him / Not him / Not sure"; only confirmed cases change the risk level | S12 | FR-CC-01–06 | 21 Dec–1 Jan | Not started |
+| 9 | Business Security (optional tab): seller, buyer and lender agreements, agreement PDF, OTP acceptance, sealing, verify page, overdue job and interest, payments, E-Settlement | S13–S17, S22 | FR-TX-01–12, FR-ES-01–05 | 28 Dec–8 Jan 2027 | Not started |
+| 10 | Dashboard, admin panel and launch: free dashboard (buyers, searches this month, credit given, overdue, units left); admin panel (prices, plan units, data partners); security pass; testing with a few real businesses; pilot | S04, S21 | FR-DSH-01, FR-ADM-01–03, NFR-01–12, section 15, 18.3 | 11–22 Jan 2027 | Not started |
 
-Ordering: the Part 3 ledger comes before Part 5 (checks spend units); Part 6 before Parts 7 and 8 (both send links);
-Business Security (7) before consent checks (8) because it needs no data vendor. Should and Could items go into
-their part after its Must flow passes; most are likely to land in a 1.1 release.
+Order (v2.0 section 13): platform basics first (Parts 1–4), then Tab 1 Credit Worthiness (5, 7), Case Check (8),
+Business Security (9), then testing with real businesses and launch (10). Notifications (6) sits before Part 7 because
+consent links are sent by SMS, email and WhatsApp. Target dates are ours until Pravin confirms them. If the GSP or bureau
+contract is late, Part 7 runs on mock providers and Case Check (8) moves up. Should and Could items go into their part
+after its Must flow passes; most are likely to land in a 1.1 release.
+
+## Changes from PRD v2.0 (15 Oct 2026)
+
+What v2.0 changes, and where it lands in the build:
+
+- **Credit Worthiness keeps six checks only:** GST search, GST turnover, CIBIL, Company check, Director details,
+  Credit rating. Removed from Phase 1: MSME Report, PAN Check, Import Export Profile and Turnover, Mobile to PAN,
+  Mobile to Address, PAN to Mobile and Email, Company Master Report, Company Financial History, Comprehensive Company
+  Report (some may return later as separate paid buttons). Parts 5 and 7 shrink accordingly; no contact lookups.
+- **GST turnover:** the user picks current year only (price to be set) or last 4 years (₹189). Two item codes.
+- **CIBIL:** the user picks company, personal or both, ₹389 each, from one bureau partner. Two item codes.
+- **Cost first:** a confirm popup shows exactly what will be deducted (plan units, wallet money, units and balance
+  after) and the search runs only on "Yes, run search". The choose-checks screen keeps a live cost box.
+- **Run together or one by one:** the user can run every selected check at once or run each one by hand.
+- **Charge rule:** charged only when data arrives; a failed search, a "no" from the buyer or a consent that expires
+  after 72 hours costs nothing. The Part 3 hold, commit and reverse ledger already works this way.
+- **Case Check and Business Security are optional tabs.** Case Check asks which checks the user wants; Business
+  Security is used only when the customer wants it (others keep using Tally or their own system).
+- **Report:** risk level High, Medium, Low or Not enough data (rules in v2.0 section 6); safe credit range 1% to 2% of
+  last year's filed turnover, 0.5% to 1% if turnover is falling, "not advised without an advance" when risk is High.
+- **Navigation:** Workspace (Dashboard, Counterparties), Main tabs (Credit Worthiness, Case Check, Business Security,
+  E-Settlement), Account (Team and roles, Plan and wallet, Settings).
+- **Not in Phase 1:** ChaanBean intelligence (AI follow-up questions), AI agents, Tally connectors, recovery features.
+- **Build approach:** simple tabs where the user searches by hand first; smart features later.
+
+Follow-ups in code already written:
+
+- [x] Part 3 item catalogue (16 Oct, migration `20261016101813_part3_prd_v2_catalogue`, plan version 2): retire the removed items (inactive, not deleted, so old ledger rows keep their names);
+      add GST turnover current year (no price until Mohan sets it, so it cannot be sold yet); split the bureau item
+      into company and personal CIBIL; Credit rating, FIR and money laundering pay per use in both plans.
+- [x] Sidebar labels and groups to match v2.0 (Main tabs; "Plan and wallet") (16 Oct).
+
+Open points from v2.0 section 13 (replace Q1–Q5 where they overlap): price of GST turnover current year (Mohan);
+MSME as a separate paid button (Pravin with Mohan); which bureau partner (Pravin); yearly prices and carry-forward
+(Mohan); agreements per plan (Mohan); Tally connectors (Pravin with Mohan). New from reading v2.0: do the 12 / 30
+CIBIL units in Plan A / B cover company and personal together, or 12 / 30 of each? Does the UPI bank-linked check
+for a new buyer stay in Phase 1?
 
 ## Part 1 checklist
 
@@ -50,3 +91,27 @@ their part after its Must flow passes; most are likely to land in a 1.1 release.
 - Invite, access-request and email-verification messages go to `/dev/outbox` until Part 6.
 - Tests: 56 unit, 24 database, 54 smoke, 8-step identity flow (`tests/e2e/identity-flow.spec.ts`).
 - Known: each sign-in takes about 8 s against the Sydney database (many round trips); improves with the Mumbai move.
+
+## Part 3 notes (15 Oct)
+
+- Migrations `20261015152602_part3_billing` and `20261015161321_part3_hold_sweep`: item catalogue and versioned prices
+  (Appendix A), versioned plans (Plan A ₹11,599, Plan B ₹17,599, 12 months, 3 and 5 seats), subscriptions, wallet,
+  append-only usage ledger, payment orders, webhook events, GST invoices numbered `CB/2026-27/00001` per financial year.
+- Charging (5.9): `placeHold` → `commitHold` / `reverseHold` in `src/server/billing/charge.ts`. Plan quota first, then
+  the wallet at the pay-per-use price plus 18% GST; holds reverse automatically at expiry (`billing.release_hold` job).
+  The wallet balance is kept by a trigger and can never go below zero, also under concurrent charges.
+- Top-ups are what the customer pays: the full amount goes into the wallet and its GST is worked out of it (₹1,000 =
+  ₹847.46 + ₹152.54 GST); usage is not invoiced again (S19 rule).
+- Payments run through a mock gateway (`src/server/providers/payments`) with signed webhooks, duplicate-event protection
+  and the dev checkout page `/dev/pay/:order`. Swap in the real gateway once the merchant account exists.
+- Invoices are printable pages ("Save as PDF") marked Draft until the billing entity, GSTIN and SAC are set in
+  `app_private.billing_settings` (PRD Q12; SAC 998399 is a placeholder to confirm with the accountant).
+- Not built yet: upgrade/downgrade mid-period (FR-BIL-07, Should), renewal reminders and the renewal charge (FR-BIL-08;
+  the auto-renew switch is stored), coupons (FR-BIL-09, Could), extra seats at ₹301, stored invoice PDFs (with the
+  Part 5 PDF engine).
+- Open questions still assumed: Q1 period (12 months), Q3 transaction units (not in plans, wallet), Q4 Plan A Company
+  Check (0), Q5 rollover (none), Q13 counterparty fee (item `CP_UNREGISTERED`, ₹10).
+- Known: with `DATABASE_URL` on Supavisor's transaction pooler (port 6543), bursts of parameterised postgres.js queries
+  can leave a backend waiting for a Bind that never arrives, so pages hang until the statement timeout. Reproduced in
+  plain Node without Next.js; the session pooler (port 5432, `DIRECT_URL`) does not hang. Decision pending on which
+  pooler the server uses.
