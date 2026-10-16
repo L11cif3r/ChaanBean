@@ -7,6 +7,8 @@ const schema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(20),
   DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\//, "DATABASE_URL must be a Postgres connection string"),
+  // Session pooler (port 5432). Preferred by the server: the transaction pooler hangs on bursts of parallel queries.
+  DIRECT_URL: z.string().regex(/^postgres(ql)?:\/\//, "DIRECT_URL must be a Postgres connection string").optional(),
   FIELD_ENCRYPTION_KEY: z.string().min(40),
   BLIND_INDEX_KEY: z.string().min(40),
   CRON_SECRET: z.string().min(32),

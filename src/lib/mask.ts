@@ -3,6 +3,7 @@
 
 /** "98••••3210" */
 export function maskMobile(mobile10: string): string {
+  if (mobile10.includes("•")) return mobile10; // already masked (values are masked again before audit and logs)
   const d = mobile10.replace(/\D/g, "").slice(-10);
   if (d.length < 6) return "•".repeat(d.length);
   return `${d.slice(0, 2)}${"•".repeat(d.length - 6)}${d.slice(-4)}`;
@@ -10,6 +11,7 @@ export function maskMobile(mobile10: string): string {
 
 /** "ABCDE••••F" */
 export function maskPan(pan: string): string {
+  if (pan.includes("•")) return pan;
   const v = pan.trim().toUpperCase();
   if (v.length !== 10) return "•".repeat(v.length);
   return `${v.slice(0, 5)}••••${v.slice(-1)}`;
@@ -17,6 +19,7 @@ export function maskPan(pan: string): string {
 
 /** "ra•••@example.com" */
 export function maskEmail(email: string): string {
+  if (email.includes("•")) return email;
   const [user, domain] = email.split("@");
   if (!domain) return "•••";
   return `${user.slice(0, 2)}${"•".repeat(Math.max(1, user.length - 2))}@${domain}`;

@@ -11,7 +11,7 @@ mock provider and switched to the real one when keys arrive.
 | 1 | Foundation: repo, Supabase, tenancy and roles, audit log, job runner, shared libraries, design system, app shell | shell for every route in 6.2 | FR-USR-02, FR-AUD-01, NFR-08/10/11 | 14–23 Oct 2026 | Done (15 Oct) |
 | 2 | Sign-in, organisations and team | S01, S02, S18 | FR-AUTH-01–06, FR-ORG-01–06, FR-USR-01 | 26–30 Oct | Done (15 Oct) |
 | 3 | Plans, wallet and billing: item codes, quota then wallet, hold/commit/reverse ledger, gateway (test mode), GST invoices | S03, S19 | FR-BIL-01–09 | 2–6 Nov | Must items built (15 Oct); see notes |
-| 4 | Counterparties (buyers): three types, GSTIN auto-fill, duplicates, archive; UPI bank-linked check only if v2.0 keeps it (open) | S05, S06, S07 | FR-CP-01–08 | 9–13 Nov | Not started |
+| 4 | Counterparties (buyers): three types, GSTIN auto-fill, duplicates, archive; UPI bank-linked check (mock until a provider) | S05, S06, S07 | FR-CP-01–08 | 9–13 Nov | Must and Should built (16 Oct); see notes |
 | 5 | Credit Worthiness, public checks: adapter layer (12.3/12.4), routing, fallback, result reuse; GST search, Company check, Director details, Credit rating; choose-checks screen with cost box; confirm popup ("Yes, run search"); run all together or one by one; one report with risk level and safe credit range; report PDF | S08, S11 | FR-CW-01, 04–07, FR-RPT-01–06 | 16–27 Nov | Not started |
 | 6 | Notifications: SMS (DLT), WhatsApp, email (SES), in-app; message list from v2.0 section 9.1; delivery status; preferences; sender profile | S20 | FR-NTF-01/02, FR-AUTH-03 | 30 Nov–4 Dec | Not started |
 | 7 | Credit Worthiness, consent checks: buyer consent link and OTP, GST portal API-access step, 72-hour expiry with no charge, withdrawal; GST turnover (current year or last 4 years) via GSP; CIBIL company, personal or both via one bureau partner | S09 (consent), S10 | FR-CON-01–07, FR-CW-02/03 | 7–18 Dec | Not started |
@@ -115,3 +115,27 @@ for a new buyer stay in Phase 1?
   can leave a backend waiting for a Bind that never arrives, so pages hang until the statement timeout. Reproduced in
   plain Node without Next.js; the session pooler (port 5432, `DIRECT_URL`) does not hang. Decision pending on which
   pooler the server uses.
+
+## Part 4 notes (16 Oct)
+
+- Migration `20261016130827_part4_counterparties`: `public.counterparties` (three types; PAN, mobile, WhatsApp and email
+  encrypted with keyed hashes for exact match; GSTIN, CIN and Udyam in plain text) and `app_private.upi_checks`.
+  The same GSTIN, PAN or mobile cannot be added twice in one organisation, archived records included (FR-CP-04).
+  Row-level security: every member reads, nobody writes directly; all writes go through `src/server/counterparties`.
+- S05 list: search by name or GSTIN as you type (300 ms), or by full PAN or full mobile (hash match only, see build
+  plan gap 1); status and tag filters; server-side paging at 10, 25 or 50; row menu; CSV export for Owner and Admin.
+  Risk, last checked, open deals, outstanding and suggested limit show placeholders until Parts 5 and 9.
+- S06 add: GSTIN Fetch through the identity mock (FR-CP-02); duplicate warning before save with a link to the existing
+  profile; bank-linked mobile check through a mock UPI provider (`src/server/providers/upi`: a mobile ending in 0 is not
+  linked, 9 is unavailable, anything else is linked). The result is stored server-side and attached on save, so the
+  browser cannot fake it. Manual alternative: "I sent ₹1 by UPI" on the profile. Adding is free (no ₹10 item in v2.0).
+- S07 profile: header, Overview (contact, bank-linked mobile, identity, defaults and tags, notes), Activity from the
+  audit log; Reports, Cases, Transactions and Documents tabs fill in with Parts 5 to 9. Edit loads the full mobile only
+  in the edit form. Archive and restore (FR-CP-08).
+- Not built: bulk CSV import (FR-CP-07, Could); PIN codes are checked for format only (no India Post list yet).
+- The server now uses Supabase's session pooler (`DIRECT_URL`, port 5432): on the transaction pooler bursts of parallel
+  queries hung until the statement timeout (reproduced in plain Node; decided 16 Oct).
+- Fixed in passing: `claim_jobs` could hand one worker more jobs than asked (migration
+  `20261016140251_claim_jobs_materialized`); masking is idempotent so audit rows keep their dots.
+- Tests: 68 unit, 43 database, end-to-end flow now 13 steps (4 for counterparties), smoke at 360 px and desktop.
+

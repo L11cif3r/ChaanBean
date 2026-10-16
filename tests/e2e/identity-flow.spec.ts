@@ -8,8 +8,8 @@ import { gstinChecksumChar } from "../../src/lib/validators";
 
 // Part 2 end to end with Supabase test phone numbers (fixed OTP 123456; no message is sent):
 // sign-up → business verification → Plan B through the mock gateway (Part 3) → dashboard → wallet top-up → invite →
-// accept as a second user → roles → deactivate → removed, plus the cancelled-GSTIN (manual review) and duplicate-GSTIN
-// paths.
+// accept as a second user → counterparties (Part 4: add by GSTIN, duplicates, edit, archive, search) → roles →
+// deactivate → removed, plus the cancelled-GSTIN (manual review) and duplicate-GSTIN paths.
 // Needs: Phone provider + test numbers 919000000001..3 enabled in Supabase (see docs/PARTS.md, Part 2).
 
 const OWNER = "9000000001";
@@ -101,7 +101,7 @@ test("a new user signs up with OTP and verifies the business by GSTIN", async ({
   await expect(page.getByText("Payment received")).toBeVisible();
   await page.getByRole("link", { name: "Go to dashboard" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Welcome, Rakesh" })).toBeVisible();
-  await expect(page.getByText("Plan B: 546 units left")).toBeVisible();
+  await expect(page.getByText("Plan B: 284 units left")).toBeVisible();
   await expect(page.getByText(orgName).first()).toBeVisible();
 });
 
@@ -110,7 +110,7 @@ test("the Owner tops up the wallet; a failed payment changes nothing and the led
   await signIn(page, OWNER);
   await page.goto("/account/billing");
   await expect(page.getByRole("heading", { level: 1, name: "Plan, usage and wallet" })).toBeVisible();
-  await expect(page.getByText("546 plan units left · 5 users")).toBeVisible();
+  await expect(page.getByText("284 plan units left · 5 users")).toBeVisible();
 
   const topUp = async (amount: string, outcome: "Pay successfully" | "Fail the payment") => {
     await page.getByRole("button", { name: "Add money" }).click();
@@ -172,6 +172,94 @@ test("the invited Member signs in with the invited mobile and accepts", async ({
   await expect(page.getByText("Only Owners and Admins can manage the team")).toBeVisible();
   await page.goto("/account/billing");
   await expect(page.getByText("Only Owners and Admins can see billing")).toBeVisible();
+});
+
+// Part 4: counterparties (S05, S06, S07), run here because they need the Owner's organisation from the steps above.
+const buyerGstin = gstinWith("2");
+const buyerMobile = `98${String(Math.floor(Math.random() * 9_000_000) + 1_000_000)}3`; // ends in 3: the mock UPI says linked
+let buyerName = "";
+let buyerPath = "";
+
+// One signed-in Owner session for these steps: the PRD allows 5 OTP sends an hour per number.
+test.describe("counterparties", () => {
+  let page: Page;
+  test.beforeAll(async ({ browser, baseURL, viewport }) => {
+    page = await (await browser.newContext({ baseURL, viewport })).newPage(); // a manual context does not get the config's use options
+    await signIn(page, OWNER, "/counterparties");
+  });
+  test.afterAll(async () => {
+    await page?.context().close();
+  });
+
+  test("the Owner adds a buyer by GSTIN: details are fetched and the mobile is checked through UPI", async () => {
+    await page.goto("/counterparties");
+    await expect(page.getByRole("heading", { level: 1, name: "Counterparties" })).toBeVisible();
+    await page.getByRole("link", { name: "Add counterparty" }).first().click();
+    await expect(page).toHaveURL(/\/counterparties\/new/);
+    await page.getByLabel("GSTIN").fill(buyerGstin);
+    await page.getByRole("button", { name: "Fetch details" }).click();
+    await expect(page.getByText("Details from GST records")).toBeVisible();
+    buyerName = await page.getByLabel("Legal name").inputValue();
+    expect(buyerName.length).toBeGreaterThan(2);
+    await page.getByLabel("Contact person").fill("Suresh Buyer");
+    await page.getByLabel(/^Mobile/).fill(buyerMobile);
+    await page.getByRole("button", { name: "Check bank-linked mobile" }).click();
+    await expect(page.getByText(/Linked to a bank account/)).toBeVisible();
+    await page.getByLabel(/Credit days/).fill("30");
+    await page.getByLabel(/Tags/).fill("wholesale, pune");
+    await page.getByRole("button", { name: "Save counterparty" }).click();
+    await expect(page).toHaveURL(/\/counterparties\/[0-9a-f-]{36}$/);
+    buyerPath = new URL(page.url()).pathname;
+    await expect(page.getByRole("heading", { level: 1, name: buyerName })).toBeVisible();
+    await expect(page.getByText("Bank-linked", { exact: true })).toBeVisible();
+  });
+
+  test("the same GSTIN or mobile cannot be added twice; the warning links to the existing profile", async () => {
+    await page.goto("/counterparties/new");
+    await page.getByLabel("GSTIN").fill(buyerGstin);
+    await page.getByLabel("Legal name").click(); // leaving the GSTIN field runs the duplicate check
+    await expect(page.getByText("This counterparty already exists.")).toBeVisible();
+    await expect(page.getByRole("link", { name: `Open ${buyerName}` })).toHaveAttribute("href", buyerPath);
+
+    await page.getByRole("radio", { name: /Business without GST/ }).click();
+    await page.getByLabel("PAN").fill("AAAPZ1234C");
+    await page.getByLabel(/^Mobile/).fill(buyerMobile);
+    await page.getByLabel("Contact person").click();
+    await expect(page.getByText("This counterparty already exists.")).toBeVisible();
+  });
+
+  test("the Owner edits, archives and restores the buyer, and Activity shows each change", async () => {
+    await page.goto(buyerPath);
+    await page.getByRole("button", { name: "Edit" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByLabel(/^Mobile/)).toHaveValue(buyerMobile); // unmasked only in the edit form
+    await dialog.getByLabel("Contact person").fill("Suresh K Buyer");
+    await dialog.getByRole("button", { name: "Save changes" }).click();
+    await expect(page.getByText("Changes saved")).toBeVisible();
+
+    await page.getByRole("button", { name: "Archive" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Archive" }).click();
+    await expect(page.getByText(/This counterparty is archived/)).toBeVisible();
+    await page.getByRole("button", { name: "Restore" }).click();
+    await expect(page.getByText(/This counterparty is archived/)).toBeHidden();
+
+    await page.getByRole("tab", { name: /Activity/ }).click();
+    for (const label of ["Added", "Details changed", "Archived", "Restored"]) {
+      await expect(page.getByText(new RegExp(`^${label} by `))).toBeVisible();
+    }
+  });
+
+  test("the list finds the buyer by name and by full mobile, and masks the mobile", async () => {
+    await page.goto("/counterparties");
+    const search = page.getByLabel("Search counterparties");
+    await search.fill(buyerName.slice(0, 6));
+    await expect(page.getByRole("link", { name: buyerName })).toBeVisible();
+    await search.fill(buyerMobile);
+    await expect(page.getByRole("link", { name: buyerName })).toBeVisible();
+    await expect(page.getByText(`${buyerMobile.slice(0, 2)}••••${buyerMobile.slice(-4)}`)).toBeVisible();
+    await search.fill("zzzz no such buyer");
+    await expect(page.getByText("No counterparties match your search")).toBeVisible();
+  });
 });
 
 test("someone else cannot register the same GSTIN and can ask for access instead", async ({ page }) => {

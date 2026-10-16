@@ -61,7 +61,7 @@ export function DataTable<T>({
 
   return (
     <div>
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-border bg-surface-muted font-mono text-xs font-bold uppercase tracking-wider text-subtle">
             <tr>

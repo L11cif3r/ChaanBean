@@ -6,7 +6,10 @@ import { serverEnv } from "@/server/env";
 // already authorised. It logs in with the database password in DATABASE_URL and bypasses row-level security, so it
 // must never read data on a user's behalf; use the user client (src/server/supabase/server.ts) for that.
 //
-// DATABASE_URL is Supabase's transaction pooler (port 6543), which does not support prepared statements.
+// It connects through Supabase's session pooler (DIRECT_URL, port 5432) when that is set, and falls back to
+// DATABASE_URL. Decided 16 Oct: on the transaction pooler (port 6543) bursts of parallel postgres.js queries leave a
+// backend waiting for a Bind that never arrives, so pages hang until the statement timeout (reproduced in plain Node;
+// the session pooler runs the same queries in ~0.4 s). Revisit for the Mumbai production project.
 
 export type Sql = postgres.Sql;
 
@@ -21,7 +24,8 @@ const g = globalThis as unknown as { __cbSql?: Sql };
 
 export function sql(): Sql {
   // Kept on globalThis so hot reloads in development reuse the pool instead of opening new connections.
-  g.__cbSql ??= postgres(connectionUrl(serverEnv().DATABASE_URL), {
+  const env = serverEnv();
+  g.__cbSql ??= postgres(connectionUrl(env.DIRECT_URL ?? env.DATABASE_URL), {
     prepare: false,
     max: 5,
     idle_timeout: 20,
