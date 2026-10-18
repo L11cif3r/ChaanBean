@@ -23,10 +23,11 @@ import type { ActivityItem, CounterpartyProfile as Profile } from "@/server/coun
 const STATE_NAMES = Object.values(GST_STATES).sort((a, b) => a.localeCompare(b, "en-IN"));
 
 type ReportRow = Awaited<ReturnType<typeof import("@/server/checks/service").reportsFor>>[number];
+type CasesTab = Awaited<ReturnType<typeof import("@/server/cases/service").caseChecksFor>>;
 
 export function CounterpartyProfile({
-  profile, activity, reports, canManage, canRun,
-}: { profile: Profile; activity: ActivityItem[]; reports: ReportRow[]; canManage: boolean; canRun: boolean }) {
+  profile, activity, reports, cases, canManage, canRun,
+}: { profile: Profile; activity: ActivityItem[]; reports: ReportRow[]; cases: CasesTab; canManage: boolean; canRun: boolean }) {
   const t = useTranslations("counterparties");
   const router = useRouter();
   const toast = useToast();
@@ -231,7 +232,12 @@ export function CounterpartyProfile({
         items={[
           { key: "overview", label: t("tabOverview"), content: overview },
           { key: "reports", label: t("tabReports"), count: reports.length, content: reports.length ? <ReportList reports={reports} /> : empty(t("emptyReports")) },
-          { key: "cases", label: t("tabCases"), count: 0, content: empty(t("emptyCases")) },
+          {
+            key: "cases",
+            label: t("tabCases"),
+            count: cases.confirmed.length,
+            content: cases.runs.length ? <CaseList cases={cases} counterpartyId={profile.id} canRun={canRun} /> : empty(t("emptyCases")),
+          },
           { key: "transactions", label: t("tabTransactions"), count: 0, content: empty(t("emptyTransactions")) },
           { key: "documents", label: t("tabDocuments"), count: 0, content: empty(t("emptyDocuments")) },
           { key: "activity", label: t("tabActivity"), count: activity.length, content: <ActivityList items={activity} /> },
@@ -250,6 +256,53 @@ export function CounterpartyProfile({
         body={t("archiveBody")}
         confirmLabel={t("archive")}
       />
+    </div>
+  );
+}
+
+/** S07 Cases tab: confirmed cases first (they feed the risk level), then every Case Check run. */
+function CaseList({ cases, counterpartyId, canRun }: { cases: CasesTab; counterpartyId: string; canRun: boolean }) {
+  const t = useTranslations("cases.tab");
+  const c = useTranslations("cases");
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader title={t("confirmed")} action={canRun ? <ButtonLink href={`/cases?counterparty=${counterpartyId}`} size="sm" variant="secondary">{t("run")}</ButtonLink> : null} />
+        {cases.confirmed.length ? (
+          <ul className="divide-y divide-border">
+            {cases.confirmed.map((m) => (
+              <li key={m.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 text-sm">
+                <span className="min-w-0">
+                  <span className="font-bold text-text">{m.caseNo ?? m.listName}</span>
+                  <span className="mt-0.5 block text-xs text-muted">{m.court} · {m.caseType}</span>
+                </span>
+                <span className="flex items-center gap-2">
+                  {m.recovery ? <Tag tone="warning">{c("recovery")}</Tag> : null}
+                  <Tag tone={m.pending ? "danger" : "neutral"}>{m.status}</Tag>
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <CardBody><p className="text-sm text-muted">{t("noneConfirmed")}</p></CardBody>
+        )}
+      </Card>
+      <Card>
+        <CardHeader title={t("runs")} />
+        <ul className="divide-y divide-border">
+          {cases.runs.map((r) => (
+            <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 text-sm">
+              <Link href={`/cases/${r.id}`} className="font-bold text-text hover:text-primary-text">
+                {c("resultsMeta", { number: r.reportNo, date: formatDate(istDate(new Date(r.createdAt))) })}
+              </Link>
+              <span className="flex items-center gap-2 text-xs text-muted">
+                {t("matches", { count: r.matches })}
+                {r.notReviewed ? <Tag tone="info">{t("notReviewed", { count: r.notReviewed })}</Tag> : null}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </Card>
     </div>
   );
 }

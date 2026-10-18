@@ -31,7 +31,7 @@ export const SCREENS: Screen[] = [
   { id: "S09", path: "/checks/new/details", sample: "/checks/new/details", area: "app", part: 5 },
   { id: "S10", path: "/c/[token]", sample: "/c/sample", area: "public", part: 8 },
   { id: "S11", path: "/reports/[id]", sample: "/reports/sample", area: "app", part: 5 },
-  { id: "S12", path: "/cases", sample: "/cases", area: "app", part: 9 },
+  { id: "S12", path: "/cases", sample: "/cases", area: "app", part: 8 },
   { id: "TXL", path: "/transactions", sample: "/transactions", area: "app", part: 7 },
   { id: "S13", path: "/transactions/new", sample: "/transactions/new", area: "app", part: 7 },
   { id: "S14", path: "/transactions/[id]/review", sample: "/transactions/sample/review", area: "app", part: 7 },

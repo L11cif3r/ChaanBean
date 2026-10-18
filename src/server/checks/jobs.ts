@@ -7,6 +7,6 @@ import { runCheckItem } from "./service";
 defineJob({
   kind: "checks.run_item",
   parse: (p) => z.object({ itemId: z.uuid() }).parse(p),
-  timeoutMs: 90_000, // two attempts of up to 30 s (GST returns) plus the 2 s pause
+  timeoutMs: 300_000, // two attempts of up to 120 s (court search, v3 16.1) plus the 2 s pause
   run: ({ itemId }) => runCheckItem(itemId),
 });

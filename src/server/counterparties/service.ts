@@ -106,7 +106,7 @@ export async function listCounterparties(ctx: Ctx, query: ListQuery) {
         from public.counterparties c
         left join lateral (
           select risk_level, created_at, credit_high_paise from public.check_requests
-           where counterparty_id = c.id order by created_at desc limit 1) r on true
+           where counterparty_id = c.id and tab = 'credit_worthiness' order by created_at desc limit 1) r on true
        where ${where} order by ${order} limit ${size} offset ${(page - 1) * size}`,
     db<{ total: number }[]>`select count(*)::int as total from public.counterparties c where ${where}`,
     db<{ tag: string }[]>`

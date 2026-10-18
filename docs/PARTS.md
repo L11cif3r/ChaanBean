@@ -15,7 +15,7 @@ mock provider and switched to the real one when keys arrive.
 | 5 | Credit Worthiness, public checks: adapter layer (12.3/12.4), routing, fallback, result reuse; GST search, Company check, Director details, Credit rating; choose-checks screen with cost box; confirm popup ("Yes, run search"); run all together or one by one; one report with risk level and safe credit range; report PDF | S08, S11 | FR-CW-01, 04–07, FR-RPT-01–06 | 16–27 Nov | Public checks built (16 Oct); see notes |
 | 6 | Notifications: SMS (DLT), WhatsApp, email (SES), in-app; message list from v2.0 section 9.1; delivery status; preferences; sender profile | S20 | FR-NTF-01/02, FR-AUTH-03 | 30 Nov–4 Dec | Not started |
 | 7 | Credit Worthiness, consent checks: buyer consent link and OTP, GST portal API-access step, 72-hour expiry with no charge, withdrawal; GST turnover (current year or last 4 years) via GSP; CIBIL company, personal or both via one bureau partner | S09 (consent), S10 | FR-CON-01–07, FR-CW-02/03 | 7–18 Dec | Consent checks built (16 Oct) on mock GSP, bureau and OTP; see notes |
-| 8 | Case Check (optional tab): user picks court case, FIR and/or money laundering; same cost popup; match confidence; "This is him / Not him / Not sure"; only confirmed cases change the risk level | S12 | FR-CC-01–06 | 21 Dec–1 Jan | Not started |
+| 8 | Case Check (optional tab): user picks court case, FIR and/or money laundering; same cost popup; match confidence; "This is him / Not him / Not sure"; only confirmed cases change the risk level | S12 | FR-CC-01–06 | 21 Dec–1 Jan | Built (18 Oct) on mock court, FIR and watchlist providers; see notes |
 | 9 | Business Security (optional tab): seller, buyer and lender agreements, agreement PDF, OTP acceptance, sealing, verify page, overdue job and interest, payments, E-Settlement | S13–S17, S22 | FR-TX-01–12, FR-ES-01–05 | 28 Dec–8 Jan 2027 | Not started |
 | 10 | Dashboard, admin panel and launch: free dashboard (buyers, searches this month, credit given, overdue, units left); admin panel (prices, plan units, data partners); security pass; testing with a few real businesses; pilot | S04, S21 | FR-DSH-01, FR-ADM-01–03, NFR-01–12, section 15, 18.3 | 11–22 Jan 2027 | Not started |
 
@@ -217,4 +217,28 @@ Applied to Parts 3 to 7 (migration `20261016165108_prd_v3_catalogue_and_fields`)
 
 Still to do from v3: Exotel WhatsApp OTP with SMS fallback (Part 6, needs keys), CAPTCHA and per-IP OTP limit, share
 link for reports (Should), low-units alert at 10% (Should), retention clean-up, Mumbai hosting.
+
+## Part 8 notes (18 Oct): Case Check
+
+- Migration `20261018112622_part8_case_check`: check requests get a `tab` (credit_worthiness or case_check) and the
+  search details, encrypted (`inputs_ciphertext`) with a plain summary (name, state, district). `case_matches` keeps
+  every possible match with Chaanbean's score and confidence, the user's review (confirmed, not this person, unsure,
+  with who and when), and for watchlists the list name and version date (FR-CC-08). The browser cannot read the search
+  details or change a review directly.
+- Same engine as Credit Worthiness: quote valid 10 minutes, cost popup, holds, one retry, charged only when the search
+  ran ("no records" is charged, FR-CC-05; a failed source or more than 50 matches is not). Court search may take up to
+  120 s; the results page polls.
+- S12 `/cases`: buyer, search form pre-filled from the record (PAN and mobile on file used unless replaced), the three
+  checks with prices, nothing pre-ticked except the user's last choice (FR-CC-01), FIR card off for states the provider
+  does not cover (FR-CC-07, placeholder list). Results at `/cases/{id}`: counters, matches ranked by confidence, row
+  details, review buttons. `PATCH /api/v1/case-matches/{id}` records the review.
+- Confidence (`src/lib/cases.ts`): name similarity without company suffixes, father's or
+  director's name, district and state, PAN decisive; watchlists use the provider's score capped by the name.
+- Only confirmed matches count: a confirmed pending cheque bounce or recovery case is a warning sign (v3 6.7), a
+  confirmed watchlist hit makes the risk High (kept from v1.0; v3's table does not list it, so this needs Mohan's say).
+  Reports still within their 30 days are worked out again at once. The buyer profile Cases tab lists runs and confirmed
+  cases.
+- Mock scenarios by name: CLEAN no records, COMMON over 50 matches, DOWN provider down, SANCTION / PEP watchlist hits.
+- Not built yet: district list per state (free text for now), notification when a slow search finishes (Part 6),
+  15-day refresh of confirmed pending cases (Could), real providers.
 

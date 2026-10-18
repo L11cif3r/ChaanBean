@@ -480,6 +480,37 @@ test.describe("counterparties", () => {
     await expect(page.getByText(/^(MSME \(Udyam\)|PAN)$/).first()).toBeVisible();
   });
 
+  // Part 8: Case Check (PRD v3.0 section 7, Figure 17).
+  test("Case Check: the user picks checks, sees the cost, reviews ranked matches, and a confirmed case changes the risk", async () => {
+    test.slow(); // several round trips to the Sydney database
+    await page.goto(buyerPath.replace("/counterparties/", "/cases?counterparty="));
+    await expect(page.getByRole("heading", { level: 1, name: "Case Check" })).toBeVisible();
+    await expect(page.getByLabel(/^Name/)).toHaveValue(buyerName);
+    await expect(page.getByRole("checkbox", { name: /^Court case history/ })).not.toBeChecked(); // nothing pre-ticked (FR-CC-01)
+    await expect(page.getByText(/Covered states:/)).toBeVisible();
+    await page.getByLabel(/^District/).fill("Bengaluru Urban");
+    await page.getByRole("checkbox", { name: /^Court case history/ }).check();
+    await page.getByRole("checkbox", { name: /^Money laundering check/ }).check();
+    await page.getByRole("button", { name: "Continue" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText("Confirm your search")).toBeVisible();
+    await dialog.getByRole("button", { name: "Yes, run search" }).click();
+    await expect(page).toHaveURL(/\/cases\/[0-9a-f-]{36}$/);
+
+    const rows = page.locator("tbody tr");
+    await expect(rows).toHaveCount(3);
+    await expect(rows.first().getByText("High")).toBeVisible();
+    await expect(page.getByText(/No records found for the details given\. This does not prove there are none\. Charged/)).toBeVisible();
+    await rows.first().getByRole("button", { name: "This is them" }).click();
+    await expect(rows.first().getByRole("button", { name: "This is them" })).toHaveAttribute("aria-pressed", "true");
+
+    // Only a confirmed match counts: the buyer's credit report now shows the case.
+    await page.goto(reportPath);
+    await expect(page.getByText(/1 pending cheque bounce or recovery case/)).toBeVisible();
+    await page.goto(buyerPath);
+    await expect(page.getByRole("tab", { name: /Cases\s*\(1\)/ })).toBeVisible();
+  });
+
   test("the list finds the buyer by name and by full mobile, and masks the mobile", async () => {
     await page.goto("/counterparties");
     const search = page.getByLabel("Search counterparties");

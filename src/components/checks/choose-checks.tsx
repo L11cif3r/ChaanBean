@@ -483,7 +483,7 @@ function ConsentBlock({
   onPurpose: (p: ConsentPurpose) => void;
   channels: Record<ConsentChannel, boolean>;
   onChannels: (c: Record<ConsentChannel, boolean>) => void;
-  names: Map<CwCode, string>;
+  names: Map<string, string>;
 }) {
   const t = useTranslations("checks.consent");
   const asking = consent.subjects.filter((s) => !s.reuse);

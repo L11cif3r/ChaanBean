@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { caseInputSchema } from "@/lib/cases";
 import { CONSENT_CHANNELS, CONSENT_PURPOSES } from "@/lib/consent";
 
 // Request bodies shared by the check routes.
@@ -13,6 +14,8 @@ export const personSchema = z.object({
 export const itemsSchema = z.array(z.string().max(40)).min(1, "Select at least one check.").max(20);
 
 export const startSchema = z.object({
+  tab: z.enum(["credit_worthiness", "case_check"]).default("credit_worthiness"),
+  caseInput: caseInputSchema.optional(),
   quoteId: z.uuid("Check the cost again before running."),
   counterpartyId: z.uuid(),
   items: itemsSchema,

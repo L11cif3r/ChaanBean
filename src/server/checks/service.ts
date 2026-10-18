@@ -4,6 +4,7 @@ import { istDate } from "@/lib/dates";
 import { maskMobile } from "@/lib/mask";
 import { isIndividualPan, isValidPan, normaliseIdentifier, normaliseMobile, panFromGstin } from "@/lib/validators";
 import { CW_CHECKS, checkDef, isCwCode, unavailableReason, type CwCode } from "@/lib/checks";
+import { CC_CODES, firCovered, isCcCode, type CaseCandidate, type CaseInput, type CcCode } from "@/lib/cases";
 import {
   CONSENT_RULES, ageOn, consentDataHidden, recentDecline, reusableConsent, sendAllowance, type ConsentChannel, type ConsentPurpose, type ConsentStatus,
 } from "@/lib/consent";
@@ -12,7 +13,7 @@ import { evaluateReport, type ReportInputs, type ReportOutcome } from "@/lib/rep
 import { audit } from "@/server/audit";
 import { billingSummary, usageTable } from "@/server/billing/service";
 import { commitHold, placeHold, reverseHold } from "@/server/billing/charge";
-import { decryptField } from "@/server/crypto";
+import { decryptField, encryptField } from "@/server/crypto";
 import { sql } from "@/server/db/sql";
 import { AppError, notFound } from "@/server/errors";
 import { enqueue } from "@/server/jobs/runner";
@@ -21,6 +22,9 @@ import {
   consentAccessFor, consentHistory, consentsForRequest, counterpartyContacts, createConsent, logDataFetched, type ConsentOnReport,
 } from "@/server/consent/service";
 import { rawResponseStore } from "@/server/storage";
+import { caseProvider } from "@/server/providers/cases";
+import { confirmedCases, storeMatches } from "@/server/cases/service";
+import type { ProviderResult } from "@/server/providers/identity";
 import type { RequestContext } from "@/server/context";
 
 // Credit Worthiness engine (PRD v2.0 section 4; v1.0 FR-CW-01, 04–07, 12.4).
@@ -30,7 +34,12 @@ import type { RequestContext } from "@/server/context";
 
 type Ctx = RequestContext & { user: NonNullable<RequestContext["user"]>; orgId: string };
 
-const TIMEOUT_MS: Partial<Record<CwCode, number>> = { CW_GST_TURNOVER_4Y: 30_000, CW_GST_TURNOVER_CY: 30_000 };
+/** Credit Worthiness and Case Check items share one engine (v3 6.4 "How a search runs (all tabs)"). */
+export type ItemCode = CwCode | CcCode;
+export type Tab = "credit_worthiness" | "case_check";
+
+// v3 16.1: 15 s by default; GST turnover 30 s; court search up to 120 s.
+const TIMEOUT_MS: Partial<Record<ItemCode, number>> = { CW_GST_TURNOVER_4Y: 30_000, CW_GST_TURNOVER_CY: 30_000, CC_COURT: 120_000, CC_FIR: 60_000 };
 const DEFAULT_TIMEOUT_MS = 15_000;
 const RETRY_DELAY_MS = 2_000;
 
@@ -71,9 +80,9 @@ function subjectOf(cp: CpRow): CheckSubject {
 // ---------------------------------------------------------------- S08: what can be run and what it costs
 
 export interface CatalogueEntry {
-  code: CwCode;
+  code: ItemCode;
   name: string;
-  group: (typeof CW_CHECKS)[number]["group"];
+  group: (typeof CW_CHECKS)[number]["group"] | "cases";
   consent: boolean;
   pricePaise: number | null;
   gstPaise: number | null;
@@ -83,7 +92,8 @@ export interface CatalogueEntry {
   recent: { requestId: string; at: string } | null;
 }
 
-export async function checkCatalogue(ctx: Ctx, counterpartyId: string) {
+export async function checkCatalogue(ctx: Ctx, counterpartyId: string, tab: Tab = "credit_worthiness") {
+  if (tab === "case_check") return caseCatalogue(ctx, counterpartyId);
   const cp = await loadCounterparty(ctx, counterpartyId);
   const [usage, recent] = await Promise.all([
     usageTable(ctx.orgId),
@@ -116,6 +126,44 @@ export async function checkCatalogue(ctx: Ctx, counterpartyId: string) {
   return {
     counterparty: { id: cp.id, name: cp.legal_name, type: cp.type, contactName: cp.contact_name, mobileMasked: cp.mobile_masked },
     checks: entries,
+  };
+}
+
+/** v3 section 7: court case history, FIR check and money laundering check, each priced; none pre-ticked (FR-CC-01). */
+async function caseCatalogue(ctx: Ctx, counterpartyId: string) {
+  const [cp, usage] = await Promise.all([loadCounterparty(ctx, counterpartyId), usageTable(ctx.orgId)]);
+  const byCode = new Map(usage.map((u) => [u.code, u]));
+  const entries: CatalogueEntry[] = CC_CODES.map((code) => {
+    const u = byCode.get(code);
+    return {
+      code, name: u?.name ?? code, group: "cases", consent: false,
+      pricePaise: u ? Number(u.pricePaise) : null, gstPaise: u ? Number(u.gstPaise) : null,
+      planLeft: u && u.included > 0 ? u.remaining : null,
+      disabled: cp.status === "archived" ? "archived" : !u ? "noPrice" : null,
+      recent: null,
+    };
+  });
+  return {
+    counterparty: { id: cp.id, name: cp.legal_name, type: cp.type, contactName: cp.contact_name, mobileMasked: cp.mobile_masked },
+    checks: entries,
+  };
+}
+
+/** The search form pre-filled from the counterparty (S12 marker 1). PAN and mobile on file are used unless replaced. */
+export async function caseDefaults(ctx: Ctx, counterpartyId: string) {
+  const [cp] = await sql()<{ legal_name: string; state_code: string | null; city: string | null; address: { line1?: string; line2?: string; city?: string; pincode?: string } | null; pan_masked: string | null; mobile_masked: string; type: CounterpartyType }[]>`
+    select legal_name, state_code, city, address, pan_masked, mobile_masked, type::text as type
+      from public.counterparties where id = ${counterpartyId} and org_id = ${ctx.orgId}`;
+  if (!cp) throw notFound("This counterparty");
+  const a = cp.address ?? {};
+  return {
+    name: cp.legal_name,
+    state: cp.state_code ?? "",
+    district: cp.city ?? a.city ?? "",
+    address: [a.line1, a.line2, a.city, a.pincode].filter(Boolean).join(", "),
+    panOnFile: cp.pan_masked,
+    mobileOnFile: cp.mobile_masked,
+    individual: cp.type === "individual",
   };
 }
 
@@ -167,10 +215,11 @@ function subjectsFor(cp: CpRow, codes: CwCode[], person: PersonInput | undefined
 }
 
 export interface Quote {
+  tab: Tab;
   /** Valid 10 minutes; "Yes, run search" passes it so what runs is what the popup showed (v3 section 10). */
   quoteId: string;
   expiresAt: string;
-  lines: { code: CwCode; name: string; source: "plan" | "wallet"; units: number; amountPaise: number }[];
+  lines: { code: ItemCode; name: string; source: "plan" | "wallet"; units: number; amountPaise: number }[];
   planUnits: number;
   walletPaise: number;
   planUnitsLeftAfter: number;
@@ -234,13 +283,14 @@ async function consentQuote(ctx: Ctx, cp: CpRow, codes: CwCode[], person: Person
 export async function quoteChecks(
   ctx: Ctx, counterpartyId: string, codes: string[], person?: PersonInput,
   /** One check of a request that already has its yes (one-by-one runs): no consent step to quote. */
-  opts: { consentSettled?: boolean } = {},
+  opts: { consentSettled?: boolean; tab?: Tab } = {},
 ): Promise<Quote> {
+  const tab = opts.tab ?? "credit_worthiness";
   const [{ checks }, cp, summary] = await Promise.all([
-    checkCatalogue(ctx, counterpartyId), loadCounterparty(ctx, counterpartyId), billingSummary(ctx.orgId),
+    checkCatalogue(ctx, counterpartyId, tab), loadCounterparty(ctx, counterpartyId), billingSummary(ctx.orgId),
   ]);
   const selected = validateSelection(checks, codes);
-  const consentCodes = selected.filter((c) => c.consent).map((c) => c.code);
+  const consentCodes = selected.filter((c) => c.consent).map((c) => c.code as CwCode);
   if (consentCodes.includes("CW_CIBIL_PERSONAL") && !opts.consentSettled) {
     const f = validatePerson(person, istDate(new Date()));
     if (Object.keys(f).length) throw new AppError("validation_failed", "Please check the person's details.", f);
@@ -263,6 +313,7 @@ export async function quoteChecks(
     values (${ctx.orgId}, ${counterpartyId}, ${selected.map((c) => c.code)}, ${sql().json(lines)}, ${ctx.user.id})
     returning id, expires_at`;
   return {
+    tab,
     quoteId: q.id,
     expiresAt: q.expires_at.toISOString(),
     lines,
@@ -290,7 +341,7 @@ function validateSelection(checks: CatalogueEntry[], codes: string[]) {
   const unique = [...new Set(codes)];
   if (!unique.length) throw new AppError("validation_failed", "Select at least one check.", { items: "Select at least one check." });
   return unique.map((code) => {
-    const c = isCwCode(code) ? checks.find((x) => x.code === code) : undefined;
+    const c = isCwCode(code) || isCcCode(code) ? checks.find((x) => x.code === code) : undefined;
     if (!c) throw new AppError("bad_request", "This check is not available.");
     if (c.disabled) throw new AppError("conflict", `${c.name} cannot run for this counterparty right now.`);
     return c;
@@ -300,6 +351,9 @@ function validateSelection(checks: CatalogueEntry[], codes: string[]) {
 // ---------------------------------------------------------------- start a request ("Yes, run search")
 
 export interface StartInput {
+  tab?: Tab;
+  /** Case Check search details (S12 fields). */
+  caseInput?: CaseInput;
   quoteId: string;
   counterpartyId: string;
   items: string[];
@@ -317,9 +371,22 @@ export async function startChecks(ctx: Ctx, input: StartInput, origin: string, i
       select id, report_no from public.check_requests where org_id = ${ctx.orgId} and idempotency_key = ${idempotencyKey}`;
     if (again) return { id: again.id, reportNo: again.report_no };
   }
-  const [{ checks }, cp] = await Promise.all([checkCatalogue(ctx, input.counterpartyId), loadCounterparty(ctx, input.counterpartyId)]);
+  const tab = input.tab ?? "credit_worthiness";
+  const [{ checks }, cp] = await Promise.all([checkCatalogue(ctx, input.counterpartyId, tab), loadCounterparty(ctx, input.counterpartyId)]);
   const selected = validateSelection(checks, input.items);
-  const consentCodes = selected.filter((c) => c.consent).map((c) => c.code);
+  const consentCodes = selected.filter((c) => c.consent).map((c) => c.code as CwCode);
+  if (tab === "case_check") {
+    if (!input.caseInput) throw new AppError("validation_failed", "Enter the details to search.", { name: "Enter a name." });
+    if (selected.some((c) => c.code === "CC_FIR") && !firCovered(input.caseInput.state)) {
+      throw new AppError("validation_failed", "FIR records are not available for this state.", { state: "FIR check does not cover this state." });
+    }    // S12: PAN and mobile on file improve matching when the user does not enter others.
+    const onFile = subjectOf(cp);
+    input.caseInput = {
+      ...input.caseInput,
+      pan: input.caseInput.pan ?? onFile.pan ?? (cp.gstin ? panFromGstin(cp.gstin) : undefined),
+      mobile: input.caseInput.mobile ?? decryptField(cp.mobile_ciphertext, "counterparties.mobile"),
+    };
+  }
   if (consentCodes.includes("CW_CIBIL_PERSONAL")) {
     const f = validatePerson(input.person, istDate(new Date()));
     if (Object.keys(f).length) throw new AppError("validation_failed", "Please check the person's details.", f);
@@ -340,12 +407,15 @@ export async function startChecks(ctx: Ctx, input: StartInput, origin: string, i
 
   const [{ report_no }] = await db<{ report_no: string }[]>`select app_private.next_report_no() as report_no`;
   const [req] = await db<{ id: string }[]>`
-    insert into public.check_requests (org_id, counterparty_id, report_no, run_mode, created_by, quote_id, idempotency_key)
-    values (${ctx.orgId}, ${input.counterpartyId}, ${report_no}, ${input.mode}, ${ctx.user.id}, ${input.quoteId}, ${idempotencyKey})
+    insert into public.check_requests (org_id, counterparty_id, report_no, run_mode, created_by, quote_id, idempotency_key, tab,
+                                       inputs_ciphertext, inputs_summary)
+    values (${ctx.orgId}, ${input.counterpartyId}, ${report_no}, ${input.mode}, ${ctx.user.id}, ${input.quoteId}, ${idempotencyKey}, ${tab},
+            ${input.caseInput ? encryptField(JSON.stringify(input.caseInput), "check_requests.inputs") : null},
+            ${db.json(input.caseInput ? { name: input.caseInput.name, state: input.caseInput.state, district: input.caseInput.district } : {})})
     returning id`;
-  const reusedFor = (code: CwCode) => quotes.find((q) => q.reuse && q.scope.includes(code))?.reuse?.id ?? null;
+  const reusedFor = (code: ItemCode) => quotes.find((q) => q.reuse && (q.scope as ItemCode[]).includes(code))?.reuse?.id ?? null;
   const waitsForBuyer = (c: CatalogueEntry) => c.consent && !reusedFor(c.code);
-  const items = await db<{ id: string; item_code: CwCode; status: ItemStatus }[]>`
+  const items = await db<{ id: string; item_code: ItemCode; status: ItemStatus }[]>`
     insert into public.check_items ${db(
       selected.map((c) => ({
         org_id: ctx.orgId,
@@ -392,7 +462,7 @@ export async function startChecks(ctx: Ctx, input: StartInput, origin: string, i
   );
 
   await audit(ctx, {
-    action: "check.started",
+    action: tab === "case_check" ? "case_check.started" : "check.started",
     entity: "check_request",
     entityId: req.id,
     after: {
@@ -406,7 +476,7 @@ export async function startChecks(ctx: Ctx, input: StartInput, origin: string, i
 /** A check waiting for a yes keeps its hold until the link expires, plus time for the check to run. */
 const CONSENT_HOLD_MS = CONSENT_RULES.linkMs + 3600_000;
 
-async function holdFor(ctx: Ctx, requestId: string, itemId: string, code: CwCode, keepMs?: number) {
+async function holdFor(ctx: Ctx, requestId: string, itemId: string, code: ItemCode, keepMs?: number) {
   const hold = await placeHold({
     orgId: ctx.orgId, itemCode: code, refType: "check_request", refId: requestId, idempotencyKey: `check:${itemId}`,
     actorId: ctx.user.id, requestId: ctx.requestId, expiresAt: keepMs ? new Date(Date.now() + keepMs) : undefined,
@@ -417,16 +487,17 @@ async function holdFor(ctx: Ctx, requestId: string, itemId: string, code: CwCode
 
 /** The cost popup for one check of a one-by-one request (v3 FR-CW-05: each run has its own popup). */
 export async function quoteOne(ctx: Ctx, requestId: string, code: string) {
-  const [item] = await sql()<{ counterparty_id: string; status: ItemStatus }[]>`
-    select counterparty_id, status from public.check_items where request_id = ${requestId} and org_id = ${ctx.orgId} and item_code = ${code}`;
+  const [item] = await sql()<{ counterparty_id: string; status: ItemStatus; tab: Tab }[]>`
+    select i.counterparty_id, i.status, r.tab from public.check_items i join public.check_requests r on r.id = i.request_id
+     where i.request_id = ${requestId} and i.org_id = ${ctx.orgId} and i.item_code = ${code}`;
   if (!item) throw notFound("This check");
   if (item.status !== "ready") throw new AppError("conflict", item.status === "waiting_consent" ? "This check can run once the buyer says yes." : "This check has already started.");
-  return quoteChecks(ctx, item.counterparty_id, [code], undefined, { consentSettled: true });
+  return quoteChecks(ctx, item.counterparty_id, [code], undefined, { consentSettled: true, tab: item.tab });
 }
 
 /** "I will run each one myself": start one check of a manual request, after its own cost popup (v3 FR-CW-05). */
 export async function runOne(ctx: Ctx, requestId: string, code: string, quoteId: string) {
-  const [item] = await sql()<{ id: string; item_code: CwCode; status: ItemStatus; counterparty_id: string }[]>`
+  const [item] = await sql()<{ id: string; item_code: ItemCode; status: ItemStatus; counterparty_id: string }[]>`
     select i.id, i.item_code, i.status, i.counterparty_id from public.check_items i
      where i.request_id = ${requestId} and i.org_id = ${ctx.orgId} and i.item_code = ${code}`;
   if (!item) throw notFound("This check");
@@ -453,7 +524,7 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 
 export async function runCheckItem(itemId: string) {
   const db = sql();
-  const [item] = await db<{ id: string; org_id: string; request_id: string; counterparty_id: string; item_code: CwCode; hold_id: string | null; status: ItemStatus; consent_id: string | null; needs_consent: boolean }[]>`
+  const [item] = await db<{ id: string; org_id: string; request_id: string; counterparty_id: string; item_code: ItemCode; hold_id: string | null; status: ItemStatus; consent_id: string | null; needs_consent: boolean }[]>`
     update public.check_items set status = 'running', started_at = coalesce(started_at, now())
      where id = ${itemId} and status in ('queued', 'running')
      returning id, org_id, request_id, counterparty_id, item_code, hold_id, status, consent_id, needs_consent`;
@@ -475,16 +546,31 @@ export async function runCheckItem(itemId: string) {
     consent = c.access;
   }
 
-  const [cp] = await db<CpRow[]>`select ${CP_COLS()} from public.counterparties where id = ${item.counterparty_id}`;
-  const provider = checkProvider();
-  const subject = subjectOf(cp);
   const today = istDate(new Date());
-  let result: Awaited<ReturnType<typeof provider.run>> | null = null;
+  // Case Check items search with the details entered on S12; Credit Worthiness items use the counterparty record.
+  let caseInput: CaseInput | null = null;
+  let run: () => Promise<ProviderOutcome>;
+  let providerName: string;
+  if (isCcCode(item.item_code)) {
+    const [r] = await db<{ inputs_ciphertext: string | null }[]>`select inputs_ciphertext from public.check_requests where id = ${item.request_id}`;
+    caseInput = JSON.parse(decryptField(r.inputs_ciphertext!, "check_requests.inputs")) as CaseInput;
+    const provider = caseProvider();
+    const code = item.item_code;
+    providerName = provider.name;
+    run = () => provider.run(code, caseInput!, { today });
+  } else {
+    const [cp] = await db<CpRow[]>`select ${CP_COLS()} from public.counterparties where id = ${item.counterparty_id}`;
+    const provider = checkProvider();
+    const code = item.item_code;
+    providerName = provider.name;
+    run = () => provider.run(code, subjectOf(cp), { today, consent });
+  }
+  let result: ProviderOutcome | null = null;
   let error = "";
   for (let attempt = 1; attempt <= 2; attempt++) {
     await db`update public.check_items set attempts = attempts + 1 where id = ${item.id}`;
     try {
-      result = await withTimeout(provider.run(item.item_code, subject, { today, consent }), TIMEOUT_MS[item.item_code] ?? DEFAULT_TIMEOUT_MS);
+      result = await withTimeout(run(), TIMEOUT_MS[item.item_code] ?? DEFAULT_TIMEOUT_MS);
       if (result.status === "success" || result.status === "no_data") break;
       error = result.error?.message ?? "Source unavailable";
       if (result.error?.retryable === false) break; // a wrong input: trying again gives the same answer (v3 16.1)
@@ -506,6 +592,10 @@ export async function runCheckItem(itemId: string) {
     }
   }
 
+  if (arrived && caseInput) {
+    // Each possible match becomes a row with Chaanbean's own confidence; the item keeps the counts.
+    result!.data = await storeMatches(item, caseInput, (result!.data as { matches: CaseCandidate[] } | undefined)?.matches ?? []);
+  }
   if (arrived) {
     if (item.hold_id) await commitHold(item.org_id, item.hold_id, "system", `check:${item.id}`);
     await db`
@@ -515,15 +605,18 @@ export async function runCheckItem(itemId: string) {
              fetched_at = now(), error_code = ${result!.error?.code ?? null}, error_message = ${result!.error?.message ?? null}
        where id = ${item.id}`;
   } else {
-    if (item.hold_id) await reverseHold(item.org_id, item.hold_id, "Not available from source. Unit not charged.", "system", `check:${item.id}`);
+    const note = result?.error?.code === "TOO_MANY_MATCHES" ? "Too many possible matches. Unit not charged." : "Not available from source. Unit not charged.";
+    if (item.hold_id) await reverseHold(item.org_id, item.hold_id, note, "system", `check:${item.id}`);
     await db`
       update public.check_items
-         set status = 'not_available', charged = false, provider = ${result?.provider ?? provider.name}, raw_ref = ${rawRef},
+         set status = 'not_available', charged = false, provider = ${result?.provider ?? providerName}, raw_ref = ${rawRef},
              fetched_at = now(), error_code = ${result?.error?.code ?? "TIMEOUT"}, error_message = ${error.slice(0, 300)}
        where id = ${item.id}`;
   }
   await refreshReport(item.request_id);
 }
+
+type ProviderOutcome = ProviderResult<unknown> & { raw: unknown };
 
 // ---------------------------------------------------------------- report (S11)
 
@@ -556,7 +649,7 @@ function inputsFrom(items: ItemRow[]): ReportInputs {
     turnoverCurrentYear: ok("CW_GST_TURNOVER_CY") as ReportInputs["turnoverCurrentYear"],
     cibil: [ok("CW_CIBIL_COMPANY"), ok("CW_CIBIL_PERSONAL")].filter(Boolean) as NonNullable<ReportInputs["cibil"]>,
     msme: ok("CW_MSME") as ReportInputs["msme"],
-    cases: null,
+    cases: null, // filled from confirmed Case Check matches by the caller
     today: istDate(new Date()),
   };
 }
@@ -564,10 +657,20 @@ function inputsFrom(items: ItemRow[]): ReportInputs {
 /** Works out the risk level and range again and marks the request complete or partial once every check is done. */
 export async function refreshReport(requestId: string) {
   const db = sql();
-  const items = await itemRows(requestId);
-  const outcome = evaluateReport(inputsFrom(visible(items)));
+  const [[req], items] = await Promise.all([
+    db<{ tab: Tab; counterparty_id: string }[]>`select tab, counterparty_id from public.check_requests where id = ${requestId}`,
+    itemRows(requestId),
+  ]);
   const done = items.every((i) => FINAL.includes(i.status));
   const status = !done ? "in_progress" : items.some((i) => i.status === "not_available" || i.status === "cancelled") ? "partial" : "complete";
+  if (req?.tab === "case_check") {
+    await db`
+      update public.check_requests set status = ${status}::public.check_request_status,
+             completed_at = ${done ? db`coalesce(completed_at, now())` : null}
+       where id = ${requestId}`;
+    return null;
+  }
+  const outcome = evaluateReport({ ...inputsFrom(visible(items)), cases: await confirmedCases(req.counterparty_id) });
   await db`
     update public.check_requests
        set risk_level = ${outcome.level}::public.risk_level,
@@ -610,7 +713,7 @@ export async function getReport(ctx: Ctx, id: string): Promise<ReportView> {
   }[]>`
     select r.id, r.report_no, r.run_mode, r.status, r.created_at, r.valid_until, c.id as counterparty_id, c.legal_name, c.type, c.gstin
       from public.check_requests r join public.counterparties c on c.id = r.counterparty_id
-     where r.id = ${id} and r.org_id = ${ctx.orgId}`;
+     where r.id = ${id} and r.org_id = ${ctx.orgId} and r.tab = 'credit_worthiness'`;
   if (!r) throw notFound("This report");
   const [items, names, consents] = await Promise.all([
     itemRows(id),
@@ -627,7 +730,7 @@ export async function getReport(ctx: Ctx, id: string): Promise<ReportView> {
     createdAt: r.created_at.toISOString(),
     validUntil: r.valid_until.toISOString(),
     expired: r.valid_until.getTime() < Date.now(),
-    outcome: evaluateReport(inputsFrom(visible(items))),
+    outcome: evaluateReport({ ...inputsFrom(visible(items)), cases: await confirmedCases(r.counterparty_id) }),
     items: items
       .sort((a, b) => order.indexOf(a.item_code) - order.indexOf(b.item_code))
       .map((i) => {
@@ -658,7 +761,7 @@ export async function reportsFor(ctx: Ctx, counterpartyId: string) {
   const rows = await sql()<{ id: string; report_no: string; status: ReportView["status"]; risk_level: ReportOutcome["level"] | null; credit_low_paise: string | null; credit_high_paise: string | null; created_at: Date; valid_until: Date; items: number }[]>`
     select r.id, r.report_no, r.status, r.risk_level, r.credit_low_paise, r.credit_high_paise, r.created_at, r.valid_until,
            (select count(*)::int from public.check_items i where i.request_id = r.id) as items
-      from public.check_requests r where r.org_id = ${ctx.orgId} and r.counterparty_id = ${counterpartyId}
+      from public.check_requests r where r.org_id = ${ctx.orgId} and r.counterparty_id = ${counterpartyId} and r.tab = 'credit_worthiness'
      order by r.created_at desc limit 50`;
   return rows.map((r) => ({
     id: r.id, reportNo: r.report_no, status: r.status, riskLevel: r.risk_level,
