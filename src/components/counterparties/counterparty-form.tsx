@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { Building2, Landmark, User } from "lucide-react";
-import { Button, ButtonLink, Card, CardBody, CardHeader, Checkbox, ErrorSummary, FormField, Input, PageHeader, Select, Tag } from "@/components/ui";
+import { AlertTriangle, ArrowLeft, BadgeCheck, Building2, ChevronDown, Fingerprint, Landmark, MapPin, Phone, ShieldCheck, SlidersHorizontal, User, Wallet } from "lucide-react";
+import { Button, ButtonLink, Card, CardBody, Checkbox, ErrorSummary, FormField, GradientText, Input, PageHeader, Select, Tag } from "@/components/ui";
 import { cn } from "@/components/ui/cn";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api-client";
@@ -34,7 +34,7 @@ interface UpiResult {
   testData: boolean;
 }
 
-const TYPE_ICONS: Record<CounterpartyType, typeof Building2> = { business_gstin: Building2, business_pan: Landmark, individual: User };
+const TYPE_ICONS: Record<CounterpartyType, typeof Building2> = { business_gstin: Building2, business_pan: Landmark, individual: User, business_cin: Building2 };
 const STATE_NAMES = Object.values(GST_STATES).sort((a, b) => a.localeCompare(b, "en-IN"));
 
 const words = (s: string) => new Set(s.toUpperCase().split(/[^A-Z]+/).filter((w) => w.length >= 3));
@@ -45,22 +45,25 @@ function namesDiffer(upi: string, legal: string, contact: string) {
   return u.size > 0 && ![...u].some((w) => known.has(w));
 }
 
-/** What adding the buyer costs (v3 section 5): a plan unit, or the wallet price including GST. */
+/** What adding the buyer costs (v3 section 5): the wallet price including GST. */
 export interface AddCost {
-  fromPlan: boolean;
   totalPaise: number;
   pricePaise: number;
 }
 
-export function CounterpartyForm({ addCost }: { addCost: AddCost | null }) {
+export function CounterpartyForm({ addCost, initial }: {
+  addCost: AddCost | null;
+  /** Filled from Credit Worthiness search (S08): what was typed, and go on to the checks after saving. */
+  initial?: { gstin?: string; name?: string; thenCheck?: boolean };
+}) {
   const t = useTranslations("counterparties");
   const router = useRouter();
   const toast = useToast();
 
   const [type, setType] = useState<CounterpartyType>("business_gstin");
-  const [gstin, setGstin] = useState("");
+  const [gstin, setGstin] = useState(initial?.gstin ?? "");
   const [pan, setPan] = useState("");
-  const [legalName, setLegalName] = useState("");
+  const [legalName, setLegalName] = useState(initial?.name ?? "");
   const [tradeName, setTradeName] = useState("");
   const [cin, setCin] = useState("");
   const [udyam, setUdyam] = useState("");
@@ -168,140 +171,153 @@ export function CounterpartyForm({ addCost }: { addCost: AddCost | null }) {
     .filter(([k]) => k !== "_")
     .map(([field, message]) => ({ field, message })); // API field paths ("address.pincode") are also the input ids
 
+  const cancelHref = initial?.thenCheck ? "/checks/new" : "/counterparties";
+
   return (
     <form
-      className="mx-auto max-w-3xl space-y-6"
+      className="mx-auto max-w-3xl space-y-5"
       noValidate
       onSubmit={(e) => {
         e.preventDefault();
-        void save(false);
+        void save(Boolean(initial?.thenCheck));
       }}
     >
-      <PageHeader title={t("newTitle")} description={t("newSubtitle")} />
+      <Link href={cancelHref} className="inline-flex min-h-10 items-center gap-1.5 text-sm font-semibold text-muted hover:text-text">
+        <ArrowLeft size={14} aria-hidden="true" /> {initial?.thenCheck ? t("cancel") : t("backToList")}
+      </Link>
+      <PageHeader title={t.rich("newTitleRich", { accent: (c) => <GradientText>{c}</GradientText> })} description={t("newSubtitleShort")} />
 
       {duplicate ? (
-        <div role="alert" className="rounded-[14px] border border-warning-fg/30 bg-warning-bg px-4 py-3 text-sm font-semibold text-warning-fg">
-          {t("duplicate")}{" "}
-          {duplicate.matchedOn.length ? (
-            <span className="font-medium">
-              {t("duplicateOn", { fields: duplicate.matchedOn.map((m) => t(m === "gstin" ? "fieldGstin" : m === "pan" ? "fieldPan" : "fieldMobile")).join(", ") })}.{" "}
-            </span>
-          ) : null}
-          {duplicate.status === "archived" ? <span className="font-medium">{t("duplicateArchived")} </span> : null}
-          <Link href={`/counterparties/${duplicate.id}`} className="underline underline-offset-2">
-            {t("duplicateOpen", { name: duplicate.legalName })}
-          </Link>
+        <div role="alert" className="flex items-start gap-3 rounded-xl border border-warning-fg/25 bg-warning-bg px-4 py-3 text-sm font-semibold text-warning-fg">
+          <AlertTriangle size={17} className="mt-0.5 shrink-0" aria-hidden="true" />
+          <p>
+            {t("duplicate")}{" "}
+            {duplicate.matchedOn.length ? (
+              <span className="font-medium">
+                {t("duplicateOn", { fields: duplicate.matchedOn.map((m) => t(m === "gstin" ? "fieldGstin" : m === "pan" ? "fieldPan" : "fieldMobile")).join(", ") })}.{" "}
+              </span>
+            ) : null}
+            {duplicate.status === "archived" ? <span className="font-medium">{t("duplicateArchived")} </span> : null}
+            <Link href={`/counterparties/${duplicate.id}`} className="underline underline-offset-2">
+              {t("duplicateOpen", { name: duplicate.legalName })}
+            </Link>
+          </p>
         </div>
       ) : null}
       {errors._ ? (
-        <p role="alert" className="rounded-[14px] bg-danger-bg px-4 py-3 text-sm font-semibold text-danger-fg">
+        <p role="alert" className="rounded-xl bg-danger-bg px-4 py-3 text-sm font-semibold text-danger-fg">
           {errors._}
         </p>
       ) : null}
       <ErrorSummary title={t("errorSummary")} errors={summary} />
 
-      <Card>
-        <CardHeader title={t("sectionType")} />
-        <CardBody>
-          <div role="radiogroup" aria-label={t("sectionType")} className="grid gap-3 sm:grid-cols-3">
-            {COUNTERPARTY_TYPES.map((k) => {
-              const Icon = TYPE_ICONS[k];
-              const on = type === k;
-              return (
-                <button
-                  key={k}
-                  type="button"
-                  role="radio"
-                  aria-checked={on}
-                  onClick={() => {
-                    setType(k);
-                    setGst(null);
-                    setDuplicate(null);
-                  }}
-                  className={cn(
-                    "flex items-start gap-3 rounded-2xl border p-3.5 text-left transition-all",
-                    on ? "border-primary bg-primary-soft shadow-sm" : "border-border bg-surface hover:border-border-strong",
-                  )}
-                >
-                  <span className={cn("shrink-0 rounded-xl p-1.5", on ? "bg-primary text-white" : "bg-surface-strong text-text-2")} aria-hidden="true">
-                    <Icon size={16} />
-                  </span>
-                  <span>
-                    <span className="block text-sm font-bold text-text">{t(`types.${k}`)}</span>
-                    <span className="mt-0.5 block text-xs text-muted">{t(`typeHints.${k}`)}</span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </CardBody>
-      </Card>
+      <Section step={1} icon={<Fingerprint />} title={t("sectionIdentity")}>
+        <div role="radiogroup" aria-label={t("sectionType")} className="grid gap-2 sm:grid-cols-3">
+          {COUNTERPARTY_TYPES.map((k) => {
+            const Icon = TYPE_ICONS[k];
+            const on = type === k;
+            return (
+              <button
+                key={k}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                onClick={() => {
+                  setType(k);
+                  setGst(null);
+                  setDuplicate(null);
+                }}
+                className={cn(
+                  "flex min-h-12 items-center gap-3 rounded-xl border p-2.5 text-left sm:min-h-14 sm:p-3 transition-[border-color,background-color,box-shadow,scale] duration-150 active:scale-[0.99]",
+                  on ? "border-primary bg-primary-softer shadow-sm" : "border-border bg-surface hover:border-border-strong",
+                )}
+              >
+                <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg", on ? "bg-brand text-white shadow-orange" : "bg-surface-strong text-text-2")} aria-hidden="true">
+                  <Icon size={15} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[13px] font-bold leading-tight text-text">{t(`types.${k}`)}</span>
+                  <span className="mt-0.5 hidden text-[11.5px] leading-snug text-muted sm:block">{t(`typeHints.${k}`)}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
-      <Card>
-        <CardHeader title={t("sectionIdentity")} />
-        <CardBody className="space-y-4">
-          {type === "business_gstin" ? (
-            <>
-              <FormField id="gstin" label={t("gstin")} error={fieldError("gstin")} required>
-                <div className="flex gap-2">
-                  <Input
-                    id="gstin"
-                    value={gstin}
-                    maxLength={15}
-                    autoComplete="off"
-                    className="font-mono uppercase"
-                    onChange={(e) => {
-                      setGstin(e.target.value.toUpperCase());
-                      setGst(null);
-                    }}
-                    onBlur={() => isValidGstin(normaliseIdentifier(gstin)) && void checkDuplicates({ gstin: normaliseIdentifier(gstin) })}
-                    error={fieldError("gstin")}
-                  />
-                  <Button variant="secondary" onClick={() => void fetchGst()} loading={busy === "fetch"} disabled={normaliseIdentifier(gstin).length !== 15}>
-                    {t("fetch")}
-                  </Button>
+        {type === "business_gstin" ? (
+          <>
+            <FormField id="gstin" label={t("gstin")} error={fieldError("gstin")} required>
+              <div className="flex gap-2">
+                <Input
+                  id="gstin"
+                  value={gstin}
+                  maxLength={15}
+                  autoComplete="off"
+                  className="font-mono uppercase"
+                  onChange={(e) => {
+                    setGstin(e.target.value.toUpperCase());
+                    setGst(null);
+                  }}
+                  onBlur={() => isValidGstin(normaliseIdentifier(gstin)) && void checkDuplicates({ gstin: normaliseIdentifier(gstin) })}
+                  error={fieldError("gstin")}
+                />
+                <Button variant="secondary" onClick={() => void fetchGst()} loading={busy === "fetch"} disabled={normaliseIdentifier(gstin).length !== 15}>
+                  {t("fetch")}
+                </Button>
+              </div>
+            </FormField>
+            {gst?.state === "found" ? (
+              <div className="animate-rise rounded-xl border border-primary-line bg-primary-softer p-3.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="flex size-7 items-center justify-center rounded-lg bg-brand text-white shadow-orange" aria-hidden="true">
+                    <BadgeCheck size={14} />
+                  </span>
+                  <p className="text-sm font-bold text-text">{t("fetched")}</p>
+                  <Tag tone={gst.gstStatus === "Active" ? "success" : "warning"}>{gst.gstStatus}</Tag>
+                  {gst.testData ? <Tag tone="warning">{t("testData")}</Tag> : null}
                 </div>
-              </FormField>
-              {gst?.state === "found" ? (
-                <div className="space-y-1 rounded-2xl border border-border bg-surface-muted p-4 text-sm">
-                  <p className="flex flex-wrap items-center gap-2 font-bold text-text">
-                    {t("fetched")} {gst.testData ? <Tag tone="warning">{t("testData")}</Tag> : null}
-                  </p>
-                  <p className="text-muted">
-                    PAN <span className="font-mono text-text-2">{panFromGstin(normaliseIdentifier(gstin))}</span> · {gst.gstStatus}
-                  </p>
-                  {gst.gstStatus !== "Active" ? <p className="font-semibold text-warning-fg">{t("gstStatusWarning", { status: gst.gstStatus.toLowerCase() })}</p> : null}
-                </div>
-              ) : gst?.state === "not_found" ? (
-                <p className="rounded-[14px] bg-warning-bg px-4 py-3 text-sm font-semibold text-warning-fg">{t("gstNotFound")}</p>
-              ) : gst?.state === "unavailable" ? (
-                <p className="rounded-[14px] bg-info-bg px-4 py-3 text-sm font-semibold text-info-fg">{t("gstUnavailable")}</p>
-              ) : null}
-            </>
-          ) : (
-            <FormField id="pan" label={t("pan")} hint={type === "individual" ? t("panHintIndividual") : undefined} error={fieldError("pan")} required>
-              <Input
-                id="pan"
-                value={pan}
-                maxLength={10}
-                autoComplete="off"
-                className="font-mono uppercase"
-                onChange={(e) => setPan(e.target.value.toUpperCase())}
-                onBlur={() => void checkDuplicates({ pan })}
-                error={fieldError("pan")}
-              />
-            </FormField>
-          )}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField id="legalName" label={t("legalName")} error={fieldError("legalName")} required>
-              <Input id="legalName" value={legalName} onChange={(e) => setLegalName(e.target.value)} maxLength={120} error={fieldError("legalName")} />
-            </FormField>
-            <FormField id="tradeName" label={`${t("tradeName")} (${t("optional")})`}>
-              <Input id="tradeName" value={tradeName} onChange={(e) => setTradeName(e.target.value)} maxLength={120} />
-            </FormField>
-          </div>
-          {type !== "individual" ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <dl className="mt-3 grid gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
+                  {gst.tradeName ? <Fact label={t("tradeName")} value={gst.tradeName} /> : null}
+                  <Fact label={t("pan")} value={<span className="font-mono">{panFromGstin(normaliseIdentifier(gstin))}</span>} />
+                  <Fact label={t("addressLine")} value={[gst.address.city, gst.address.state, gst.address.pincode].filter(Boolean).join(", ")} className="sm:col-span-2" />
+                </dl>
+                {gst.gstStatus !== "Active" ? <p className="mt-2 text-sm font-semibold text-warning-fg">{t("gstStatusWarning", { status: gst.gstStatus.toLowerCase() })}</p> : null}
+              </div>
+            ) : gst?.state === "not_found" ? (
+              <p className="rounded-xl bg-warning-bg px-4 py-3 text-sm font-semibold text-warning-fg">{t("gstNotFound")}</p>
+            ) : gst?.state === "unavailable" ? (
+              <p className="rounded-xl bg-info-bg px-4 py-3 text-sm font-semibold text-info-fg">{t("gstUnavailable")}</p>
+            ) : null}
+          </>
+        ) : (
+          <FormField id="pan" label={t("pan")} hint={type === "individual" ? t("panHintIndividual") : undefined} error={fieldError("pan")} required>
+            <Input
+              id="pan"
+              value={pan}
+              maxLength={10}
+              autoComplete="off"
+              className="font-mono uppercase"
+              onChange={(e) => setPan(e.target.value.toUpperCase())}
+              onBlur={() => void checkDuplicates({ pan })}
+              error={fieldError("pan")}
+            />
+          </FormField>
+        )}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField id="legalName" label={t("legalName")} error={fieldError("legalName")} required>
+            <Input id="legalName" value={legalName} onChange={(e) => setLegalName(e.target.value)} maxLength={120} error={fieldError("legalName")} />
+          </FormField>
+          <FormField id="tradeName" label={`${t("tradeName")} (${t("optional")})`}>
+            <Input id="tradeName" value={tradeName} onChange={(e) => setTradeName(e.target.value)} maxLength={120} />
+          </FormField>
+        </div>
+        {type !== "individual" ? (
+          <details className="group rounded-xl border border-border bg-surface-muted/60 px-3.5 py-2.5" open={Boolean(cin || udyam || iec || fieldError("cin") || fieldError("udyam") || fieldError("iec"))}>
+            <summary className="flex min-h-8 cursor-pointer list-none items-center justify-between gap-2 text-[13px] font-semibold text-text-2 [&::-webkit-details-marker]:hidden">
+              {t("moreIds")}
+              <ChevronDown size={15} className="text-subtle transition-transform group-open:rotate-180" aria-hidden="true" />
+            </summary>
+            <div className="mt-3 grid gap-4 sm:grid-cols-3">
               <FormField id="cin" label={`${t("cin")} (${t("optional")})`} error={fieldError("cin")}>
                 <Input id="cin" value={cin} onChange={(e) => setCin(e.target.value.toUpperCase())} maxLength={21} className="font-mono uppercase" error={fieldError("cin")} />
               </FormField>
@@ -312,144 +328,193 @@ export function CounterpartyForm({ addCost }: { addCost: AddCost | null }) {
                 <Input id="iec" value={iec} onChange={(e) => setIec(e.target.value.toUpperCase())} maxLength={10} className="font-mono uppercase" error={fieldError("iec")} />
               </FormField>
             </div>
-          ) : null}
-        </CardBody>
-      </Card>
+          </details>
+        ) : null}
+      </Section>
 
-      <Card>
-        <CardHeader title={t("sectionContact")} />
-        <CardBody className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField id="contactName" label={t("contactName")} error={fieldError("contactName")} required>
-              <Input id="contactName" value={contactName} onChange={(e) => setContactName(e.target.value)} maxLength={80} autoComplete="off" error={fieldError("contactName")} />
-            </FormField>
-            <FormField id="mobile" label={t("mobile")} error={fieldError("mobile")} required>
-              <Input
-                id="mobile"
-                value={mobile}
-                inputMode="numeric"
-                maxLength={14}
-                autoComplete="off"
-                placeholder="98765 43210"
-                onChange={(e) => {
-                  setMobile(e.target.value.replace(/[^\d\s+]/g, ""));
-                  setUpi(null);
-                }}
-                onBlur={() => digits && void checkDuplicates({ mobile: digits })}
-                error={fieldError("mobile")}
-              />
-            </FormField>
-          </div>
-          <Checkbox id="whatsappSame" label={t("whatsappSame")} checked={whatsappSame} onChange={(e) => setWhatsappSame(e.target.checked)} />
-          <div className="grid gap-4 sm:grid-cols-2">
-            {!whatsappSame ? (
-              <FormField id="whatsapp" label={t("whatsapp")} error={fieldError("whatsapp")}>
-                <Input id="whatsapp" value={whatsapp} inputMode="numeric" maxLength={14} onChange={(e) => setWhatsapp(e.target.value.replace(/[^\d\s+]/g, ""))} error={fieldError("whatsapp")} />
-              </FormField>
-            ) : null}
-            <FormField id="email" label={`${t("email")} (${t("optional")})`} error={fieldError("email")}>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="off" error={fieldError("email")} />
-            </FormField>
-          </div>
-        </CardBody>
-      </Card>
+      <Section step={2} icon={<Phone />} title={t("sectionContact")}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField id="contactName" label={t("contactName")} error={fieldError("contactName")} required>
+            <Input id="contactName" value={contactName} onChange={(e) => setContactName(e.target.value)} maxLength={80} autoComplete="off" error={fieldError("contactName")} />
+          </FormField>
+          <FormField id="mobile" label={t("mobile")} error={fieldError("mobile")} required>
+            <Input
+              id="mobile"
+              value={mobile}
+              inputMode="numeric"
+              maxLength={14}
+              autoComplete="off"
+              placeholder="98765 43210"
+              onChange={(e) => {
+                setMobile(e.target.value.replace(/[^\d\s+]/g, ""));
+                setUpi(null);
+              }}
+              onBlur={() => digits && void checkDuplicates({ mobile: digits })}
+              error={fieldError("mobile")}
+            />
+          </FormField>
+        </div>
 
-      <Card>
-        <CardHeader title={t("sectionUpi")} />
-        <CardBody className="space-y-3">
-          <p className="text-sm text-muted">{t("upiIntro")}</p>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button variant="secondary" size="sm" onClick={() => void checkUpi()} loading={busy === "upi"} disabled={!digits}>
-              {upi ? t("upiRecheck") : t("upiCheck")}
-            </Button>
-            {upi?.testData ? <Tag tone="warning">{t("testData")}</Tag> : null}
+        {/* Bank-linked mobile (S06 marker 4), right under the number it checks. */}
+        <div className="rounded-xl border border-border bg-surface-muted/60 p-3.5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-soft text-primary-text" aria-hidden="true">
+                <ShieldCheck size={17} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-text">{t("sectionUpi")}</p>
+                <p className="text-xs text-muted">{t("upiIntroShort")}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {upi?.testData ? <Tag tone="warning">{t("testData")}</Tag> : null}
+              <Button variant="secondary" size="sm" onClick={() => void checkUpi()} loading={busy === "upi"} disabled={!digits}>
+                {upi ? t("upiRecheck") : t("upiCheck")}
+              </Button>
+            </div>
           </div>
           {upi?.status === "linked" ? (
-            <div className="space-y-2">
-              <p role="status" className="rounded-[14px] bg-success-bg px-4 py-3 text-sm font-semibold text-success-fg">
+            <div className="mt-3 space-y-2">
+              <p role="status" className="rounded-lg bg-success-bg px-3.5 py-2.5 text-sm font-semibold text-success-fg">
                 {t("upiLinked", { name: upi.name ?? "" })}
               </p>
               {upi.name && legalName && namesDiffer(upi.name, legalName, contactName) ? (
-                <p className="rounded-[14px] bg-warning-bg px-4 py-3 text-sm font-semibold text-warning-fg">
-                  {t("nameMismatch", { upi: upi.name, legal: legalName })}
-                </p>
+                <p className="rounded-lg bg-warning-bg px-3.5 py-2.5 text-sm font-semibold text-warning-fg">{t("nameMismatch", { upi: upi.name, legal: legalName })}</p>
               ) : null}
             </div>
           ) : upi?.status === "not_linked" ? (
-            <p role="status" className="rounded-[14px] bg-danger-bg px-4 py-3 text-sm font-semibold text-danger-fg">
+            <p role="status" className="mt-3 rounded-lg bg-danger-bg px-3.5 py-2.5 text-sm font-semibold text-danger-fg">
               {t("upiNotLinked")}
             </p>
           ) : upi?.status === "unavailable" ? (
-            <p role="status" className="rounded-[14px] bg-warning-bg px-4 py-3 text-sm font-semibold text-warning-fg">
+            <p role="status" className="mt-3 rounded-lg bg-warning-bg px-3.5 py-2.5 text-sm font-semibold text-warning-fg">
               {t("upiUnavailable")}
             </p>
           ) : null}
-          <p className="text-xs text-muted">{t("upiManualHelp")}</p>
-        </CardBody>
-      </Card>
+          <details className="mt-2 text-xs text-muted">
+            <summary className="cursor-pointer font-semibold text-text-2 hover:text-text">{t("upiManualSummary")}</summary>
+            <p className="mt-1">{t("upiManualHelp")}</p>
+          </details>
+        </div>
 
-      <Card>
-        <CardHeader title={t("sectionAddress")} />
-        <CardBody className="space-y-4">
-          <FormField id="address.line" label={t("addressLine")} error={fieldError("address.line")} required>
-            <Input id="address.line" value={address.line} onChange={(e) => setAddress((a) => ({ ...a, line: e.target.value }))} maxLength={200} error={fieldError("address.line")} />
+        <Checkbox id="whatsappSame" label={t("whatsappSame")} checked={whatsappSame} onChange={(e) => setWhatsappSame(e.target.checked)} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          {!whatsappSame ? (
+            <FormField id="whatsapp" label={t("whatsapp")} error={fieldError("whatsapp")}>
+              <Input id="whatsapp" value={whatsapp} inputMode="numeric" maxLength={14} onChange={(e) => setWhatsapp(e.target.value.replace(/[^\d\s+]/g, ""))} error={fieldError("whatsapp")} />
+            </FormField>
+          ) : null}
+          <FormField id="email" label={`${t("email")} (${t("optional")})`} error={fieldError("email")}>
+            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="off" error={fieldError("email")} />
           </FormField>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <FormField id="address.city" label={t("city")} error={fieldError("address.city")} required>
-              <Input id="address.city" value={address.city} onChange={(e) => setAddress((a) => ({ ...a, city: e.target.value }))} maxLength={60} error={fieldError("address.city")} />
-            </FormField>
-            <FormField id="address.state" label={t("state")} error={fieldError("address.state")} required>
-              <Select id="address.state" value={address.state} onChange={(e) => setAddress((a) => ({ ...a, state: e.target.value }))} error={fieldError("address.state")}>
-                <option value="">{t("selectState")}</option>
-                {STATE_NAMES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </Select>
-            </FormField>
-            <FormField id="address.pincode" label={t("pincode")} error={fieldError("address.pincode")} required>
-              <Input id="address.pincode" value={address.pincode} inputMode="numeric" maxLength={6} onChange={(e) => setAddress((a) => ({ ...a, pincode: e.target.value.replace(/\D/g, "") }))} error={fieldError("address.pincode")} />
-            </FormField>
-          </div>
-        </CardBody>
-      </Card>
+        </div>
+      </Section>
 
-      <Card>
-        <CardHeader title={t("sectionDefaults")} />
-        <CardBody className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField id="creditDays" label={`${t("creditDays")} (${t("optional")})`} hint={t("creditDaysHint")} error={fieldError("creditDays")}>
-              <Input id="creditDays" type="number" min={0} max={365} step={1} inputMode="numeric" value={creditDays} onChange={(e) => setCreditDays(e.target.value)} hint={t("creditDaysHint")} error={fieldError("creditDays")} />
-            </FormField>
-            <FormField id="interestRate" label={`${t("interestRate")} (${t("optional")})`} hint={t("interestRateHint")} error={fieldError("interestRate")}>
-              <Input id="interestRate" type="number" min={0} max={36} step={0.01} inputMode="decimal" value={interestRate} onChange={(e) => setInterestRate(e.target.value)} hint={t("interestRateHint")} error={fieldError("interestRate")} />
-            </FormField>
-          </div>
-          <FormField id="tags" label={`${t("tags")} (${t("optional")})`} hint={t("tagsHint")} error={fieldError("tags")}>
-            <Input id="tags" value={tags} onChange={(e) => setTags(e.target.value)} hint={t("tagsHint")} error={fieldError("tags")} />
+      <Section step={3} icon={<MapPin />} title={t("sectionAddress")}>
+        <FormField id="address.line" label={t("addressLine")} error={fieldError("address.line")} required>
+          <Input id="address.line" value={address.line} onChange={(e) => setAddress((a) => ({ ...a, line: e.target.value }))} maxLength={200} error={fieldError("address.line")} />
+        </FormField>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <FormField id="address.city" label={t("city")} error={fieldError("address.city")} required>
+            <Input id="address.city" value={address.city} onChange={(e) => setAddress((a) => ({ ...a, city: e.target.value }))} maxLength={60} error={fieldError("address.city")} />
           </FormField>
-        </CardBody>
-      </Card>
+          <FormField id="address.state" label={t("state")} error={fieldError("address.state")} required>
+            <Select id="address.state" value={address.state} onChange={(e) => setAddress((a) => ({ ...a, state: e.target.value }))} error={fieldError("address.state")}>
+              <option value="">{t("selectState")}</option>
+              {STATE_NAMES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField id="address.pincode" label={t("pincode")} error={fieldError("address.pincode")} required>
+            <Input id="address.pincode" value={address.pincode} inputMode="numeric" maxLength={6} onChange={(e) => setAddress((a) => ({ ...a, pincode: e.target.value.replace(/\D/g, "") }))} error={fieldError("address.pincode")} />
+          </FormField>
+        </div>
+      </Section>
 
-      {addCost ? (
-        <p className="text-right text-sm text-muted">
-          {addCost.fromPlan
-            ? t("addCostPlan")
-            : t("addCostWallet", { total: formatInr(BigInt(addCost.totalPaise), { withPaise: true }), price: formatInr(BigInt(addCost.pricePaise)) })}
-        </p>
-      ) : null}
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <ButtonLink href="/counterparties" variant="ghost">
-          {t("cancel")}
-        </ButtonLink>
-        <Button variant="secondary" onClick={() => void save(true)} disabled={busy !== null}>
-          {t("saveAndCheck")}
-        </Button>
-        <Button type="submit" loading={busy === "save"} disabled={busy !== null && busy !== "save"}>
-          {t("save")}
-        </Button>
+      <Section step={4} icon={<SlidersHorizontal />} title={t("sectionDefaults")} aside={t("optional")}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField id="creditDays" label={`${t("creditDays")} (${t("optional")})`} hint={t("creditDaysHint")} error={fieldError("creditDays")}>
+            <Input id="creditDays" type="number" min={0} max={365} step={1} inputMode="numeric" value={creditDays} onChange={(e) => setCreditDays(e.target.value)} hint={t("creditDaysHint")} error={fieldError("creditDays")} />
+          </FormField>
+          <FormField id="interestRate" label={`${t("interestRate")} (${t("optional")})`} hint={t("interestRateHint")} error={fieldError("interestRate")}>
+            <Input id="interestRate" type="number" min={0} max={36} step={0.01} inputMode="decimal" value={interestRate} onChange={(e) => setInterestRate(e.target.value)} hint={t("interestRateHint")} error={fieldError("interestRate")} />
+          </FormField>
+        </div>
+        <FormField id="tags" label={`${t("tags")} (${t("optional")})`} hint={t("tagsHint")} error={fieldError("tags")}>
+          <Input id="tags" value={tags} onChange={(e) => setTags(e.target.value)} hint={t("tagsHint")} error={fieldError("tags")} />
+        </FormField>
+      </Section>
+
+      {/* Phones: the save bar stays at the bottom of the screen. Larger screens: a plain row under the form. */}
+      <div className="sticky bottom-0 z-20 -mx-4 border-t border-border bg-[var(--nav-bg)] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.25)] backdrop-blur sm:static sm:mx-0 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
+        {addCost ? (
+          <p className="mb-2 flex items-center gap-1.5 text-xs text-muted sm:mb-0 sm:text-sm">
+            <Wallet size={14} className="shrink-0 text-subtle" aria-hidden="true" />
+            {t("addCostWallet", { total: formatInr(BigInt(addCost.totalPaise), { withPaise: true }), price: formatInr(BigInt(addCost.pricePaise)) })}
+          </p>
+        ) : (
+          <span />
+        )}
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0 sm:justify-end">
+          <div className="hidden sm:block">
+            <ButtonLink href={cancelHref} variant="ghost">
+              {t("cancel")}
+            </ButtonLink>
+          </div>
+          {initial?.thenCheck ? (
+            <>
+              <Button variant="secondary" className={BAR_BTN} onClick={() => void save(false)} disabled={busy !== null}>
+                {t("save")}
+              </Button>
+              <Button type="submit" className={BAR_BTN} loading={busy === "save"} disabled={busy !== null && busy !== "save"}>
+                {t("saveAndCheck")}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="secondary" className={BAR_BTN} onClick={() => void save(true)} disabled={busy !== null}>
+                {t("saveAndCheck")}
+              </Button>
+              <Button type="submit" className={BAR_BTN} loading={busy === "save"} disabled={busy !== null && busy !== "save"}>
+                {t("save")}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
     </form>
+  );
+}
+
+/** Phones: two equal buttons that may wrap to two short lines. */
+const BAR_BTN = "min-w-0 whitespace-normal px-2.5 text-center text-[13px] leading-tight sm:whitespace-nowrap sm:px-4 sm:text-sm";
+
+/** A numbered form section: small icon tile, step number and title. */
+function Section({ step, icon, title, aside, children }: { step: number; icon: ReactNode; title: ReactNode; aside?: ReactNode; children: ReactNode }) {
+  return (
+    <Card>
+      <div className="flex min-h-[52px] items-center gap-3 border-b border-border px-4 py-3 sm:px-5">
+        <span className="relative flex size-8 shrink-0 items-center justify-center rounded-lg bg-soft text-primary-text [&_svg]:size-4" aria-hidden="true">
+          {icon}
+          <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-white">{step}</span>
+        </span>
+        <h2 className="font-head text-[15px] font-bold tracking-tight text-text">{title}</h2>
+        {aside ? <span className="ml-auto text-xs text-subtle">{aside}</span> : null}
+      </div>
+      <CardBody className="space-y-4">{children}</CardBody>
+    </Card>
+  );
+}
+
+function Fact({ label, value, className }: { label: ReactNode; value: ReactNode; className?: string }) {
+  return (
+    <div className={cn("min-w-0", className)}>
+      <dt className="text-[11px] font-medium uppercase tracking-[1px] text-subtle">{label}</dt>
+      <dd className="mt-0.5 truncate font-medium text-text">{value}</dd>
+    </div>
   );
 }

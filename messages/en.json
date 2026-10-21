@@ -30,16 +30,24 @@
       "transactions": "Deals the buyer accepts by OTP",
       "settlements": "When the buyer pays in part",
       "team": "People and their access",
-      "billing": "Plan, units and wallet",
+      "billing": "Wallet, plan and invoices",
       "settings": "Notifications and preferences"
     },
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "mainNavigation": "Main navigation"
+    "mainNavigation": "Main navigation",
+    "tagline": "Get paid safely",
+    "about": {
+      "title": "What ChaanBean does",
+      "points": [
+        "Check a buyer before you give credit",
+        "Record the deal so the buyer agrees by OTP",
+        "Follow up and settle when payment is late"
+      ]
+    }
   },
   "topbar": {
     "noPlan": "No plan yet",
-    "planUnits": "{plan}: {units} units left",
     "wallet": "Wallet: {amount}",
     "organisation": "Organisation",
     "notSignedIn": "Not signed in",
@@ -104,11 +112,11 @@
       "purpose": "Find court cases, FIRs and money laundering watchlist hits, and confirm which matches are real."
     },
     "TXL": {
-      "title": "Transactions",
-      "purpose": "Every secured transaction with its status, balance and due date."
+      "title": "Business Security",
+      "purpose": "Agreements your buyers accept by OTP, sealed as evidence."
     },
     "S13": {
-      "title": "New secured transaction",
+      "title": "New agreement",
       "purpose": "Create a seller-initiated, buyer-initiated or lender transaction with all terms the counterparty will accept."
     },
     "S14": {
@@ -120,7 +128,7 @@
       "purpose": "Review an agreement and accept, reject or ask for changes."
     },
     "S16": {
-      "title": "Transaction",
+      "title": "Agreement",
       "purpose": "Track a transaction from draft to paid, record payments and get the evidence pack."
     },
     "STL": {
@@ -137,7 +145,7 @@
     },
     "S19": {
       "title": "Plan, usage and wallet",
-      "purpose": "Your plan, units used and left, wallet balance, ledger and invoices."
+      "purpose": "Your wallet balance, plan, price list, ledger and invoices."
     },
     "S20": {
       "title": "Notification settings",
@@ -164,13 +172,21 @@
     "pageOf": "Page {page} of {pages}",
     "rowsPerPage": "Rows per page",
     "sortBy": "Sort by {column}",
-    "noResults": "Nothing to show yet."
+    "noResults": "Nothing to show yet.",
+    "cancelWindow": {
+      "starting": "Starting in {seconds}…",
+      "note": "Tap Cancel if this was a mistake. Nothing is taken until it starts.",
+      "cancel": "Cancel"
+    },
+    "costBar": {
+      "checks": "{count, plural, =0 {No checks ticked} one {# check · total with GST} other {# checks · total with GST}}"
+    }
   },
   "login": {
     "title": "Sign in to Chaanbean",
-    "subtitle": "Use your mobile number. We will send you a one-time password.",
+    "subtitle": "We will send a one-time password to your mobile.",
     "mobileLabel": "Mobile number",
-    "trusted": "Keep me signed in on this device for 30 days",
+    "trusted": "Keep me signed in for 30 days",
     "sendOtp": "Send OTP",
     "otpSentTo": "Enter the 6-digit OTP sent to {mobile}.",
     "otpLabel": "One-time password",
@@ -184,20 +200,45 @@
     "registerNew": "Register a different business instead",
     "legal": "By continuing you agree to the <terms>Terms of Use</terms> and <privacy>Privacy Notice</privacy>.",
     "reference": "Reference: {reference}",
-    "devHint": "Development: test numbers 90000 00001, 90000 00002 and 90000 00003 sign in with code 123456. No SMS is sent.",
+    "devHint": "Test numbers 90000 00001 to 00003, code 123456. No SMS is sent.",
     "portalChip": "Client Portal",
     "secure": "Secure sign-in",
     "asideLabel": "Why Chaanbean",
     "asideChip": "B2B credit risk and recovery platform",
-    "asideTitle": "Never suffer bad debts or <accent>stuck receivables</accent> again.",
-    "asideLead": "Check a business's credit and court cases before you give credit, and secure large deals with approvals both sides sign.",
+    "asideTitle": "Sell on credit. <accent>Get paid</accent> on time.",
+    "asideLead": "Check buyers, secure deals and recover dues in one place.",
     "loginFor": "One login for",
     "modules": {
       "creditCheck": "Credit Worthiness",
       "caseCheck": "Case Check",
       "transactions": "Business Security",
       "settlements": "E-Settlement"
-    }
+    },
+    "titleRich": "Sign in to <accent>Chaanbean</accent>",
+    "devTag": "Dev",
+    "slidesLabel": "What you get",
+    "slides": {
+      "creditCheck": {
+        "line": "See a buyer’s credit health before you give credit.",
+        "tag": "Low risk"
+      },
+      "caseCheck": {
+        "line": "Find court cases and fraud flags in seconds.",
+        "tag": "No cases found"
+      },
+      "transactions": {
+        "line": "Buyers accept agreements by OTP, sealed as proof.",
+        "tag": "Accepted by OTP"
+      },
+      "settlements": {
+        "line": "Agree instalments with defaulters and track each payment.",
+        "tag": "3 of 6 paid"
+      }
+    },
+    "trustOtp": "OTP sign-in",
+    "trustEncrypted": "Encrypted data",
+    "trustIndia": "Made for MSMEs",
+    "footer": "Chaanbean · Credit checks and secure deals for Indian businesses"
   },
   "signup": {
     "title": "Verify your business",
@@ -231,9 +272,9 @@
     "state": "State",
     "taxpayerType": "Taxpayer type",
     "principalAddress": "Principal address",
-    "statusBlocked": "This GSTIN is {status} (since {date}). You can continue only after a manual review: upload your GST certificate and our team will check it within 2 working days.",
-    "notFound": "This GSTIN was not found in GST records. Enter the business details and upload your GST certificate for a manual review.",
-    "providerDown": "We could not reach the GST service. Continue with the details below; we will verify your GSTIN in the background.",
+    "statusBlocked": "This GSTIN is {status} (since {date}). Upload your GST certificate and we will review it within 2 working days.",
+    "notFound": "We could not find this GSTIN. Add your details and GST certificate for a manual review.",
+    "providerDown": "The GST service is not responding. Add your details below; we will verify your GSTIN later.",
     "address": "Address",
     "city": "City",
     "pincode": "PIN code",
@@ -269,11 +310,33 @@
     "emailError": "Enter a valid email address.",
     "authorityError": "Please confirm you can act for this business.",
     "termsError": "Please accept the Terms of Use and Privacy Notice.",
-    "continueToDashboard": "Continue to dashboard"
+    "continueToDashboard": "Continue to dashboard",
+    "stepOf": "Step {current} of {total}",
+    "nextStep": "Next: {name}",
+    "stepDone": "done",
+    "titleSub": "Verified businesses win buyer trust. It takes a minute.",
+    "yourDetailsSub": "Who is setting up this account?",
+    "howFile": "How does your business file taxes?",
+    "optGst": "Registered for GST",
+    "optGstSub": "Use your 15-character GSTIN",
+    "optPan": "Not registered for GST",
+    "optPanSub": "Use the business or owner's PAN",
+    "gstinHint": "15 characters, printed on your GST certificate.",
+    "gstinLooksRight": "Looks right",
+    "gstinLooksRightIn": "Looks right · {state}",
+    "fetchNote": "We pull your name and address from the GST portal.",
+    "panHint": "10 characters, like ABCDE1234F",
+    "wrongAccount": "Signed in with the wrong number?",
+    "signOut": "Sign out",
+    "titleRich": "Verify your <accent>business</accent>",
+    "yourDetailsRich": "Your <accent>details</accent>",
+    "chooseFile": "Choose a file",
+    "replaceFile": "Choose another file",
+    "agreements": "Confirm"
   },
   "team": {
     "title": "Team and roles",
-    "description": "Manage who in your organisation can use Chaanbean and what they can do.",
+    "description": "Who can use Chaanbean, and what each person can do.",
     "inviteUser": "Invite user",
     "seats": "{used} of {limit} seats used",
     "upgrade": "Upgrade plan",
@@ -297,7 +360,7 @@
     "reactivated": "User reactivated",
     "deactivated": "User deactivated",
     "deactivateTitle": "Deactivate {name}?",
-    "deactivateBody": "They lose access from their next action. Their history stays. You can reactivate them later if a seat is free.",
+    "deactivateBody": "They lose access from their next action. Their history stays, and you can reactivate them if a seat is free.",
     "invitesTitle": "Pending invitations",
     "expired": "expired",
     "expires": "expires {date}",
@@ -310,7 +373,7 @@
     "yes": "Yes",
     "no": "No",
     "inviteTitle": "Invite a user",
-    "inviteHelp": "They get an SMS and an email with a link, and sign in with OTP on their own mobile. The link expires in 7 days.",
+    "inviteHelp": "They get an SMS and email link, then sign in with OTP. The link lasts 7 days.",
     "cancel": "Cancel",
     "sendInvite": "Send invitation",
     "invited": "Invitation sent",
@@ -346,7 +409,13 @@
       "settings_own": "Own notification settings",
       "org_transfer_close": "Transfer ownership, close organisation",
       "audit_view": "Search audit logs"
-    }
+    },
+    "eyebrow": "Account",
+    "titleLead": "Team and",
+    "titleAccent": "roles",
+    "activeCount": "{count, plural, one {# active} other {# active}}",
+    "lastActiveAt": "Last active {date}",
+    "neverActive": "Not active yet"
   },
   "invite": {
     "eyebrow": "Invitation",
@@ -365,11 +434,12 @@
       "admin": "Admin",
       "member": "Member",
       "viewer": "Viewer"
-    }
+    },
+    "titleRich": "Join <accent>{organisation}</accent> on Chaanbean"
   },
   "verifyEmail": {
     "title": "Confirm your work email",
-    "body": "Click below to confirm this email address for your Chaanbean account.",
+    "body": "Confirm this email address for your Chaanbean account.",
     "confirm": "Confirm my email",
     "done": "Thank you. {email} is confirmed."
   },
@@ -439,12 +509,63 @@
         "title": "Send your first secured transaction",
         "body": "An agreement your buyer accepts by OTP."
       }
-    }
+    },
+    "eyebrow": "Overview",
+    "intro": "Check buyers, secure deals and get paid on time.",
+    "stats": {
+      "counterparties": "Buyers saved",
+      "checksThisMonth": "Checks this month",
+      "highRisk": "High-risk buyers",
+      "outstanding": "Money to collect",
+      "outstandingHint": "{count, plural, =0 {Nothing overdue} one {# deal overdue} other {# deals overdue}}",
+      "openHint": "{count, plural, =0 {No open deals} one {# open deal} other {# open deals}}",
+      "highHint": "From reports still valid",
+      "checksHint": "Credit Worthiness reports",
+      "cpsHint": "Buyers, debtors and borrowers"
+    },
+    "featuresTitle": "What do you want to do?",
+    "features": {
+      "cw": {
+        "title": "Credit Worthiness",
+        "when": "Before credit",
+        "body": "GST, company, CIBIL and a safe credit limit.",
+        "cta": "Check a buyer"
+      },
+      "cc": {
+        "title": "Case Check",
+        "when": "Big deals",
+        "body": "Court cases, FIRs and watchlists.",
+        "cta": "Check for cases"
+      },
+      "bs": {
+        "title": "Business Security",
+        "when": "Selling on credit",
+        "body": "Buyer accepts your terms by OTP. Proof if unpaid.",
+        "cta": "Secure a deal"
+      },
+      "es": {
+        "title": "E-Settlement",
+        "when": "Late payment",
+        "body": "Agree instalments when payment is late.",
+        "cta": "Start a settlement"
+      }
+    },
+    "recentTitle": "Recent reports",
+    "recentEmpty": "Your reports will show here after your first check.",
+    "viewAll": "View all",
+    "risk": {
+      "low": "Low risk",
+      "medium": "Medium risk",
+      "high": "High risk",
+      "not_enough_data": "Not enough data",
+      "none": "In progress"
+    },
+    "greetingLead": "Welcome back,"
   },
   "billing": {
     "choose": {
       "title": "Choose your plan",
-      "subtitle": "Prices exclude GST. Plans run for {months} months. You can change plans later from Plan and wallet.",
+      "subtitle": "Prices exclude GST. Plans run for {months} months.",
       "recommended": "Recommended",
       "perPeriod": "+ GST for {months} months",
       "users": "{count} users included",
@@ -455,10 +576,10 @@
       "select": "Choose {plan}",
       "selected": "Selected",
       "payPerUse": "Pay per use",
-      "payPerUseBody": "No plan. Add money to the wallet (from ₹1,000) and pay for each check as you go.",
+      "payPerUseBody": "No plan. Top up from ₹1,000 and pay per check.",
       "payPerUseCta": "Add money to the wallet",
-      "customTitle": "Need Something Different?",
-      "customBody": "Get a custom plan tailored to your specific needs.",
+      "customTitle": "Need a custom plan?",
+      "customBody": "Tell us your volume and we will tailor a plan.",
       "customCta": "Talk to us",
       "customName": "Your name",
       "customMobile": "Mobile number",
@@ -475,16 +596,22 @@
       "gstinNote": "Only the Owner can change this, in the business profile.",
       "selectPlan": "Select a plan to continue.",
       "pay": "Pay {amount}",
-      "secure": "UPI, cards and net banking through our payment partner.",
+      "secure": "Pay by UPI, card or net banking.",
       "current": "You are on {plan} until {date}.",
       "currentNote": "Upgrades and downgrades during a plan period arrive in a later update. Until then, contact support to change plans.",
       "decideLater": "Decide later",
       "noAccessTitle": "Only Owners and Admins can buy plans",
-      "noAccessBody": "Ask your Owner or an Admin to choose a plan."
+      "noAccessBody": "Ask your Owner or an Admin to choose a plan.",
+      "benefitWallet": "{amount} goes into your wallet",
+      "benefitUsers": "{count} users included",
+      "benefitPrices": "Plan prices on checks while the plan is active",
+      "titleRich": "Choose your <accent>plan</accent>",
+      "totalWithGst": "Total incl. GST",
+      "orAlso": "Other options"
     },
     "payment": {
       "confirming": "We are confirming your payment",
-      "confirmingBody": "This usually takes a few seconds. You can leave this page; the plan or wallet updates as soon as the payment is confirmed.",
+      "confirmingBody": "Usually a few seconds. You can leave this page; we update it once confirmed.",
       "stillPending": "We have not heard back from the payment gateway yet. If money left your account it will appear here once confirmed. Contact support with reference {reference} if it does not.",
       "paid": "Payment received",
       "paidPlan": "Your plan is active. The GST invoice is ready.",
@@ -494,52 +621,51 @@
       "retry": "Try again",
       "viewInvoice": "View invoice",
       "goToDashboard": "Go to dashboard",
-      "dismiss": "Close"
+      "dismiss": "Close",
+      "kycTitle": "Last step: confirm who you are",
+      "kycBody": "Share Aadhaar or PAN from DigiLocker. About a minute, or do it later.",
+      "kycCta": "Complete KYC now"
     },
     "page": {
       "noAccessTitle": "Only Owners and Admins can see billing",
       "noAccessBody": "Ask your Owner or an Admin for plan and wallet details.",
       "currentPlan": "Current plan",
       "payPerUse": "Pay per use",
-      "payPerUseBody": "No plan yet. Checks are paid from the wallet at the pay-per-use price plus GST.",
+      "payPerUseBody": "No plan yet. Checks are paid from the wallet, plus GST.",
       "period": "{start} to {end}",
       "statusActive": "Active",
       "statusGrace": "Grace period",
-      "autoRenew": "Renew automatically at the end of the period",
+      "autoRenew": "Renew automatically",
       "autoRenewOn": "Auto-renew is on.",
       "autoRenewOff": "Auto-renew is off. The plan ends on {date}.",
       "choosePlan": "Choose a plan",
       "changePlan": "Change plan",
-      "unitsLeft": "{count} plan units left",
       "users": "{count} users",
       "wallet": "Wallet",
       "balance": "Balance",
       "addMoney": "Add money",
       "lowBalance": "The balance is below your alert amount.",
-      "walletNote": "Wallet money does not expire while the account is active.",
+      "walletNote": "Never expires while your account is active.",
       "alert": "Low-balance alert (₹)",
-      "alertHint": "We email you when the balance falls below this amount. Leave empty to turn off.",
+      "alertHint": "We email you below this amount. Leave empty to turn off.",
       "alertInvalid": "Enter an amount between ₹0 and ₹1,00,000.",
       "save": "Save",
       "saved": "Saved.",
       "topupTitle": "Add money to the wallet",
       "topupAmount": "Amount (₹)",
-      "topupHint": "₹1,000 to ₹5,00,000. The full amount goes into the wallet; GST is included and shown on the invoice.",
+      "topupHint": "₹1,000 to ₹5,00,000. GST is included and shown on the invoice.",
       "topupInvalid": "Enter an amount between ₹1,000 and ₹5,00,000.",
       "topupGst": "Includes GST of {gst} on {taxable}.",
       "continueToPay": "Continue to pay",
-      "usageTitle": "Usage",
+      "usageTitle": "Price list",
       "colItem": "Item",
-      "colIncluded": "Included",
-      "colUsed": "Used",
-      "colRemaining": "Remaining",
-      "colPrice": "Pay-per-use price",
+      "colPrice": "Price",
       "priceGst": "{price} + GST",
       "ledgerTitle": "Ledger",
       "from": "From",
       "to": "To",
       "show": "Show",
-      "downloadCsv": "Download statement (CSV)",
+      "downloadCsv": "Download CSV",
       "colDate": "Date",
       "colEntry": "Entry",
       "colDebit": "Debit",
@@ -550,14 +676,24 @@
       "entryReverse": "Returned: {item}",
       "entryTopup": "Wallet top-up",
       "entryAdjust": "Adjustment",
-      "planUnit": "1 plan unit",
       "noLedger": "No entries yet.",
       "invoicesTitle": "Invoices",
       "colNumber": "Invoice",
       "colDescription": "Description",
       "colAmount": "Amount",
       "noInvoices": "No invoices yet.",
-      "view": "View"
+      "view": "View",
+      "planWallet": "Plan payments go into your wallet",
+      "planPriceTag": "Plan price",
+      "colGst": "GST 18%",
+      "colTotal": "You pay",
+      "eyebrow": "Account",
+      "titleLead": "Plan, usage and",
+      "titleAccent": "wallet",
+      "description": "Balance, plan, prices, ledger and invoices in one place.",
+      "lowTag": "Low balance",
+      "daysUsed": "Days used",
+      "quickAmounts": "Quick amounts"
     }
   },
   "counterparties": {
@@ -567,7 +703,7 @@
     "export": "Export CSV",
     "searchLabel": "Search counterparties",
     "searchPlaceholder": "Name, GSTIN, full PAN or full mobile",
-    "searchHint": "Type at least 2 characters. PAN and mobile match the full number only.",
+    "searchHint": "At least 2 characters. PAN and mobile match the full number only.",
     "filterStatus": "Status",
     "statusActive": "Active",
     "statusArchived": "Archived",
@@ -607,12 +743,14 @@
     "types": {
       "business_gstin": "Business with GSTIN",
       "business_pan": "Business without GST",
-      "individual": "Individual"
+      "individual": "Individual",
+      "business_cin": "Company (from MCA records)"
     },
     "typeHints": {
       "business_gstin": "Registered for GST. We fetch the name and address.",
       "business_pan": "Not registered for GST. Identified by PAN.",
-      "individual": "A person, for example for a loan you give."
+      "individual": "A person, for example for a loan you give.",
+      "business_cin": "Picked from MCA company records. Add a GSTIN and contact for more checks."
     },
     "newTitle": "Add counterparty",
     "newSubtitle": "Register a buyer, debtor or borrower with verified identity and contact details. Adding is free.",
@@ -649,7 +787,7 @@
     "upiUnavailable": "The UPI lookup is not available right now. Try again later, or confirm by sending ₹1 by UPI.",
     "upiManual": "Confirmed by sending ₹1 by UPI",
     "upiNotChecked": "Not checked yet",
-    "upiManualHelp": "No UPI lookup? Send ₹1 by UPI to this number, check the name the app shows, then mark it as done on the counterparty's profile.",
+    "upiManualHelp": "Send ₹1 by UPI to this number, check the name the app shows, then mark it done on the profile.",
     "upiConfirm": "I sent ₹1 by UPI and the name matched",
     "upiConfirmed": "Marked as confirmed by ₹1 UPI payment",
     "upiChecked": "Bank-linked mobile checked",
@@ -660,11 +798,11 @@
     "selectState": "Select a state",
     "pincode": "PIN code",
     "creditDays": "Credit days",
-    "creditDaysHint": "Days the buyer has to pay. Pre-fills new deals.",
+    "creditDaysHint": "Days to pay. Pre-fills new deals.",
     "interestRate": "Interest after due date",
     "interestRateHint": "% a year, 0 to 36. Pre-fills new deals.",
     "tags": "Tags",
-    "tagsHint": "Up to 10, separated by commas. For example: wholesale, Pune.",
+    "tagsHint": "Up to 10, comma-separated. E.g. wholesale, Pune.",
     "save": "Save counterparty",
     "saveAndCheck": "Save and run checks",
     "cancel": "Cancel",
@@ -687,7 +825,7 @@
     "tabOverview": "Overview",
     "tabReports": "Reports",
     "tabCases": "Cases",
-    "tabTransactions": "Transactions",
+    "tabTransactions": "Agreements",
     "tabDocuments": "Documents",
     "tabActivity": "Activity",
     "noChecksTitle": "No checks yet",
@@ -754,9 +892,23 @@
     "openReport": "Open report",
     "inProgress": "Running",
     "iec": "IEC",
-    "iecHint": "Importer Exporter Code, if they import or export.",
-    "addCostPlan": "Adding a buyer uses 1 unit from your plan.",
-    "addCostWallet": "Adding a buyer costs {total} ({price} + GST) from your wallet."
+    "iecHint": "Only if they import or export.",
+    "addCostWallet": "Adding a buyer costs {total} ({price} + GST) from your wallet.",
+    "gstinOptional": "GSTIN (optional)",
+    "gstinLinkHint": "Link this company's GSTIN to run GST checks. We check it with the GST network.",
+    "listTitleRich": "Your <accent>counterparties</accent>",
+    "listSubtitleShort": "Buyers, debtors and borrowers you give credit to.",
+    "emptyBodyShort": "Add a buyer to check them and secure your deals.",
+    "quickCheck": "Check",
+    "newTitleRich": "Add a <accent>counterparty</accent>",
+    "newSubtitleShort": "Verify a buyer, debtor or borrower before giving credit.",
+    "moreIds": "More IDs: CIN, Udyam, IEC (optional)",
+    "upiIntroShort": "We check through UPI that this number has a bank account.",
+    "upiManualSummary": "No UPI lookup? Confirm with ₹1",
+    "noChecksBodyShort": "Run a credit check for a risk level and a safe credit range.",
+    "safeRange": "Safe range",
+    "colLimitShort": "Limit",
+    "checkedOn": "Checked {date}"
   },
   "checks": {
     "title": "Credit Worthiness",
@@ -792,11 +944,9 @@
     "cibilCompany": "Company CIBIL",
     "cibilPersonal": "Personal (owner or director)",
     "cibilBoth": "Both",
-    "priceOrUnit": "{price} or 1 unit",
     "price": "{price}",
     "perReport": "{price} per report",
     "priceNotSet": "Price to be set",
-    "unitsLeft": "{count, plural, one {# unit left in your plan} other {# units left in your plan}}",
     "fromWallet": "From wallet",
     "disabled": {
       "needsGstin": "Needs a GSTIN. This buyer is not registered for GST.",
@@ -806,17 +956,14 @@
       "needsGstinOrPan": "Needs a GSTIN or PAN.",
       "needsUdyamOrPan": "MSME report needs a Udyam number or PAN.",
       "needsPan": "PAN check needs a PAN, GSTIN or CIN.",
-      "needsIecOrPan": "Import export needs an IEC or PAN."
+      "needsIecOrPan": "Import export needs an IEC or PAN.",
+      "needsContact": "Needs the buyer's mobile for their OTP. Add a contact first."
     },
     "recent": "Done on {date}.",
     "openResult": "Open result",
     "rerunCharged": "Running it again is charged.",
     "costTitle": "This search will cost",
     "costEmpty": "Tick a check to see what it costs.",
-    "oneUnit": "1 unit",
-    "fromPlan": "From plan",
-    "units": "{count, plural, one {# unit} other {# units}}",
-    "planLeftAfter": "Plan units left after",
     "walletAfter": "Wallet balance after",
     "consentNote": "{count, plural, one {# item needs the buyer to say yes by OTP.} other {# items need the buyer to say yes by OTP.}} The other checks run now.",
     "continue": "Continue",
@@ -827,8 +974,7 @@
     "runManual": "I will run each one myself",
     "deductNow": "Will be deducted now",
     "deductAsYouRun": "Will be deducted as you run each one",
-    "deductSummary": "{units} from plan · {money} from wallet",
-    "notEnough": "Not enough plan units or wallet money for this search.",
+    "notEnough": "Not enough money in your wallet for this search.",
     "addMoney": "Add money or change plan",
     "cancel": "Cancel",
     "run": "Yes, run search",
@@ -875,13 +1021,443 @@
       "pan": "Their PAN",
       "panHint": "A personal PAN has P as the 4th letter.",
       "birthDate": "Date of birth"
+    },
+    "search": {
+      "label": "Company",
+      "hint": "Search by company name, GSTIN, or CIN/LLPIN. Your buyers and MCA company records.",
+      "placeholder": "Company name, GSTIN or CIN",
+      "results": "Matching companies",
+      "yourBuyers": "Your buyers",
+      "noMatch": "No company matches “{query}”. Try fewer words, another state, or add it by GSTIN.",
+      "addGstin": "Add {gstin} by GSTIN and check it",
+      "change": "Change",
+      "tryPrefix": "Try",
+      "addByGstin": "Not listed? Add a firm by GSTIN (proprietors and partnerships are not in MCA records)",
+      "personSoon": "Search by a person's name: coming with ChaanBean intelligence",
+      "loading": "Searching",
+      "clear": "Clear search",
+      "state": "State",
+      "allStates": "All states",
+      "city": "City",
+      "activeOnly": "Active only",
+      "mcaRecords": "MCA company records ({count})",
+      "gstRecord": "GST registration",
+      "dataDate": "MCA open data as of {date}",
+      "since": "Since {date}",
+      "keepTyping": "Type 3 letters or more to search all companies.",
+      "gstNotFound": "No GST registration found for this GSTIN.",
+      "gstUnavailable": "The GST network is not answering. Try again in a minute, or add the company by GSTIN.",
+      "mcaNotReady": "Company records are still loading. You can add the company by GSTIN for now.",
+      "sampleGst": "Sample GST data: the live GST key is not set yet.",
+      "added": "{name} added to your buyers."
+    },
+    "priceWallet": "{price} + GST",
+    "tabs": {
+      "label": "Credit Worthiness sections",
+      "new": "New search",
+      "bulk": "Multiple search",
+      "history": "History"
+    },
+    "history": {
+      "title": "Search history",
+      "subtitle": "Every Credit Worthiness search. Filter by company, risk, status, date or bulk upload.",
+      "newSearch": "New search",
+      "riskCard": "Risk",
+      "search": "Search reports",
+      "searchPlaceholder": "Company, GSTIN, city or report number",
+      "status": "Status",
+      "period": "Date",
+      "source": "Single or bulk",
+      "sort": "Sort",
+      "statusOpt": {
+        "all": "Any status",
+        "done": "Done",
+        "running": "Checking",
+        "waiting": "Waiting for buyer",
+        "partial": "Partly done",
+        "expired": "Expired"
+      },
+      "periodOpt": {
+        "all": "Any date",
+        "7": "Last 7 days",
+        "30": "Last 30 days",
+        "90": "Last 90 days"
+      },
+      "sourceOpt": {
+        "all": "Single and bulk",
+        "single": "Single searches",
+        "bulk": "Bulk uploads"
+      },
+      "sortOpt": {
+        "newest": "Newest first",
+        "oldest": "Oldest first",
+        "risk": "Highest risk first",
+        "credit": "Largest safe credit",
+        "name": "Company A to Z"
+      },
+      "showing": "Showing {shown} of {total}",
+      "clear": "Clear filters",
+      "none": "No searches yet",
+      "noneBody": "Run a credit check on a buyer, or upload a list of companies.",
+      "noneMatch": "No reports match these filters",
+      "col": {
+        "company": "Company",
+        "risk": "Risk",
+        "range": "Safe credit",
+        "status": "Status",
+        "date": "Date",
+        "open": "Open"
+      },
+      "noCredit": "Not advised",
+      "bulkTag": "Bulk",
+      "open": "Open",
+      "sampleNote": "Development only: add sample companies and reports to see every risk level and filter.",
+      "sampleAdd": "Add sample data",
+      "sampleRemove": "Remove sample data",
+      "sampleAdded": "Added {count} sample reports.",
+      "sampleRemoved": "Removed {count} sample companies.",
+      "titleRich": "Search <accent>history</accent>",
+      "subtitleShort": "Every credit check you ran, with risk and safe credit.",
+      "noneBodyShort": "Check a buyer, or upload a list of companies.",
+      "statusShort": {
+        "all": "All",
+        "done": "Done",
+        "running": "Checking",
+        "waiting": "Waiting",
+        "partial": "Partly done",
+        "expired": "Expired"
+      },
+      "periodShort": {
+        "all": "Any time",
+        "7": "7 days",
+        "30": "30 days",
+        "90": "90 days"
+      },
+      "sourceShort": {
+        "all": "All",
+        "single": "Single",
+        "bulk": "Bulk"
+      }
+    },
+    "start": {
+      "chip": "Credit Worthiness · {count, plural, one {# saved company} other {# saved companies}}",
+      "title": "Know who can pay, <accent>before you give credit</accent>",
+      "lead": "Search any Indian company. Get GST, MCA and CIBIL in one clear report.",
+      "searchLabel": "Search a company",
+      "recentlyChecked": "Recent",
+      "addCompany": "Add a new company",
+      "bulk": "Check many from Excel",
+      "features": {
+        "gst": {
+          "title": "GST and filings",
+          "body": "Is the GST active, are returns on time, and turnover for up to 4 years.",
+          "tag": "From ₹15"
+        },
+        "cibil": {
+          "title": "CIBIL and dues",
+          "body": "Loans, overdue payments and score, after the buyer says yes by OTP.",
+          "tag": "Buyer consent"
+        },
+        "company": {
+          "title": "Company and directors",
+          "body": "MCA status, loans against assets, directors and their other companies.",
+          "tag": "Public records"
+        },
+        "range": {
+          "title": "Safe credit range",
+          "body": "A risk level with reasons and how much credit is safe to give.",
+          "tag": "1% to 2% of turnover"
+        }
+      },
+      "recentReports": "Recent reports",
+      "seeAll": "See all",
+      "noReports": "No reports yet.",
+      "bulkTitle": "Checking many buyers?",
+      "bulkBody": "Up to 50 companies from Excel. Quick screen first, deep checks after.",
+      "bulkCta": "Upload a list",
+      "bulkNote": "See the full cost before anything runs.",
+      "stepN": "Step {n}",
+      "steps": {
+        "search": {
+          "title": "Search",
+          "body": "Name, GSTIN or CIN."
+        },
+        "tick": {
+          "title": "Pick a package",
+          "body": "See the price first."
+        },
+        "report": {
+          "title": "Get the report",
+          "body": "Risk, safe credit, reasons."
+        }
+      },
+      "previewEyebrow": "Example report",
+      "previewTitle": "Your report will look like this",
+      "previewLead": "Example data. Swipe through the sections."
+    },
+    "beforeGst": "Price before GST",
+    "gst": "GST 18%",
+    "total": "Total",
+    "walletNow": "Wallet now",
+    "startingTitle": "Starting your search",
+    "cancelledNothing": "Cancelled. Nothing was charged.",
+    "held": "{amount} held. You pay only for data that arrives.",
+    "startedManual": "Started. Run each check when you are ready.",
+    "sampleStarted": "Started with sample data. Nothing is charged.",
+    "sampleNote": "SAMPLE DATA: these checks return sample results and nothing is taken from your wallet.",
+    "shortfall": "Not enough money in your wallet: add {amount} or more.",
+    "needsContact": "This company has no contact yet. Public record checks can run now. To run GST turnover or CIBIL, which the buyer approves by OTP, <link>add a contact and GSTIN</link>.",
+    "multi": {
+      "title": "Multiple search",
+      "subtitle": "Check many companies at once. Matching is free; a quick screen sorts them, then you deep-check the ones you choose.",
+      "how": "How to add companies",
+      "typeTab": "Type companies",
+      "fileTab": "Upload Excel or CSV",
+      "typeTitle": "Type up to {max} companies",
+      "colName": "Company name",
+      "colId": "GSTIN or CIN",
+      "colCity": "City",
+      "colNameN": "Company name, row {n}",
+      "colIdN": "GSTIN or CIN, row {n}",
+      "colCityN": "City, row {n}",
+      "namePlaceholder": "e.g. Om Builders Pvt Ltd",
+      "idPlaceholder": "Optional",
+      "removeRow": "Remove row {n}",
+      "addRow": "Add a row",
+      "typeHelp": "A GSTIN or CIN finds the company exactly. A name shows the matches and you pick the right one.",
+      "fileTitle": "Upload a list (up to {max} rows)",
+      "template": "Download template",
+      "drop": "Drop your Excel or CSV file here, or click to choose",
+      "replace": "Click or drop another file to replace it",
+      "formats": ".xlsx or .csv, up to {max} rows and 2 MB",
+      "columns": "Columns: company_name, gstin, cin, city, state, contact_name, contact_mobile, contact_email. Each row needs a company name, GSTIN or CIN. The contact is added to the buyer when they have none.",
+      "match": {
+        "matched_exact": "Matched",
+        "needs_pick": "Pick one",
+        "picked": "Picked",
+        "not_found": "Not found",
+        "duplicate": "Duplicate",
+        "invalid": "Check this row"
+      },
+      "freeNote": "Matching is free. Nothing is charged until you confirm a cost.",
+      "stepsTitle": "How it works",
+      "steps": {
+        "s1": "Type or upload your companies.",
+        "s2": "Confirm the matches. Pick the right company where a name has several.",
+        "s3": "Quick screen: GST search and Company check for every company, about ₹17 + GST each.",
+        "s4": "Filter the results and deep-check the ones you choose. Download everything as Excel."
+      },
+      "previous": "Previous searches",
+      "typedName": "{count, plural, one {# typed company} other {# typed companies}}",
+      "rowsN": "{count, plural, one {# row} other {# rows}}",
+      "looksGoodN": "{count} looks good",
+      "status": {
+        "ready": "To confirm",
+        "confirmed": "Ready to screen",
+        "screening": "Screening",
+        "screened": "Screened",
+        "deep_running": "Deep checks running",
+        "done": "Done"
+      },
+      "resultsTitle": "Multiple search",
+      "resultsSubtitle": "{name} · {at} · {count, plural, one {# row} other {# rows}}",
+      "back": "Back to multiple search",
+      "sampleBanner": "Sample data mode: results are made up for testing and nothing is taken from your wallet.",
+      "stepMatch": "Confirm matches",
+      "stepScreen": "Quick screen",
+      "stepResults": "Results",
+      "confirmed": "Companies added to your buyers.",
+      "matchTitle": "Confirm the matches",
+      "readyN": "{count} ready",
+      "needsPickN": "{count} need a pick",
+      "skippedN": "{count} skipped",
+      "rowN": "Row {n}",
+      "pickOne": "{count, plural, one {# match: is this the company?} other {# matches: pick the right company}}",
+      "rowError": {
+        "badGstin": "This GSTIN is not valid.",
+        "badCin": "This CIN or LLPIN is not valid.",
+        "shortName": "Type at least 3 letters of the name, a GSTIN or a CIN.",
+        "gstUnavailable": "The GST network did not answer. Try again later.",
+        "mcaNotReady": "Company records are still loading."
+      },
+      "notFoundHelp": "No company found in MCA records. Proprietors and partnerships are not listed there.",
+      "addByGstin": "Add by GSTIN",
+      "duplicateHelp": "The same company appears earlier in the list, so this row is skipped.",
+      "pickFirst": "{count, plural, one {# row needs a pick} other {# rows need a pick}}. Pick or untick them to continue.",
+      "readyToScreen": "{count, plural, one {# company is} other {# companies are}} ready for the quick screen.",
+      "continue": "Continue with {count, plural, one {# company} other {# companies}}",
+      "walletAfter": "Wallet after",
+      "skippedNote": "{count, plural, one {# company is} other {# companies are}} left out: none of these checks can run for them.",
+      "notEnough": "Not enough wallet money for all of these.",
+      "addMoney": "Add money",
+      "chargeNote": "Each check is charged only when data comes back. If a source is down, it is not charged.",
+      "startingTitle": "Starting…",
+      "notNow": "Not now",
+      "yesRun": "Yes, run for {count, plural, one {# company} other {# companies}}",
+      "forCompanies": "For {count, plural, one {# company} other {# companies}}:",
+      "screenTitle": "Quick screen",
+      "screenBody": "GST search and Company check for each company, from public records (API Setu and MCA). Companies without a GSTIN get the Company check only.",
+      "screenCost": "{amount} for {count, plural, one {# company} other {# companies}}",
+      "runScreen": "Run quick screen",
+      "screenConfirm": "Run the quick screen?",
+      "cancelledNothing": "Cancelled. Nothing was charged.",
+      "sampleStarted": "Started with sample data. Nothing taken from your wallet.",
+      "held": "{amount} held. You pay only for data that arrives.",
+      "screening": "Screening companies: {done} of {total} done",
+      "screeningNote": "This takes a minute. You can leave this page and come back.",
+      "publicOnly": "This uses public records only. It is a first filter, not a credit decision.",
+      "deepRunning": "Deep checks are running. Reports fill in as each company finishes.",
+      "filterResult": "Screen result",
+      "all": "All",
+      "result": {
+        "looks_good": "Looks good",
+        "check_further": "Check further",
+        "avoid": "Avoid",
+        "not_enough_data": "Not enough data"
+      },
+      "filterState": "State",
+      "allStates": "All states",
+      "filterYears": "Years in business",
+      "anyYears": "Any age",
+      "yearsPlus": "{years}+ years",
+      "filterFiling": "GST filing",
+      "anyFiling": "Any filing",
+      "filingRegular": "Files regularly",
+      "filingIrregular": "Late or missing returns",
+      "filterMca": "MCA status",
+      "anyMca": "Any MCA status",
+      "selectAll": "Select all shown",
+      "selectRow": "Select {name}",
+      "sortBy": "Sort by {label}",
+      "col": {
+        "company": "Company",
+        "gst": "GST status",
+        "filed": "Returns filed (12 m)",
+        "mca": "MCA status",
+        "years": "Years",
+        "capital": "Paid-up capital",
+        "result": "Screen result"
+      },
+      "openReport": "Report {no}",
+      "pending": "Waiting",
+      "reason": {
+        "noRecords": "No GST or MCA record found",
+        "gstinInactive": "GSTIN {gstin} is {status}",
+        "mcaStatus": "MCA status: {status}",
+        "noFilings": "No GST return in the last {months} months",
+        "lateFilings": "{count} late or missing GSTR-3B in 12 months",
+        "young": "In business {years, plural, one {# year} other {# years}}",
+        "lowCapital": "Paid-up capital below ₹1 lakh"
+      },
+      "noneMatch": "No company matches these filters.",
+      "export": "Download Excel",
+      "deepN": "Deep check {count, plural, =0 {selected} one {# selected} other {# selected}}",
+      "deepPick": "Credit Worthiness checks",
+      "needsOtp": "buyer OTP",
+      "each": "{amount} + GST each",
+      "consentNote": "{count, plural, one {# buyer is} other {# buyers are}} asked to say yes by OTP. Buyers without a mobile are left out of those checks.",
+      "deepTitle": "Deep check {count, plural, one {# company} other {# companies}}",
+      "matchBtn": "{file, select, file {Upload and match} other {Match {count, plural, one {# company} other {# companies}}}}",
+      "deepPickCase": "Case Check",
+      "caseNote": "Searched by each buyer's name, state and city from their record. FIR only in covered states. Review the matches in each case report.",
+      "openCase": "Case {no}",
+      "addGstinLabel": "Add the GSTIN",
+      "addGstinBtn": "Find",
+      "noneOfThese": "None of these? Add the company's GSTIN",
+      "example": "Download an example",
+      "titleRich": "Multiple <accent>search</accent>",
+      "subtitleShort": "Match for free, screen them all, deep-check the ones you pick.",
+      "typeCardBody": "Up to {max} companies by name, GSTIN or CIN.",
+      "fileCardBody": "Excel or CSV, up to {max} rows.",
+      "stepsShort": {
+        "s1": "Add companies",
+        "s2": "Confirm matches",
+        "s3": "Quick screen",
+        "s4": "Deep check"
+      },
+      "typeHelpShort": "GSTIN or CIN matches exactly; a name shows choices.",
+      "columnsSummary": "Which columns does the file need?",
+      "freeNoteShort": "Matching is free.",
+      "screenBodyShort": "GST search and Company check for each company, from public records. No GSTIN: Company check only."
+    },
+    "eyebrow": "Credit Worthiness",
+    "runSearch": "Run search",
+    "runSearchAmount": "Run search · {amount}",
+    "askAndRun": "Send request and run",
+    "askAndRunShort": "Send and run",
+    "runHint": "You get a few seconds to cancel. Nothing is taken until it starts.",
+    "runTogetherShort": "All together",
+    "runManualShort": "One by one",
+    "checksCount": "{count, plural, one {# check} other {# checks}}",
+    "reportWillHave": "Your report will include",
+    "mapRisk": "Risk level, safe credit range and reasons",
+    "mapNotTicked": "(not ticked)",
+    "titleLead": "Can this buyer",
+    "titleAccent": "pay you?",
+    "subtitleShort": "Pick a package, see the price, run. Pay only for data that arrives.",
+    "needsContactShort": "No contact yet: public checks only. <link>Add contact</link> for turnover and CIBIL.",
+    "recentShort": "Checked on {date}.",
+    "turnover4yShort": "Last 4 years",
+    "turnoverCyShort": "This year",
+    "cibilCompanyShort": "Company",
+    "cibilPersonalShort": "Owner / director",
+    "totalLine": "{count, plural, one {# check} other {# checks}} · incl. {gst} GST",
+    "seeBreakup": "See price breakup",
+    "runHintShort": "A few seconds to cancel. Nothing is charged until it starts.",
+    "disabledShort": {
+      "needsGstin": "Needs GSTIN",
+      "businessOnly": "Businesses only",
+      "noPrice": "Coming soon",
+      "archived": "Buyer archived",
+      "needsGstinOrPan": "Needs GSTIN or PAN",
+      "needsUdyamOrPan": "Needs Udyam or PAN",
+      "needsPan": "Needs PAN",
+      "needsIecOrPan": "Needs IEC or PAN",
+      "needsContact": "Needs contact"
+    },
+    "short": {
+      "CW_GST_SEARCH": "GST",
+      "CW_GST_TURNOVER_4Y": "Turnover 4y",
+      "CW_GST_TURNOVER_CY": "Turnover",
+      "CW_CIBIL_COMPANY": "CIBIL",
+      "CW_CIBIL_PERSONAL": "CIBIL",
+      "CW_MSME": "MSME",
+      "CW_PAN": "PAN",
+      "CW_IEC_PROFILE": "IEC",
+      "CW_IEC_TURNOVER": "Trade",
+      "CW_COMPANY": "Company",
+      "CW_DIRECTORS": "Directors",
+      "CW_CREDIT_RATING": "Rating"
+    },
+    "pkg": {
+      "title": "Choose a check",
+      "customise": "Customise",
+      "hideCustom": "Hide options",
+      "customTitle": "Pick your own",
+      "tapToToggle": "Tap to add or remove",
+      "popular": "Most picked",
+      "count": "{count, plural, one {# check} other {# checks}}",
+      "otp": "Buyer OTP",
+      "missing": "{count} n/a here",
+      "quick": {
+        "name": "Quick",
+        "line": "GST, company and directors. Instant."
+      },
+      "standard": {
+        "name": "Standard",
+        "line": "Adds turnover, MSME and PAN."
+      },
+      "complete": {
+        "name": "Complete",
+        "line": "Everything, with CIBIL and rating."
+      }
     }
   },
   "report": {
     "title": "Credit report",
     "meta": "{number} · {date} · Valid till {valid}",
     "expired": "This report is older than 30 days. Run it again for fresh data.",
-    "testData": "Test data",
+    "testData": "SAMPLE DATA: not a real report",
     "download": "Download PDF",
     "runAgain": "Run again",
     "caseCheck": "Run Case Check",
@@ -936,8 +1512,8 @@
       "queued": "Waiting to start…",
       "running": "Checking…",
       "waiting_consent": "Waiting for the buyer to say yes",
-      "no_data": "Nothing found at the source. This still uses a unit.",
-      "not_available": "Not available from source. Unit not charged.",
+      "no_data": "Nothing found at the source. This is still charged, because the search ran.",
+      "not_available": "Not available from source. Not charged.",
       "cancelled": "Stopped. Not charged.",
       "consent_declined": "The buyer said no. Not charged.",
       "consent_expired": "The buyer did not reply in 72 hours. Not charged.",
@@ -1023,32 +1599,135 @@
     "runTitle": "Run {name}?",
     "runConfirm": "Yes, run search",
     "cancel": "Cancel",
-    "notEnough": "Not enough plan units or wallet money for this search.",
-    "addMoney": "Add money or change plan"
+    "notEnough": "Not enough money in your wallet for this search.",
+    "addMoney": "Add money or change plan",
+    "sampleSource": "Sample",
+    "liveSource": "Live · {provider}",
+    "startingNow": "Starting your search…",
+    "cancelledReport": "Cancelled before it started. Nothing was charged.",
+    "chart": {
+      "label": "Chart type",
+      "view": {
+        "bar": "Bar",
+        "line": "Line",
+        "pie": "Pie",
+        "month": "This year by month"
+      },
+      "pieNote": "Pie shows each year's share of the total, not the trend. Use Bar or Line to see growth or decline.",
+      "soFar": "{label} so far",
+      "filingsTitle": "GSTR-3B, last 12 months",
+      "filing": {
+        "ontime": "Filed on time",
+        "late": "Filed late",
+        "missing": "Not filed"
+      },
+      "scoreScale": "Score (300 to 900)",
+      "rankScale": "CMR rank (10 is weakest, 1 is strongest)",
+      "rankWorst": "10",
+      "rankBest": "1",
+      "sanctioned": "Sanctioned",
+      "outstandingBar": "Outstanding",
+      "overdueBar": "Overdue",
+      "tradeTitle": "Exports and imports by year",
+      "exports": "Exports",
+      "imports": "Imports",
+      "topPorts": "Main ports: {ports}",
+      "capitalTitle": "Paid-up of authorised capital",
+      "capitalValue": "{paid} of {auth}",
+      "chargesTitle": "Loans against assets",
+      "chargesOpen": "Open",
+      "chargesSatisfied": "Repaid",
+      "directorsTitle": "Other companies each director runs",
+      "soFarShort": "so far",
+      "fyAxis": "Financial year (April to March)",
+      "ratingTitle": "Rating on the scale",
+      "ratingStrong": "Strongest",
+      "ratingWeak": "Default",
+      "projectedNote": "Hatched part: full year projected at the pace of the months filed so far",
+      "projectedShort": "≈ {value} projected for the full year"
+    },
+    "notInSource": "Not in this source",
+    "src": {
+      "sample": "Sample data, {time}",
+      "live": "{provider}, {time}",
+      "mca": "MCA open data as of {date}"
+    },
+    "natureOfBusiness": "Nature of business",
+    "eInvoice": "E-invoicing",
+    "otherPlaces": "Other places of business",
+    "jurisdiction": "Tax office",
+    "andMore": "{list} and {count} more",
+    "sampleStarTitle": "Sample data",
+    "sampleStarNote": "Sample data: an illustration made up by the portal, not from a live source. Sections without the star use live data.",
+    "testDataMixed": "Includes sample data (★)",
+    "companyKind": "Type of company",
+    "listing": "Stock exchange",
+    "origin": "Indian or foreign",
+    "originIndian": "Indian company",
+    "activity": "Business activity",
+    "nicCode": "Industry code (NIC)",
+    "registrar": "Registrar office",
+    "preview": {
+      "example": "Example",
+      "headerNote": "Sample company · every number on this page is made up",
+      "rangeNote": "1% to 2% of last year's GST turnover",
+      "what": {
+        "gst": "Is the GST active, and were returns filed on time each month?",
+        "turnover": "Sales declared in GST returns by year, with the current year projected at its pace so far.",
+        "cibil": "Loans, what is still owed and anything overdue. Needs the buyer's yes by OTP.",
+        "company": "MCA company record, capital, loans against assets and the directors.",
+        "identity": "Udyam (MSME) registration, PAN check and import–export record.",
+        "rating": "Ratings from agencies like CRISIL, ICRA or CARE, where the company has one."
+      },
+      "ghost": {
+        "notSelectedTitle": "Not in this report",
+        "notSelectedNote": "You did not tick this check. This faded view shows what it would add.",
+        "addCheck": "Add this check",
+        "notAvailableTitle": "No record found at the source",
+        "notAvailableNote": "The source has no data for this company yet. The faded view is only an example of what this section shows.",
+        "failedTitle": "We could not get this data",
+        "failedNote": "The source did not answer. You were not charged for it. Try again later.",
+        "waitingTitle": "Waiting for the buyer's yes",
+        "waitingNote": "This section fills in once the buyer approves by OTP. The faded view is an example.",
+        "readyTitle": "Ready to run",
+        "readyNote": "You chose to run checks one by one. Run this one when you need it.",
+        "runningTitle": "Fetching now…",
+        "runningNote": "This usually takes under a minute. The page updates by itself.",
+        "blockedTitle": "Not shown",
+        "blockedNote": "This data is no longer shown because the buyer's permission ended. The faded view is an example.",
+        "moreTitle": "More checks you can add",
+        "moreLead": "Not ticked for this report. Each preview below uses example data."
+      },
+      "carousel": "Example report sections"
+    },
+    "progressDone": "All checks finished",
+    "progressCount": "{done} of {total} checks done",
+    "signalsComing": "Reasons appear here as the checks finish.",
+    "runNamed": "Run {name}"
   },
   "consent": {
     "eyebrow": "Consent request",
-    "title": "{requester} wants to check your business credit",
+    "title": "{requester} wants to check your <g>business credit</g>",
     "notFoundTitle": "This link does not work",
     "notFound": "The link may be mistyped. Ask the business that sent it to send it again.",
     "whatTitle": "What they asked for",
-    "purpose": "Purpose:",
+    "purpose": "Purpose",
     "purposes": {
       "supply_on_credit": "Credit evaluation for supply of goods on credit",
       "advance_against_order": "Advance against an order",
       "loan": "Loan",
       "review_existing": "Review of existing credit"
     },
-    "theyWillSee": "They will see:",
+    "theyWillSee": "They will see",
     "scope": {
       "CW_GST_TURNOVER_4Y": "GST turnover you filed in the last 4 years",
       "CW_GST_TURNOVER_CY": "GST turnover you filed this year",
       "CW_CIBIL_COMPANY": "Company credit report (CIBIL)",
       "CW_CIBIL_PERSONAL": "Personal credit report (CIBIL) of the owner"
     },
-    "keptFor": "Kept for:",
+    "keptFor": "Kept for",
     "keptForValue": "30 days, then removed from their view.",
-    "withdrawHow": "You can take back your yes at any time from this same link.",
+    "withdrawHow": "You can take back your yes any time from this link.",
     "forBusiness": "For {name}",
     "testMode": "Test mode: no SMS is sent. The mobile OTP and the GST portal OTP are both 123456.",
     "verifyTitle": "Verify your mobile {mobile}",
@@ -1060,12 +1739,12 @@
     "verified": "Mobile verified",
     "verifyFirst": "Verify your mobile first.",
     "gstTitle": "GST data access",
-    "gstStep1": "Log in to the GST portal (gst.gov.in).",
-    "gstStep2": "Open My Profile, then Manage API Access, and choose Yes.",
-    "gstStep3": "Enter your GST portal username here. The GST portal will send you an OTP.",
+    "gstStep1": "Log in to gst.gov.in.",
+    "gstStep2": "Go to My Profile → Manage API Access → Yes.",
+    "gstStep3": "Enter your GST portal username below to get an OTP.",
     "gstUsername": "GST portal username",
     "gstSend": "Get GST portal OTP",
-    "gstOtpHint": "Enter the OTP the GST portal sent to the mobile registered with GST.",
+    "gstOtpHint": "Enter the OTP sent to your GST-registered mobile.",
     "gstOtpLabel": "GST portal OTP",
     "gstChange": "Change username or send again",
     "gstDone": "GST portal access given",
@@ -1074,7 +1753,7 @@
     "companyPan": "Company PAN",
     "incorporatedOn": "Date of incorporation",
     "personalPan": "Owner's PAN",
-    "personalPanHint": "The PAN of the owner or director whose report is asked for.",
+    "personalPanHint": "PAN of the owner or director being checked.",
     "birthDate": "Owner's date of birth",
     "panHint": "The PAN they have on file is {pan}.",
     "agree": "I consent to share the data above with {requester} for the stated purpose. I can withdraw consent at any time.",
@@ -1095,7 +1774,7 @@
     "questionsNoPhone": "Questions? Contact {requester}.",
     "poweredBy": "Powered by Chaanbean.",
     "privacy": "Privacy Notice",
-    "titlePerson": "{requester} wants to check your personal credit report",
+    "titlePerson": "{requester} wants to check your <g>personal credit report</g>",
     "yourPan": "Your PAN",
     "yourBirthDate": "Your date of birth",
     "forPerson": "For {name}, {business}"
@@ -1148,29 +1827,25 @@
       "CC_AML": "Sanctions, politically exposed persons, enforcement and regulator lists."
     },
     "priceNotSet": "Price to be set",
-    "priceOrUnit": "{price} or 1 unit · {count, plural, one {# unit} other {# units}} left in your plan",
-    "priceWallet": "{price} · From wallet",
+    "priceWallet": "{price} + GST",
     "firCovered": "Covered states: {states}.",
     "firNotCovered": "FIR records are not available for the state you chose.",
     "costTitle": "This search will cost",
     "costEmpty": "Tick a check to see what it costs.",
-    "oneUnit": "1 unit",
-    "fromPlan": "From plan",
     "fromWallet": "From wallet",
-    "units": "{count, plural, one {# unit} other {# units}}",
     "chargeNote": "A search that finds nothing is still charged, because it ran. A search that fails at the source is not.",
     "continue": "Continue",
     "confirmTitle": "Confirm your search",
     "confirmSubtitle": "We will search for {name} with the details you gave.",
     "timeNote": "Court searches can take up to 2 minutes. You can leave the page; the results stay with the buyer.",
-    "notEnough": "Not enough plan units or wallet money for this search.",
+    "notEnough": "Not enough money in your wallet for this search.",
     "addMoney": "Add money or change plan",
     "optionalTab": "Case Check is optional",
     "cancel": "Cancel",
     "run": "Yes, run search",
     "back": "Back to {name}",
     "resultsMeta": "Case Check · {number} · {date}",
-    "testData": "Test data",
+    "testData": "SAMPLE DATA: not a real report",
     "searchAgain": "Search again",
     "running": "Searching. This page updates by itself.",
     "count": {
@@ -1235,6 +1910,1073 @@
       "notReviewed": "{count} not reviewed",
       "run": "Run Case Check",
       "open": "Open"
+    },
+    "stateLabel": "State",
+    "beforeGst": "Price before GST",
+    "gst": "GST 18%",
+    "total": "Total",
+    "sampleStar": "Sample data",
+    "sampleStarNote": "Sample data: court, FIR and money laundering results marked with a star are an illustration made up by the portal, not from a live source.",
+    "eyebrow": "Case Check",
+    "finished": "Search finished",
+    "progressCount": "{done} of {total} searches done",
+    "noRecordsTitle": "No cases found",
+    "start": {
+      "checks": {
+        "court": {
+          "title": "Court cases",
+          "body": "Cheque bounce, recovery suits, next hearing."
+        },
+        "fir": {
+          "title": "Police FIRs",
+          "body": "Police FIRs in covered states."
+        },
+        "aml": {
+          "title": "Money laundering and watchlists",
+          "body": "Indian and global sanctions lists."
+        }
+      },
+      "stepN": "Step {n}",
+      "steps": {
+        "search": {
+          "title": "Pick the company",
+          "body": "Name and address filled for you."
+        },
+        "tick": {
+          "title": "Tick the searches",
+          "body": "See the price. Cancel within seconds."
+        },
+        "review": {
+          "title": "Review the matches",
+          "body": "Mark each match. Only confirmed ones count."
+        }
+      },
+      "previewEyebrow": "Example result",
+      "previewTitle": "Your result will look like this",
+      "previewLead": "Example cases, ranked by match strength.",
+      "checksLabel": "What Case Check covers"
+    },
+    "titleLead": "Case",
+    "titleAccent": "Check",
+    "subtitleShort": "Court cases, FIRs and watchlists in one search.",
+    "searchLeadShort": "Filled from the buyer record. Edit if needed.",
+    "moreDetails": "More details (optional, better matches)",
+    "pickAll": "Select all",
+    "firNotCoveredShort": "Not available for this state",
+    "descShort": {
+      "CC_COURT": "Cheque bounce, recovery and other cases.",
+      "CC_FIR": "Police complaints filed against them.",
+      "CC_AML": "Money laundering and sanctions lists."
+    }
+  },
+  "transactions": {
+    "newTitle": "New agreement",
+    "editTitle": "Edit agreement",
+    "newSubtitle": "They accept by OTP. We seal it as proof.",
+    "typeLabel": "Agreement type",
+    "type": {
+      "seller": "Seller-initiated (goods now, pay later)",
+      "buyer": "Buyer-initiated (advance paid)",
+      "lender": "Lender (money lent)"
+    },
+    "roles": {
+      "seller": {
+        "you": "You (seller)",
+        "they": "Counterparty (buyer)"
+      },
+      "buyer": {
+        "you": "You (buyer)",
+        "they": "Counterparty (seller)"
+      },
+      "lender": {
+        "you": "You (lender)",
+        "they": "Counterparty (borrower)"
+      }
+    },
+    "parties": "Parties",
+    "selectCounterparty": "Select a counterparty",
+    "addCounterparty": "Add counterparty",
+    "mobileOnRecord": "The OTP goes to {mobile}.",
+    "notBankLinked": "Mobile not confirmed as bank-linked. You can still send.",
+    "invoice": "Invoice",
+    "loan": "Loan",
+    "invoiceNo": "Invoice or GST bill no.",
+    "loanRef": "Loan reference",
+    "invoiceDate": "Invoice date",
+    "disbursedOn": "Disbursed on",
+    "placeOfSupply": "Place of supply",
+    "selectState": "Select a state",
+    "items": "Items",
+    "addItem": "Add item",
+    "remove": "Remove",
+    "removeN": "Remove item {n}",
+    "col": {
+      "product": "Product",
+      "productN": "Product, item {n}",
+      "hsn": "HSN",
+      "hsnN": "HSN, item {n}",
+      "qty": "Qty",
+      "qtyN": "Quantity, item {n}",
+      "unit": "Unit",
+      "unitN": "Unit, item {n}",
+      "rate": "Rate (₹)",
+      "rateN": "Price per unit, item {n}",
+      "gst": "GST",
+      "gstN": "GST rate, item {n}",
+      "amount": "Amount",
+      "time": "Time",
+      "actor": "By",
+      "event": "What happened",
+      "reference": "Reference",
+      "counterparty": "Counterparty",
+      "type": "Type",
+      "total": "Total",
+      "due": "Due",
+      "status": "Status"
+    },
+    "paymentTerms": "Payment terms",
+    "total": "Total (₹)",
+    "principal": "Principal (₹)",
+    "paidNow": "Amount paid now (₹)",
+    "advancePaid": "Advance paid (₹)",
+    "repaidAtSigning": "Repaid at signing (₹)",
+    "balance": "Balance",
+    "dueDate": "Due date",
+    "goodsDueBy": "Goods due by",
+    "repayableBy": "Repayable by",
+    "interest": "Interest after due date (% a year)",
+    "interestHint": "Simple, daily, after the due date. 0 to 36%.",
+    "termsTitle": "Terms and attachments",
+    "fixedClauses": "Standard clauses (always included)",
+    "yourTerms": "Your terms",
+    "yourTermsHint": "{left} characters left.",
+    "attachLater": "Add the GST bill or challan after saving.",
+    "saveDraft": "Save draft",
+    "preview": "Preview agreement",
+    "saved": "Draft saved.",
+    "listTitle": "Business Security",
+    "listSubtitle": "Agreements buyers accept by OTP, sealed as proof.",
+    "newAgreement": "New agreement",
+    "filter": "Show",
+    "filters": {
+      "all": "All",
+      "waiting": "Waiting",
+      "running": "Running",
+      "overdue": "Overdue",
+      "closed": "Closed"
+    },
+    "none": "No agreements yet",
+    "noneBody": "Use it for credit sales, advances or loans.",
+    "noneHere": "No agreements here.",
+    "status": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "viewed": "Opened",
+      "changes_requested": "Changes asked",
+      "accepted": "Accepted",
+      "active": "Active",
+      "partially_paid": "Partly paid",
+      "overdue": "Overdue",
+      "paid": "Paid",
+      "settled": "Settled",
+      "rejected": "Rejected",
+      "expired": "Expired",
+      "cancelled": "Cancelled"
+    },
+    "backToList": "Back to Business Security",
+    "version": "Version {n}",
+    "timeline": "Status",
+    "step": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "viewed": "Opened",
+      "accepted": "Accepted",
+      "active": "Active",
+      "paid": "Paid"
+    },
+    "changesAsked": "Changes asked:",
+    "rejectedNote": "The counterparty rejected this agreement. Reason: {reason}.",
+    "noReason": "none given",
+    "reason": {
+      "not_mine": "Not my transaction",
+      "wrong_amount": "Wrong amount",
+      "goods_not_received": "Goods not received",
+      "other": "Other"
+    },
+    "amounts": "Amounts",
+    "paid": "Paid",
+    "daysOverdue": "{count, plural, one {# day overdue} other {# days overdue}}",
+    "daysLeft": "{count, plural, one {# day left} other {# days left}}",
+    "interestAccrued": "Interest accrued",
+    "noInterest": "No interest",
+    "dueToday": "Due today",
+    "actions": "Actions",
+    "edit": "Edit",
+    "reviewSend": "Review and send",
+    "recordPayment": "Record payment received",
+    "markPaid": "Mark fully paid",
+    "startSettlement": "Start E-Settlement",
+    "downloadSealed": "Download sealed PDF",
+    "viewPdf": "View agreement PDF",
+    "resend": "Resend to counterparty",
+    "resent": "Sent again.",
+    "cancel": "Cancel agreement",
+    "evidence": "Evidence",
+    "sealed": "Sealed",
+    "acceptedBy": "Accepted by",
+    "otpRef": "OTP reference",
+    "ipDevice": "IP and device",
+    "verify": "Verify link",
+    "notSealed": "Sealed when they accept by OTP.",
+    "payments": "Payments",
+    "split": "{interest} interest, {principal} principal",
+    "allPrincipal": "All towards principal",
+    "mode": {
+      "upi": "UPI",
+      "neft_rtgs": "NEFT / RTGS",
+      "cheque": "Cheque",
+      "cash": "Cash",
+      "other": "Other"
+    },
+    "attachments": "Attachments",
+    "addFile": "Add file",
+    "noFiles": "No files attached.",
+    "activity": "Activity log",
+    "actor": {
+      "user": "You",
+      "counterparty": "Counterparty",
+      "system": "ChaanBean"
+    },
+    "event": {
+      "created": "Draft created",
+      "edited": "Draft edited",
+      "sent": "Sent for acceptance",
+      "resent": "Sent again (new version)",
+      "viewed": "Opened the link",
+      "pdf_viewed": "Opened the full agreement",
+      "reminded": "Reminder sent",
+      "accepted": "Accepted by OTP",
+      "sealed": "Sealed",
+      "changes_requested": "Asked for changes",
+      "rejected": "Rejected",
+      "expired": "Link expired",
+      "cancelled": "Cancelled",
+      "payment_recorded": "Payment recorded",
+      "attachment_added": "File attached",
+      "copy_resent": "Sent to the counterparty again",
+      "status_active": "Active",
+      "status_partially_paid": "Partly paid",
+      "status_overdue": "Overdue",
+      "status_paid": "Fully paid",
+      "settlement_started": "E-Settlement started",
+      "settled": "Settled by E-Settlement",
+      "settlement_defaulted": "E-Settlement defaulted: original balance due again"
+    },
+    "close": "Close",
+    "dueNow": "Due now: {amount}.",
+    "amount": "Amount (₹)",
+    "paidOn": "Paid on",
+    "modeLabel": "Mode",
+    "referenceLabel": "Reference (UTR, cheque no.)",
+    "notifyCounterparty": "Tell the counterparty, so both sides see the same balance",
+    "interestFirst": "Payments pay accrued interest first, then the balance.",
+    "savePayment": "Save payment",
+    "paymentSaved": "Payment recorded.",
+    "markPaidLead": "Records a payment of {amount}, everything due on that date.",
+    "markedPaid": "Marked as paid.",
+    "cancelTitle": "Cancel this agreement?",
+    "cancelBody": "The counterparty has not opened it yet, so the charge comes back.",
+    "cancelViewed": "The counterparty has opened it, so the charge stays.",
+    "cancelled": "Agreement cancelled.",
+    "review": {
+      "back": "Back to {reference}",
+      "title": "Review and send",
+      "subtitle": "{reference} for {name}, exactly as they will see it.",
+      "preview": "Agreement",
+      "openPdf": "Open PDF",
+      "previewTitle": "Agreement {reference}",
+      "sendTo": "Send to",
+      "channel": {
+        "sms": "SMS",
+        "email": "Email",
+        "whatsapp": "WhatsApp"
+      },
+      "noEmail": "No email on file",
+      "chooseChannel": "Choose at least one channel.",
+      "window": "Acceptance window",
+      "linkValid": "Link valid for",
+      "reminders": "Reminders on day 2 and day 5 if not opened.",
+      "days": "{count, plural, one {# day} other {# days}}",
+      "confirm": "I confirm the details are correct and the counterparty has agreed to these terms.",
+      "cost": "Sending costs {cost}. Charged only when they open it.",
+      "free": "nothing (resending after changes is free)",
+      "notEnough": "Not enough money in your wallet to send.",
+      "addMoney": "Add money or change plan",
+      "edit": "Edit",
+      "send": "Send for acceptance ({cost})",
+      "sendAgain": "Send again",
+      "sent": "Sent for acceptance.",
+      "heading": "Review and <accent>send</accent>"
+    },
+    "evidencePack": "Download evidence pack (ZIP)",
+    "openSettlement": "E-Settlement {reference}",
+    "settledNote": "Settled by E-Settlement",
+    "intro": {
+      "step": "Step {n}",
+      "s1": {
+        "title": "Write the deal",
+        "body": "Goods, amount, GST and due date, in plain words."
+      },
+      "s2": {
+        "title": "Buyer accepts by OTP",
+        "body": "Sent by SMS or WhatsApp. They say yes with an OTP."
+      },
+      "s3": {
+        "title": "Sealed as proof",
+        "body": "Sealed with a hash and time. Reminders go out on time."
+      },
+      "exampleTitle": "Example of your agreements list",
+      "exampleNote": "Made-up examples. Yours will appear here.",
+      "stepsLabel": "How it works"
+    },
+    "listEyebrow": "Agreements",
+    "listHeading": "Business <accent>Security</accent>",
+    "stats": {
+      "running": "Running",
+      "value": "Running value",
+      "waiting": "Waiting",
+      "overdue": "Overdue"
+    },
+    "newHeading": "New <accent>agreement</accent>",
+    "editHeading": "Edit <accent>agreement</accent>",
+    "stepper": {
+      "label": "Agreement steps",
+      "party": {
+        "seller": "Buyer",
+        "buyer": "Seller",
+        "lender": "Borrower"
+      },
+      "deal": "Deal",
+      "terms": "Terms",
+      "review": "Review"
+    },
+    "typeShort": {
+      "seller": "Sold on credit",
+      "buyer": "Advance paid",
+      "lender": "Money lent"
+    },
+    "typeHint": {
+      "seller": "Goods now, pay later",
+      "buyer": "You paid in advance",
+      "lender": "A loan you gave"
+    },
+    "dealTitle": "Invoice and items",
+    "itemsCount": "{count, plural, one {# item} other {# items}}",
+    "clausesCount": "{count, plural, one {# clause} other {# clauses}}",
+    "summary": {
+      "title": "Summary",
+      "taxable": "Before GST",
+      "gst": "GST",
+      "total": "Total",
+      "principal": "Principal",
+      "paid": "Paid now",
+      "advance": "Advance",
+      "due": "Due by",
+      "notSet": "Not set",
+      "interest": "Late interest",
+      "interestValue": "{rate}% a year"
+    },
+    "interestShort": "Late interest",
+    "paidOf": "{paid} paid of {total}"
+  },
+  "agreement": {
+    "notFoundTitle": "This link does not work",
+    "notFound": "Ask the business that sent it for a new link.",
+    "eyebrow": "Agreement for acceptance",
+    "title": {
+      "seller": "{requester} has shared a supply on credit agreement",
+      "buyer": "{requester} has shared an advance payment agreement",
+      "lender": "{requester} has shared a loan agreement"
+    },
+    "version": "Version {n}",
+    "invoice": "Invoice",
+    "loanRef": "Loan reference",
+    "total": "Total",
+    "principal": "Principal",
+    "paid": "Paid",
+    "advance": "Advance paid",
+    "balance": "Balance",
+    "dueDate": "Due date",
+    "goodsDueBy": "Goods due by",
+    "interest": "Interest after due",
+    "interestValue": "{rate}% a year",
+    "noInterest": "None",
+    "clausesTitle": "Terms",
+    "additionalTerms": "Also agreed:",
+    "viewFull": "View full agreement (PDF)",
+    "downloadSealed": "Download sealed agreement (PDF)",
+    "attachment": "Attached: {name}",
+    "testMode": "Test mode: no SMS is sent. The OTP is 123456.",
+    "verify": "Verify with OTP sent to {mobile}",
+    "sendOtp": "Send OTP",
+    "otpLabel": "OTP",
+    "resend": "Send a new OTP",
+    "resendIn": "Send a new OTP in {seconds}s",
+    "ack": {
+      "seller": "I have received the goods and accept the terms of this agreement.",
+      "buyer": "I have received the advance and accept the terms of this agreement.",
+      "lender": "I have received the money and accept the terms of this agreement."
+    },
+    "notContact": "I am not {name}",
+    "yourName": "Your full name (printed on the agreement)",
+    "accept": "I Accept",
+    "requestChanges": "Request changes",
+    "reject": "Reject",
+    "notice": "Your answer is recorded with the time, your device and the OTP reference. Both parties get a copy.",
+    "linkValid": "This link works until {until}.",
+    "questions": "Questions? Contact {requester}: {phone}.",
+    "questionsNoPhone": "Questions? Contact {requester}.",
+    "poweredBy": "Powered by ChaanBean.",
+    "changesTitle": "What should change?",
+    "changesLabel": "Your comment",
+    "changesHint": "10 to 1,000 characters. They will edit and send it again.",
+    "sendChanges": "Send request",
+    "rejectTitle": "Reject this agreement?",
+    "reasonLabel": "Reason (optional)",
+    "noReasonGiven": "Prefer not to say",
+    "reason": {
+      "not_mine": "Not my transaction",
+      "wrong_amount": "Wrong amount",
+      "goods_not_received": "Goods not received",
+      "other": "Other"
+    },
+    "close": "Close",
+    "acceptedBody": "You accepted this agreement on {at}. It is sealed; both parties have a copy.",
+    "changesBody": "You asked {requester} for changes. You will get a new link when they send it again.",
+    "rejectedBody": "You rejected this agreement. {requester} has been told.",
+    "expiredBody": "This link has expired. Ask {requester} to send it again.",
+    "cancelledBody": "{requester} cancelled this agreement.",
+    "closedBody": "This agreement is no longer open.",
+    "confirmStep": "Confirm",
+    "clausesCount": "{count, plural, one {# clause} other {# clauses}}"
+  },
+  "verify": {
+    "title": "Verify a document",
+    "lead": "Check that a ChaanBean agreement is genuine and unchanged.",
+    "reference": "Reference",
+    "referenceHint": "At the foot of every page, like CHB-TX-000123.",
+    "file": "PDF (optional)",
+    "fileHint": "Checked in this browser. The file is not uploaded.",
+    "check": "Check",
+    "tooBig": "The PDF is larger than 20 MB.",
+    "notFound": "No sealed document has this reference.",
+    "noMatch": "Does not match. This file is not the sealed document, or it has been changed.",
+    "authentic": "Authentic and unchanged.",
+    "exists": "A sealed document with this reference exists. Add the PDF to check the file itself.",
+    "parties": "Between {from} and {to}.",
+    "sealed": "Sealed {at} (version {version}).",
+    "privacy": "Only the names and seal time are shown. Never amounts or personal details.",
+    "heading": "Verify a <accent>document</accent>"
+  },
+  "settlements": {
+    "listTitle": "E-Settlement",
+    "listSubtitle": "Settle a debt for less or in instalments, accepted by OTP.",
+    "newSettlement": "New E-Settlement",
+    "filter": "Filter settlements",
+    "filters": {
+      "all": "All",
+      "waiting": "Waiting",
+      "running": "Running",
+      "defaulted": "Defaulted",
+      "closed": "Closed"
+    },
+    "none": "No settlements yet",
+    "noneBody": "Start from an overdue agreement or any unpaid bill.",
+    "noneHere": "No settlements in this view.",
+    "col": {
+      "reference": "Reference",
+      "debtor": "Debtor",
+      "settles": "Settles",
+      "toPay": "To pay",
+      "mode": "How",
+      "next": "Next due",
+      "status": "Status",
+      "payBy": "Pay by",
+      "amount": "Amount",
+      "paid": "Paid"
+    },
+    "outsideBill": "Bill {bill}",
+    "instalmentsN": "{count, plural, one {# instalment} other {# instalments}}",
+    "status": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "viewed": "Viewed",
+      "counter_proposed": "Counter-proposal",
+      "accepted": "Running",
+      "completed": "Completed",
+      "defaulted": "Defaulted",
+      "rejected": "Rejected",
+      "expired": "Expired",
+      "cancelled": "Cancelled"
+    },
+    "backToList": "All settlements",
+    "backToSettlement": "Back to the settlement",
+    "newTitle": "New E-Settlement",
+    "editTitle": "Edit E-Settlement",
+    "newSubtitle": "When a debtor pays less, or in parts.",
+    "fixErrors": "Please fix these before going on",
+    "saved": "Draft saved.",
+    "owedTitle": "What is owed",
+    "sourceLabel": "What is being settled",
+    "source": {
+      "agreement": "Overdue agreement",
+      "outside": "Outside debt"
+    },
+    "agreementLabel": "Agreement",
+    "selectAgreement": "Select an overdue agreement",
+    "noOverdue": "No overdue agreements. Choose Outside debt instead.",
+    "reference": "Reference",
+    "debtor": "Debtor",
+    "balance": "Balance",
+    "overdueBy": "Overdue by",
+    "interestAccrued": "Interest to today",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "debtorHint": "The OTP goes to the mobile on their profile.",
+    "selectDebtor": "Select the debtor",
+    "addDebtor": "Add a counterparty",
+    "billNo": "GST bill number",
+    "billDate": "Bill date",
+    "amountDue": "Amount due",
+    "amountDueHint": "Today's amount, with any interest.",
+    "termsTitle": "Settlement terms",
+    "settlementAmount": "Settlement amount",
+    "owedHint": "Up to {owed}, what is owed today.",
+    "interestAgreed": "Interest agreed",
+    "interestAgreedHint": "Extra for paying over time. 0 if none.",
+    "waived": "Amount waived",
+    "extra": "More than owed",
+    "modeLabel": "How it is paid",
+    "modeName": {
+      "full": "In full, on one date",
+      "instalments": "In instalments"
+    },
+    "fullDate": "Payment date",
+    "toPay": "The debtor pays {amount} in total.",
+    "scheduleTitle": "Instalment schedule",
+    "schedule": {
+      "count": "Instalments",
+      "firstDate": "First date",
+      "every": "Then every",
+      "monthly": "Month",
+      "days": "{count} days",
+      "split": "Split equally",
+      "dateN": "Date of instalment {n}",
+      "amountN": "Amount of instalment {n}",
+      "removeN": "Remove instalment {n}",
+      "empty": "Choose how many and the first date, then Split equally. You can change any row after.",
+      "addRow": "Add instalment",
+      "matches": "Adds up to {total}",
+      "mismatch": "{sum} of {total}: the instalments must add up exactly"
+    },
+    "defaultTitle": "Default clause",
+    "graceDays": "Missed after",
+    "graceHint": "Unpaid this long after its date counts as missed.",
+    "yourTerms": "Your additional terms",
+    "yourTermsHint": "Optional. {left} characters left.",
+    "saveDraft": "Save draft",
+    "preview": "Preview and send",
+    "review": {
+      "subtitle": "{reference} for {name}. This is exactly what they will see.",
+      "preview": "E-Settlement",
+      "previewTitle": "E-Settlement {reference}",
+      "confirm": "I confirm the debtor has agreed to these terms in principle.",
+      "sent": "Sent for acceptance."
+    },
+    "eSettlement": "E-Settlement",
+    "settlesRef": "settles {reference}",
+    "step": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "viewed": "Viewed",
+      "accepted": "Accepted and sealed",
+      "completed": "Completed"
+    },
+    "defaultedNote": "An instalment was missed. Under the default clause, the balance of {reference} with interest is due again, less what was paid.",
+    "defaultedOutside": "An instalment was missed. Under the default clause, the original amount due is owed again, less what was paid.",
+    "rejectedNote": "The debtor rejected this settlement.",
+    "proposal": {
+      "title": "{name} proposed other terms",
+      "yours": "Your offer",
+      "theirs": "Their proposal",
+      "accept": "Accept proposal",
+      "revise": "Revise",
+      "acceptTitle": "Accept their proposal?",
+      "acceptBody": "Their amount and dates become the terms and are sent back to them to accept by OTP. Sending this version is free.",
+      "adopted": "Their proposal was sent back for acceptance."
+    },
+    "owedOn": "Owed on {date}",
+    "toPayLabel": "To pay",
+    "left": "Left to pay",
+    "nextDue": "Next instalment",
+    "downloadSealed": "Download sealed settlement",
+    "notSealed": "Sealed once the debtor accepts by OTP.",
+    "paymentTitle": "Payment",
+    "instalmentsTitle": "{count, plural, one {# instalment} other {# instalments}}",
+    "instalment": {
+      "due": "Due",
+      "paid": "Paid",
+      "missed": "Missed",
+      "notStarted": "Starts when accepted"
+    },
+    "graceNote": "An instalment counts as missed {days} days after its date. You get a reminder on each date.",
+    "leftNow": "Left to pay: {amount}. Payments fill the instalments in date order.",
+    "notifyDebtor": "Tell the debtor (WhatsApp)",
+    "paymentOrder": "If this settles an agreement, the payment is also recorded on it.",
+    "cancelTitle": "Cancel this settlement?",
+    "event": {
+      "pdf_viewed": "Opened the full settlement",
+      "counter_proposed": "Proposed other terms",
+      "proposal_adopted": "Accepted the debtor's proposal",
+      "instalment_due": "Instalment due today",
+      "completed": "Completed: every instalment paid",
+      "defaulted": "Defaulted: an instalment was missed"
+    },
+    "intro": {
+      "step": "Step {n}",
+      "s1": {
+        "title": "Offer a settlement",
+        "body": "Pick an overdue deal or bill. Offer less, or instalments."
+      },
+      "s2": {
+        "title": "Debtor accepts by OTP",
+        "body": "They accept by OTP, or propose other terms."
+      },
+      "s3": {
+        "title": "Track every instalment",
+        "body": "Reminders before each date. Missed ones are flagged."
+      },
+      "exampleTitle": "Example of your settlements list",
+      "exampleNote": "Made-up examples. Yours will appear here.",
+      "stepsLabel": "How it works"
+    },
+    "listEyebrow": "Recovery",
+    "listHeading": "E-<accent>Settlement</accent>",
+    "stats": {
+      "running": "Running",
+      "value": "Running value",
+      "waiting": "Waiting",
+      "defaulted": "Defaulted"
+    },
+    "newHeading": "New <accent>E-Settlement</accent>",
+    "editHeading": "Edit <accent>E-Settlement</accent>",
+    "sourceHint": {
+      "agreement": "From Business Security",
+      "outside": "Any other unpaid bill"
+    },
+    "stepper": {
+      "label": "Settlement steps",
+      "owed": "Debt",
+      "offer": "Offer",
+      "plan": "Plan",
+      "rules": "Rules"
+    },
+    "summary": {
+      "title": "Summary",
+      "toPay": "Debtor pays",
+      "owed": "Owed",
+      "offer": "Settlement",
+      "interest": "Interest",
+      "plan": "Plan",
+      "oneDate": "One payment, {date}"
+    },
+    "clausesTitle": "Standard clauses (always included)",
+    "clausesCount": "{count, plural, one {# clause} other {# clauses}}"
+  },
+  "settlementPage": {
+    "pageTitle": "E-Settlement",
+    "eyebrow": "Settlement offer",
+    "title": "{requester} has offered you a settlement",
+    "settles": "for {original}",
+    "owed": "Owed on {date}",
+    "settlement": "Settlement amount",
+    "interestAgreed": "Interest agreed",
+    "waived": "Waived for you",
+    "extra": "Above what is owed",
+    "toPay": "You pay in total",
+    "oneDate": "One payment",
+    "instalments": "{count, plural, one {# instalment} other {# instalments}}",
+    "viewFull": "View full settlement (PDF)",
+    "downloadSealed": "Download sealed settlement (PDF)",
+    "ack": "I agree to pay {amount} as scheduled and accept the default clause.",
+    "counter": "Propose other terms",
+    "counterTitle": "Propose other terms",
+    "counterLead": "Tell them what you can pay. You owe {owed}.",
+    "counterAmount": "Total you can pay",
+    "howToPay": "How you will pay",
+    "mode": {
+      "full": "One payment",
+      "instalments": "Instalments"
+    },
+    "payBy": "Pay by",
+    "counterComment": "Note (optional)",
+    "counterCommentHint": "Up to 1,000 characters.",
+    "sendCounter": "Send proposal",
+    "rejectTitle": "Reject this settlement?",
+    "rejectComment": "Reason (optional)",
+    "acceptedBody": "You accepted this settlement on {at}. It is sealed; both parties have a copy.",
+    "counterBody": "You sent other terms to {requester}. You will get a new link if they send a revised settlement.",
+    "rejectedBody": "You rejected this settlement. {requester} has been told.",
+    "cancelledBody": "{requester} withdrew this settlement.",
+    "closedBody": "This settlement is no longer open."
+  },
+  "landing": {
+    "metaTitle": "ChaanBean: check buyers, secure credit deals, get paid",
+    "metaDescription": "Check a business before you give credit, lock the deal with an agreement the buyer accepts by OTP, and settle overdue dues. Built for Indian businesses.",
+    "nav": {
+      "features": "Features",
+      "how": "How it works",
+      "pricing": "Pricing",
+      "faq": "Questions",
+      "signIn": "Sign in",
+      "start": "Get started",
+      "dashboard": "Open dashboard",
+      "menu": "Sections"
+    },
+    "hero": {
+      "chip": "For Indian businesses that sell on credit",
+      "title": "Give credit <accent>with confidence</accent>. Get paid on time.",
+      "lead": "Check any business in minutes, lock the deal with an agreement your buyer accepts by OTP, and settle overdue dues without the back and forth.",
+      "primary": "Sign up your business",
+      "secondary": "See pricing",
+      "note": "Sign up with your GSTIN in about 2 minutes. Pay only for what you use beyond your plan."
+    },
+    "mock": {
+      "title": "Credit report",
+      "buyer": "Om Builders Pvt Ltd",
+      "risk": "Low risk",
+      "range": "Safe credit",
+      "rangeValue": "₹5,00,000 to ₹10,00,000",
+      "rangeNote": "1% to 2% of last filed turnover ₹5 crore",
+      "signals": [
+        "GST returns filed on time",
+        "Turnover up 3 years in a row",
+        "No overdue loans"
+      ],
+      "sealed": "Agreement sealed",
+      "sealedSub": "Accepted by OTP · SHA-256 recorded"
+    },
+    "strip": [
+      "Buyer consent by OTP",
+      "Charged only when data comes back",
+      "Sealed, verifiable documents",
+      "Every action logged"
+    ],
+    "features": {
+      "eyebrow": "Everything in one place",
+      "title": "Four tools, from first check to final payment",
+      "lead": "Use one or all of them. Each works on its own, and together they cover the whole credit cycle.",
+      "items": {
+        "credit": {
+          "name": "Credit Worthiness",
+          "tag": "Before you give credit",
+          "lead": "One report that tells you how risky a buyer is and how much credit is safe.",
+          "points": [
+            "GST search, filing history and turnover (current year or last 4 years)",
+            "CIBIL report for the company, the owner, or both",
+            "MSME, PAN, import-export, company and director checks",
+            "Risk level (Low, Medium, High) with the reasons",
+            "Safe credit range: 1% to 2% of the buyer's turnover",
+            "Download as PDF or share a view-only link"
+          ]
+        },
+        "cases": {
+          "name": "Case Check",
+          "tag": "Know their history",
+          "lead": "See if a business or its owner has court cases, FIRs or money laundering flags.",
+          "points": [
+            "District courts, high courts and tribunals",
+            "FIR records in covered states",
+            "Sanctions and politically exposed person lists",
+            "Every match ranked High, Medium or Low",
+            "You confirm which matches are really them",
+            "Only confirmed cases change the risk level"
+          ]
+        },
+        "security": {
+          "name": "Business Security",
+          "tag": "Lock the deal",
+          "lead": "Turn every credit sale, advance or loan into an agreement your buyer accepts on their phone.",
+          "points": [
+            "Supply on credit, advance payment and loan agreements",
+            "Buyer reviews and accepts by OTP; no app or account needed",
+            "Sealed PDF with a fingerprint (SHA-256) and a QR code anyone can verify",
+            "Reminders, due dates and interest after the due date",
+            "Record payments; both sides see the same balance",
+            "Evidence pack for court: sealed PDF, acceptance record and activity log"
+          ]
+        },
+        "settlement": {
+          "name": "E-Settlement",
+          "tag": "When they can't pay in full",
+          "lead": "Agree a smaller amount or instalments, in writing, without starting over.",
+          "points": [
+            "Start from an overdue agreement or any outside debt",
+            "Settle for less, in one payment or 2 to 24 instalments",
+            "Split equally in one click, or set your own dates",
+            "Buyer accepts by OTP or proposes other terms",
+            "Each instalment tracked Due, Paid or Missed",
+            "Clear default clause if an instalment is missed"
+          ]
+        }
+      }
+    },
+    "how": {
+      "eyebrow": "How it works",
+      "title": "From sign-up to getting paid",
+      "steps": [
+        {
+          "title": "Sign up with your GSTIN",
+          "body": "Your business details fill in from GST. Invite your team with their own roles."
+        },
+        {
+          "title": "Add your buyer",
+          "body": "Enter their GSTIN or PAN and mobile. We check the mobile is linked to a bank."
+        },
+        {
+          "title": "Check before you give credit",
+          "body": "See the cost first, then run the checks. The buyer approves access to their financial data by OTP."
+        },
+        {
+          "title": "Lock the deal",
+          "body": "Send the agreement. The buyer accepts by OTP and it is sealed for both of you."
+        },
+        {
+          "title": "Track and settle",
+          "body": "Record payments, watch due dates, and settle overdue dues with E-Settlement."
+        }
+      ]
+    },
+    "trust": {
+      "eyebrow": "Built for trust",
+      "title": "Fair to you, fair to your buyer",
+      "items": [
+        {
+          "title": "You see the cost first",
+          "body": "A popup shows exactly what each search uses before anything runs."
+        },
+        {
+          "title": "Pay only for data",
+          "body": "If a source is down or the buyer says no, you are not charged."
+        },
+        {
+          "title": "The buyer is asked",
+          "body": "GST turnover and CIBIL need the buyer's OTP consent. They can say no or take it back."
+        },
+        {
+          "title": "Proof that holds up",
+          "body": "Sealed documents can't be changed. Anyone can check one on the verify page."
+        }
+      ],
+      "verify": "Got a ChaanBean document? Verify it"
+    },
+    "pricing": {
+      "eyebrow": "Pricing",
+      "title": "Simple plans. Pay per use when you need more.",
+      "lead": "One wallet in rupees. A plan payment goes into the wallet in full; every check, agreement and user is paid from it.",
+      "recommended": "Most popular",
+      "perPeriod": "{months, plural, one {per month} =12 {per year} other {per # months}}",
+      "plusGst": "+ 18% GST ({gst})",
+      "users": "{count} users included",
+      "choose": "Choose {name}",
+      "payg": {
+        "name": "Pay per use",
+        "lead": "No plan needed. Add money to your wallet and pay per action.",
+        "examples": "Some prices",
+        "cta": "Sign up"
+      },
+      "custom": {
+        "name": "Custom plan",
+        "lead": "Many users, high volumes or special needs? We will make a plan for you.",
+        "cta": "Sign up and ask"
+      },
+      "gstNote": "Prices exclude 18% GST. A GST invoice is made for every payment.",
+      "unavailable": "Plans are being updated. Sign up to see the current prices.",
+      "toWallet": "The full {amount} goes into your wallet",
+      "planPrices": "Plan prices on checks while the plan is active",
+      "allChecks": "Use it for any check, agreement or user"
+    },
+    "faq": {
+      "title": "Questions",
+      "items": [
+        {
+          "q": "Does my buyer need a ChaanBean account?",
+          "a": "No. They get a link by WhatsApp, SMS or email and answer on their phone with an OTP."
+        },
+        {
+          "q": "Can I check a buyer without telling them?",
+          "a": "Public checks like GST search, MSME and company records run without the buyer. GST turnover and CIBIL need the buyer's OTP consent, as the law requires."
+        },
+        {
+          "q": "What if a check finds nothing?",
+          "a": "If the search ran and found no records (for example, no court cases), it is charged, because the search was done. If the source fails, nothing is charged."
+        },
+        {
+          "q": "Is an agreement accepted by OTP valid?",
+          "a": "It is an electronic record with the buyer's name, mobile, OTP reference, time, IP address and device, sealed with a fingerprint. The evidence pack includes a draft certificate under the Bharatiya Sakshya Adhiniyam for your lawyer."
+        },
+        {
+          "q": "How much credit should I give?",
+          "a": "The report suggests a safe range of 1% to 2% of the buyer's last yearly turnover, less if turnover is falling, and none if the risk is High. It is a guide; the decision is yours."
+        },
+        {
+          "q": "How do I pay?",
+          "a": "Add money to your wallet, or buy a plan (the full plan payment goes into your wallet), by UPI, card or net banking. Your buyer pays you directly, as they do today."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Start with your next buyer",
+      "lead": "Sign up in about 2 minutes with your GSTIN.",
+      "button": "Get started"
+    },
+    "footer": {
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "verify": "Verify a document",
+      "rights": "© {year} ChaanBean"
+    }
+  },
+  "kyc": {
+    "title": "KYC",
+    "subtitle": "Confirm who you are with DigiLocker.",
+    "chooseTitle": "Pick a document to share from DigiLocker",
+    "method": {
+      "digilocker_aadhaar": "Aadhaar",
+      "digilocker_pan": "PAN"
+    },
+    "methodHint": {
+      "digilocker_aadhaar": "We keep only the last 4 digits.",
+      "digilocker_pan": "We keep a masked number."
+    },
+    "privacy": "DigiLocker asks you first. We keep your name, document type, a masked number and the time, never your full Aadhaar.",
+    "testNote": "Test mode: DigiLocker is not connected yet, so a test page stands in and the details are made up.",
+    "start": "Continue to DigiLocker",
+    "pending": "Started",
+    "failed": "Not completed",
+    "name": "Name as per document",
+    "document": "Document",
+    "verifiedAt": "Verified on",
+    "testData": "Test data",
+    "banner": "Finish your KYC with DigiLocker to fully verify your account.",
+    "bannerCta": "Complete KYC",
+    "testTitle": "DigiLocker (test)",
+    "testBody": "Chaanbean wants to see your document. Live, this is DigiLocker’s own page.",
+    "allow": "Allow",
+    "deny": "Deny",
+    "done": "KYC complete.",
+    "declined": "KYC not completed.",
+    "cert": {
+      "title": "GST registration certificate",
+      "savedOn": "Saved {at}",
+      "body": "Get your official GST certificate from GSTN. The OTP goes to your primary authorised signatory.",
+      "testNote": "Test mode: the GSTN certificate service is not switched on yet. Use OTP 123456; the certificate is a sample.",
+      "email": "Primary authorised signatory's email",
+      "send": "Send OTP",
+      "again": "Get it again",
+      "otp": "6-digit OTP",
+      "verify": "Verify and save",
+      "sent": "OTP sent to the authorised signatory.",
+      "saved": "GST certificate saved.",
+      "download": "Download the certificate (PDF)"
+    },
+    "eyebrow": "Account",
+    "titleLead": "Your",
+    "titleAccent": "KYC",
+    "verifiedTitle": "You are verified",
+    "verifiedLead": "Your identity is confirmed through DigiLocker.",
+    "verifiedTag": "Verified",
+    "notVerifiedTitle": "Not verified yet",
+    "notVerifiedTag": "Not verified"
+  },
+  "ops": {
+    "title": "Ops console",
+    "subtitle": "Data sources, company records and sample mode. Staff only.",
+    "notStaff": "This page is for Chaanbean staff only.",
+    "signInFirst": "Sign in with a staff mobile number to continue.",
+    "signIn": "Sign in",
+    "sources": "Data sources",
+    "sample": "Sample data",
+    "sampleEnvOn": "SAMPLE_DATA_MODE is on for everyone",
+    "liveCount": "{count} of {total} live",
+    "mcaTitle": "MCA company records",
+    "mcaSummary": "{count} companies from: {states}. Database size {size}.",
+    "noKey": "DATA_GOV_IN_API_KEY is not set, so imports cannot run.",
+    "state": "State",
+    "import": "Import or refresh this state",
+    "importStarted": "Import of {state} started. It runs in the background.",
+    "mcaNote": "About 2.5 lakh companies per large state. All India needs the paid database plan. Imported states refresh weekly.",
+    "colScope": "State",
+    "colStatus": "Status",
+    "colRows": "Rows",
+    "colData": "MCA data as of",
+    "colStarted": "Started",
+    "importStatus": {
+      "running": "Running",
+      "done": "Done",
+      "failed": "Failed"
+    },
+    "orgsTitle": "Organisations",
+    "colOrg": "Organisation",
+    "colUsers": "Users",
+    "colWallet": "Wallet",
+    "colKyc": "KYC",
+    "colSample": "Sample data",
+    "kyc": {
+      "not_started": "Not started",
+      "pending": "Started",
+      "verified": "Verified",
+      "failed": "Not completed"
+    },
+    "sampleOn": "On: never charged",
+    "sampleOff": "Off",
+    "eyebrow": "Internal",
+    "titleLead": "Ops",
+    "titleAccent": "console",
+    "statLive": "Live sources",
+    "statLiveHint": "The rest show sample data",
+    "statCompanies": "MCA companies",
+    "statStates": "{count, plural, one {From # state} other {From # states}}",
+    "statOrgs": "Organisations",
+    "statSample": "{count} on sample data",
+    "statDb": "Database",
+    "statDbHint": "Total size"
+  },
+  "settings": {
+    "notifications": {
+      "eyebrow": "Account",
+      "titleLead": "Notification",
+      "titleAccent": "settings",
+      "description": "Choose how you hear about each event.",
+      "comingBody": "Arrives with Part 6. Below is a preview.",
+      "groups": {
+        "checks": "Credit checks",
+        "agreements": "Agreements and payments",
+        "wallet": "Wallet and billing"
+      },
+      "channels": {
+        "sms": "SMS",
+        "email": "Email",
+        "whatsapp": "WhatsApp"
+      },
+      "events": {
+        "reportReady": "Report is ready",
+        "consentAnswer": "Buyer says yes or no",
+        "accepted": "Agreement accepted",
+        "dueSoon": "Payment due soon",
+        "overdue": "Payment overdue",
+        "lowBalance": "Wallet balance is low",
+        "invoiceReady": "Invoice is ready"
+      }
     }
   }
 }

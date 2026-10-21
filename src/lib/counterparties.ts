@@ -6,7 +6,9 @@ import {
 // Counterparty rules shared by the S06 form and the API (PRD S06 fields and validation). Messages are the PRD's.
 
 export const COUNTERPARTY_TYPES = ["business_gstin", "business_pan", "individual"] as const;
-export type CounterpartyType = (typeof COUNTERPARTY_TYPES)[number];
+/** Every stored type: v4 adds business_cin, a company picked from MCA records (no GSTIN or PAN yet). */
+export const ALL_COUNTERPARTY_TYPES = [...COUNTERPARTY_TYPES, "business_cin"] as const;
+export type CounterpartyType = (typeof ALL_COUNTERPARTY_TYPES)[number];
 
 export const UPI_STATUSES = ["not_checked", "linked", "not_linked", "unavailable", "manual_confirmed"] as const;
 export type UpiStatus = (typeof UPI_STATUSES)[number];
@@ -89,6 +91,8 @@ export type CreateCounterpartyInput = z.input<typeof createCounterpartySchema>;
 
 /** S07 inline edit: contact details, defaults, tags and notes. Identity fields are fixed once saved. */
 export const updateCounterpartySchema = z.object({
+  /** v4 FR-SR-06: link the GSTIN of a company picked from MCA records. */
+  gstin: z.string().optional().transform((v) => (v ? normaliseIdentifier(v) : undefined)).refine((v) => !v || isValidGstin(v), "This GSTIN is not valid."),
   contactName: contactSchema.contactName.optional(),
   mobile: mobile.optional(),
   whatsapp: optionalMobile.nullable(),

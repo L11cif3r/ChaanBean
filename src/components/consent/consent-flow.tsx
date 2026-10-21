@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { CheckCircle2, ShieldCheck } from "lucide-react";
-import { Button, Card, CardBody, Checkbox, FormField, Input, Tag } from "@/components/ui";
+import { Check, CheckCircle2, Clock, Eye, Hourglass, Lock, ShieldCheck, Target, Undo2, XCircle } from "lucide-react";
+import { Button, Checkbox, FormField, GradientText, Input, Tag } from "@/components/ui";
+import { cn } from "@/components/ui/cn";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { OtpInput } from "@/components/ui/otp-input";
 import { api } from "@/lib/api-client";
@@ -94,17 +95,34 @@ export function ConsentFlow({ token, initial: v }: { token: string; initial: Con
     if (done !== null) router.refresh();
   }
 
+  const g = (chunks: React.ReactNode) => <GradientText>{chunks}</GradientText>;
+  const initials = v.requester.name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("") || "?";
+
+  // 1 Who is asking: the requester's initials, the question in one line, and whose data it is.
   const header = (
-    <div className="space-y-1">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t("eyebrow")}</p>
-      <h1 className="text-xl font-extrabold leading-tight text-text">
-        {v.subjectKind === "person" ? t("titlePerson", { requester: v.requester.name }) : t("title", { requester: v.requester.name })}
+    <section className="relative isolate overflow-hidden rounded-2xl border border-border bg-surface p-4 shadow-sm sm:p-5">
+      <span className="pointer-events-none absolute inset-0 -z-10 bg-soft" aria-hidden="true" />
+      <span className="pointer-events-none absolute -right-16 -top-20 -z-10 size-56 rounded-full bg-[radial-gradient(circle,rgba(255,122,26,0.22),transparent_65%)] blur-2xl" aria-hidden="true" />
+      <div className="flex items-center gap-3">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand font-head text-[15px] font-extrabold text-white shadow-orange" aria-hidden="true">
+          {initials}
+        </span>
+        <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[1.2px] text-subtle">
+          <ShieldCheck size={13} className="text-primary-text" aria-hidden="true" />
+          {t("eyebrow")}
+        </p>
+      </div>
+      <h1 className="mt-3 font-head text-[1.4rem] font-extrabold leading-tight tracking-tight text-text [text-wrap:balance] sm:text-2xl">
+        {v.subjectKind === "person" ? t.rich("titlePerson", { requester: v.requester.name, g }) : t.rich("title", { requester: v.requester.name, g })}
       </h1>
-    </div>
+      <div className="mt-3">
+        <Tag tone="info">{v.subjectKind === "person" ? t("forPerson", { name: v.subjectName ?? "", business: v.buyerName }) : t("forBusiness", { name: v.buyerName })}</Tag>
+      </div>
+    </section>
   );
 
   const contact = (
-    <p className="text-xs text-muted">
+    <p className="px-1 text-center text-xs leading-relaxed text-muted">
       {v.requester.contactPhone
         ? t("questions", { requester: v.requester.name, phone: v.requester.contactPhone })
         : t("questionsNoPhone", { requester: v.requester.name })}{" "}
@@ -113,9 +131,9 @@ export function ConsentFlow({ token, initial: v }: { token: string; initial: Con
     </p>
   );
 
-  const generalError = errors._ ? <p role="alert" className="rounded-[14px] bg-danger-bg px-4 py-3 text-sm font-semibold text-danger-fg">{errors._}</p> : null;
+  const generalError = errors._ ? <p role="alert" className="rounded-xl bg-danger-bg px-4 py-3 text-sm font-semibold text-danger-fg">{errors._}</p> : null;
 
-  const testBanner = v.testMode ? <p className="rounded-[14px] bg-warning-bg px-4 py-2 text-xs font-semibold text-warning-fg">{t("testMode")}</p> : null;
+  const testBanner = v.testMode ? <p className="rounded-xl bg-warning-bg px-4 py-2 text-xs font-semibold text-warning-fg">{t("testMode")}</p> : null;
 
   // ---------------------------------------------------------------- closed states
 
@@ -124,70 +142,73 @@ export function ConsentFlow({ token, initial: v }: { token: string; initial: Con
       v.status === "declined" ? t("declinedBody", { requester: v.requester.name, at: when(v.declinedAt!) })
       : v.status === "withdrawn" ? t("withdrawnBody", { requester: v.requester.name, at: when(v.withdrawnAt!) })
       : t("expiredBody", { requester: v.requester.name });
+    const Icon = v.status === "declined" ? XCircle : v.status === "withdrawn" ? Undo2 : Hourglass;
     return (
-      <Card>
-        <CardBody className="space-y-4">
-          {header}
-          <p className="rounded-[14px] bg-surface-muted px-4 py-3 text-sm font-semibold text-text-2" role="status">{body}</p>
-          {contact}
-        </CardBody>
-      </Card>
+      <div className="space-y-4">
+        {header}
+        <div className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm" role="status">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-strong text-muted" aria-hidden="true">
+            <Icon size={18} />
+          </span>
+          <p className="pt-0.5 text-sm font-semibold text-text-2">{body}</p>
+        </div>
+        {contact}
+      </div>
     );
   }
 
-  const otpStep = (purposeKey: "verifyTitle" | "verifyWithdraw") => (
-    <section aria-labelledby="otp-title" className="space-y-3">
-      <h2 id="otp-title" className="font-bold text-text">
-        <StepNo n={1} /> {t(purposeKey, { mobile: v.mobileMasked })}
-      </h2>
+  const otpStep = (purposeKey: "verifyTitle" | "verifyWithdraw", n?: number) => (
+    <Step id="otp-title" n={n} done={verified} title={t(purposeKey, { mobile: v.mobileMasked })}>
       {verified ? (
         <p className="flex items-center gap-2 text-sm font-semibold text-success-fg"><CheckCircle2 size={16} aria-hidden="true" /> {t("verified")}</p>
       ) : !otpSent ? (
-        <Button variant="secondary" onClick={() => void sendOtp()} loading={busy === "otp"}>{t("sendOtp")}</Button>
+        <Button className="w-full sm:w-auto" onClick={() => void sendOtp()} loading={busy === "otp"}>{t("sendOtp")}</Button>
       ) : (
-        <div className="space-y-2">
-          <OtpInput value={otp} onChange={setOtp} onComplete={(c) => void verifyOtp(c)} disabled={busy === "verify"} invalid={Boolean(errors.otp)} label={t("otpLabel")} describedBy={errors.otp ? "otp-error" : undefined} />
+        <div className="space-y-2.5">
+          <BigOtp>
+            <OtpInput value={otp} onChange={setOtp} onComplete={(c) => void verifyOtp(c)} disabled={busy === "verify"} invalid={Boolean(errors.otp)} label={t("otpLabel")} describedBy={errors.otp ? "otp-error" : undefined} />
+          </BigOtp>
           {errors.otp ? <p id="otp-error" role="alert" className="text-sm font-medium text-danger-fg">{errors.otp}</p> : null}
-          <button type="button" className="text-sm font-semibold text-primary-text underline-offset-2 hover:underline disabled:text-muted disabled:no-underline" disabled={resendIn > 0 || busy === "otp"} onClick={() => void sendOtp()}>
+          <button type="button" className="min-h-10 text-sm font-semibold text-primary-text underline-offset-2 hover:underline disabled:text-muted disabled:no-underline" disabled={resendIn > 0 || busy === "otp"} onClick={() => void sendOtp()}>
             {resendIn > 0 ? t("resendIn", { seconds: resendIn }) : t("resend")}
           </button>
         </div>
       )}
-    </section>
+    </Step>
   );
 
   // ---------------------------------------------------------------- already approved: show it, allow withdrawal
 
   if (v.status === "approved") {
     return (
-      <Card>
-        <CardBody className="space-y-5">
-          {header}
-          <p className="flex items-start gap-2 rounded-[14px] bg-success-bg px-4 py-3 text-sm font-semibold text-success-fg" role="status">
-            <ShieldCheck size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
-            {t("approvedBody", { at: when(v.approvedAt!), requester: v.requester.name, until: when(v.visibleUntil!) })}
-          </p>
-          <WhatAndWhy v={v} />
-          {testBanner}
-          {otpStep("verifyWithdraw")}
-          {generalError}
+      <div className="space-y-4">
+        {header}
+        <p className="flex items-start gap-3 rounded-2xl border border-success/20 bg-success-bg p-4 text-sm font-semibold text-success-fg" role="status">
+          <ShieldCheck size={20} className="mt-px shrink-0" aria-hidden="true" />
+          {t("approvedBody", { at: when(v.approvedAt!), requester: v.requester.name, until: when(v.visibleUntil!) })}
+        </p>
+        <WhatAndWhy v={v} />
+        {testBanner}
+        {otpStep("verifyWithdraw")}
+        {generalError}
+        <div className="space-y-2">
           <Button variant="secondary" className="w-full border-danger-fg/40 text-danger-fg" disabled={!verified} onClick={() => setConfirm("withdraw")}>
             {t("withdraw")}
           </Button>
-          <p className="text-xs text-muted">{t("withdrawNote")}</p>
-          {contact}
-          <ConfirmDialog
-            open={confirm === "withdraw"}
-            onCancel={() => setConfirm(null)}
-            onConfirm={() => void finish("withdraw")}
-            title={t("withdrawTitle")}
-            body={t("withdrawConfirm", { requester: v.requester.name })}
-            confirmLabel={t("withdraw")}
-            destructive
-            busy={busy === "withdraw"}
-          />
-        </CardBody>
-      </Card>
+          <p className="px-1 text-xs text-muted">{t("withdrawNote")}</p>
+        </div>
+        {contact}
+        <ConfirmDialog
+          open={confirm === "withdraw"}
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => void finish("withdraw")}
+          title={t("withdrawTitle")}
+          body={t("withdrawConfirm", { requester: v.requester.name })}
+          confirmLabel={t("withdraw")}
+          destructive
+          busy={busy === "withdraw"}
+        />
+      </div>
     );
   }
 
@@ -205,54 +226,57 @@ export function ConsentFlow({ token, initial: v }: { token: string; initial: Con
   });
 
   return (
-    <Card>
-      <CardBody className="space-y-5">
-        {header}
-        <WhatAndWhy v={v} />
-        {testBanner}
-        {otpStep("verifyTitle")}
+    <div className="space-y-4">
+      {header}
+      <WhatAndWhy v={v} />
+      {testBanner}
+      {otpStep("verifyTitle", 1)}
 
-        {v.needs.gst ? (
-          <section aria-labelledby="gst-title" className="space-y-3 rounded-2xl border border-border p-4">
-            <h2 id="gst-title" className="font-bold text-text"><StepNo n={2} /> {t("gstTitle")}</h2>
-            <ol className="list-decimal space-y-0.5 pl-5 text-sm text-muted">
-              <li>{t("gstStep1")}</li>
-              <li>{t("gstStep2")}</li>
-              <li>{t("gstStep3")}</li>
-            </ol>
-            {gstOk ? (
-              <p className="flex items-center gap-2 text-sm font-semibold text-success-fg"><CheckCircle2 size={16} aria-hidden="true" /> {t("gstDone")}</p>
-            ) : (
-              <>
-                <FormField id="gst-username" label={t("gstUsername")} error={errors.gstUsername}>
-                  <Input id="gst-username" value={gstUser} autoComplete="username" autoCapitalize="none" spellCheck={false} disabled={!verified || gstSent} invalid={Boolean(errors.gstUsername)} onChange={(e) => setGstUser(e.target.value)} />
-                </FormField>
-                {!gstSent ? (
-                  <Button variant="secondary" disabled={!verified || !gstUser.trim()} loading={busy === "gst"} onClick={() => void sendGstOtp()}>{t("gstSend")}</Button>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted">{t("gstOtpHint")}</p>
+      {v.needs.gst ? (
+        <Step id="gst-title" n={2} done={gstOk} title={t("gstTitle")}>
+          {gstOk ? (
+            <p className="flex items-center gap-2 text-sm font-semibold text-success-fg"><CheckCircle2 size={16} aria-hidden="true" /> {t("gstDone")}</p>
+          ) : (
+            <div className="space-y-3">
+              <ol className="space-y-1.5 text-[13px] text-text-2">
+                {(["gstStep1", "gstStep2", "gstStep3"] as const).map((k, i) => (
+                  <li key={k} className="flex items-start gap-2">
+                    <span className="mt-px flex size-5 shrink-0 items-center justify-center rounded-md bg-surface-strong text-[11px] font-bold text-muted" aria-hidden="true">{i + 1}</span>
+                    <span>{t(k)}</span>
+                  </li>
+                ))}
+              </ol>
+              <FormField id="gst-username" label={t("gstUsername")} error={errors.gstUsername}>
+                <Input id="gst-username" value={gstUser} autoComplete="username" autoCapitalize="none" spellCheck={false} disabled={!verified || gstSent} invalid={Boolean(errors.gstUsername)} onChange={(e) => setGstUser(e.target.value)} />
+              </FormField>
+              {!gstSent ? (
+                <Button variant="secondary" className="w-full sm:w-auto" disabled={!verified || !gstUser.trim()} loading={busy === "gst"} onClick={() => void sendGstOtp()}>{t("gstSend")}</Button>
+              ) : (
+                <div className="space-y-2.5">
+                  <p className="text-[13px] text-muted">{t("gstOtpHint")}</p>
+                  <BigOtp>
                     <OtpInput value={gstOtp} onChange={setGstOtp} onComplete={(c) => void verifyGstOtp(c)} disabled={busy === "gstVerify"} invalid={Boolean(errors.gstOtp)} label={t("gstOtpLabel")} describedBy={errors.gstOtp ? "gst-otp-error" : undefined} />
-                    {errors.gstOtp ? <p id="gst-otp-error" role="alert" className="text-sm font-medium text-danger-fg">{errors.gstOtp}</p> : null}
-                    <button type="button" className="text-sm font-semibold text-primary-text underline-offset-2 hover:underline" onClick={() => { setGstSent(false); setGstOtp(""); }}>
-                      {t("gstChange")}
-                    </button>
-                  </div>
-                )}
-                {!verified ? <p className="text-xs text-muted">{t("verifyFirst")}</p> : null}
-              </>
-            )}
-          </section>
-        ) : null}
+                  </BigOtp>
+                  {errors.gstOtp ? <p id="gst-otp-error" role="alert" className="text-sm font-medium text-danger-fg">{errors.gstOtp}</p> : null}
+                  <button type="button" className="min-h-10 text-sm font-semibold text-primary-text underline-offset-2 hover:underline" onClick={() => { setGstSent(false); setGstOtp(""); }}>
+                    {t("gstChange")}
+                  </button>
+                </div>
+              )}
+              {!verified ? <p className="flex items-center gap-1.5 text-xs text-muted"><Lock size={12} aria-hidden="true" />{t("verifyFirst")}</p> : null}
+            </div>
+          )}
+        </Step>
+      ) : null}
 
-        {v.needs.companyBureau || v.needs.personalBureau ? (
-          <section aria-labelledby="bureau-title" className="space-y-3 rounded-2xl border border-border p-4">
-            <h2 id="bureau-title" className="font-bold text-text"><StepNo n={v.needs.gst ? 3 : 2} /> {t("bureauTitle")}</h2>
-            <p className="text-sm text-muted">{t("bureauLead")}</p>
+      {v.needs.companyBureau || v.needs.personalBureau ? (
+        <Step id="bureau-title" n={v.needs.gst ? 3 : 2} done={Boolean(bureauReady) && verified} title={t("bureauTitle")}>
+          <div className="space-y-3">
+            <p className="text-[13px] text-muted">{t("bureauLead")}</p>
             {v.needs.companyBureau ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 <FormField id="company-pan" label={t("companyPan")} hint={v.panHint.company ? t("panHint", { pan: v.panHint.company }) : undefined} error={errors.companyPan}>
-                  <Input id="company-pan" maxLength={10} autoCapitalize="characters" spellCheck={false} disabled={!verified} {...field("companyPan")} />
+                  <Input id="company-pan" maxLength={10} autoCapitalize="characters" spellCheck={false} disabled={!verified} className="font-mono uppercase tracking-wider" {...field("companyPan")} />
                 </FormField>
                 <FormField id="incorporated-on" label={t("incorporatedOn")} error={errors.incorporatedOn}>
                   <Input id="incorporated-on" type="date" disabled={!verified} {...field("incorporatedOn")} />
@@ -262,65 +286,116 @@ export function ConsentFlow({ token, initial: v }: { token: string; initial: Con
             {v.needs.personalBureau ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 <FormField id="personal-pan" label={v.subjectKind === "person" ? t("yourPan") : t("personalPan")} hint={v.panHint.personal ? t("panHint", { pan: v.panHint.personal }) : t("personalPanHint")} error={errors.personalPan}>
-                  <Input id="personal-pan" maxLength={10} autoCapitalize="characters" spellCheck={false} disabled={!verified} {...field("personalPan")} />
+                  <Input id="personal-pan" maxLength={10} autoCapitalize="characters" spellCheck={false} disabled={!verified} className="font-mono uppercase tracking-wider" {...field("personalPan")} />
                 </FormField>
                 <FormField id="birth-date" label={v.subjectKind === "person" ? t("yourBirthDate") : t("birthDate")} error={errors.birthDate}>
                   <Input id="birth-date" type="date" disabled={!verified} {...field("birthDate")} />
                 </FormField>
               </div>
             ) : null}
-          </section>
-        ) : null}
+            {!verified ? <p className="flex items-center gap-1.5 text-xs text-muted"><Lock size={12} aria-hidden="true" />{t("verifyFirst")}</p> : null}
+          </div>
+        </Step>
+      ) : null}
 
-        <div className="rounded-2xl border border-border p-4">
-          <Checkbox id="agree" checked={agree} disabled={!verified} onChange={(e) => setAgree(e.target.checked)} label={t("agree", { requester: v.requester.name })} />
-          {errors.agree ? <p role="alert" className="mt-1 text-sm font-medium text-danger-fg">{errors.agree}</p> : null}
-        </div>
+      <div className={cn("rounded-2xl border bg-surface p-4 shadow-sm transition-colors", agree ? "border-primary-line bg-primary-softer" : "border-border")}>
+        <Checkbox id="agree" checked={agree} disabled={!verified} onChange={(e) => setAgree(e.target.checked)} label={t("agree", { requester: v.requester.name })} />
+        {errors.agree ? <p role="alert" className="mt-1 text-sm font-medium text-danger-fg">{errors.agree}</p> : null}
+      </div>
 
-        {generalError}
-        <div className="space-y-2">
-          <Button className="w-full" disabled={!canApprove} loading={busy === "approve"} onClick={() => void approve()}>{t("approve")}</Button>
-          <Button variant="secondary" className="w-full border-danger-fg/40 text-danger-fg" onClick={() => setConfirm("decline")}>{t("decline")}</Button>
+      {generalError}
+
+      {/* The final action stays in reach on phones: a bar pinned to the bottom of the screen while scrolling. */}
+      <div className="sticky bottom-0 z-30 -mx-4 border-t border-border bg-[var(--nav-bg)] px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 sm:grid-cols-1">
+          <Button variant="secondary" className="border-danger-fg/40 text-danger-fg sm:order-2 sm:w-full" onClick={() => setConfirm("decline")}>{t("decline")}</Button>
+          <Button className="w-full sm:order-1" disabled={!canApprove} loading={busy === "approve"} onClick={() => void approve()} icon={<ShieldCheck />}>{t("approve")}</Button>
         </div>
-        <p className="text-xs text-muted">{t("linkValid", { until: when(v.expiresAt) })}</p>
-        {contact}
-        <ConfirmDialog
-          open={confirm === "decline"}
-          onCancel={() => setConfirm(null)}
-          onConfirm={() => void finish("decline")}
-          title={t("declineTitle")}
-          body={t("declineConfirm", { requester: v.requester.name })}
-          confirmLabel={t("decline")}
-          destructive
-          busy={busy === "decline"}
-        />
-      </CardBody>
-    </Card>
+      </div>
+
+      <p className="flex items-center justify-center gap-1.5 text-xs text-muted"><Clock size={12} aria-hidden="true" />{t("linkValid", { until: when(v.expiresAt) })}</p>
+      {contact}
+      <ConfirmDialog
+        open={confirm === "decline"}
+        onCancel={() => setConfirm(null)}
+        onConfirm={() => void finish("decline")}
+        title={t("declineTitle")}
+        body={t("declineConfirm", { requester: v.requester.name })}
+        confirmLabel={t("decline")}
+        destructive
+        busy={busy === "decline"}
+      />
+    </div>
   );
 }
 
-function StepNo({ n }: { n: number }) {
-  return <span className="mr-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white" aria-hidden="true">{n}</span>;
+/** One numbered step card. The number turns into a tick when the step is done. */
+function Step({ id, n, done, title, children }: { id: string; n?: number; done: boolean; title: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <section aria-labelledby={id} className={cn("space-y-3 rounded-2xl border bg-surface p-4 shadow-sm", done ? "border-success/25" : "border-border")}>
+      <h2 id={id} className="flex items-start gap-2.5 font-head text-[15px] font-bold leading-snug text-text">
+        {n !== undefined || done ? (
+          <span
+            className={cn("flex size-6 shrink-0 items-center justify-center rounded-lg text-xs font-bold", done ? "bg-success-bg text-success-fg" : "bg-brand text-white")}
+            aria-hidden="true"
+          >
+            {done ? <Check size={13} strokeWidth={3} /> : n}
+          </span>
+        ) : null}
+        <span className="pt-px">{title}</span>
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+/** Larger OTP boxes that share the row evenly, so six fit a 360 px phone. */
+function BigOtp({ children }: { children: React.ReactNode }) {
+  return <div className="[&_input]:h-14 [&_input]:min-w-0 [&_input]:max-w-14 [&_input]:flex-1 [&_input]:text-xl">{children}</div>;
 }
 
 /** S10 marker 2: purpose, the data in plain words, how long the requester sees it, how to withdraw (FR-CON-02). */
 function WhatAndWhy({ v }: { v: ConsentPageView }) {
   const t = useTranslations("consent");
+  const row = "flex items-start gap-3 px-4 py-3";
+  const icon = "flex size-8 shrink-0 items-center justify-center rounded-lg bg-soft text-primary-text";
   return (
-    <section aria-labelledby="what-title" className="space-y-2 rounded-2xl border border-border bg-surface-muted p-4 text-sm">
+    <section aria-labelledby="what-title" className="overflow-hidden rounded-2xl border border-border bg-surface text-sm shadow-sm">
       <h2 id="what-title" className="sr-only">{t("whatTitle")}</h2>
-      <p><span className="font-bold text-text">{t("purpose")}</span> {t(`purposes.${v.purpose}`)}</p>
-      <div>
-        <p className="font-bold text-text">{t("theyWillSee")}</p>
-        <ol className="mt-1 list-decimal space-y-0.5 pl-5 text-text-2">
-          {v.scope.map((s) => <li key={s}>{t(`scope.${s}`)}</li>)}
-        </ol>
+      <div className={cn(row, "border-b border-border")}>
+        <span className={icon} aria-hidden="true"><Eye size={15} /></span>
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[1px] text-subtle">{t("theyWillSee")}</p>
+          <ul className="mt-1.5 space-y-1">
+            {v.scope.map((s) => (
+              <li key={s} className="flex items-start gap-2 font-semibold text-text">
+                <Check size={15} className="mt-0.5 shrink-0 text-success-fg" aria-hidden="true" />
+                <span>{t(`scope.${s}`)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-      <p><span className="font-bold text-text">{t("keptFor")}</span> {t("keptForValue")}</p>
-      <p className="text-muted">{t("withdrawHow")}</p>
-      <div className="flex flex-wrap gap-2 pt-1">
-        <Tag tone="info">{v.subjectKind === "person" ? t("forPerson", { name: v.subjectName ?? "", business: v.buyerName }) : t("forBusiness", { name: v.buyerName })}</Tag>
+      <div className="grid sm:grid-cols-2">
+        <div className={cn(row, "border-b border-border sm:border-r")}>
+          <span className={icon} aria-hidden="true"><Target size={15} /></span>
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[1px] text-subtle">{t("purpose")}</p>
+            <p className="mt-0.5 text-text-2">{t(`purposes.${v.purpose}`)}</p>
+          </div>
+        </div>
+        <div className={cn(row, "border-b border-border")}>
+          <span className={icon} aria-hidden="true"><Clock size={15} /></span>
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[1px] text-subtle">{t("keptFor")}</p>
+            <p className="mt-0.5 text-text-2">{t("keptForValue")}</p>
+          </div>
+        </div>
       </div>
+      <p className="flex items-center gap-2 bg-surface-muted px-4 py-2.5 text-xs text-muted">
+        <Undo2 size={13} className="shrink-0" aria-hidden="true" />
+        {t("withdrawHow")}
+      </p>
     </section>
   );
 }

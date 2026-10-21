@@ -1,6 +1,8 @@
 import "server-only";
 import crypto from "node:crypto";
 import type { ProviderResult } from "@/server/providers/identity";
+import { MOCK, primary } from "@/server/providers/registry";
+import { notConnected } from "@/server/providers/slots";
 
 // Bank-linked mobile check (PRD S06 marker 4, FR-CP-03): a UPI lookup that says whether a mobile is linked to a bank
 // account and gives the name registered on UPI. Only the mock exists until a verification provider is contracted.
@@ -37,6 +39,12 @@ const mockUpiProvider: UpiProvider = {
   },
 };
 
+/** Real adapters by provider name. Add one here when it is written (docs/PROVIDERS.md); the rest use a slot. */
+const REAL: Record<string, UpiProvider> = {};
+
+/** Bank-linked mobile check (PROVIDER_UPI; dummy when unset). */
 export function upiProvider(): UpiProvider {
-  return mockUpiProvider;
+  const name = primary("upi");
+  if (name === MOCK) return mockUpiProvider;
+  return REAL[name] ?? { name, isMock: false, lookup: async () => notConnected(name, "UPI lookup") };
 }

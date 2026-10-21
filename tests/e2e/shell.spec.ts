@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { SCREENS } from "../../src/lib/screens";
 
 // Signed out: public pages render; every signed-in page sends the visitor to /login and back afterwards.
-const BUILT = new Set(["S01", "S02", "S18", "S04", "S10"]);
+const BUILT = new Set(["S01", "S02", "S18", "S04", "S10", "S15", "S21", "S22"]);
 const PROTECTED_AREAS = new Set(["app"]);
 
 for (const s of SCREENS) {

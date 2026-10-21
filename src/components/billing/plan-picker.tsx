@@ -1,15 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { Check } from "lucide-react";
-import { Button, ButtonLink, Card, CardBody, CardHeader, FormField, Input, Tag, Textarea } from "@/components/ui";
+import { Check, Info, Lock, MessageSquareText, Sparkles, Wallet } from "lucide-react";
+import { Button, ButtonLink, Card, CardBody, CardHeader, Carousel, FormField, Input, Textarea } from "@/components/ui";
 import { cn } from "@/components/ui/cn";
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api-client";
-import { HEADLINE_ITEMS, type PlanCode } from "@/lib/billing";
+import type { PlanCode } from "@/lib/billing";
 import { formatDate, istDate } from "@/lib/dates";
 import { formatInr } from "@/lib/money";
 import { normaliseMobile } from "@/lib/validators";
@@ -49,7 +49,6 @@ export function PlanPicker({
   const [selected, setSelected] = useState<PlanCode | null>(plans.find((p) => p.recommended)?.code ?? plans[0]?.code ?? null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [details, setDetails] = useState<PickerPlan | null>(null);
   const [customOpen, setCustomOpen] = useState(false);
   const plan = plans.find((p) => p.code === selected) ?? null;
 
@@ -66,131 +65,144 @@ export function PlanPicker({
   }
 
   const months = plans[0]?.periodMonths ?? 12;
+  const payLabel = plan ? t("pay", { amount: inr(plan.totalPaise, true) }) : t("selectPlan");
 
   return (
-    <div className="space-y-6">
-      <p className="max-w-2xl text-sm text-muted">{t("subtitle", { months })}</p>
+    <div className={cn("space-y-5", !current && "pb-20 sm:pb-0")}>
+      <p className="text-sm text-muted">{t("subtitle", { months })}</p>
 
       {current ? (
-        <p role="status" className="rounded-[14px] bg-info-bg px-4 py-3 text-sm font-semibold text-info-fg">
-          {t("current", { plan: current.name, date: formatDate(istDate(new Date(current.endsAt))) })} {t("currentNote")}
+        <p role="status" className="flex items-start gap-2.5 rounded-xl bg-info-bg px-3.5 py-3 text-[13px] font-semibold leading-snug text-info-fg">
+          <Info size={16} className="mt-px shrink-0" aria-hidden="true" />
+          <span>
+            {t("current", { plan: current.name, date: formatDate(istDate(new Date(current.endsAt))) })} {t("currentNote")}
+          </span>
         </p>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="space-y-4">
-          <div role="radiogroup" aria-label={t("title")} className="grid gap-4 sm:grid-cols-2">
-            {plans.map((p) => {
-              const active = selected === p.code;
-              const headline = HEADLINE_ITEMS.map((code) => p.items.find((i) => i.code === code)).filter((i) => i !== undefined);
-              return (
-                <div
-                  key={p.code}
-                  role="radio"
-                  aria-checked={active}
-                  tabIndex={current ? -1 : 0}
-                  aria-disabled={current ? true : undefined}
-                  onClick={() => !current && setSelected(p.code)}
-                  onKeyDown={(e) => {
-                    if (!current && (e.key === " " || e.key === "Enter")) {
-                      e.preventDefault();
-                      setSelected(p.code);
-                    }
-                  }}
-                  className={cn(
-                    "relative flex flex-col rounded-3xl border bg-surface p-5 text-left shadow-sm outline-none transition-all focus-visible:ring-2 focus-visible:ring-primary",
-                    active && !current ? "border-primary ring-1 ring-primary" : "border-border",
-                    current ? "opacity-80" : "cursor-pointer hover:border-primary",
-                  )}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h2 className="whitespace-nowrap text-lg font-extrabold tracking-tight text-text">{p.name}</h2>
-                    {p.recommended ? <Tag tone="info">{t("recommended")}</Tag> : null}
-                  </div>
-                  <p className="mt-2 text-2xl font-black tabular-nums tracking-tight text-text">{inr(p.pricePaise)}</p>
-                  <p className="text-xs text-muted">{t("perPeriod", { months: p.periodMonths })}</p>
-                  <p className="mt-1 text-xs font-semibold text-text-2">{t("users", { count: p.seats })}</p>
-                  <ul className="mt-4 flex-1 space-y-1.5 text-sm">
-                    {headline.map((i) => (
-                      <li key={i.code} className="flex items-start gap-2">
-                        <Check size={16} className="mt-0.5 shrink-0 text-primary-text" aria-hidden="true" />
-                        <span>
-                          <span className="font-bold tabular-nums">{i.quantity}</span> {i.name}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDetails(p);
+      <div className={cn("grid gap-5", !current && "lg:grid-cols-[minmax(0,1fr)_320px]")}>
+        <div className="min-w-0 space-y-5">
+          <div role="radiogroup" aria-label={t("title")}>
+            <Carousel label={t("title")} slide="basis-[86%] sm:basis-[calc(50%-8px)]" gap="gap-4" controls="dots">
+              {plans.map((p) => {
+                const active = selected === p.code;
+                return (
+                  <div
+                    key={p.code}
+                    role="radio"
+                    aria-checked={active}
+                    tabIndex={current ? -1 : 0}
+                    aria-disabled={current ? true : undefined}
+                    onClick={() => !current && setSelected(p.code)}
+                    onKeyDown={(e) => {
+                      if (!current && (e.key === " " || e.key === "Enter")) {
+                        e.preventDefault();
+                        setSelected(p.code);
+                      }
                     }}
-                    className="mt-4 self-start text-sm font-bold text-primary-text underline-offset-2 hover:underline"
+                    className={cn(
+                      "relative flex h-full flex-col overflow-hidden rounded-2xl border bg-surface p-5 text-left shadow-sm outline-none transition-[border-color,box-shadow,translate] duration-200 focus-visible:ring-2 focus-visible:ring-primary",
+                      active && !current ? "border-primary shadow-[0_0_0_3px_var(--primary-soft)]" : "border-border",
+                      current ? "opacity-80" : "cursor-pointer hover:-translate-y-0.5 hover:shadow-md",
+                    )}
                   >
-                    {t("seeAll")}
-                  </button>
-                </div>
-              );
-            })}
+                    {p.recommended ? (
+                      <>
+                        <span className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-soft" aria-hidden="true" />
+                        <span className="absolute right-0 top-0 inline-flex items-center gap-1 rounded-bl-xl bg-brand px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.6px] text-white shadow-orange">
+                          <Sparkles size={12} aria-hidden="true" />
+                          {t("recommended")}
+                        </span>
+                      </>
+                    ) : null}
+                    <div className="relative flex items-center gap-2.5">
+                      <span
+                        className={cn(
+                          "flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                          active && !current ? "border-primary bg-primary text-white" : "border-border-strong bg-surface",
+                        )}
+                        aria-hidden="true"
+                      >
+                        {active && !current ? <Check size={12} strokeWidth={3.5} /> : null}
+                      </span>
+                      <h2 className="whitespace-nowrap font-head text-lg font-extrabold tracking-tight text-text">{p.name}</h2>
+                      {active && !current ? <span className="sr-only">{t("selected")}</span> : null}
+                    </div>
+                    <p className="relative mt-4 font-head text-[2.1rem] font-extrabold leading-none tracking-[-0.03em] tabular-nums">
+                      <span className="text-gradient">{inr(p.pricePaise)}</span>
+                    </p>
+                    <p className="relative mt-1.5 text-xs text-muted">{t("perPeriod", { months: p.periodMonths })}</p>
+                    {/* v4 3.1: no units. The whole payment goes into the wallet; the plan adds users (and plan prices once set). */}
+                    <ul className="relative mt-4 flex-1 space-y-2 border-t border-border pt-4 text-[13px] text-text-2">
+                      {[t("benefitWallet", { amount: inr(p.totalPaise) }), t("benefitUsers", { count: p.seats }), t("benefitPrices")].map((b) => (
+                        <li key={b} className="flex items-start gap-2">
+                          <span className="mt-px flex size-4 shrink-0 items-center justify-center rounded-full bg-success-bg text-success-fg" aria-hidden="true">
+                            <Check size={11} strokeWidth={3} />
+                          </span>
+                          <span>{b}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </Carousel>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Card>
-              <CardBody className="space-y-2">
-                <h2 className="text-base font-bold text-text">{t("payPerUse")}</h2>
-                <p className="text-sm text-muted">{t("payPerUseBody")}</p>
+          <div>
+            <p className="mb-2.5 text-[11px] font-semibold uppercase leading-none tracking-[1.2px] text-subtle">{t("orAlso")}</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <OptionTile icon={<Wallet size={17} />} title={t("payPerUse")} body={t("payPerUseBody")}>
                 <Button variant="secondary" size="sm" onClick={() => router.push("/account/billing?topup=1")}>
                   {t("payPerUseCta")}
                 </Button>
-              </CardBody>
-            </Card>
-            <Card>
-              <CardBody className="space-y-2">
-                <h2 className="text-base font-bold text-text">{t("customTitle")}</h2>
-                <p className="text-sm text-muted">{t("customBody")}</p>
+              </OptionTile>
+              <OptionTile icon={<MessageSquareText size={17} />} title={t("customTitle")} body={t("customBody")}>
                 <Button variant="secondary" size="sm" onClick={() => setCustomOpen(true)}>
                   {t("customCta")}
                 </Button>
-              </CardBody>
-            </Card>
+              </OptionTile>
+            </div>
           </div>
         </div>
 
         {!current ? (
-          <Card className="h-fit xl:sticky xl:top-24">
+          <Card className="h-fit lg:sticky lg:top-24">
             <CardHeader title={t("summaryTitle")} />
             <CardBody className="space-y-4">
               {plan ? (
                 <dl className="space-y-2 text-sm">
                   <div className="flex justify-between gap-3">
                     <dt className="text-muted">{t("planLine", { plan: plan.name, months: plan.periodMonths })}</dt>
-                    <dd className="tabular-nums">{inr(plan.pricePaise, true)}</dd>
+                    <dd className="tabular-nums text-text">{inr(plan.pricePaise, true)}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
                     <dt className="text-muted">{t("gst")}</dt>
-                    <dd className="tabular-nums">{inr(plan.gstPaise, true)}</dd>
+                    <dd className="tabular-nums text-text">{inr(plan.gstPaise, true)}</dd>
                   </div>
-                  <div className="flex justify-between gap-3 border-t border-border pt-2 text-base font-extrabold">
-                    <dt>{t("total")}</dt>
-                    <dd className="tabular-nums">{inr(plan.totalPaise, true)}</dd>
+                  <div className="flex items-baseline justify-between gap-3 border-t border-border pt-2.5">
+                    <dt className="font-bold text-text">{t("total")}</dt>
+                    <dd className="font-head text-lg font-extrabold tabular-nums text-text">{inr(plan.totalPaise, true)}</dd>
                   </div>
                 </dl>
               ) : null}
-              <div className="rounded-2xl bg-surface-muted px-3 py-2 text-xs">
-                <p className="font-bold text-text-2">{t("billingGstin")}</p>
-                <p className="font-mono text-text">{billingGstin ?? t("noGstin")}</p>
-                <p className="text-muted">{t("gstinNote")}</p>
+              <div className="rounded-xl bg-surface-muted px-3 py-2.5 text-xs">
+                <p className="font-semibold text-text-2">{t("billingGstin")}</p>
+                <p className="mt-0.5 font-mono text-text">{billingGstin ?? t("noGstin")}</p>
+                <p className="mt-0.5 text-subtle">{t("gstinNote")}</p>
               </div>
               {error ? (
                 <p role="alert" className="text-sm font-semibold text-danger-fg">
                   {error}
                 </p>
               ) : null}
-              <Button className="w-full" onClick={() => void pay()} loading={busy} disabled={busy || !plan}>
-                {plan ? t("pay", { amount: inr(plan.totalPaise, true) }) : t("selectPlan")}
+              <Button className="hidden w-full sm:inline-flex" onClick={() => void pay()} loading={busy} disabled={busy || !plan}>
+                {payLabel}
               </Button>
-              <p className="text-center text-xs text-muted">{t("secure")}</p>
+              <p className="flex items-center justify-center gap-1.5 text-center text-xs text-subtle">
+                <Lock size={12} aria-hidden="true" />
+                {t("secure")}
+              </p>
               {decideLaterHref ? (
                 <ButtonLink href={decideLaterHref} variant="ghost" size="sm" className="w-full">
                   {t("decideLater")}
@@ -201,26 +213,42 @@ export function PlanPicker({
         ) : null}
       </div>
 
-      <Dialog open={details !== null} onClose={() => setDetails(null)} title={details ? t("allItemsTitle", { plan: details.name }) : ""}>
-        {details ? (
-          <div className="space-y-3">
-            <ul className="divide-y divide-border">
-              {details.items.map((i) => (
-                <li key={i.code} className="flex items-center justify-between gap-3 py-2">
-                  <span>{i.name}</span>
-                  <span className="font-bold tabular-nums">{t("unitsIncluded", { count: i.quantity })}</span>
-                </li>
-              ))}
-              <li className="flex items-center justify-between gap-3 py-2">
-                <span>{t("users", { count: details.seats })}</span>
-              </li>
-            </ul>
-            <p className="text-xs text-muted">{t("payPerUseNote")}</p>
+      {/* Phones: the total and Pay stay in reach at the bottom of the screen (the card's button shows from 640 px). */}
+      {!current ? (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-[var(--nav-bg)] px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_32px_-16px_rgba(16,24,40,0.3)] backdrop-blur sm:hidden">
+          <div className="flex items-center gap-3">
+            {plan ? (
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold text-subtle">{t("totalWithGst")}</p>
+                <p className="font-head text-lg font-extrabold tabular-nums text-gradient">{inr(plan.totalPaise, true)}</p>
+              </div>
+            ) : null}
+            <Button className="flex-1" onClick={() => void pay()} loading={busy} disabled={busy || !plan}>
+              {payLabel}
+            </Button>
           </div>
-        ) : null}
-      </Dialog>
+        </div>
+      ) : null}
 
       <CustomPlanDialog open={customOpen} onClose={() => setCustomOpen(false)} />
+    </div>
+  );
+}
+
+/** Pay per use and custom plan: a small icon tile, a title, one line and an action. */
+function OptionTile({ icon, title, body, children }: { icon: ReactNode; title: string; body: string; children: ReactNode }) {
+  return (
+    <div className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-soft text-primary-text" aria-hidden="true">
+        {icon}
+      </span>
+      <div className="min-w-0 flex-1 space-y-2.5">
+        <div>
+          <h2 className="font-head text-[15px] font-bold text-text">{title}</h2>
+          <p className="mt-0.5 text-[13px] leading-snug text-muted">{body}</p>
+        </div>
+        {children}
+      </div>
     </div>
   );
 }

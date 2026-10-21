@@ -9,6 +9,9 @@ import "@/server/onboarding/jobs";
 import "@/server/billing/jobs";
 import "@/server/checks/jobs";
 import "@/server/consent/jobs";
+import "@/server/transactions/jobs";
+import "@/server/settlements/jobs";
+import "@/server/companies/jobs";
 
 /**
  * Re-checks an organisation's audit hash chain. A broken chain means someone changed the log outside the

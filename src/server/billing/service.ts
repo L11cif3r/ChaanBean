@@ -121,7 +121,7 @@ export interface PlanSummary {
 /** The organisation's current plan (null on pay-per-use), wallet and alert amount. Readable by every member. */
 export async function billingSummary(orgId: string) {
   const db = sql();
-  const [[plan], [wallet], [units]] = await Promise.all([
+  const [[plan], [wallet]] = await Promise.all([
     db<{ code: PlanCode; name: string; status: PlanSummary["status"]; starts_at: Date; ends_at: Date; auto_renew: boolean; seats: number }[]>`
       select p.code, p.name, s.status::text as status, s.starts_at, s.ends_at, s.auto_renew, v.seats
         from public.subscriptions s
@@ -131,14 +131,6 @@ export async function billingSummary(orgId: string) {
        order by s.starts_at desc limit 1`,
     db<{ balance_paise: string; alert_paise: string | null }[]>`
       select balance_paise, alert_paise from public.wallets where org_id = ${orgId}`,
-    db<{ left: number | null }[]>`
-      select sum(i.quantity + coalesce(u.units, 0))::int as left
-        from (select * from app_private.usable_subscription(${orgId}::uuid)) s
-        join public.plan_version_items i on i.plan_version_id = s.plan_version_id
-        left join lateral (
-          select sum(l.units) as units from public.usage_ledger l
-           where l.subscription_id = s.id and l.item_code = i.item_code and l.source = 'plan') u on true
-       where s.id is not null`,
   ]);
   const walletPaise = big(wallet?.balance_paise);
   const alertPaise = wallet?.alert_paise == null ? null : big(wallet.alert_paise);
@@ -146,36 +138,36 @@ export async function billingSummary(orgId: string) {
     plan: plan
       ? { code: plan.code, name: plan.name, status: plan.status, startsAt: plan.starts_at, endsAt: plan.ends_at, autoRenew: plan.auto_renew, seats: plan.seats } satisfies PlanSummary
       : null,
-    unitsLeft: units?.left ?? 0,
     walletPaise,
     alertPaise,
     lowBalance: alertPaise !== null && walletPaise < alertPaise,
   };
 }
 
-/** S19 marker 3: every item with included, used, remaining and pay-per-use price. */
-export async function usageTable(orgId: string) {
-  const [catalogue, rows] = await Promise.all([
-    loadCatalogue(),
-    sql()<{ item_code: string; included: number; used: number }[]>`
-      select i.item_code, i.quantity as included, coalesce(-sum(l.units), 0)::int as used
-        from (select * from app_private.usable_subscription(${orgId}::uuid)) s
-        join public.plan_version_items i on i.plan_version_id = s.plan_version_id
-        left join public.usage_ledger l on l.subscription_id = s.id and l.item_code = i.item_code and l.source = 'plan'
-       where s.id is not null
-       group by i.item_code, i.quantity`,
-  ]);
-  const byCode = new Map(rows.map((r) => [r.item_code, r]));
-  return catalogue.items.map((item) => {
-    const r = byCode.get(item.code);
+export interface PriceRow {
+  code: string;
+  name: string;
+  /** What this organisation pays now, before GST: its plan's price if the plan has one, else pay-per-use (v4 3.1). */
+  pricePaise: bigint;
+  gstPaise: bigint;
+  /** The pay-per-use price, to show the saving when a plan price applies. */
+  listPricePaise: bigint;
+  planPrice: boolean;
+}
+
+/** v4 section 3: one rupee price per item for this organisation (no units). */
+export async function priceList(orgId: string): Promise<PriceRow[]> {
+  const rows = await sql()<{ code: string; name: string; price_paise: string; gst_rate_bp: number; plan_code: string | null; list_paise: string }[]>`
+    select b.code, b.name, p.price_paise, p.gst_rate_bp, p.plan_code, (app_private.current_price(b.code)).price_paise as list_paise
+      from public.billing_items b
+      cross join lateral app_private.effective_price(${orgId}::uuid, b.code) p
+     where b.active
+     order by b.sort`;
+  return rows.map((r) => {
+    const price = big(r.price_paise);
     return {
-      code: item.code,
-      name: item.name,
-      included: r?.included ?? 0,
-      used: r?.used ?? 0,
-      remaining: r ? Math.max(0, r.included - r.used) : 0,
-      pricePaise: item.pricePaise,
-      gstPaise: item.gstPaise,
+      code: r.code, name: r.name, pricePaise: price, gstPaise: (price * BigInt(r.gst_rate_bp) + 5_000n) / 10_000n,
+      listPricePaise: big(r.list_paise), planPrice: r.plan_code !== null,
     };
   });
 }

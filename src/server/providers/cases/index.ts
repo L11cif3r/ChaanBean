@@ -2,6 +2,8 @@ import "server-only";
 import crypto from "node:crypto";
 import { firCovered, MAX_MATCHES, nameTokens, type CaseCandidate, type CaseInput, type CcCode } from "@/lib/cases";
 import { GST_STATES } from "@/server/providers/identity/states";
+import { MOCK, chain, hasLiveProvider } from "@/server/providers/registry";
+import { notConnected } from "@/server/providers/slots";
 import type { ProviderResult } from "@/server/providers/identity";
 
 // Case Check providers (PRD v3.0 section 17): eCourts through Surepass (court cases), AuthBridge or IDfy (FIR) and
@@ -161,6 +163,38 @@ export const mockCaseProvider: CaseProvider = {
   },
 };
 
+// ---------------------------------------------------------------- choosing the provider (registry.ts)
+
+/** Real adapters by provider name. Add one here when it is written (docs/PROVIDERS.md); the rest use a slot. */
+const REAL: Record<string, CaseProvider> = {};
+
+const slot = (name: string): CaseProvider => ({ name, isMock: false, run: async (code) => notConnected(name, code) });
+const adapter = (name: string) => (name === MOCK ? mockCaseProvider : (REAL[name] ?? slot(name)));
+
+/** The provider for each Case Check item (PROVIDER_CC_COURT, PROVIDER_CC_FIR, PROVIDER_CC_AML), with fallback. */
 export function caseProvider(): CaseProvider {
-  return mockCaseProvider;
+  return {
+    name: "router",
+    get isMock() {
+      return (["CC_COURT", "CC_FIR", "CC_AML"] as const).every((c) => chain(c).every((n) => n === MOCK));
+    },
+    async run(code, input, opts) {
+      let last: Awaited<ReturnType<CaseProvider["run"]>> | null = null;
+      for (const name of chain(code)) {
+        last = await adapter(name).run(code, input, opts);
+        if (last.status === "success" || last.status === "no_data" || last.error?.retryable === false) return last;
+      }
+      return last!;
+    },
+  };
+}
+
+/** Sample data mode (v4 FR-CC-06): Case Check uses sample data until a live provider is set up for the item. */
+export function caseProviderFor(sample: boolean): CaseProvider {
+  if (!sample) return caseProvider();
+  return {
+    name: "sample",
+    isMock: true,
+    run: (code, input, opts) => (hasLiveProvider(code) ? caseProvider().run(code, input, opts) : mockCaseProvider.run(code, input, opts)),
+  };
 }

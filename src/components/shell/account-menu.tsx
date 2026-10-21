@@ -53,19 +53,19 @@ export function AccountMenu({ name, phone, orgs, activeOrgId }: { name: string; 
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={t("menu")}
-        className="bg-brand flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-orange transition-transform hover:-translate-y-0.5"
+        className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand text-xs font-bold text-white shadow-orange transition-[scale] duration-150 active:scale-[0.95]"
       >
         {initials || "?"}
       </button>
       {open ? (
-        <div role="menu" className="absolute right-0 top-12 z-40 w-72 rounded-2xl border border-border bg-surface p-2 shadow-lg">
-          <div className="px-3 py-2">
-            <p className="truncate text-sm font-bold text-text">{name || t("noName")}</p>
+        <div role="menu" className="absolute right-0 top-11 z-40 w-72 origin-top-right animate-[cb-dialog_0.18s_cubic-bezier(.25,1,.5,1)_both] rounded-[10px] bg-menu p-1 shadow-lg backdrop-blur-xl backdrop-saturate-150">
+          <div className="px-2.5 py-2">
+            <p className="truncate text-sm font-medium text-text">{name || t("noName")}</p>
             <p className="text-xs text-muted">{phone}</p>
           </div>
           {orgs.length ? (
-            <div className="border-t border-border py-1">
-              <p className="px-3 pb-1 pt-2 font-mono text-xs font-bold uppercase tracking-wider text-subtle">{t("organisations")}</p>
+            <div className="-mx-1 border-t border-border px-1 py-1">
+              <p className="px-2.5 pb-2 pt-2.5 text-[11px] font-medium uppercase leading-none tracking-[1px] text-subtle">{t("organisations")}</p>
               {orgs.map((o) => (
                 <button
                   key={o.id}
@@ -73,7 +73,7 @@ export function AccountMenu({ name, phone, orgs, activeOrgId }: { name: string; 
                   role="menuitemradio"
                   aria-checked={o.id === active?.id}
                   onClick={() => (o.id === active?.id ? setOpen(false) : void switchTo(o.id))}
-                  className={cn("flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-sm hover:bg-primary-softer", o.id === active?.id && "font-bold text-primary-text")}
+                  className={cn("flex h-8 w-full items-center justify-between gap-2 rounded-md px-2.5 text-left text-xs text-muted hover:bg-hover hover:text-text", o.id === active?.id && "font-medium text-text")}
                 >
                   <span className="truncate">{o.name}</span>
                   <span className="shrink-0 text-xs text-muted">{t(`roles.${o.role}`)}</span>
@@ -81,11 +81,11 @@ export function AccountMenu({ name, phone, orgs, activeOrgId }: { name: string; 
               ))}
             </div>
           ) : null}
-          <div className="border-t border-border pt-1">
-            <a href="/signup/business" role="menuitem" className="block rounded-xl px-3 py-2 text-sm font-medium hover:bg-primary-softer hover:text-primary-text">
+          <div className="-mx-1 border-t border-border px-1 pt-1">
+            <a href="/signup/business" role="menuitem" className="flex h-8 items-center rounded-md px-2.5 text-xs text-muted hover:bg-hover hover:text-text">
               {t("addBusiness")}
             </a>
-            <button type="button" role="menuitem" onClick={() => void signOut()} className="block w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-danger-fg hover:bg-danger-bg">
+            <button type="button" role="menuitem" onClick={() => void signOut()} className="flex h-8 w-full items-center rounded-md px-2.5 text-left text-xs font-medium text-danger-fg hover:bg-danger-bg">
               {t("signOut")}
             </button>
           </div>

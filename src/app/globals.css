@@ -7,187 +7,123 @@
 @custom-variant site (&:where(.site, .site *));
 
 /*
-  Chaanbean design tokens, taken from the redesign-marketing-site branch. That branch has two looks and we keep both:
-  - the signed-in portal (src/app/globals.css + components/Sidebar.tsx there): slate neutrals, #FC8019 orange,
-    system font, navy dark mode;
-  - the public site and sign-in (components/marketing/site.module.css there): warm neutrals, orange gradient,
-    Plus Jakarta Sans, true-black dark mode. Pages opt in with the .site class (auth and public layouts).
-  Every component reads these tokens; change them here and the whole portal follows.
+  ChaanBean design tokens (v2, 21 Oct 2026): one modern look from sign-in to every portal page. Cool neutrals,
+  white cards with soft depth, an orange-to-rose brand gradient for primary actions and headline words, and a display
+  face for headings. .site (sign-in, sign-up and public pages) uses the same palette with taller controls.
 */
 :root {
-  --grad-brand: linear-gradient(135deg, #ff5200 0%, #fc8019 55%, #ffa24a 100%);
+  --grad-brand: linear-gradient(120deg, #ff5a1f 0%, #fc8019 45%, #ff9a3d 100%);
+  --grad-text: linear-gradient(100deg, #ff5200 0%, #ff7a1a 35%, #ff3d6e 72%, #b45cff 100%);
+  --grad-soft: linear-gradient(135deg, rgba(255, 122, 26, 0.12), rgba(255, 61, 110, 0.08) 55%, rgba(180, 92, 255, 0.08));
 
-  --bg: #f8fafc;
+  --bg: #f6f7f9;
   --surface: #ffffff;
-  --surface-muted: #f8fafc;
-  --surface-strong: #f1f5f9;
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --text: #0f172a;
-  --text-2: #334155;
-  --text-muted: #64748b;
-  --text-subtle: #475569;
-  --placeholder: #94a3b8;
+  --surface-muted: #f8f9fb;
+  --surface-strong: #eef0f3;
+  --border: #e8eaee;
+  --border-strong: #d5d9e0;
+  --text: #0e1116;
+  --text-2: #353a44;
+  --text-muted: #5d6470;
+  --text-subtle: #8a909b;
+  --placeholder: #a5abb5;
+  --hover: rgb(15 17 22 / 0.04);
+  --sidebar: #ffffff;
 
-  --primary: #fc8019;
-  --primary-hover: #e26d0a;
-  --primary-text: #e26d0a;
-  --primary-soft: #fff7ed;
-  --primary-softer: #fffaf5;
-  --primary-line: #fed7aa;
+  --primary: #fc6a10;
+  --primary-hover: #ff7a1a;
+  --primary-text: #d24d00;
+  --primary-soft: #fff1e6;
+  --primary-softer: #fff8f2;
+  --primary-line: #ffcfa8;
   --primary-on: #ffffff;
-  --accent: #fc8019;
-  --danger: #e11d48;
-  --danger-hover: #be123c;
-  --ring: rgba(252, 128, 25, 0.35);
+  --accent: #ff3d6e;
+  --danger: #e5383b;
+  --danger-hover: #d02a2d;
+  --ring: rgb(252 106 16 / 0.45);
 
-  --success-bg: #ecfdf5;
-  --success-fg: #047857;
-  --warning-bg: #fffbeb;
-  --warning-fg: #b45309;
-  --danger-bg: #fff1f2;
-  --danger-fg: #e11d48;
-  --info-bg: #fff7ed;
-  --info-fg: #c2410c;
-  --neutral-bg: #f1f5f9;
-  --neutral-fg: #334155;
+  --success-bg: #e9f8ef;
+  --success-fg: #12823c;
+  --warning-bg: #fff5e1;
+  --warning-fg: #a65d00;
+  --danger-bg: #fdeced;
+  --danger-fg: #c9282b;
+  --info-bg: #eef3ff;
+  --info-fg: #2552d8;
+  --neutral-bg: #eef0f3;
+  --neutral-fg: #353a44;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --info: #3b6cf6;
 
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.06);
-  --shadow-orange: 0 10px 22px -10px rgba(252, 128, 25, 0.6);
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.05);
+  --shadow-md: 0 1px 2px rgb(16 24 40 / 0.04), 0 8px 24px -8px rgb(16 24 40 / 0.12);
+  --shadow-lg: 0 2px 6px rgb(16 24 40 / 0.05), 0 24px 48px -16px rgb(16 24 40 / 0.2);
+  --shadow-control: 0 0 0 1px rgb(16 24 40 / 0.08), 0 1px 2px rgb(16 24 40 / 0.06);
+  --shadow-orange: 0 8px 20px -6px rgb(252 106 16 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.25);
+  --shadow-danger: 0 6px 16px -6px rgb(229 56 59 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.2);
+  --menu: rgb(255 255 255 / 0.92);
   --field-bg: #ffffff;
-  --nav-bg: rgba(255, 255, 255, 0.95);
-  --dot: rgba(15, 23, 42, 0.08);
-  --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --nav-bg: rgb(255 255 255 / 0.8);
+  --dot: rgb(15 17 22 / 0.06);
+  --font-body: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-head: var(--font-jakarta), var(--font-inter), system-ui, sans-serif;
   color-scheme: light;
 }
 
 html.dark {
-  --bg: #090d16;
-  --surface: #0d1322;
-  --surface-muted: #111827;
-  --surface-strong: #1e293b;
-  --border: #1f293d;
-  --border-strong: #334155;
-  --text: #f8fafc;
-  --text-2: #e2e8f0;
-  --text-muted: #94a3b8;
-  --text-subtle: #94a3b8;
-  --placeholder: #64748b;
+  --grad-text: linear-gradient(100deg, #ff8a3d 0%, #ff9f5a 30%, #ff6b8f 70%, #c58bff 100%);
+  --grad-soft: linear-gradient(135deg, rgba(255, 122, 26, 0.14), rgba(255, 61, 110, 0.08) 55%, rgba(180, 92, 255, 0.1));
+  --bg: #0b0c0f;
+  --surface: #131519;
+  --surface-muted: #171a1f;
+  --surface-strong: #20242b;
+  --border: #22262d;
+  --border-strong: #323843;
+  --text: #f4f6fa;
+  --text-2: #d3d7de;
+  --text-muted: #9aa1ad;
+  --text-subtle: #7b828e;
+  --placeholder: #5d636e;
+  --hover: rgb(255 255 255 / 0.05);
+  --sidebar: #0f1114;
 
-  --primary-text: #fb923c;
-  --primary-soft: rgba(252, 128, 25, 0.15);
-  --primary-softer: rgba(252, 128, 25, 0.07);
-  --primary-line: rgba(252, 128, 25, 0.4);
-  --danger: #fb7185;
-  --danger-hover: #fda4af;
+  --primary-text: #ff9a52;
+  --primary-soft: rgb(252 106 16 / 0.16);
+  --primary-softer: rgb(252 106 16 / 0.07);
+  --primary-line: rgb(252 106 16 / 0.4);
+  --ring: rgb(255 154 82 / 0.5);
 
-  --success-bg: rgba(16, 185, 129, 0.14);
-  --success-fg: #34d399;
-  --warning-bg: rgba(217, 119, 6, 0.16);
+  --success-bg: rgb(34 197 94 / 0.13);
+  --success-fg: #4ade80;
+  --warning-bg: rgb(251 191 36 / 0.13);
   --warning-fg: #fbbf24;
-  --danger-bg: rgba(225, 29, 72, 0.16);
-  --danger-fg: #fb7185;
-  --info-bg: rgba(252, 128, 25, 0.15);
-  --info-fg: #fb923c;
-  --neutral-bg: #1e293b;
-  --neutral-fg: #e2e8f0;
+  --danger-bg: rgb(248 113 113 / 0.13);
+  --danger-fg: #f87171;
+  --info-bg: rgb(96 165 250 / 0.13);
+  --info-fg: #8cb4ff;
+  --neutral-bg: #20242b;
+  --neutral-fg: #d3d7de;
+  --success: #22c55e;
+  --warning: #fbbf24;
+  --info: #60a5fa;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 10px -2px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 18px 40px -18px rgba(0, 0, 0, 0.8);
-  --field-bg: #0b1120;
-  --nav-bg: rgba(13, 19, 34, 0.95);
-  --dot: rgba(255, 255, 255, 0.06);
+  --shadow-sm: 0 0 0 1px rgb(255 255 255 / 0.03), 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 0 0 1px rgb(255 255 255 / 0.04), 0 12px 32px -12px rgb(0 0 0 / 0.7);
+  --shadow-lg: 0 0 0 1px rgb(255 255 255 / 0.05), 0 24px 56px -16px rgb(0 0 0 / 0.85);
+  --shadow-control: 0 0 0 1px rgb(255 255 255 / 0.08), 0 1px 2px rgb(0 0 0 / 0.4);
+  --menu: rgb(23 26 31 / 0.92);
+  --field-bg: #0f1114;
+  --nav-bg: rgb(11 12 15 / 0.78);
+  --dot: rgb(255 255 255 / 0.05);
   color-scheme: dark;
 }
 
-/* Public site and sign-in look (site.module.css on the branch). */
+/* Sign-in, sign-up and public pages: same palette, a warmer page wash. */
 .site {
-  --bg: #fffdfb;
-  --surface: #ffffff;
-  --surface-muted: #faf6f2;
-  --surface-strong: #f3eee8;
-  --border: #ece6df;
-  --border-strong: #ddd5cc;
-  --text: #171717;
-  --text-2: #3b3b3b;
-  --text-muted: #666666;
-  --text-subtle: #999999;
-  --placeholder: #a3a3a3;
-
-  --primary-hover: #e64a00;
-  --primary-text: #e64a00;
-  --primary-soft: #fff0e3;
-  --primary-softer: #fff8f1;
-  --primary-line: #ffd2a8;
-  --danger: #d93a3a;
-  --danger-hover: #b92e2e;
-
-  --success-bg: #e6f6ee;
-  --success-fg: #0b8a5c;
-  --warning-bg: #fff4dc;
-  --warning-fg: #b86e00;
-  --danger-bg: #fdecec;
-  --danger-fg: #d93a3a;
-  --info-bg: #fff0e3;
-  --info-fg: #e64a00;
-  --neutral-bg: #f3eee8;
-  --neutral-fg: #3b3b3b;
-
-  --shadow-sm: 0 1px 2px rgba(23, 23, 23, 0.06), 0 2px 8px rgba(23, 23, 23, 0.04);
-  --shadow-md: 0 10px 30px -12px rgba(23, 23, 23, 0.18), 0 4px 10px -6px rgba(23, 23, 23, 0.08);
-  --shadow-lg: 0 30px 60px -24px rgba(23, 23, 23, 0.28), 0 12px 24px -16px rgba(23, 23, 23, 0.16);
-  --shadow-orange: 0 14px 30px -12px rgba(255, 82, 0, 0.55);
-  --field-bg: #fffdfb;
-  --nav-bg: rgba(255, 255, 255, 0.92);
-  --dot: rgba(23, 23, 23, 0.08);
-  --font-body: var(--font-jakarta), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
-}
-
-/* True black dark mode with warm orange accents. */
-html.dark .site {
-  --bg: #000000;
-  --surface: #0e0e0e;
-  --surface-muted: #141414;
-  --surface-strong: #1c1c1c;
-  --border: #242424;
-  --border-strong: #333333;
-  --text: #f5f5f5;
-  --text-2: #d6d6d6;
-  --text-muted: #a3a3a3;
-  --text-subtle: #707070;
-  --placeholder: #5c5c5c;
-
-  --primary-text: #ff8a3d;
-  --primary-soft: rgba(255, 98, 20, 0.14);
-  --primary-softer: rgba(255, 98, 20, 0.06);
-  --primary-line: rgba(255, 122, 40, 0.38);
-  --danger: #ff6b6b;
-  --danger-hover: #ff8585;
-
-  --success-bg: rgba(52, 201, 143, 0.13);
-  --success-fg: #34c98f;
-  --warning-bg: rgba(255, 181, 71, 0.13);
-  --warning-fg: #ffb547;
-  --danger-bg: rgba(255, 107, 107, 0.13);
-  --danger-fg: #ff6b6b;
-  --info-bg: rgba(255, 98, 20, 0.14);
-  --info-fg: #ff8a3d;
-  --neutral-bg: #1c1c1c;
-  --neutral-fg: #d6d6d6;
-
-  --shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.04);
-  --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 18px 40px -18px rgba(0, 0, 0, 0.9);
-  --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 30px 70px -28px rgba(0, 0, 0, 0.95);
-  --shadow-orange: 0 14px 34px -12px rgba(255, 82, 0, 0.6);
-  --field-bg: #0a0a0a;
-  --nav-bg: rgba(8, 8, 8, 0.92);
-  --dot: rgba(255, 255, 255, 0.07);
 }
 
 @theme inline {
@@ -229,18 +165,31 @@ html.dark .site {
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
   --shadow-orange: var(--shadow-orange);
+  --shadow-control: var(--shadow-control);
+  --shadow-danger: var(--shadow-danger);
+  --color-hover: var(--hover);
+  --color-sidebar: var(--sidebar);
+  --color-menu: var(--menu);
+  --color-success: var(--success);
+  --font-display: var(--font-head);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
 }
 
-/* The branch's portal reads at 16.5 px (17 px on desktop). */
+/* Rounder, friendlier corners and confident weights. */
+@theme {
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
+  --radius-3xl: 1.5rem;
+  --font-weight-bold: 650;
+  --font-weight-extrabold: 750;
+  --font-weight-black: 800;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
-  font-size: 16.5px;
-}
-
-@media (min-width: 1024px) {
-  html {
-    font-size: 17px;
-  }
+  font-size: 16px;
 }
 
 body {
@@ -254,7 +203,36 @@ body {
 h1,
 h2,
 h3 {
+  font-family: var(--font-head);
   letter-spacing: -0.02em;
+}
+
+/* Headline words in the brand gradient. */
+@utility text-gradient {
+  background-image: var(--grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* Soft brand wash for hero cards and highlights. */
+@utility bg-soft {
+  background-image: var(--grad-soft);
+}
+/* Horizontal scroll with snapping, for carousels, without a visible scrollbar. */
+@utility snap-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  &::-webkit-scrollbar { display: none; }
+}
+
+/* Thin scrollbars, as in the ObsidianUI shell. */
+.cb-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
 }
 
 /* Brand gradient fill used by primary buttons, the theme knob and the sign-in panel (a utility, so variants work). */
@@ -264,7 +242,7 @@ h3 {
 
 /* One visible focus style everywhere (keyboard use, NFR-08). */
 :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -275,4 +253,84 @@ h3 {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Credit Worthiness start page: slow drifting glow shapes, a turning gradient ring around the big search and cards that
+   rise in one after another. Turned off by the reduced-motion rule above. */
+@keyframes cb-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(28px, -22px, 0) scale(1.08); }
+}
+@keyframes cb-drift-back {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); }
+  50% { transform: translate3d(-32px, 18px, 0) scale(0.95); }
+}
+@keyframes cb-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes cb-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes cb-ping {
+  0% { transform: scale(1); opacity: 0.7; }
+  80%, 100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes cb-caret {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@utility animate-drift {
+  animation: cb-drift 14s ease-in-out infinite;
+}
+@utility animate-drift-back {
+  animation: cb-drift-back 18s ease-in-out infinite;
+}
+@utility animate-ring {
+  animation: cb-spin 6s linear infinite;
+}
+@utility animate-rise {
+  animation: cb-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@utility animate-ping-soft {
+  animation: cb-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@utility animate-caret {
+  animation: cb-caret 1s step-end infinite;
+}
+@keyframes cb-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@keyframes cb-grow-x {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes cb-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes cb-pop {
+  from { opacity: 0; transform: scale(0.85) rotate(-20deg); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes cb-dialog {
+  from { opacity: 0; transform: scale(0.95) translateY(6px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes cb-fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes cb-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@keyframes cb-indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+/* Rolling digits (NumberRoll): from the 0 position to the reel's own transform. */
+@keyframes cb-roll {
+  from { transform: translateY(0); }
 }

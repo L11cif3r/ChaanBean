@@ -1,4 +1,3 @@
-import { ShieldCheck } from "lucide-react";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
@@ -6,6 +5,7 @@ import { Card, CardBody, Tag } from "@/components/ui";
 import { cn } from "@/components/ui/cn";
 import { maskMobile } from "@/lib/mask";
 import { loadAccount } from "@/server/account";
+import { ensureTestBusiness } from "@/server/dev/test-business";
 import { AccountMenu } from "./account-menu";
 
 /** Top-bar account area. Rendered inside Suspense because it reads the session (Cache Components). */
@@ -31,14 +31,16 @@ export async function OrgBadge() {
   const verified = active.verification === "gstin_verified" || active.verification === "pan_verified";
   return (
     <>
-      <span className="max-w-[140px] truncate text-sm font-bold tracking-tight text-text sm:max-w-[240px] sm:text-base md:max-w-none">{active.name}</span>
+      <span className="max-w-[140px] truncate font-head text-[15px] font-bold tracking-tight text-text sm:max-w-[240px] md:max-w-none">{active.name}</span>
       <span
         className={cn(
-          "hidden items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-xs font-bold sm:inline-flex",
-          verified ? "border-success-fg/30 bg-success-bg text-success-fg" : "border-warning-fg/30 bg-warning-bg text-warning-fg",
+          "hidden shrink-0 items-center gap-1 rounded-lg border border-border bg-surface py-1 pl-1 pr-2 text-xs font-semibold leading-none text-text shadow-sm sm:inline-flex",
         )}
       >
-        <ShieldCheck size={13} aria-hidden="true" />
+        <span aria-hidden="true" className={cn("relative flex size-3 items-center justify-center", verified ? "text-success" : "text-warning")}>
+          <span className="absolute inset-0 rounded-full bg-current opacity-25" />
+          <span className="size-1.5 rounded-full bg-current" />
+        </span>
         {verified ? t("verified") : t("pendingVerification")}
       </span>
     </>
@@ -52,7 +54,13 @@ export async function OrgBadge() {
 export async function OrgGate({ children }: { children: ReactNode }) {
   const { ctx, orgs } = await loadAccount();
   if (!ctx.user) redirect("/login");
-  if (!ctx.orgId) redirect("/signup/business");
+  if (!ctx.orgId) {
+    // Development: the hand-testing numbers get a ready, verified test business instead of sign-up.
+    const test = await ensureTestBusiness(ctx.user);
+    if (test === "ready") redirect("/dashboard");
+    if (test === "stale") redirect("/api/v1/dev/fresh-sign-in");
+    redirect("/signup/business");
+  }
   const active = orgs.find((o) => o.id === ctx.orgId);
   if (active?.verification === "manual_review") {
     const t = await getTranslations("review");
@@ -60,7 +68,7 @@ export async function OrgGate({ children }: { children: ReactNode }) {
       <Card className="mx-auto max-w-xl">
         <CardBody className="space-y-3 p-6">
           <Tag tone="warning">{t("tag")}</Tag>
-          <h1 className="text-lg font-bold text-text">{t("title", { organisation: active.name })}</h1>
+          <h1 className="text-lg font-semibold text-text">{t("title", { organisation: active.name })}</h1>
           <p className="text-sm text-muted">{t("body")}</p>
         </CardBody>
       </Card>

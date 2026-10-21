@@ -1,4 +1,5 @@
 import "server-only";
+import { maskEmail } from "@/lib/mask";
 import { formatInr } from "@/lib/money";
 import { sql } from "@/server/db/sql";
 import { enqueue } from "@/server/jobs/runner";
@@ -6,7 +7,7 @@ import { queueMessage } from "@/server/outbox";
 import { mapBillingError } from "./service";
 
 // Charging a paid action (PRD 5.9, FR-BIL-04/05), for the parts that sell checks, transactions and settlements:
-//   const hold = await placeHold({ ... });           // when the action starts: plan unit, else wallet at price + GST
+//   const hold = await placeHold({ ... });           // when the action starts: wallet at price + GST
 //   ... run the action ...
 //   await commitHold(orgId, hold.id)                  // it succeeded (also when it ran correctly and found nothing)
 //   await reverseHold(orgId, hold.id, "reason")       // it failed: the unit or money comes back at once
@@ -79,9 +80,15 @@ async function alertIfLow(orgId: string, chargedPaise: bigint, balanceAfter: big
   if (!w?.alert_paise) return;
   const alert = BigInt(w.alert_paise);
   if (!(balanceAfter < alert && balanceAfter + chargedPaise >= alert)) return;
-  await queueMessage({
-    orgId, channel: "email", recipientMasked: "Owner and Admins", template: "wallet_low_balance",
-    subject: "Your Chaanbean wallet is running low",
-    body: `The wallet of ${w.legal_name} is down to ${formatInr(balanceAfter, { withPaise: true })}, below your alert amount of ${formatInr(alert)}. Add money from Plan and usage to keep checks running.`,
-  });
+  // To each active Owner and Admin with an email (wallet alerts are email-only, S19).
+  const admins = await sql()<{ email: string }[]>`
+    select p.email from public.memberships m join public.user_profiles p on p.id = m.user_id
+     where m.org_id = ${orgId} and m.status = 'active' and m.role in ('owner', 'admin') and p.email is not null`;
+  for (const a of admins) {
+    await queueMessage({
+      orgId, channel: "email", recipientMasked: maskEmail(a.email), to: a.email, template: "wallet_low_balance",
+      subject: "Your Chaanbean wallet is running low",
+      body: `The wallet of ${w.legal_name} is down to ${formatInr(balanceAfter, { withPaise: true })}, below your alert amount of ${formatInr(alert)}. Add money from Plan and usage to keep checks running.`,
+    });
+  }
 }

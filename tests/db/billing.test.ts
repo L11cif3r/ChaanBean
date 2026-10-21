@@ -2,8 +2,9 @@ import crypto from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { connect, hasDatabase, makeOrg, makeUser, removeUsers, type Db, type TestUser } from "./support";
 
-// Part 3 database rules: payment orders and webhooks, plan activation, wallet top-ups, hold/commit/reverse charging
-// (plan first, wallet second), GST invoices, the append-only ledger and row-level security on billing data.
+// Part 3 database rules, as changed by PRD v4.0 section 3: payment orders and webhooks, plan activation, wallet top-ups,
+// hold/commit/reverse charging (always wallet money, at the plan's price list or pay-per-use), GST invoices, the
+// append-only ledger and row-level security on billing data.
 const run = hasDatabase ? describe : describe.skip;
 const tag = crypto.randomBytes(4).toString("hex");
 
@@ -39,6 +40,12 @@ run("billing (Part 3)", () => {
 
   const close = (org: string, holdId: string, commit: boolean) => db<{ id: string; type: string }[]>`
     select id, type::text from app_private.close_hold(${org}::uuid, ${holdId}::bigint, ${commit}, null, 'vitest', ${`test-${tag}`})`;
+
+  const price = async (org: string, item: string) => {
+    const [p] = await db<{ price_paise: string; gst_rate_bp: number }[]>`select price_paise, gst_rate_bp from app_private.effective_price(${org}::uuid, ${item})`;
+    const net = Number(p.price_paise);
+    return net + Math.round((net * p.gst_rate_bp) / 10000);
+  };
 
   const balance = async (org: string) => {
     const [w] = await db<{ b: string }[]>`select balance_paise as b from public.wallets where org_id = ${org}`;
@@ -131,14 +138,14 @@ run("billing (Part 3)", () => {
     expect(await balance(walletOrg)).toBe(100000);
   });
 
-  it("uses plan quota first and then charges the wallet at the pay-per-use price plus GST", async () => {
+  it("puts a plan payment into the wallet and charges every check from it, at the plan's price or pay-per-use, plus GST", async () => {
+    expect(await balance(planOrg)).toBe(2076682);
+    const cost = await price(planOrg, "CW_GST_SEARCH");
     const [h] = await hold(planOrg, "CW_GST_SEARCH");
-    expect([h.source, h.units, Number(h.amount_paise)]).toEqual(["plan", -1, 0]);
+    expect([h.source, h.units, Number(h.amount_paise)]).toEqual(["wallet", 0, -cost]);
     const [c] = await close(planOrg, h.id, true);
     expect(c.type).toBe("commit");
-
-    // Not in any plan (Credit rating): straight to the wallet, which is empty for this organisation.
-    await expect(hold(planOrg, "CW_CREDIT_RATING")).rejects.toThrow(/INSUFFICIENT_BALANCE/);
+    expect(await balance(planOrg)).toBe(2076682 - cost);
 
     // Pay-per-use organisation: ₹189 + ₹34.02 GST.
     const [w] = await hold(walletOrg, "CW_CREDIT_RATING");
@@ -147,20 +154,22 @@ run("billing (Part 3)", () => {
     expect(await balance(walletOrg)).toBe(77698);
   });
 
-  it("moves to the wallet once an item's quota is used up (zero quota charges the wallet)", async () => {
-    // Plan B includes Director Details 15 times.
-    for (let i = 0; i < 15; i++) {
+  it("uses the plan's own price list while the plan is active (Option A), pay-per-use for everyone else", async () => {
+    const [pp] = await db<{ id: string }[]>`
+      insert into public.plan_prices (plan_code, item_code, price_paise, effective_from) values ('plan_b', 'CW_DIRECTORS', 15000, now() - interval '1 minute')
+      returning id`;
+    try {
+      expect(await price(planOrg, "CW_DIRECTORS")).toBe(17700);
+      expect(await price(walletOrg, "CW_DIRECTORS")).toBe(22302);
       const [h] = await hold(planOrg, "CW_DIRECTORS");
-      expect(h.source).toBe("plan");
-      await close(planOrg, h.id, true);
+      expect([h.source, Number(h.amount_paise), Number(h.gst_paise)]).toEqual(["wallet", -17700, -2700]);
+      await close(planOrg, h.id, false);
+    } finally {
+      await db`delete from public.plan_prices where id = ${pp.id}`;
     }
-    await expect(hold(planOrg, "CW_DIRECTORS")).rejects.toThrow(/INSUFFICIENT_BALANCE/);
-    const [used] = await db`
-      select -sum(units)::int as used from public.usage_ledger where org_id = ${planOrg} and item_code = 'CW_DIRECTORS'`;
-    expect(used.used).toBe(15);
   });
 
-  it("reverses a failed action's hold, restoring units or money, and closes each hold once", async () => {
+  it("reverses a failed action's hold, restoring the money, and closes each hold once", async () => {
     const before = await balance(walletOrg);
     const [w] = await hold(walletOrg, "CC_COURT");
     expect(await balance(walletOrg)).toBe(before - 34102);
@@ -171,37 +180,28 @@ run("billing (Part 3)", () => {
     expect(again.id).toBe(r.id);
     await expect(close(walletOrg, w.id, true)).rejects.toThrow(/HOLD_REVERSED/);
 
+    const planBefore = await balance(planOrg);
     const [p] = await hold(planOrg, "CC_COURT");
-    const [{ left: beforeReverse }] = await db`
-      select 21 + sum(units)::int as left from public.usage_ledger where org_id = ${planOrg} and item_code = 'CC_COURT'`;
+    expect(await balance(planOrg)).toBeLessThan(planBefore);
     await close(planOrg, p.id, false);
-    const [{ left: afterReverse }] = await db`
-      select 21 + sum(units)::int as left from public.usage_ledger where org_id = ${planOrg} and item_code = 'CC_COURT'`;
-    expect([beforeReverse, afterReverse]).toEqual([20, 21]);
+    expect(await balance(planOrg)).toBe(planBefore);
   });
 
-  it("follows the PRD v3.0 catalogue: removed and renamed items are refused, unpriced items cannot be charged", async () => {
+  it("follows the catalogue: removed and renamed items are refused, unpriced items cannot be charged", async () => {
     // Removed (the old single bureau item) or renamed in v3 (CW_GST_TURNOVER, CW_DIRECTOR): inactive, so no hold.
     for (const code of ["CW_BUREAU", "CW_GST_TURNOVER", "CW_DIRECTOR", "CW_MOBILE_PAN"]) await expect(hold(walletOrg, code)).rejects.toThrow(/UNKNOWN_ITEM/);
-    // Back in v3: MSME report, PAN check and Import export, each with plan units in Plan B.
-    const back = await db<{ item_code: string; quantity: number }[]>`
-      select i.item_code, i.quantity from public.subscriptions s
-        join public.plan_version_items i on i.plan_version_id = s.plan_version_id
-       where s.org_id = ${planOrg} and i.item_code in ('CW_MSME', 'CW_PAN', 'CW_IEC_PROFILE', 'CW_IEC_TURNOVER') order by i.item_code`;
-    expect(back).toEqual([
-      { item_code: "CW_IEC_PROFILE", quantity: 42 }, { item_code: "CW_IEC_TURNOVER", quantity: 42 },
-      { item_code: "CW_MSME", quantity: 42 }, { item_code: "CW_PAN", quantity: 40 },
+    // Priced items of v4 section 13, before GST.
+    const prices = await db<{ code: string; p: number }[]>`
+      select c as code, (app_private.current_price(c)).price_paise::int as p
+        from unnest(array['CW_GST_SEARCH', 'CW_COMPANY', 'CW_MSME', 'CW_PAN', 'CW_CIBIL_COMPANY', 'CW_CIBIL_PERSONAL']) c order by c`;
+    expect(prices).toEqual([
+      { code: "CW_CIBIL_COMPANY", p: 38900 }, { code: "CW_CIBIL_PERSONAL", p: 38900 }, { code: "CW_COMPANY", p: 200 },
+      { code: "CW_GST_SEARCH", p: 1500 }, { code: "CW_MSME", p: 18900 }, { code: "CW_PAN", p: 1500 },
     ]);
-    // GST turnover for the current year has no price until Mohan sets one, and is in no plan.
+    // GST turnover for the current year has no price until Mohan sets one.
     await expect(hold(walletOrg, "CW_GST_TURNOVER_CY")).rejects.toThrow(/NO_PRICE/);
-    // Company and personal CIBIL are separate items, each with Plan B's 30 units.
-    const items = await db<{ item_code: string; quantity: number }[]>`
-      select i.item_code, i.quantity from public.subscriptions s
-        join public.plan_version_items i on i.plan_version_id = s.plan_version_id
-       where s.org_id = ${planOrg} and i.item_code like 'CW_CIBIL_%' order by i.item_code`;
-    expect(items).toEqual([{ item_code: "CW_CIBIL_COMPANY", quantity: 30 }, { item_code: "CW_CIBIL_PERSONAL", quantity: 30 }]);
     const [c] = await hold(planOrg, "CW_CIBIL_COMPANY");
-    expect(c.source).toBe("plan");
+    expect(c.source).toBe("wallet");
     await close(planOrg, c.id, false);
   });
 
@@ -260,9 +260,8 @@ run("billing (Part 3)", () => {
     expect(plans?.length).toBeGreaterThan(20);
     const { error: costError } = await outsider.client.from("item_prices").select("cost_paise");
     expect(costError).not.toBeNull();
-    const { error: writeError } = await owner.client.from("wallets").update({ balance_paise: 999999 }).eq("org_id", planOrg);
-    const [w] = await db`select balance_paise::int as b from public.wallets where org_id = ${planOrg}`;
-    expect(writeError !== null || w.b === 0).toBe(true);
-    expect(w.b).toBe(0);
+    const before = await balance(planOrg);
+    await owner.client.from("wallets").update({ balance_paise: 999999 }).eq("org_id", planOrg);
+    expect(await balance(planOrg)).toBe(before);
   });
 });

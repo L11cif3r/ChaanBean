@@ -14,18 +14,17 @@ const body = z.object({
 
 export const POST = route({ auth: "public", body }, async ({ body, ctx }) => {
   const mobile = normaliseMobile(body.mobile)!;
+
+  // Development test numbers: no OTP is sent (the fixed code is checked in the verify route), so the PRD's send
+  // limits do not apply. Otherwise tests and repeated sign-ins lock the shared test numbers for an hour.
+  if (devShortcutFor(mobile)) return { sent: true, resendAfterSeconds: 30 };
+
   const state = await currentOtpState(mobile);
   if (state.lockedUntil) {
     throw new AppError("rate_limited", `Too many attempts. Try again after ${formatDateTimeIst(state.lockedUntil)}.`);
   }
   if (state.nextSendAt) {
     throw new AppError("rate_limited", `You have asked for too many OTPs. Try again after ${formatDateTimeIst(state.nextSendAt)}.`);
-  }
-
-  // Development test numbers: no OTP is sent; the fixed code is checked in the verify route.
-  if (devShortcutFor(mobile)) {
-    await recordOtpEvent(mobile, "send", ctx.ip);
-    return { sent: true, resendAfterSeconds: 30 };
   }
 
   const supabase = await userClient();

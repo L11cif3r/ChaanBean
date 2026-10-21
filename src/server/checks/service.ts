@@ -11,24 +11,25 @@ import {
 import type { CounterpartyType } from "@/lib/counterparties";
 import { evaluateReport, type ReportInputs, type ReportOutcome } from "@/lib/report-rules";
 import { audit } from "@/server/audit";
-import { billingSummary, usageTable } from "@/server/billing/service";
+import { billingSummary, priceList } from "@/server/billing/service";
 import { commitHold, placeHold, reverseHold } from "@/server/billing/charge";
 import { decryptField, encryptField } from "@/server/crypto";
 import { sql } from "@/server/db/sql";
 import { AppError, notFound } from "@/server/errors";
 import { enqueue } from "@/server/jobs/runner";
-import { checkProvider, type CheckSubject, type ConsentAccess } from "@/server/providers/checks";
+import { checkProvider, checkProviderFor, type CheckSubject, type ConsentAccess } from "@/server/providers/checks";
 import {
   consentAccessFor, consentHistory, consentsForRequest, counterpartyContacts, createConsent, logDataFetched, type ConsentOnReport,
 } from "@/server/consent/service";
 import { rawResponseStore } from "@/server/storage";
-import { caseProvider } from "@/server/providers/cases";
+import { isSampleMode, isSampleProvider } from "@/server/sample";
+import { caseProviderFor } from "@/server/providers/cases";
 import { confirmedCases, storeMatches } from "@/server/cases/service";
 import type { ProviderResult } from "@/server/providers/identity";
 import type { RequestContext } from "@/server/context";
 
 // Credit Worthiness engine (PRD v2.0 section 4; v1.0 FR-CW-01, 04–07, 12.4).
-// Starting a request holds a plan unit or wallet money for every selected check, then each check runs as a background
+// Starting a request holds wallet money for every selected check, then each check runs as a background
 // job: one retry after 2 seconds, then "Not available" with the hold reversed. Data that arrives (or a clean "nothing
 // found") commits the hold. After every check the report's risk level and safe range are worked out again.
 
@@ -51,7 +52,7 @@ const FINAL: ItemStatus[] = ["success", "no_data", "not_available", "cancelled"]
 interface CpRow {
   id: string; type: CounterpartyType; legal_name: string; gstin: string | null; pan_ciphertext: string | null;
   cin: string | null; udyam: string | null; iec: string | null; state_code: string | null; status: "active" | "archived";
-  contact_name: string; mobile_ciphertext: string; mobile_masked: string;
+  contact_name: string | null; mobile_ciphertext: string | null; mobile_masked: string | null;
 }
 
 const CP_COLS = () => sql()`id, type, legal_name, gstin, pan_ciphertext, cin, udyam, iec, state_code, status, contact_name,
@@ -86,7 +87,6 @@ export interface CatalogueEntry {
   consent: boolean;
   pricePaise: number | null;
   gstPaise: number | null;
-  planLeft: number | null;
   /** Why the card is disabled, as a message key, or null. */
   disabled: string | null;
   recent: { requestId: string; at: string } | null;
@@ -96,7 +96,7 @@ export async function checkCatalogue(ctx: Ctx, counterpartyId: string, tab: Tab 
   if (tab === "case_check") return caseCatalogue(ctx, counterpartyId);
   const cp = await loadCounterparty(ctx, counterpartyId);
   const [usage, recent] = await Promise.all([
-    usageTable(ctx.orgId),
+    priceList(ctx.orgId),
     sql()<{ item_code: string; request_id: string; fetched_at: Date }[]>`
       select distinct on (item_code) item_code, request_id, fetched_at
         from public.check_items
@@ -104,7 +104,7 @@ export async function checkCatalogue(ctx: Ctx, counterpartyId: string, tab: Tab 
        order by item_code, fetched_at desc`,
   ]);
   const s = subjectOf(cp);
-  const ids = { type: cp.type, gstin: cp.gstin, pan: s.pan ?? (cp.gstin ? panFromGstin(cp.gstin) : null), cin: cp.cin, udyam: cp.udyam, iec: cp.iec };
+  const ids = { type: cp.type, gstin: cp.gstin, pan: s.pan ?? (cp.gstin ? panFromGstin(cp.gstin) : null), cin: cp.cin, udyam: cp.udyam, iec: cp.iec, hasMobile: Boolean(cp.mobile_ciphertext) };
   const byCode = new Map(usage.map((u) => [u.code, u]));
   const entries: CatalogueEntry[] = CW_CHECKS.map((def) => {
     const u = byCode.get(def.code);
@@ -118,7 +118,6 @@ export async function checkCatalogue(ctx: Ctx, counterpartyId: string, tab: Tab 
       consent: def.consent,
       pricePaise: u ? Number(u.pricePaise) : null,
       gstPaise: u ? Number(u.gstPaise) : null,
-      planLeft: u && u.included > 0 ? u.remaining : null,
       disabled: reason,
       recent: fresh && r ? { requestId: r.request_id, at: r.fetched_at.toISOString() } : null,
     };
@@ -131,14 +130,13 @@ export async function checkCatalogue(ctx: Ctx, counterpartyId: string, tab: Tab 
 
 /** v3 section 7: court case history, FIR check and money laundering check, each priced; none pre-ticked (FR-CC-01). */
 async function caseCatalogue(ctx: Ctx, counterpartyId: string) {
-  const [cp, usage] = await Promise.all([loadCounterparty(ctx, counterpartyId), usageTable(ctx.orgId)]);
+  const [cp, usage] = await Promise.all([loadCounterparty(ctx, counterpartyId), priceList(ctx.orgId)]);
   const byCode = new Map(usage.map((u) => [u.code, u]));
   const entries: CatalogueEntry[] = CC_CODES.map((code) => {
     const u = byCode.get(code);
     return {
       code, name: u?.name ?? code, group: "cases", consent: false,
       pricePaise: u ? Number(u.pricePaise) : null, gstPaise: u ? Number(u.gstPaise) : null,
-      planLeft: u && u.included > 0 ? u.remaining : null,
       disabled: cp.status === "archived" ? "archived" : !u ? "noPrice" : null,
       recent: null,
     };
@@ -151,7 +149,7 @@ async function caseCatalogue(ctx: Ctx, counterpartyId: string) {
 
 /** The search form pre-filled from the counterparty (S12 marker 1). PAN and mobile on file are used unless replaced. */
 export async function caseDefaults(ctx: Ctx, counterpartyId: string) {
-  const [cp] = await sql()<{ legal_name: string; state_code: string | null; city: string | null; address: { line1?: string; line2?: string; city?: string; pincode?: string } | null; pan_masked: string | null; mobile_masked: string; type: CounterpartyType }[]>`
+  const [cp] = await sql()<{ legal_name: string; state_code: string | null; city: string | null; address: { line?: string; line1?: string; line2?: string; city?: string; pincode?: string } | null; pan_masked: string | null; mobile_masked: string | null; type: CounterpartyType }[]>`
     select legal_name, state_code, city, address, pan_masked, mobile_masked, type::text as type
       from public.counterparties where id = ${counterpartyId} and org_id = ${ctx.orgId}`;
   if (!cp) throw notFound("This counterparty");
@@ -160,7 +158,7 @@ export async function caseDefaults(ctx: Ctx, counterpartyId: string) {
     name: cp.legal_name,
     state: cp.state_code ?? "",
     district: cp.city ?? a.city ?? "",
-    address: [a.line1, a.line2, a.city, a.pincode].filter(Boolean).join(", "),
+    address: [a.line ?? a.line1, a.line2, a.city, a.pincode].filter(Boolean).join(", "),
     panOnFile: cp.pan_masked,
     mobileOnFile: cp.mobile_masked,
     individual: cp.type === "individual",
@@ -202,14 +200,20 @@ function validatePerson(p: PersonInput | undefined, today: string): Record<strin
 
 /** v3 6.2: who gets a consent request for which items. "Both" CIBIL asks two people when they differ. */
 function subjectsFor(cp: CpRow, codes: CwCode[], person: PersonInput | undefined): Subject[] {
-  const contactMobile = decryptField(cp.mobile_ciphertext, "counterparties.mobile");
+  const contactMobile = cp.mobile_ciphertext ? decryptField(cp.mobile_ciphertext, "counterparties.mobile") : null;
   const personMobile = person ? (person.sameAsContact ? contactMobile : normaliseMobile(person.mobile ?? "")!) : null;
   const personal = codes.includes("CW_CIBIL_PERSONAL");
   const expected = personal && person ? { pan: normaliseIdentifier(person.pan), birthDate: person.birthDate } : null;
   const together = !personal || personMobile === contactMobile;
   const buyerScope = codes.filter((c) => together || c !== "CW_CIBIL_PERSONAL");
   const out: Subject[] = [];
-  if (buyerScope.length) out.push({ kind: "buyer", name: cp.contact_name, mobile10: contactMobile, scope: buyerScope, expected: together ? expected : null });
+  if (buyerScope.length) {
+    // v4: a buyer picked from search has no contact yet; checks the buyer approves by OTP need one.
+    if (!contactMobile || !cp.contact_name) {
+      throw new AppError("validation_failed", "Add the buyer's contact first: they approve this check by OTP.", { contact: "Add the buyer's contact name and mobile." });
+    }
+    out.push({ kind: "buyer", name: cp.contact_name, mobile10: contactMobile, scope: buyerScope, expected: together ? expected : null });
+  }
   if (!together) out.push({ kind: "person", name: person!.name.trim(), mobile10: personMobile!, scope: ["CW_CIBIL_PERSONAL"], expected });
   return out;
 }
@@ -219,10 +223,15 @@ export interface Quote {
   /** Valid 10 minutes; "Yes, run search" passes it so what runs is what the popup showed (v3 section 10). */
   quoteId: string;
   expiresAt: string;
-  lines: { code: ItemCode; name: string; source: "plan" | "wallet"; units: number; amountPaise: number }[];
-  planUnits: number;
+  /** Each item: price before GST, its GST and the total held from the wallet (v4 section 3: rupees only). */
+  lines: { code: ItemCode; name: string; pricePaise: number; gstPaise: number; amountPaise: number }[];
+  /** Totals: before GST, GST, and what the wallet pays. */
+  pricePaise: number;
+  gstPaise: number;
   walletPaise: number;
-  planUnitsLeftAfter: number;
+  walletBeforePaise: number;
+  /** Sample data mode: nothing is taken from the wallet (v4 FR-MK-04). */
+  sample: boolean;
   walletAfterPaise: number;
   enough: boolean;
   needsConsent: number;
@@ -274,7 +283,7 @@ async function consentQuote(ctx: Ctx, cp: CpRow, codes: CwCode[], person: Person
   const [subjects, contacts] = await Promise.all([subjectQuotes(ctx, cp, subjectsFor(cp, codes, person)), counterpartyContacts(ctx.orgId, cp.id)]);
   return {
     subjects: subjects.map((s) => ({ ...s, reuse: s.reuse ? { approvedAt: s.reuse.approvedAt } : null })),
-    whatsappMasked: contacts.whatsapp_masked ?? cp.mobile_masked,
+    whatsappMasked: contacts.whatsapp_masked ?? cp.mobile_masked ?? "",
     emailMasked: contacts.email_masked,
   };
 }
@@ -295,18 +304,15 @@ export async function quoteChecks(
     const f = validatePerson(person, istDate(new Date()));
     if (Object.keys(f).length) throw new AppError("validation_failed", "Please check the person's details.", f);
   }
-  const lines = selected.map((c) => {
-    const fromPlan = c.planLeft !== null && c.planLeft > 0;
-    return {
-      code: c.code,
-      name: c.name,
-      source: fromPlan ? ("plan" as const) : ("wallet" as const),
-      units: fromPlan ? 1 : 0,
-      amountPaise: fromPlan ? 0 : (c.pricePaise ?? 0) + (c.gstPaise ?? 0),
-    };
-  });
-  const planUnits = lines.reduce((s, l) => s + l.units, 0);
-  const walletPaise = lines.reduce((s, l) => s + l.amountPaise, 0);
+  const lines = selected.map((c) => ({
+    code: c.code,
+    name: c.name,
+    pricePaise: c.pricePaise ?? 0,
+    gstPaise: c.gstPaise ?? 0,
+    amountPaise: (c.pricePaise ?? 0) + (c.gstPaise ?? 0),
+  }));
+  const sample = await isSampleMode(ctx.orgId);
+  const walletPaise = sample ? 0 : lines.reduce((s, l) => s + l.amountPaise, 0);
   const wallet = Number(summary.walletPaise);
   const [q] = await sql()<{ id: string; expires_at: Date }[]>`
     insert into app_private.check_quotes (org_id, counterparty_id, items, lines, created_by)
@@ -317,9 +323,11 @@ export async function quoteChecks(
     quoteId: q.id,
     expiresAt: q.expires_at.toISOString(),
     lines,
-    planUnits,
+    pricePaise: lines.reduce((s, l) => s + l.pricePaise, 0),
+    gstPaise: lines.reduce((s, l) => s + l.gstPaise, 0),
     walletPaise,
-    planUnitsLeftAfter: Math.max(0, summary.unitsLeft - planUnits),
+    walletBeforePaise: wallet,
+    sample,
     walletAfterPaise: wallet - walletPaise,
     enough: wallet >= walletPaise,
     needsConsent: consentCodes.length,
@@ -362,9 +370,15 @@ export interface StartInput {
   consent?: { purpose: ConsentPurpose; channels: ConsentChannel[] };
   /** Needed for personal CIBIL (v3 6.2). */
   person?: PersonInput;
+  /** The multiple search this request belongs to (v4 section 7). */
+  bulkId?: string;
 }
 
-export async function startChecks(ctx: Ctx, input: StartInput, origin: string, idempotencyKey: string | null) {
+export async function startChecks(
+  ctx: Ctx, input: StartInput, origin: string, idempotencyKey: string | null,
+  /** Multiple search: create now, start all together with releaseRequests once every row is created. */
+  opts: { defer?: boolean } = {},
+) {
   const db = sql();
   if (idempotencyKey) {
     const [again] = await db<{ id: string; report_no: string }[]>`
@@ -384,7 +398,7 @@ export async function startChecks(ctx: Ctx, input: StartInput, origin: string, i
     input.caseInput = {
       ...input.caseInput,
       pan: input.caseInput.pan ?? onFile.pan ?? (cp.gstin ? panFromGstin(cp.gstin) : undefined),
-      mobile: input.caseInput.mobile ?? decryptField(cp.mobile_ciphertext, "counterparties.mobile"),
+      mobile: input.caseInput.mobile ?? (cp.mobile_ciphertext ? decryptField(cp.mobile_ciphertext, "counterparties.mobile") : undefined),
     };
   }
   if (consentCodes.includes("CW_CIBIL_PERSONAL")) {
@@ -405,17 +419,21 @@ export async function startChecks(ctx: Ctx, input: StartInput, origin: string, i
   }
   await claimQuote(ctx, input.quoteId, input.counterpartyId, selected.map((c) => c.code));
 
+  // v4 section 8: the request waits CANCEL_WINDOW_SECONDS before anything is held, asked or run. Cancelling inside the
+  // window leaves no ledger entry; the server starts it after the window even if the app is closed.
+  const startAt = new Date(Date.now() + (opts.defer ? 3_600_000 : cancelWindowMs()));
+  const secret = input.caseInput || input.person ? encryptField(JSON.stringify({ case: input.caseInput ?? null, person: input.person ?? null }), "check_requests.inputs") : null;
   const [{ report_no }] = await db<{ report_no: string }[]>`select app_private.next_report_no() as report_no`;
   const [req] = await db<{ id: string }[]>`
     insert into public.check_requests (org_id, counterparty_id, report_no, run_mode, created_by, quote_id, idempotency_key, tab,
-                                       inputs_ciphertext, inputs_summary)
+                                       inputs_ciphertext, inputs_summary, status, start_at, origin, consent_input, bulk_id)
     values (${ctx.orgId}, ${input.counterpartyId}, ${report_no}, ${input.mode}, ${ctx.user.id}, ${input.quoteId}, ${idempotencyKey}, ${tab},
-            ${input.caseInput ? encryptField(JSON.stringify(input.caseInput), "check_requests.inputs") : null},
-            ${db.json(input.caseInput ? { name: input.caseInput.name, state: input.caseInput.state, district: input.caseInput.district } : {})})
+            ${secret}, ${db.json(input.caseInput ? { name: input.caseInput.name, state: input.caseInput.state, district: input.caseInput.district } : {})},
+            'pending_start', ${startAt}, ${origin}, ${input.consent ? db.json(input.consent) : null}, ${input.bulkId ?? null})
     returning id`;
   const reusedFor = (code: ItemCode) => quotes.find((q) => q.reuse && (q.scope as ItemCode[]).includes(code))?.reuse?.id ?? null;
   const waitsForBuyer = (c: CatalogueEntry) => c.consent && !reusedFor(c.code);
-  const items = await db<{ id: string; item_code: ItemCode; status: ItemStatus }[]>`
+  await db`
     insert into public.check_items ${db(
       selected.map((c) => ({
         org_id: ctx.orgId,
@@ -427,50 +445,115 @@ export async function startChecks(ctx: Ctx, input: StartInput, origin: string, i
         status: waitsForBuyer(c) ? "waiting_consent" : input.mode === "together" ? "queued" : "ready",
         options: db.json(c.code === "CW_CIBIL_PERSONAL" && input.person ? { subjectName: input.person.name.trim() } : {}),
       })),
-    )} returning id, item_code, status`;
+    )}`;
+  if (!opts.defer) await enqueue("checks.begin", { requestId: req.id }, { orgId: ctx.orgId, runAt: startAt, dedupeKey: `checks.begin:${req.id}` });
+  await audit(ctx, {
+    action: tab === "case_check" ? "case_check.confirmed" : "check.confirmed",
+    entity: "check_request",
+    entityId: req.id,
+    after: { reportNo: report_no, counterpartyId: input.counterpartyId, items: selected.map((c) => c.code), mode: input.mode, startAt: startAt.toISOString() },
+  });
+  return { id: req.id, reportNo: report_no, startAt: startAt.toISOString(), cancelWindowSeconds: cancelWindowMs() / 1000 };
+}
 
+/** Starts deferred requests together: one cancel window for the whole multiple search (v4 sections 7 and 8). */
+export async function releaseRequests(ctx: Ctx, ids: string[]) {
+  if (!ids.length) return null;
+  const startAt = new Date(Date.now() + cancelWindowMs());
+  await sql()`update public.check_requests set start_at = ${startAt} where org_id = ${ctx.orgId} and id in ${sql()(ids)} and status = 'pending_start'`;
+  await Promise.all(ids.map((id) => enqueue("checks.begin", { requestId: id }, { orgId: ctx.orgId, runAt: startAt, dedupeKey: `checks.begin:${id}` })));
+  return { startAt: startAt.toISOString(), cancelWindowSeconds: cancelWindowMs() / 1000 };
+}
+
+/** Seconds to cancel after "Yes, run search" (v4 FR-PAY-02; Ops setting, default 3). */
+export const cancelWindowMs = () => Math.min(15, Math.max(1, Number(process.env.CANCEL_WINDOW_SECONDS ?? 3) || 3)) * 1000;
+
+/** v4 FR-PAY-03: cancel inside the window. Nothing was held, sent or run, so there is nothing to give back. */
+export async function cancelChecks(ctx: Ctx, requestId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(requestId)) throw notFound("This search");
+  const db = sql();
+  const [r] = await db<{ id: string; tab: Tab }[]>`
+    update public.check_requests set status = 'cancelled', completed_at = now(), start_error = 'Cancelled before it started. Nothing charged.'
+     where id = ${requestId} and org_id = ${ctx.orgId} and status = 'pending_start' and start_at > now()
+     returning id, tab`;
+  if (!r) throw new AppError("conflict", "It has already started. You pay only for data that arrives.");
+  await db`update public.check_items set status = 'cancelled', error_message = 'Cancelled before it started. Not charged.' where request_id = ${requestId}`;
+  await audit(ctx, { action: r.tab === "case_check" ? "case_check.cancelled" : "check.cancelled", entity: "check_request", entityId: requestId });
+  return { cancelled: true };
+}
+
+/**
+ * Job checks.begin, after the cancel window: hold the money (not in sample data mode), send the consent requests and
+ * queue the checks. Runs once; a cancelled request is left alone.
+ */
+export async function beginChecks(requestId: string) {
+  const db = sql();
+  const [req] = await db<{ id: string; org_id: string; counterparty_id: string; created_by: string | null; run_mode: "together" | "manual"; tab: Tab; origin: string | null; consent_input: StartInput["consent"] | null; inputs_ciphertext: string | null; start_at: Date }[]>`
+    update public.check_requests set status = 'in_progress'
+     where id = ${requestId} and status = 'pending_start' and start_at <= now()
+     returning id, org_id, counterparty_id, created_by, run_mode, tab, origin, consent_input, inputs_ciphertext, start_at`;
+  if (!req) {
+    const [still] = await db<{ start_at: Date }[]>`select start_at from public.check_requests where id = ${requestId} and status = 'pending_start'`;
+    if (still) await enqueue("checks.begin", { requestId }, { orgId: undefined, runAt: still.start_at, dedupeKey: `checks.begin:${requestId}:again` });
+    return;
+  }
+  const ctx = await jobCtx(req.org_id, req.created_by, `begin-${requestId.slice(0, 8)}`);
+  const sample = await isSampleMode(req.org_id);
+  const items = await db<{ id: string; item_code: ItemCode; status: ItemStatus; needs_consent: boolean; consent_id: string | null }[]>`
+    select id, item_code, status, needs_consent, consent_id from public.check_items where request_id = ${requestId}`;
   const placed: string[] = [];
   try {
-    // "Run all together" holds every check now, including the ones waiting for a yes (released if they say no).
-    // Holds are placed side by side (the ledger locks the wallet row, so they still apply one at a time).
-    if (input.mode === "together") {
+    if (!ctx) throw new AppError("forbidden", "The person who started this search can no longer run checks.");
+    if (req.run_mode === "together" && !sample) {
       const holds = await Promise.allSettled(
-        items.map((item) => holdFor(ctx, req.id, item.id, item.item_code, item.status === "waiting_consent" ? CONSENT_HOLD_MS : undefined)),
+        items.map((item) => holdFor(ctx, requestId, item.id, item.item_code, item.status === "waiting_consent" ? CONSENT_HOLD_MS : undefined)),
       );
       for (const h of holds) if (h.status === "fulfilled") placed.push(h.value);
       const failed = holds.find((h) => h.status === "rejected");
       if (failed) throw failed.reason;
     }
-    for (const s of toAsk) {
-      const consent = await createConsent(ctx, {
-        checkRequestId: req.id, counterpartyId: input.counterpartyId, scope: s.scope, purpose: input.consent!.purpose,
-        channels: s.kind === "person" ? input.consent!.channels.filter((c) => c !== "email") : input.consent!.channels,
-        origin, subject: s,
-      });
-      await db`update public.check_items set consent_id = ${consent.id} where request_id = ${req.id} and item_code in ${db(s.scope)}`;
+    const waiting = items.filter((i) => i.status === "waiting_consent" && !i.consent_id).map((i) => i.item_code as CwCode);
+    if (waiting.length) {
+      if (!req.consent_input) throw new AppError("validation_failed", "Choose how to send the consent request.");
+      const cp = await loadCounterparty(ctx, req.counterparty_id);
+      const secret = req.inputs_ciphertext ? JSON.parse(decryptField(req.inputs_ciphertext, "check_requests.inputs")) as { person: PersonInput | null } : null;
+      const subjects = subjectsFor(cp, waiting, secret?.person ?? undefined);
+      for (const subj of subjects) {
+        const consent = await createConsent(ctx, {
+          checkRequestId: requestId, counterpartyId: req.counterparty_id, scope: subj.scope, purpose: req.consent_input.purpose,
+          channels: subj.kind === "person" ? req.consent_input.channels.filter((c) => c !== "email") : req.consent_input.channels,
+          origin: req.origin ?? process.env.APP_URL ?? "", subject: subj,
+        });
+        await db`update public.check_items set consent_id = ${consent.id} where request_id = ${requestId} and item_code in ${db(subj.scope)}`;
+      }
     }
   } catch (e) {
-    // Not enough units or money for all of them, or the request could not be sent: give back what was held.
-    await Promise.all(placed.map((holdId) => reverseHold(ctx.orgId, holdId, "Search not started", ctx.user.id, ctx.requestId)));
-    await db`delete from public.check_requests where id = ${req.id}`;
-    throw e;
+    // Not enough money, or the consent request could not be sent: give back what was held and stop.
+    await Promise.all(placed.map((holdId) => reverseHold(req.org_id, holdId, "Search not started", "system", `begin:${requestId}`)));
+    const message = (e instanceof AppError ? e.message : "The search could not start. Nothing charged.").slice(0, 300);
+    await db`update public.check_requests set status = 'cancelled', completed_at = now(), start_error = ${message} where id = ${requestId}`;
+    await db`update public.check_items set status = 'cancelled', error_message = ${message} where request_id = ${requestId}`;
+    return;
   }
   await Promise.all(
     items
       .filter((item) => item.status === "queued")
-      .map((item) => enqueue("checks.run_item", { itemId: item.id }, { orgId: ctx.orgId, dedupeKey: `checks.run_item:${item.id}` })),
+      .map((item) => enqueue("checks.run_item", { itemId: item.id }, { orgId: req.org_id, dedupeKey: `checks.run_item:${item.id}` })),
   );
+  if (ctx) {
+    await audit(ctx, {
+      action: req.tab === "case_check" ? "case_check.started" : "check.started", entity: "check_request", entityId: requestId,
+      after: { sample, held: placed.length },
+    });
+  }
+  await refreshReport(requestId);
+}
 
-  await audit(ctx, {
-    action: tab === "case_check" ? "case_check.started" : "check.started",
-    entity: "check_request",
-    entityId: req.id,
-    after: {
-      reportNo: report_no, counterpartyId: input.counterpartyId, items: selected.map((c) => c.code), mode: input.mode,
-      reusedConsents: quotes.filter((q) => q.reuse).map((q) => q.reuse!.id),
-    },
-  }).then(() => refreshReport(req.id));
-  return { id: req.id, reportNo: report_no };
+/** The person who started a request, as a context for work done later by a job. Null if they left the organisation. */
+export async function jobCtx(orgId: string, userId: string | null, requestId: string): Promise<Ctx | null> {
+  if (!userId) return null;
+  const [m] = await sql()<{ role: Ctx["role"] }[]>`select role::text as role from public.memberships where org_id = ${orgId} and user_id = ${userId} and status = 'active'`;
+  return m ? { requestId, ip: null, userAgent: null, user: { id: userId, phone: null, email: null }, orgId, role: m.role, memberships: [] } : null;
 }
 
 /** A check waiting for a yes keeps its hold until the link expires, plus time for the check to run. */
@@ -504,7 +587,7 @@ export async function runOne(ctx: Ctx, requestId: string, code: string, quoteId:
   if (item.status === "waiting_consent") throw new AppError("conflict", "This check can run once the buyer says yes.");
   if (item.status !== "ready") throw new AppError("conflict", "This check has already started.");
   await claimQuote(ctx, quoteId, item.counterparty_id, [item.item_code]);
-  await holdFor(ctx, requestId, item.id, item.item_code);
+  if (!(await isSampleMode(ctx.orgId))) await holdFor(ctx, requestId, item.id, item.item_code);
   const [claimed] = await sql()<{ id: string }[]>`
     update public.check_items set status = 'queued' where id = ${item.id} and status = 'ready' returning id`;
   if (claimed) await enqueue("checks.run_item", { itemId: item.id }, { orgId: ctx.orgId, dedupeKey: `checks.run_item:${item.id}` });
@@ -547,20 +630,22 @@ export async function runCheckItem(itemId: string) {
   }
 
   const today = istDate(new Date());
+  const sample = await isSampleMode(item.org_id);
   // Case Check items search with the details entered on S12; Credit Worthiness items use the counterparty record.
   let caseInput: CaseInput | null = null;
   let run: () => Promise<ProviderOutcome>;
   let providerName: string;
   if (isCcCode(item.item_code)) {
     const [r] = await db<{ inputs_ciphertext: string | null }[]>`select inputs_ciphertext from public.check_requests where id = ${item.request_id}`;
-    caseInput = JSON.parse(decryptField(r.inputs_ciphertext!, "check_requests.inputs")) as CaseInput;
-    const provider = caseProvider();
+    const saved = JSON.parse(decryptField(r.inputs_ciphertext!, "check_requests.inputs")) as { case?: CaseInput } & CaseInput;
+    caseInput = saved.case ?? saved; // since v4 the inputs hold { case, person }
+    const provider = caseProviderFor(sample);
     const code = item.item_code;
     providerName = provider.name;
     run = () => provider.run(code, caseInput!, { today });
   } else {
     const [cp] = await db<CpRow[]>`select ${CP_COLS()} from public.counterparties where id = ${item.counterparty_id}`;
-    const provider = checkProvider();
+    const provider = checkProviderFor(sample);
     const code = item.item_code;
     providerName = provider.name;
     run = () => provider.run(code, subjectOf(cp), { today, consent });
@@ -600,12 +685,12 @@ export async function runCheckItem(itemId: string) {
     if (item.hold_id) await commitHold(item.org_id, item.hold_id, "system", `check:${item.id}`);
     await db`
       update public.check_items
-         set status = ${result!.status}::public.check_item_status, charged = true, provider = ${result!.provider},
+         set status = ${result!.status}::public.check_item_status, charged = ${Boolean(item.hold_id)}, provider = ${result!.provider},
              data = ${result!.data === undefined ? null : db.json(result!.data as JSONValue)}, raw_ref = ${rawRef},
              fetched_at = now(), error_code = ${result!.error?.code ?? null}, error_message = ${result!.error?.message ?? null}
        where id = ${item.id}`;
   } else {
-    const note = result?.error?.code === "TOO_MANY_MATCHES" ? "Too many possible matches. Unit not charged." : "Not available from source. Unit not charged.";
+    const note = result?.error?.code === "TOO_MANY_MATCHES" ? "Too many possible matches. Not charged." : "Not available from source. Not charged.";
     if (item.hold_id) await reverseHold(item.org_id, item.hold_id, note, "system", `check:${item.id}`);
     await db`
       update public.check_items
@@ -661,6 +746,8 @@ export async function refreshReport(requestId: string) {
     db<{ tab: Tab; counterparty_id: string }[]>`select tab, counterparty_id from public.check_requests where id = ${requestId}`,
     itemRows(requestId),
   ]);
+  const [cur] = await db<{ status: string }[]>`select status::text as status from public.check_requests where id = ${requestId}`;
+  if (cur?.status === "pending_start" || cur?.status === "cancelled") return null;
   const done = items.every((i) => FINAL.includes(i.status));
   const status = !done ? "in_progress" : items.some((i) => i.status === "not_available" || i.status === "cancelled") ? "partial" : "complete";
   if (req?.tab === "case_check") {
@@ -687,7 +774,11 @@ export interface ReportView {
   reportNo: string;
   counterparty: { id: string; name: string; type: CounterpartyType; gstin: string | null };
   runMode: "together" | "manual";
-  status: "in_progress" | "complete" | "partial";
+  status: "pending_start" | "in_progress" | "complete" | "partial" | "cancelled";
+  /** While pending_start: when it starts (v4 cancel window). */
+  startAt: string | null;
+  /** Why it did not start (cancelled in the window, or not enough money). */
+  startError: string | null;
   createdAt: string;
   validUntil: string;
   expired: boolean;
@@ -709,9 +800,10 @@ export async function getReport(ctx: Ctx, id: string): Promise<ReportView> {
   const db = sql();
   const [r] = await db<{
     id: string; report_no: string; run_mode: "together" | "manual"; status: ReportView["status"]; created_at: Date; valid_until: Date;
-    counterparty_id: string; legal_name: string; type: CounterpartyType; gstin: string | null;
+    counterparty_id: string; legal_name: string; type: CounterpartyType; gstin: string | null; start_at: Date | null; start_error: string | null;
   }[]>`
-    select r.id, r.report_no, r.run_mode, r.status, r.created_at, r.valid_until, c.id as counterparty_id, c.legal_name, c.type, c.gstin
+    select r.id, r.report_no, r.run_mode, r.status, r.created_at, r.valid_until, c.id as counterparty_id, c.legal_name, c.type, c.gstin,
+           r.start_at, r.start_error
       from public.check_requests r join public.counterparties c on c.id = r.counterparty_id
      where r.id = ${id} and r.org_id = ${ctx.orgId} and r.tab = 'credit_worthiness'`;
   if (!r) throw notFound("This report");
@@ -727,6 +819,8 @@ export async function getReport(ctx: Ctx, id: string): Promise<ReportView> {
     counterparty: { id: r.counterparty_id, name: r.legal_name, type: r.type, gstin: r.gstin },
     runMode: r.run_mode,
     status: r.status,
+    startAt: r.status === "pending_start" ? r.start_at?.toISOString() ?? null : null,
+    startError: r.start_error,
     createdAt: r.created_at.toISOString(),
     validUntil: r.valid_until.toISOString(),
     expired: r.valid_until.getTime() < Date.now(),
@@ -752,7 +846,9 @@ export async function getReport(ctx: Ctx, id: string): Promise<ReportView> {
         };
       }),
     consents,
-    testData: checkProvider().isMock,
+    // "Test data" when any section came from a dummy provider.
+    // "SAMPLE DATA: not a real report" when any section came from sample data (v4 FR-MK-03).
+    testData: items.some((i) => isSampleProvider(i.provider)) || (items.every((i) => !i.provider) && (await isSampleMode(ctx.orgId) || checkProvider().isMock)),
   };
 }
 

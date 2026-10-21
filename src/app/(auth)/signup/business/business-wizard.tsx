@@ -3,12 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
+import { ArrowLeft, ArrowRight, BadgeCheck, Building2, Check, CircleCheck, IdCard, Info, ReceiptIndianRupee, TriangleAlert, Upload } from "lucide-react";
 import { SignupSteps } from "@/components/shell/signup-steps";
-import { Button, Card, CardBody, Checkbox, ErrorSummary, FormField, Input, Select, Tag } from "@/components/ui";
+import { Button, Card, CardBody, ErrorSummary, FormField, Input, Select, Spinner, Tag } from "@/components/ui";
 import { cn } from "@/components/ui/cn";
 import { api } from "@/lib/api-client";
 import { formatDate } from "@/lib/dates";
 import { isValidGstin, isValidPan, normaliseIdentifier } from "@/lib/validators";
+import { GST_STATES } from "@/server/providers/identity/states";
 
 // PRD S02: verify the business by GSTIN (default) or PAN, then the person's details, then create the organisation.
 
@@ -45,11 +47,11 @@ interface PanLookup {
 const DESIGNATIONS = ["Proprietor", "Partner", "Director", "Manager", "Accountant", "Other"] as const;
 const emptyManual = { legalName: "", addressLine: "", city: "", pincode: "" };
 
-function Detail({ label, children }: { label: string; children: ReactNode }) {
+function Detail({ label, wide, children }: { label: string; wide?: boolean; children: ReactNode }) {
   return (
-    <div>
-      <dt className="text-xs text-muted">{label}</dt>
-      <dd className="text-sm font-medium text-text">{children}</dd>
+    <div className={cn("min-w-0", wide && "col-span-2")}>
+      <dt className="text-[11px] font-semibold uppercase tracking-[0.8px] text-subtle">{label}</dt>
+      <dd className="mt-0.5 break-words text-[13.5px] font-medium text-text">{children}</dd>
     </div>
   );
 }
@@ -123,6 +125,13 @@ export function BusinessWizard() {
     setDoc({ ref: res.data.documentRef, name: res.data.name });
   }
 
+  // Signed in with the wrong number (or an account that no longer exists): end the session and start again.
+  async function signOut() {
+    await api("/api/v1/auth/signout", { body: {} });
+    router.replace("/login");
+    router.refresh();
+  }
+
   async function askForAccess() {
     reset();
     if (requester.trim().length < 2) return setFields({ requester: t("nameRequired") });
@@ -182,7 +191,7 @@ export function BusinessWizard() {
   ];
 
   const manualFields = (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className="grid gap-3.5 sm:grid-cols-2">
       {mode === "gstin" ? (
         <FormField id="legalName" label={t("legalName")} error={fields["manual.legalName"] ?? fields.legalName} required className="sm:col-span-2">
           <Input id="legalName" value={manual.legalName} onChange={(e) => setManual({ ...manual, legalName: e.target.value })} />
@@ -201,86 +210,191 @@ export function BusinessWizard() {
   );
 
   const details = gst?.details;
+  const gstinValue = normaliseIdentifier(gstin);
+  const gstinFull = gstinValue.length === 15;
+  const gstinOk = gstinFull && isValidGstin(gstinValue);
+  const gstinState = GST_STATES[gstinValue.slice(0, 2)];
+  const accent = (c: ReactNode) => <span className="text-gradient">{c}</span>;
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-3">
-        <h1 className="text-xl font-bold text-text sm:text-2xl">{t("title")}</h1>
-        <SignupSteps current={step} />
+    <div className="space-y-5">
+      <SignupSteps current={step} />
+      <div className="animate-rise space-y-1 text-center sm:text-left">
+        <h1 className="font-head text-[1.6rem] font-extrabold leading-tight tracking-[-0.03em] text-text sm:text-[1.9rem]">
+          {t.rich(step === 1 ? "titleRich" : "yourDetailsRich", { accent })}
+        </h1>
+        <p className="text-sm text-muted">{t(step === 1 ? "titleSub" : "yourDetailsSub")}</p>
       </div>
       {errorList.length ? <ErrorSummary title={t("fixErrors")} errors={errorList} /> : null}
 
       {step === 1 ? (
-        <Card>
-          <CardBody className="space-y-5 p-5 sm:p-6">
-            <div className="inline-flex rounded-2xl bg-surface-strong p-[5px]" role="radiogroup" aria-label={t("verifyWith")}>
-              {(["gstin", "pan"] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  role="radio"
-                  aria-checked={mode === m}
-                  onClick={() => {
-                    setMode(m);
-                    reset();
-                  }}
-                  className={cn("rounded-xl px-4 py-2 text-sm font-bold transition", mode === m ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text")}
-                >
-                  {t(m === "gstin" ? "useGstin" : "usePan")}
-                </button>
-              ))}
-            </div>
+        <Card className="animate-rise [animation-delay:60ms]">
+          <CardBody className="space-y-5 p-4 sm:p-6">
+            <fieldset>
+              <legend className="mb-2.5 font-head text-[15px] font-bold text-text">{t("howFile")}</legend>
+              <div className="grid grid-cols-2 gap-2.5" role="radiogroup" aria-label={t("verifyWith")}>
+                {(["gstin", "pan"] as const).map((m) => {
+                  const on = mode === m;
+                  const Icon = m === "gstin" ? ReceiptIndianRupee : IdCard;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      role="radio"
+                      aria-checked={on}
+                      onClick={() => {
+                        setMode(m);
+                        reset();
+                      }}
+                      className={cn(
+                        "relative flex min-h-[104px] flex-col items-start gap-2.5 rounded-xl border p-3.5 text-left transition-[border-color,background-color,box-shadow,translate] duration-150 active:scale-[0.99] sm:min-h-0 sm:flex-row sm:items-center sm:p-4",
+                        on
+                          ? "border-primary bg-primary-softer shadow-[0_0_0_3px_var(--primary-soft)]"
+                          : "border-border bg-surface hover:-translate-y-0.5 hover:border-primary-line",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "flex size-9 shrink-0 items-center justify-center rounded-xl",
+                          on ? "bg-brand text-white shadow-orange" : "bg-soft text-primary-text",
+                        )}
+                        aria-hidden="true"
+                      >
+                        <Icon size={18} />
+                      </span>
+                      <span className="min-w-0 sm:pr-6">
+                        <span className="block text-[13.5px] font-bold leading-snug text-text sm:text-sm">{t(m === "gstin" ? "optGst" : "optPan")}</span>
+                        <span className="mt-0.5 block text-[11.5px] leading-snug text-muted sm:text-xs">{t(m === "gstin" ? "optGstSub" : "optPanSub")}</span>
+                      </span>
+                      <span
+                        className={cn(
+                          "absolute right-3 top-3 flex size-[18px] items-center justify-center rounded-full border-2 transition-colors sm:top-1/2 sm:-translate-y-1/2",
+                          on ? "border-primary bg-primary text-white" : "border-border-strong",
+                        )}
+                        aria-hidden="true"
+                      >
+                        {on ? <Check size={11} strokeWidth={3.5} /> : null}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
 
             {mode === "gstin" ? (
               <form
-                className="flex flex-col gap-3 sm:flex-row sm:items-start"
+                className="space-y-3"
+                noValidate
                 onSubmit={(e) => {
                   e.preventDefault();
                   void fetchGst();
                 }}
               >
-                <FormField id="gstin" label={t("gstin")} error={fields.gstin} required className="flex-1">
-                  <Input id="gstin" value={gstin} maxLength={15} autoCapitalize="characters" placeholder="29ABCDE1234F1Z5" className="font-mono uppercase" onChange={(e) => setGstin(e.target.value.toUpperCase())} />
+                <FormField
+                  id="gstin"
+                  label={t("gstin")}
+                  error={fields.gstin ?? (gstinFull && !gstinOk ? t("gstinInvalid") : undefined)}
+                  hint={gstinOk || (gstinFull && !gstinOk) || fields.gstin ? undefined : t("gstinHint")}
+                  required
+                >
+                  <div className="relative">
+                    <Input
+                      id="gstin"
+                      value={gstin}
+                      maxLength={15}
+                      autoCapitalize="characters"
+                      autoComplete="off"
+                      spellCheck={false}
+                      placeholder="29ABCDE1234F1Z5"
+                      className="h-14 pr-16 font-mono text-[1.05rem] uppercase tracking-[0.08em] site:h-14 sm:text-lg"
+                      onChange={(e) => {
+                        setGstin(e.target.value.toUpperCase().replace(/\s+/g, ""));
+                        if (gst) setGst(null);
+                        if (fields.gstin) reset();
+                      }}
+                    />
+                    <span
+                      className={cn(
+                        "pointer-events-none absolute inset-y-0 right-4 flex items-center font-mono text-xs tabular-nums",
+                        gstinOk ? "font-bold text-success-fg" : gstinFull ? "text-text-2" : "text-subtle",
+                      )}
+                      aria-hidden="true"
+                    >
+                      {gstinValue.length}/15
+                    </span>
+                  </div>
+                  {gstinOk ? (
+                    <p className="inline-flex items-center gap-1 text-xs font-semibold text-success-fg">
+                      <CircleCheck size={13} aria-hidden="true" />
+                      {gstinState ? t("gstinLooksRightIn", { state: gstinState }) : t("gstinLooksRight")}
+                    </p>
+                  ) : null}
                 </FormField>
-                <Button type="submit" className="sm:mt-6" loading={busy && !gst} disabled={gstin.length < 15}>
-                  {t("fetch")}
-                </Button>
+                {!gst ? (
+                  <>
+                    <Button type="submit" className="w-full" loading={busy}>
+                      {t("fetch")}
+                      {busy ? null : <ArrowRight size={16} aria-hidden="true" />}
+                    </Button>
+                    <p className="text-center text-[11.5px] text-subtle">{t("fetchNote")}</p>
+                  </>
+                ) : null}
               </form>
             ) : (
               <form
-                className="grid gap-4 sm:grid-cols-2"
+                className="grid gap-3.5 sm:grid-cols-2"
                 onSubmit={(e) => {
                   e.preventDefault();
                   void verifyPanNow();
                 }}
               >
-                <FormField id="pan" label={t("pan")} error={fields.pan} required>
-                  <Input id="pan" value={pan} maxLength={10} autoCapitalize="characters" placeholder="ABCDE1234F" className="font-mono uppercase" onChange={(e) => setPan(e.target.value.toUpperCase())} />
+                <FormField id="pan" label={t("pan")} hint={fields.pan ? undefined : t("panHint")} error={fields.pan} required>
+                  <Input
+                    id="pan"
+                    value={pan}
+                    maxLength={10}
+                    autoCapitalize="characters"
+                    autoComplete="off"
+                    spellCheck={false}
+                    placeholder="ABCDE1234F"
+                    className="font-mono uppercase tracking-[0.08em]"
+                    onChange={(e) => {
+                      setPan(e.target.value.toUpperCase().replace(/\s+/g, ""));
+                      if (panResult) setPanResult(null);
+                    }}
+                  />
                 </FormField>
                 <FormField id="panName" label={t("nameOnPan")} error={fields.panName} required>
                   <Input id="panName" value={panName} onChange={(e) => setPanName(e.target.value)} />
                 </FormField>
-                <div className="sm:col-span-2">
-                  <Button type="submit" loading={busy && !panResult} disabled={pan.length < 10}>
-                    {t("verifyPan")}
-                  </Button>
-                </div>
+                {!panResult ? (
+                  <div className="sm:col-span-2">
+                    <Button type="submit" className="w-full" loading={busy}>
+                      {t("verifyPan")}
+                      {busy ? null : <ArrowRight size={16} aria-hidden="true" />}
+                    </Button>
+                  </div>
+                ) : null}
               </form>
             )}
 
             {mode === "gstin" && gst ? (
-              <section aria-live="polite" className="space-y-4 border-t border-border pt-5">
+              <section aria-live="polite" className="animate-rise space-y-4">
                 {gst.state === "already_registered" ? (
                   <div className="space-y-3">
-                    <p className="text-sm font-medium text-text">{t("alreadyRegistered")}</p>
+                    <Notice tone="warning" icon={<Building2 size={16} />}>
+                      {t("alreadyRegistered")}
+                    </Notice>
                     {accessRequested ? (
-                      <p className="rounded-[14px] bg-success-bg px-4 py-3 text-sm font-semibold text-success-fg">{t("accessRequested")}</p>
+                      <Notice tone="success" icon={<CircleCheck size={16} />}>
+                        {t("accessRequested")}
+                      </Notice>
                     ) : (
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                         <FormField id="requester" label={t("yourName")} error={fields.requester ?? fields.name} className="flex-1">
                           <Input id="requester" value={requester} onChange={(e) => setRequester(e.target.value)} />
                         </FormField>
-                        <Button variant="secondary" className="sm:mt-6" onClick={() => void askForAccess()} loading={busy}>
+                        <Button variant="secondary" onClick={() => void askForAccess()} loading={busy}>
                           {t("requestAccess")}
                         </Button>
                       </div>
@@ -289,36 +403,47 @@ export function BusinessWizard() {
                 ) : null}
 
                 {details ? (
-                  <div className="space-y-3">
+                  <div className="rounded-xl border border-border bg-surface-muted p-3.5 sm:p-4">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-sm font-semibold text-text">{t("fromRecords")}</h2>
+                      <span className="flex size-7 items-center justify-center rounded-lg bg-soft text-primary-text" aria-hidden="true">
+                        <BadgeCheck size={15} />
+                      </span>
+                      <h2 className="font-head text-sm font-bold text-text">{t("fromRecords")}</h2>
                       <Tag tone={details.status === "Active" ? "success" : "danger"}>{details.status}</Tag>
                       {gst.sampleData ? <Tag tone="warning">{t("sampleData")}</Tag> : null}
                     </div>
-                    <dl className="grid gap-3 sm:grid-cols-2">
-                      <Detail label={t("legalName")}>{details.legalName}</Detail>
+                    <dl className="mt-3.5 grid grid-cols-2 gap-x-4 gap-y-3">
+                      <Detail label={t("legalName")} wide>
+                        {details.legalName}
+                      </Detail>
                       <Detail label={t("tradeName")}>{details.tradeName ?? "—"}</Detail>
                       <Detail label={t("constitution")}>{details.constitution}</Detail>
                       <Detail label={t("registered")}>{formatDate(details.registrationDate)}</Detail>
                       <Detail label={t("state")}>{details.stateName}</Detail>
-                      <Detail label={t("taxpayerType")}>{details.taxpayerType}</Detail>
-                      <div className="sm:col-span-2">
-                        <Detail label={t("principalAddress")}>
-                          {[details.address.line, details.address.city, details.address.state, details.address.pincode].filter(Boolean).join(", ")}
-                        </Detail>
-                      </div>
+                      <Detail label={t("taxpayerType")} wide>
+                        {details.taxpayerType}
+                      </Detail>
+                      <Detail label={t("principalAddress")} wide>
+                        {[details.address.line, details.address.city, details.address.state, details.address.pincode].filter(Boolean).join(", ")}
+                      </Detail>
                     </dl>
                   </div>
                 ) : null}
 
                 {gst.state === "cancelled" || gst.state === "suspended" ? (
-                  <p className="rounded-[14px] bg-danger-bg px-4 py-3 text-sm font-semibold text-danger-fg">
+                  <Notice tone="danger" icon={<TriangleAlert size={16} />}>
                     {t("statusBlocked", { status: details?.status ?? "", date: details?.statusDate ? formatDate(details.statusDate) : "—" })}
-                  </p>
+                  </Notice>
                 ) : null}
-                {gst.state === "not_found" ? <p className="rounded-[14px] bg-warning-bg px-4 py-3 text-sm font-semibold text-warning-fg">{t("notFound")}</p> : null}
+                {gst.state === "not_found" ? (
+                  <Notice tone="warning" icon={<TriangleAlert size={16} />}>
+                    {t("notFound")}
+                  </Notice>
+                ) : null}
                 {gst.state === "provider_unavailable" ? (
-                  <p className="rounded-[14px] bg-info-bg px-4 py-3 text-sm font-semibold text-info-fg">{t("providerDown")}</p>
+                  <Notice tone="info" icon={<Info size={16} />}>
+                    {t("providerDown")}
+                  </Notice>
                 ) : null}
 
                 {gst.state === "not_found" || gst.state === "provider_unavailable" ? manualFields : null}
@@ -329,29 +454,50 @@ export function BusinessWizard() {
                       id="file"
                       type="file"
                       accept="application/pdf,image/png,image/jpeg"
-                      className="block w-full text-sm text-muted file:mr-3 file:rounded-xl file:border-0 file:bg-primary-soft file:px-4 file:py-2 file:text-sm file:font-bold file:text-primary-text"
+                      className="peer sr-only"
                       onChange={(e) => void upload(e.target.files?.[0])}
                     />
-                    {doc ? <p className="text-xs text-success-fg">{t("uploaded", { name: doc.name })}</p> : null}
+                    <label
+                      htmlFor="file"
+                      className={cn(
+                        "flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-dashed px-3.5 py-3 text-sm font-semibold transition-colors peer-focus-visible:border-primary peer-focus-visible:shadow-[0_0_0_4px_var(--primary-soft)]",
+                        doc ? "border-success-fg/40 bg-success-bg text-success-fg" : "border-border-strong bg-surface-muted text-text-2 hover:border-primary hover:text-primary-text",
+                      )}
+                    >
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface text-primary-text shadow-sm" aria-hidden="true">
+                        {busy ? <Spinner /> : <Upload size={16} />}
+                      </span>
+                      {doc ? t("replaceFile") : t("chooseFile")}
+                    </label>
+                    {doc ? (
+                      <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-success-fg">
+                        <CircleCheck size={13} aria-hidden="true" />
+                        {t("uploaded", { name: doc.name })}
+                      </p>
+                    ) : null}
                   </FormField>
                 ) : null}
               </section>
             ) : null}
 
             {mode === "pan" && panResult ? (
-              <section aria-live="polite" className="space-y-4 border-t border-border pt-5">
+              <section aria-live="polite" className="animate-rise space-y-4">
                 {panResult.state === "already_registered" ? (
-                  <p className="text-sm font-medium text-text">{t("alreadyRegistered")}</p>
+                  <Notice tone="warning" icon={<Building2 size={16} />}>
+                    {t("alreadyRegistered")}
+                  </Notice>
                 ) : panResult.details ? (
                   <>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Tag tone="success">{t("panVerified")}</Tag>
-                      {panResult.sampleData ? <Tag tone="warning">{t("sampleData")}</Tag> : null}
+                    <div className="rounded-xl border border-border bg-surface-muted p-3.5 sm:p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Tag tone="success">{t("panVerified")}</Tag>
+                        {panResult.sampleData ? <Tag tone="warning">{t("sampleData")}</Tag> : null}
+                      </div>
+                      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3">
+                        <Detail label={t("nameOnPan")}>{panResult.details.nameOnPan}</Detail>
+                        <Detail label={t("holderType")}>{panResult.details.holderType}</Detail>
+                      </dl>
                     </div>
-                    <dl className="grid gap-3 sm:grid-cols-2">
-                      <Detail label={t("nameOnPan")}>{panResult.details.nameOnPan}</Detail>
-                      <Detail label={t("holderType")}>{panResult.details.holderType}</Detail>
-                    </dl>
                     <FormField id="businessName" label={t("businessName")} error={fields.businessName} required>
                       <Input id="businessName" value={businessName} onChange={(e) => setBusinessName(e.target.value)} />
                     </FormField>
@@ -361,18 +507,26 @@ export function BusinessWizard() {
               </section>
             ) : null}
 
-            <div className="flex justify-end border-t border-border pt-5">
-              <Button disabled={!canContinue} onClick={() => { reset(); setStep(2); }}>
-                {t("continue")}
-              </Button>
-            </div>
+            {canContinue ? (
+              <StickyActions>
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    reset();
+                    setStep(2);
+                  }}
+                >
+                  {t("continue")}
+                  <ArrowRight size={16} aria-hidden="true" />
+                </Button>
+              </StickyActions>
+            ) : null}
           </CardBody>
         </Card>
       ) : (
-        <Card>
-          <CardBody className="space-y-5 p-5 sm:p-6">
-            <h2 className="text-base font-semibold text-text">{t("yourDetails")}</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
+        <Card className="animate-rise">
+          <CardBody className="space-y-5 p-4 sm:p-6">
+            <div className="grid gap-3.5 sm:grid-cols-2">
               <FormField id="fullName" label={t("fullName")} error={fields["profile.fullName"]} required>
                 <Input id="fullName" autoComplete="name" value={profile.fullName} onChange={(e) => setProfile({ ...profile, fullName: e.target.value })} />
               </FormField>
@@ -397,39 +551,130 @@ export function BusinessWizard() {
                 <Input id="workEmail" type="email" autoComplete="email" value={profile.workEmail} onChange={(e) => setProfile({ ...profile, workEmail: e.target.value })} />
               </FormField>
             </div>
-            <div className="space-y-3">
-              <Checkbox id="authority" label={t("authority")} checked={authority} onChange={(e) => setAuthority(e.target.checked)} />
-              {fields.authority ? <p className="text-xs font-medium text-danger-fg">{fields.authority}</p> : null}
-              <Checkbox
-                id="terms"
-                checked={terms}
-                onChange={(e) => setTerms(e.target.checked)}
-                label={t.rich("terms", {
+            <div className="space-y-2">
+              <CheckTile id="authority" checked={authority} onChange={setAuthority} error={fields.authority}>
+                {t("authority")}
+              </CheckTile>
+              <CheckTile id="terms" checked={terms} onChange={setTerms} error={fields.terms}>
+                {t.rich("terms", {
                   terms: (c) => (
-                    <a href="/legal/terms" target="_blank" className="underline underline-offset-2">
+                    <a href="/legal/terms" target="_blank" className="font-semibold underline underline-offset-2">
                       {c}
                     </a>
                   ),
                   privacy: (c) => (
-                    <a href="/legal/privacy" target="_blank" className="underline underline-offset-2">
+                    <a href="/legal/privacy" target="_blank" className="font-semibold underline underline-offset-2">
                       {c}
                     </a>
                   ),
                 })}
-              />
-              {fields.terms ? <p className="text-xs font-medium text-danger-fg">{fields.terms}</p> : null}
+              </CheckTile>
             </div>
-            <div className="flex flex-col-reverse gap-3 border-t border-border pt-5 sm:flex-row sm:justify-between">
-              <Button variant="secondary" onClick={() => { reset(); setStep(1); }}>
+            <StickyActions className="flex gap-2.5">
+              <Button
+                variant="secondary"
+                className="shrink-0"
+                onClick={() => {
+                  reset();
+                  setStep(1);
+                }}
+              >
+                <ArrowLeft size={16} aria-hidden="true" />
                 {t("back")}
               </Button>
-              <Button onClick={() => void submit()} loading={busy}>
+              <Button className="flex-1" onClick={() => void submit()} loading={busy}>
                 {needsDocument ? t("submitForReview") : t("createAccount")}
               </Button>
-            </div>
+            </StickyActions>
           </CardBody>
         </Card>
       )}
+      <p className="text-center text-xs text-muted">
+        {t("wrongAccount")}{" "}
+        <button
+          type="button"
+          onClick={() => void signOut()}
+          className="inline-flex min-h-10 items-center font-bold text-primary-text underline-offset-2 hover:underline"
+        >
+          {t("signOut")}
+        </button>
+      </p>
+    </div>
+  );
+}
+
+const NOTICE_TONES = {
+  success: "bg-success-bg text-success-fg",
+  warning: "bg-warning-bg text-warning-fg",
+  danger: "bg-danger-bg text-danger-fg",
+  info: "bg-info-bg text-info-fg",
+} as const;
+
+/** A short status line with an icon (lookup results, access requests). */
+function Notice({ tone, icon, children }: { tone: keyof typeof NOTICE_TONES; icon: ReactNode; children: ReactNode }) {
+  return (
+    <div className={cn("flex items-start gap-2.5 rounded-xl px-3.5 py-3 text-[13px] font-semibold leading-snug", NOTICE_TONES[tone])}>
+      <span className="mt-px shrink-0" aria-hidden="true">
+        {icon}
+      </span>
+      <p>{children}</p>
+    </div>
+  );
+}
+
+/** A checkbox inside a large tappable tile; the whole tile is the label. */
+function CheckTile({
+  id,
+  checked,
+  onChange,
+  error,
+  children,
+}: {
+  id: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  error?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-1">
+      <label
+        htmlFor={id}
+        className={cn(
+          "flex min-h-12 cursor-pointer items-start gap-3 rounded-xl border px-3.5 py-3 text-[13.5px] leading-snug text-text transition-colors",
+          checked ? "border-primary-line bg-primary-softer" : error ? "border-danger" : "border-border hover:border-border-strong",
+        )}
+      >
+        <input
+          id={id}
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
+          className="mt-px size-[18px] shrink-0 rounded border-border accent-[var(--primary)]"
+        />
+        <span>{children}</span>
+      </label>
+      {error ? (
+        <p id={`${id}-error`} className="text-xs font-medium text-danger-fg">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/** The step's main action: pinned to the bottom of the screen on phones, inline from 640 px. */
+function StickyActions({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div
+      className={cn(
+        "sticky bottom-0 z-10 -mx-4 -mb-4 rounded-b-2xl border-t border-border bg-surface/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:mb-0 sm:rounded-none sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-5 sm:backdrop-blur-none",
+        className,
+      )}
+    >
+      {children}
     </div>
   );
 }

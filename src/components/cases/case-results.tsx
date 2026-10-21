@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { Button, ButtonLink, Card, CardBody, CardHeader, StatCard, Tag, type Tone } from "@/components/ui";
 import { cn } from "@/components/ui/cn";
 import { useToast } from "@/components/ui/toast";
@@ -49,21 +49,30 @@ export function CaseResults({ initial, canReview }: { initial: CaseCheckView; ca
 
   return (
     <div className="space-y-5">
-      <Link href={`/counterparties/${view.counterparty.id}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-primary-text">
-        <ArrowLeft size={14} aria-hidden="true" /> {t("back", { name: view.counterparty.name })}
+      <Link href={`/counterparties/${view.counterparty.id}`} className="inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
+        <ArrowLeft size={13} aria-hidden="true" /> {t("back", { name: view.counterparty.name })}
       </Link>
 
-      <header className="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <header className="rounded-2xl border border-border bg-surface shadow-sm">
+        <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5">
           <div className="min-w-0">
-            <p className="text-sm text-muted">{t("resultsMeta", { number: view.reportNo, date: formatDateTimeIst(new Date(view.createdAt)) })}</p>
-            <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-text">{view.search.name}</h1>
-            <p className="mt-1 text-sm text-muted">{[view.search.district, GST_STATES[view.search.state]].filter(Boolean).join(", ")}</p>
+            <p className="text-[11px] font-medium uppercase tracking-[1px] text-subtle">{t("title")}</p>
+            <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-text sm:text-[1.9rem]">{view.search.name}</h1>
+            <p className="mt-1 text-xs text-muted">{t("resultsMeta", { number: view.reportNo, date: formatDateTimeIst(new Date(view.createdAt)) })} · {[view.search.district, GST_STATES[view.search.state]].filter(Boolean).join(", ")}</p>
             {view.testData ? <Tag tone="warning" className="mt-2">{t("testData")}</Tag> : null}
           </div>
           <ButtonLink href={`/cases?counterparty=${view.counterparty.id}`} variant="secondary">{t("searchAgain")}</ButtonLink>
         </div>
-        {running ? <p className="mt-3 text-sm font-semibold text-primary-text" role="status">{t("running")}</p> : null}
+        <div className="border-t border-border px-4 py-3 sm:px-5" role="status" aria-live="polite">
+          <div className="flex items-center justify-between gap-3 text-xs">
+            <span className={cn("font-medium", running ? "text-text" : "text-muted")}>{running ? t("running") : t("finished")}</span>
+            <span className="tabular-nums text-subtle">{t("progressCount", { done: view.items.filter((i) => i.status !== "queued" && i.status !== "running").length, total: view.items.length })}</span>
+          </div>
+          <div className="relative mt-2 h-1.5 overflow-hidden rounded-full bg-surface-strong" aria-hidden="true">
+            <div className="h-full rounded-full bg-brand transition-[width] duration-500 ease-out" style={{ width: `${(view.items.filter((i) => i.status !== "queued" && i.status !== "running").length / Math.max(1, view.items.length)) * 100}%` }} />
+            {running ? <div className="absolute inset-y-0 left-0 w-1/3 animate-[cb-indeterminate_1.4s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-transparent via-white/60 to-transparent" /> : null}
+          </div>
+        </div>
       </header>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -73,12 +82,13 @@ export function CaseResults({ initial, canReview }: { initial: CaseCheckView; ca
         <StatCard label={t("count.notReviewed")} value={view.counts.notReviewed} />
       </div>
 
+      {view.testData ? <p className="text-xs text-text-2"><span className="font-semibold text-primary">★</span> {t("sampleStarNote")}</p> : null}
       <Card>
         <CardHeader title={t("checksDone")} />
-        <CardBody className="space-y-2 text-sm">
+        <CardBody className="space-y-2 text-xs">
           {view.items.map((i) => (
-            <p key={i.code} className={cn("flex flex-wrap justify-between gap-2", i.status === "not_available" && "font-semibold text-warning-fg")}>
-              <span className="font-semibold text-text-2">{i.name}</span>
+            <p key={i.code} className={cn("flex flex-wrap justify-between gap-2", i.status === "not_available" && "font-medium text-warning-fg")}>
+              <span className="font-medium text-text-2">{i.name}{i.status === "success" && i.provider?.startsWith("mock") ? <span className="ml-1 text-primary" title={t("sampleStar")} aria-label={t("sampleStar")}>★</span> : null}</span>
               <span>{t(`state.${stateKey(i)}`)}</span>
             </p>
           ))}
@@ -86,22 +96,30 @@ export function CaseResults({ initial, canReview }: { initial: CaseCheckView; ca
       </Card>
 
       <Card>
-        <CardHeader title={t("matchesTitle")} />
+        <CardHeader title={<>{t("matchesTitle")}{view.testData ? <span className="ml-1 text-primary" title={t("sampleStar")} aria-label={t("sampleStar")}>★</span> : null}</>} />
         <CardBody>
           {!view.matches.length ? (
-            <p className="text-sm text-muted">{running ? t("searching") : t("noRecords")}</p>
+            running ? (
+              <p className="text-sm text-muted">{t("searching")}</p>
+            ) : (
+              <div className="flex flex-col items-center px-4 py-8 text-center">
+                <span className="flex size-10 items-center justify-center rounded-lg bg-success-bg text-success-fg" aria-hidden="true"><ShieldCheck size={18} /></span>
+                <p className="mt-3 text-sm font-medium text-text">{t("noRecordsTitle")}</p>
+                <p className="mt-1 max-w-md text-xs text-muted">{t("noRecords")}</p>
+              </div>
+            )
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[44rem] text-left text-sm">
-                <thead className="text-xs uppercase tracking-wide text-muted">
+                <thead className="border-b border-border text-[11px] uppercase tracking-[1px] text-subtle">
                   <tr>
-                    <th scope="col" className="py-2 pr-3 font-semibold">{t("col.case")}</th>
-                    <th scope="col" className="py-2 pr-3 font-semibold">{t("col.court")}</th>
-                    <th scope="col" className="py-2 pr-3 font-semibold">{t("col.type")}</th>
-                    <th scope="col" className="py-2 pr-3 font-semibold">{t("col.filed")}</th>
-                    <th scope="col" className="py-2 pr-3 font-semibold">{t("col.status")}</th>
-                    <th scope="col" className="py-2 pr-3 font-semibold">{t("col.match")}</th>
-                    <th scope="col" className="py-2 font-semibold">{t("col.review")}</th>
+                    <th scope="col" className="py-2 pr-3 font-medium">{t("col.case")}</th>
+                    <th scope="col" className="py-2 pr-3 font-medium">{t("col.court")}</th>
+                    <th scope="col" className="py-2 pr-3 font-medium">{t("col.type")}</th>
+                    <th scope="col" className="py-2 pr-3 font-medium">{t("col.filed")}</th>
+                    <th scope="col" className="py-2 pr-3 font-medium">{t("col.status")}</th>
+                    <th scope="col" className="py-2 pr-3 font-medium">{t("col.match")}</th>
+                    <th scope="col" className="py-2 font-medium">{t("col.review")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -134,7 +152,7 @@ function stateKey(i: CaseCheckView["items"][number]) {
   return i.status;
 }
 
-function MatchRow({
+export function MatchRow({
   m, day, open, onToggle, canReview, saving, onReview,
 }: {
   m: CaseMatchView;
@@ -161,7 +179,7 @@ function MatchRow({
     <>
       <tr className="align-top">
         <td className="py-3 pr-3">
-          <button type="button" className="text-left font-semibold text-primary-text underline-offset-2 hover:underline" aria-expanded={open} onClick={onToggle}>
+          <button type="button" className="text-left font-medium text-text underline-offset-2 hover:underline" aria-expanded={open} onClick={onToggle}>
             {m.caseNo ?? m.listName ?? t("listEntry")}
           </button>
           <span className="block text-xs text-muted">{t(`source.${m.source}`)}</span>
@@ -194,23 +212,23 @@ function MatchRow({
       </tr>
       {open ? (
         <tr>
-          <td colSpan={7} className="bg-surface-muted px-4 py-3 text-sm">
+          <td colSpan={7} className="bg-surface-muted px-4 py-3 text-xs">
             <dl className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
-              <dt className="font-semibold text-text-2">{t("parties")}</dt>
+              <dt className="font-medium text-text-2">{t("parties")}</dt>
               <dd>{m.parties.map((p) => `${p.name} (${t(`role.${p.role}`)})`).join(", ")}</dd>
               {m.acts.length ? (
                 <>
-                  <dt className="font-semibold text-text-2">{t("acts")}</dt>
+                  <dt className="font-medium text-text-2">{t("acts")}</dt>
                   <dd>{m.acts.join("; ")}</dd>
                 </>
               ) : null}
               {m.listName ? (
                 <>
-                  <dt className="font-semibold text-text-2">{t("list")}</dt>
+                  <dt className="font-medium text-text-2">{t("list")}</dt>
                   <dd>{t("listValue", { name: m.listName, date: day(m.listDate) })}</dd>
                 </>
               ) : null}
-              <dt className="font-semibold text-text-2">{t("matchScore")}</dt>
+              <dt className="font-medium text-text-2">{t("matchScore")}</dt>
               <dd>{m.score} / 100</dd>
             </dl>
           </td>

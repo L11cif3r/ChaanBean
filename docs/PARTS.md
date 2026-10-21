@@ -16,7 +16,7 @@ mock provider and switched to the real one when keys arrive.
 | 6 | Notifications: SMS (DLT), WhatsApp, email (SES), in-app; message list from v2.0 section 9.1; delivery status; preferences; sender profile | S20 | FR-NTF-01/02, FR-AUTH-03 | 30 Nov–4 Dec | Not started |
 | 7 | Credit Worthiness, consent checks: buyer consent link and OTP, GST portal API-access step, 72-hour expiry with no charge, withdrawal; GST turnover (current year or last 4 years) via GSP; CIBIL company, personal or both via one bureau partner | S09 (consent), S10 | FR-CON-01–07, FR-CW-02/03 | 7–18 Dec | Consent checks built (16 Oct) on mock GSP, bureau and OTP; see notes |
 | 8 | Case Check (optional tab): user picks court case, FIR and/or money laundering; same cost popup; match confidence; "This is him / Not him / Not sure"; only confirmed cases change the risk level | S12 | FR-CC-01–06 | 21 Dec–1 Jan | Built (18 Oct) on mock court, FIR and watchlist providers; see notes |
-| 9 | Business Security (optional tab): seller, buyer and lender agreements, agreement PDF, OTP acceptance, sealing, verify page, overdue job and interest, payments, E-Settlement | S13–S17, S22 | FR-TX-01–12, FR-ES-01–05 | 28 Dec–8 Jan 2027 | Not started |
+| 9 | Business Security (optional tab): seller, buyer and lender agreements, agreement PDF, OTP acceptance, sealing, verify page, overdue job and interest, payments, E-Settlement | S13–S17, S22 | FR-TX-01–12, FR-ES-01–05 | 28 Dec–8 Jan 2027 | Agreements built (18 Oct); E-Settlement and evidence pack next; see notes |
 | 10 | Dashboard, admin panel and launch: free dashboard (buyers, searches this month, credit given, overdue, units left); admin panel (prices, plan units, data partners); security pass; testing with a few real businesses; pilot | S04, S21 | FR-DSH-01, FR-ADM-01–03, NFR-01–12, section 15, 18.3 | 11–22 Jan 2027 | Not started |
 
 Order (v2.0 section 13): platform basics first (Parts 1–4), then Tab 1 Credit Worthiness (5, 7), Case Check (8),
@@ -84,6 +84,7 @@ for a new buyer stay in Phase 1?
 - Sign-in: mobile OTP through Supabase Auth with the PRD limits (5 sends an hour, 5 wrong codes lock for 30 minutes) and
   session rules in the signed `cb_sess` cookie (12 hours, 30 days trusted, 60 minutes idle for Owner and Admin).
 - Development test numbers 90000 00001 to 00003 sign in with code 123456 through `src/server/auth/dev-signin.ts`
+  and keep their data (00001 owns a GST- and KYC-verified business); the e2e suite uses 00011 to 00013, which it wipes on each run
   (never in production). Real phone sign-in needs Supabase Auth: Phone provider on and the Send SMS hook
   (`public.dev_send_sms_hook` until Part 6).
 - GST search and PAN verification use the mock provider (`src/server/providers/identity`); the GSTIN's 13th character
@@ -241,4 +242,124 @@ link for reports (Should), low-units alert at 10% (Should), retention clean-up, 
 - Mock scenarios by name: CLEAN no records, COMMON over 50 matches, DOWN provider down, SANCTION / PEP watchlist hits.
 - Not built yet: district list per state (free text for now), notification when a slow search finishes (Part 6),
   15-day refresh of confirmed pending cases (Could), real providers.
+
+## Part 9 notes (18 Oct): Business Security agreements
+
+- Migration `20261018171117_part9_business_security`: `transactions` (seller, buyer, lender; CHB-TX-NNNNNN; 13 statuses
+  from v3 8.6), `transaction_items`, `transaction_versions` (what was sent, version by version), `transaction_attachments`,
+  `transaction_decisions` (accept, reject with reason, changes with comment, with IP and device), `transaction_seals`
+  (write-once PDF reference, SHA-256, who accepted how), `payments` (split into interest and principal),
+  `transaction_events` (activity log, append-only), `link_otps`, `verify_hits`. Invoice number once per counterparty.
+- PDF (`src/server/pdf/agreement.ts`, pdf-lib + qrcode, Geist font so ₹ prints): title by type, parties, invoice, items,
+  amounts, fixed clauses that cannot be removed plus the creator's terms, acceptance block, and on every page the
+  reference, verify link and QR code. Preview is marked PREVIEW. Not yet PDF/A.
+- S13 `/transactions/new` (and `/edit`): type tabs, labels by type, items with GST rates 0 to 40%, live totals, paid now,
+  due date, interest. S14 `/transactions/{id}/review`: PDF preview, channels, link valid 1 to 15 days, confirmation,
+  cost. S16 `/transactions/{id}`: timeline, amounts with interest to today, record payment, mark fully paid, cancel,
+  resend, attachments (PDF/JPG/PNG checked by bytes, 10 MB, 5 files), evidence, activity log to the second.
+- Charging (v3 section 10): one unit held on first send and committed when the counterparty opens the link; cancelling
+  before that, or the link expiring unopened, gives it back; resending after a change request is free.
+- S15 `/a/{token}` (phone first): summary, terms, full PDF and attachments (viewing logged), OTP to the mobile on record,
+  acknowledgement, "I am not {contact}" name field, I Accept, Request changes (10 to 1,000 characters), Reject (reason
+  optional). Accepting seals at once: final PDF with the acceptance block, SHA-256, `evidenceStore.putOnce` (write-once
+  in Postgres until S3 Object Lock), copies to both parties (outbox until Part 6).
+- S22 `/v/{reference}`: the browser hashes the PDF (the file is not uploaded); shows only parties and seal time; 30
+  checks per IP an hour.
+- Jobs: reminders on day 2 and day 5 while unopened, expiry at the end of the link validity, overdue check 00:30 IST
+  the day after the due date (statuses are also worked out again on every read). Interest is simple and daily on the
+  principal still owed after the due date; payments pay accrued interest first (`src/lib/transactions.ts`).
+- Open points: buyer-initiated deals reuse the same balance and due-date engine ("goods due by"); delivery tracking and
+  the refund clause need Mohan's say. An old link stops working when a new version is sent. Agreement units per plan
+  are still open (v3 Q5), so sending is charged from the wallet.
+- E-Settlement and the evidence pack followed in Part 9b and 9c (below).
+
+
+## Part 9b notes (19 Oct): E-Settlement
+
+- Migration `20261019045710_part9b_settlements`: `settlements` (CHB-ST-NNNNNN; from an overdue agreement or an outside
+  debt with GST bill number, date and amount; owed, settlement amount, interest agreed, waived; full or instalments;
+  grace days 7 to 30), `settlement_instalments` (Due, Paid, Missed), `settlement_versions`, `settlement_proposals` (the
+  debtor's counter-proposal), `settlement_decisions`, `settlement_seals`, `settlement_payments`, `settlement_events`
+  (append-only). One live settlement per agreement; never more than what is owed.
+- Rules in `src/lib/settlements.ts` (unit-tested): waiver, Split equally (monthly on the same day, or every 7 or 15
+  days, leftover paise on the last row), schedule checks (2 to 24 rows, increasing dates, total matches), and
+  `scheduleState`: payments fill instalments in date order; unpaid after the grace days = Missed = Defaulted.
+- Screens: STL `/settlements`, S17 `/settlements/new` (and `/edit`, `?proposal=` to revise from the debtor's terms),
+  `/settlements/{id}/review` (same flow as S14), `/settlements/{id}` (same layout as S16 with the schedule, the
+  counter-proposal next to the current terms with Accept proposal / Revise, payments, evidence, activity), and the
+  debtor's page `/s/{token}` (accept by OTP, propose another amount or dates, reject). "Start E-Settlement" on an
+  overdue agreement opens S17 with it filled in.
+- Charging: one BS_SETTLEMENT unit held on first send, used when the debtor opens the link; revisions free.
+- On acceptance: sealed like an agreement (PDF with the schedule and default clause, SHA-256, write-once, verify page
+  takes CHB-ST); the original agreement becomes Settled. Settlement payments are also recorded on the original
+  agreement, so a default puts it back to Overdue with its balance and interest less what was paid. Jobs: reminders day
+  2 and 5, expiry, a note to the creditor on each instalment date (FR-ES-05), the missed check after the grace days.
+- Link OTPs for agreements and settlements now share `src/server/links/otp.ts`.
+
+## Part 9c notes (19 Oct): evidence pack
+
+- `GET /api/v1/transactions/{id}/evidence` and `/api/v1/settlements/{id}/evidence` (Export permission), once sealed:
+  a ZIP with the sealed PDF (hash re-checked), attachments, an acceptance certificate, the activity log as a PDF, a
+  DRAFT section 63 certificate (Bharatiya Sakshya Adhiniyam, 2023; Part A with the hash) for counsel, and a file list
+  with each SHA-256. Small ZIP writer in `src/server/zip.ts`, text PDFs via `src/server/pdf/kit.ts`.
+- Wording of the certificate, the s.63 draft and the default clause is a placeholder until counsel approves it.
+
+## Ready for real providers (19 Oct)
+
+- Every outside message now carries the real recipient (`to`) for the sender, so switching on Exotel or ZeptoMail
+  needs only the adapter and keys. Wallet alerts go to each Owner and Admin with an email.
+- Write-once storage has its own switch, `PROVIDER_STORAGE=s3|gcs` (unset = database). Email can be `ses` or
+  `zeptomail` (Phase 2 PRD).
+
+## Changes from PRD v4.0 (20 Oct 2026): Credit Worthiness and Case Check
+
+Migrations `20261020050116_v4_enum_values` to `20261020053304_v4_bulk_confirmed_status`.
+
+- **Rupees only** (section 3). Plans have no units: a plan payment goes into the wallet in full (ledger note "Plan B
+  payment"), and while a plan is active its own price list applies (`plan_prices`, Option A; empty = pay-per-use, which
+  is Option C). Every hold is wallet money, price plus 18% GST. Q1 (A, B or C) is still open.
+- **Company search** (section 4). One box for a name (3 letters or more), GSTIN or CIN/LLPIN: your buyers first, then
+  MCA records (up to 50, best word match first, then Active), with state, city and "Active only" filters, the data date,
+  "Add by GSTIN" and "Search by a person's name: coming with ChaanBean intelligence". Picking a record adds the buyer for
+  free (type `business_cin`, no contact yet); a GSTIN can be linked later from the buyer's Edit. Used by Credit
+  Worthiness and Case Check. Buyers without a mobile run public checks; checks the buyer approves by OTP ask for a
+  contact first, and transactions and settlements list only buyers with a mobile.
+- **Multiple search** (sections 6 and 7, `/checks/bulk`). Type up to 10 or upload up to 50 rows (2 MB, template
+  columns). Rows are matched free (GSTIN, then CIN, then name: a name always needs a pick), duplicates and bad rows are
+  skipped, and Continue adds the companies as buyers (with the file's contact when they have none). The quick screen runs
+  GST search and (with a CIN) Company check for all of them with one cost popup and one cancel window, then sorts them
+  into Avoid / Check further / Looks good / Not enough data by the rules in `src/lib/screen.ts`. The results table filters
+  by result (default Looks good), state, years, filing and MCA status, sorts, deep-checks the ticked rows with one popup,
+  and downloads as Excel. The file and the rows are stored (`bulk_searches`, `bulk_rows`).
+- **Cancel window** (section 8). "Yes, run search" creates the request as `pending_start`; nothing is held, asked or run
+  until `CANCEL_WINDOW_SECONDS` (default 3) pass, and Cancel inside the window leaves no ledger entry. A multiple search
+  shares one window for all its rows.
+- **Sample data mode** (section 10) and **turnover charts** (bar with year-on-year change, line, pie, current year by
+  month; the PDF gets the bar chart).
+- **Phones** (11.3): the cost and Continue sit in a bar at the bottom below the large layout; Cancel is 48 px tall; the
+  font is Inter (₹ included) across the app.
+- **Slots** (11.1, 11.2): SMS OTP through Fast2SMS on DLT, and KYC with DigiLocker at `/account/kyc` (a reminder for
+  the Owner, not blocking; Q8). See PROVIDERS.md.
+
+Still open from v4: AI person-name search (section 5), Ops-editable screen thresholds and per-organisation row limits,
+all-India MCA import (paid database plan), Mumbai hosting (search is about 1.2 s from India against Sydney; the target is
+under 1 s), and Q1 to Q10.
+
+### v4 completion (20 Oct, later)
+
+- **Live sources on**: API Setu GSTN Tax Payer V2 (sign-up, company search, ₹15 GST search; V1 as fallback when V2 is
+  down) and MCA open data (search, ₹2 Company check). Reports name each source: "API Setu, 20 Oct 2026, 14:36 IST",
+  "MCA open data as of 13 Oct 2026"; what a source does not give says "Not in this source". The GST section adds
+  nature of business, e-invoicing, other places of business and tax office.
+- **Multiple search**: deep check includes Case Check (Court, FIR in covered states, AML) for many buyers, with the
+  search details from each buyer's record (FR-CC-04); "Add GSTIN" fixes a not-found row or replaces the offered matches;
+  PRD paths `/api/v1/bulk-searches/...` and `/api/v1/wallet`, `/wallet/ledger` are aliases of the existing routes.
+- **GST Registration Certificate** (GSTN on API Setu): on the KYC page the Owner or Admin gets the business's own
+  certificate with an OTP to the primary authorised signatory; the PDF is kept write-once. Test mode (OTP 123456) until
+  API Setu's encryption details for this API are in (`PROVIDER_GST_CERTIFICATE=apisetu`).
+- **KYC** is offered right after the sign-up payment, and stays a reminder banner for the Owner until done.
+- **Ops console (/admin, first part)**: data sources per service, MCA import per state with progress and a weekly
+  refresh, organisations with wallet, KYC and the per-organisation sample data switch (FR-MK-01). Staff are the mobiles
+  in `OPS_MOBILES` until staff sign-in arrives in Part 10.
+- No "units" left in screens, ledger notes or PDFs (T12); every v4 screen checked at 360 px (T15).
 

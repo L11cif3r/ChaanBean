@@ -16,7 +16,7 @@ export function ThemeSwitch({ className }: { className?: string }) {
       aria-pressed={isDark}
       title={label}
       className={cn(
-        "relative inline-flex h-9 w-16 shrink-0 items-center rounded-full border border-border bg-surface-muted p-[3px] transition-colors hover:border-primary-line",
+        "relative inline-flex h-9 w-16 shrink-0 items-center rounded-full border border-border bg-surface p-[3px] shadow-sm transition-colors hover:border-primary-line",
         className,
       )}
     >
@@ -47,12 +47,12 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={label}
       title={label}
-      className="group relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary-line bg-primary-soft text-primary shadow-sm transition-all hover:brightness-95"
+      className="group relative flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-surface text-text shadow-sm transition-[background-color,scale] duration-150 hover:bg-surface-muted active:scale-[0.95]"
     >
       {isDark ? (
-        <Sun size={16} className="transition-transform duration-300 group-hover:rotate-45" />
+        <Sun size={15} className="transition-transform duration-300 group-hover:rotate-45" />
       ) : (
-        <Moon size={16} className="transition-transform duration-300 group-hover:-rotate-12" />
+        <Moon size={15} className="transition-transform duration-300 group-hover:-rotate-12" />
       )}
     </button>
   );

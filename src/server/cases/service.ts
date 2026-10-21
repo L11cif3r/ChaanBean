@@ -191,6 +191,7 @@ export async function reviewMatch(ctx: Ctx, matchId: string, review: Exclude<Rev
     select id from public.check_requests
      where counterparty_id = ${before.counterparty_id} and tab = 'credit_worthiness' and valid_until > now()`;
   const { refreshReport } = await import("@/server/checks/service");
-  for (const rep of reports) await refreshReport(rep.id);
+  // In parallel: one by one took ~30 s on the Sydney database for a buyer with several reports.
+  await Promise.all(reports.map((rep) => refreshReport(rep.id)));
   return { review };
 }

@@ -32,7 +32,7 @@ export function Tabs({ items, initial, className }: { items: TabItem[]; initial?
 
   return (
     <div className={className}>
-      <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-border">
+      <div role="tablist" className="inline-flex max-w-full gap-1 overflow-x-auto rounded-xl bg-surface-strong p-1">
         {items.map((t, i) => {
           const selected = t.key === active;
           return (
@@ -50,12 +50,12 @@ export function Tabs({ items, initial, className }: { items: TabItem[]; initial?
               onClick={() => setActive(t.key)}
               onKeyDown={(e) => onKeyDown(e, i)}
               className={cn(
-                "-mb-px whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-bold transition-colors",
-                selected ? "border-primary text-primary-text" : "border-transparent text-muted hover:text-text",
+                "h-9 whitespace-nowrap rounded-lg px-3.5 text-[13px] font-semibold transition-[background-color,color,box-shadow,scale] duration-150 active:scale-[0.97]",
+                selected ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text",
               )}
             >
               {t.label}
-              {t.count !== undefined ? <span className="ml-1 tabular-nums">({t.count})</span> : null}
+              {t.count !== undefined ? <span className="ml-1.5 tabular-nums text-subtle"><span className="sr-only">{`(${t.count})`}</span><span aria-hidden="true">{t.count}</span></span> : null}
             </button>
           );
         })}

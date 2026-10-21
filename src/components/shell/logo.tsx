@@ -7,6 +7,7 @@ export function Logo({
   tone = "dark",
   href = "/dashboard",
   tagline = true,
+  taglineClassName,
   className,
 }: {
   /** "light" renders the wordmark in white, for use on the orange panel. */
@@ -14,6 +15,8 @@ export function Logo({
   /** null renders the brand without a link (external pages, where the visitor is not signed in). */
   href?: string | null;
   tagline?: boolean;
+  /** Extra classes for the tagline, e.g. to hide it on phones. */
+  taglineClassName?: string;
   className?: string;
 }) {
   const cls = cn("inline-flex shrink-0 items-center gap-2.5", className);
@@ -23,13 +26,13 @@ export function Logo({
         <Image src="/brand/logo.png" alt="" width={36} height={28} className="h-7 w-9 object-contain" priority />
       </span>
       <span className="leading-none">
-        <span className={cn("block text-[1.28rem] font-extrabold leading-[1.1] tracking-[-0.03em]", tone === "light" ? "text-white" : "text-text")}>
+        <span className={cn("block font-head text-[1.28rem] font-extrabold leading-[1.1] tracking-[-0.03em]", tone === "light" ? "text-white" : "text-text")}>
           Chaan
           <span className={tone === "light" ? "text-white" : "text-primary"}>Bean</span>
         </span>
         {tagline ? (
           <span
-            className={cn("mt-0.5 block text-[0.64rem] font-bold uppercase tracking-[0.1em]", tone === "light" ? "text-white/80" : "text-subtle")}
+            className={cn("mt-0.5 text-[0.64rem] font-bold uppercase tracking-[0.1em]", taglineClassName ?? "block", tone === "light" ? "text-white/80" : "text-subtle")}
           >
             Credit &amp; Recovery OS
           </span>

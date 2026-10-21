@@ -2,6 +2,7 @@ import "server-only";
 import type {
   CibilData, CompanyData, CreditRatingData, DirectorData, GstSearchData, IecProfileData, IecTurnoverData, MsmeData, PanData, TurnoverData,
 } from "@/lib/checks";
+import { sourceLine, turnoverBarsSvg } from "@/lib/checks";
 import { formatDate, formatDateTimeIst, istDate } from "@/lib/dates";
 import { formatInrShort } from "@/lib/money";
 import type { ReportView } from "./service";
@@ -39,12 +40,20 @@ export function reportHtml(report: ReportView, t: T): string {
       .map((i) => `<p class="muted">${found.length > 1 ? `${esc(i!.name)}: ` : ""}${esc(t(`state.${stateKeyOf(i!)}`))}</p>`)
       .join("");
   };
+  // Every distinct source of the section, e.g. "MCA open data as of 13 Oct 2026 · Sample data, 20 Oct 2026, 15:09 IST".
   const source = (codes: string[]) => {
-    const i = codes.map(item).find((x) => x?.status === "success" && !x.hidden);
-    return i?.fetchedAt ? `<span class="src">${esc(t("source", { provider: i.provider?.startsWith("mock") ? t("testData") : i.provider ?? "", time: formatDateTimeIst(new Date(i.fetchedAt)) }))}</span>` : "";
+    const lines = codes.map(item).filter((x) => x?.status === "success" && !x.hidden && x.fetchedAt).map((i) => {
+      const line = sourceLine(i!.provider, formatDateTimeIst(new Date(i!.fetchedAt!)), i!.data);
+      return { name: i!.name, text: t(`src.${line.key}`, line.key === "mca" ? { date: day(line.values.date) } : line.values) };
+    });
+    const mixed = new Set(lines.map((l) => l.text)).size > 1;
+    const out = mixed ? lines.map((l) => `${l.name}: ${l.text}`) : lines.slice(0, 1).map((l) => l.text);
+    return out.length ? `<span class="src">${esc(out.join(" · "))}</span>` : "";
   };
+  const sampleIn = (codes: string[]) => codes.map(item).some((x) => x?.status === "success" && !x.hidden && (!x.provider || x.provider.startsWith("mock")));
+  // Checks that were not selected are left out of the report.
   const section = (title: string, codes: string[], body: string) =>
-    `<section><h3>${esc(title)} ${source(codes)}</h3>${stateOf(codes)}${body}</section>`;
+    !codes.map(item).some(Boolean) ? "" : `<section><h3>${esc(title)}${sampleIn(codes) ? ' <span class="star">★</span>' : ""} ${source(codes)}</h3>${stateOf(codes)}${body}</section>`;
 
   const gst = data<GstSearchData>("CW_GST_SEARCH");
   const company = data<CompanyData>("CW_COMPANY");
@@ -99,6 +108,7 @@ export function reportHtml(report: ReportView, t: T): string {
   table.kv { width: 100%; border-collapse: collapse; } .kv th { text-align: left; font-weight: 500; color: #64748b; padding: 3px 0; width: 45%; } .kv td { text-align: right; padding: 3px 0; }
   .bars { display: flex; gap: 10px; align-items: flex-end; height: 120px; } .bar { flex: 1; text-align: center; font-size: 11px; } .bar div { background: #fc8019; border-radius: 4px 4px 0 0; }
   .disclaimer { margin-top: 18px; font-size: 11px; color: #64748b; }
+  .star { color: #e8590c; }
   .watermark { position: absolute; top: 40%; left: 0; right: 0; text-align: center; font-size: 80px; font-weight: 800; color: rgba(225,29,72,.12); transform: rotate(-20deg); pointer-events: none; }
   .actions { max-width: 860px; margin: 0 auto; text-align: right; }
   button { font: inherit; font-weight: 700; background: #fc8019; color: #fff; border: 0; border-radius: 10px; padding: 10px 18px; cursor: pointer; margin-top: 12px; }
@@ -109,12 +119,13 @@ export function reportHtml(report: ReportView, t: T): string {
 <body>
 <div class="actions"><button type="button" onclick="window.print()">Save as PDF</button></div>
 <main>
-  ${report.expired ? `<div class="watermark">Expired</div>` : ""}
+  ${report.expired ? `<div class="watermark">Expired</div>` : report.testData ? `<div class="watermark">Sample data</div>` : ""}
   <div class="brand">Chaan<span>Bean</span></div>
   <p class="muted">${esc(t("title"))} · ${esc(t("meta", { number: report.reportNo, date: formatDateTimeIst(new Date(report.createdAt)), valid: day(report.validUntil) }))}</p>
   <h1>${esc(report.counterparty.name)}</h1>
   ${report.counterparty.gstin ? `<p class="muted">GSTIN ${esc(report.counterparty.gstin)}</p>` : ""}
   ${report.testData ? `<span class="test">${esc(t("testData"))}</span>` : ""}
+  ${report.items.some((x) => x.status === "success" && !x.hidden && (!x.provider || x.provider.startsWith("mock"))) ? `<p class="muted"><span class="star">★</span> ${esc(t("sampleStarNote"))}</p>` : ""}
   <div class="cards">
     <div class="card ${o.level === "not_enough_data" ? "" : esc(o.level)}"><div class="label">${esc(t("riskTitle"))}</div><p class="big">${esc(t(`risk.${o.level}`))}</p><p class="muted">${esc(t("riskCounts", { good: o.counts.positive, warn: o.counts.caution + o.counts.red }))}</p></div>
     <div class="card"><div class="label">${esc(t("rangeTitle"))} (${esc(t("rangeGuide"))})</div>${range}</div>
@@ -122,13 +133,14 @@ export function reportHtml(report: ReportView, t: T): string {
   </div>
   ${section(t("sectionGst"), ["CW_GST_SEARCH"], gst ? rows([
     [t("status"), esc(gst.status)], [t("registered"), esc(day(gst.registrationDate))], [t("type"), esc(gst.constitution)],
-    [t("gstinsOnPan"), String(gst.gstinsOnPan.length)], [t("lastReturn"), esc(gst.lastReturnPeriod ?? "—")],
-    [t("onTime"), esc(t("onTimeValue", { ok: gst.filings.filter((f) => f.filed && f.onTime).length, total: gst.filings.length }))],
+    [t("gstinsOnPan"), gst.gstinsOnPan.length ? String(gst.gstinsOnPan.length) : esc(t("notInSource"))],
+    [t("lastReturn"), esc(gst.lastReturnPeriod ?? (gst.filings.length ? "—" : t("notInSource")))],
+    [t("onTime"), esc(gst.filings.length ? t("onTimeValue", { ok: gst.filings.filter((f) => f.filed && f.onTime).length, total: gst.filings.length }) : t("notInSource"))],
+    ...(gst.natureOfBusiness?.length ? [[t("natureOfBusiness"), esc(gst.natureOfBusiness.join(", "))] as [string, string]] : []),
+    ...(gst.eInvoice != null ? [[t("eInvoice"), esc(gst.eInvoice ? t("yes") : t("no"))] as [string, string]] : []),
+    ...(gst.jurisdiction ? [[t("jurisdiction"), esc(gst.jurisdiction)] as [string, string]] : []),
   ]) : "")}
-  ${section(t("sectionTurnover"), ["CW_GST_TURNOVER_4Y", "CW_GST_TURNOVER_CY"], turnover ? `<div class="bars">${turnover.years.map((y) => {
-    const max = Math.max(1, ...turnover.years.map((x) => x.turnoverPaise));
-    return `<div class="bar"><strong>${esc(short(y.turnoverPaise))}</strong><div style="height:${Math.max(4, (y.turnoverPaise / max) * 80)}px"></div>${esc(y.partial ? t("partialYear", { fy: y.fy }) : y.fy)}</div>`;
-  }).join("")}</div>` : "")}
+  ${section(t("sectionTurnover"), ["CW_GST_TURNOVER_4Y", "CW_GST_TURNOVER_CY"], turnover ? `<div class="chart">${turnoverBarsSvg(turnover, short)}</div>` : "")}
   ${section(t("sectionCibil"), ["CW_CIBIL_COMPANY", "CW_CIBIL_PERSONAL"], cibil.map((c) => rows([
     [t("cibilRank"), esc(`${c.bureau} ${c.scoreOrRank}`)], [t("activeLoans"), String(c.activeLoans)], [t("outstanding"), esc(short(c.outstandingPaise))],
     [t("overdueLoans"), c.overdue.length ? esc(t("overdueValue", { count: c.overdue.length, days: Math.max(...c.overdue.map((x) => x.daysPastDue)) })) : esc(t("noneOverdue"))],
@@ -138,6 +150,11 @@ export function reportHtml(report: ReportView, t: T): string {
   ${section(t("sectionCompany"), ["CW_COMPANY", "CW_DIRECTORS"], `${company ? rows([
     [t("status"), esc(company.status)], [t("cin"), esc(company.cin)], [t("incorporated"), esc(day(company.incorporationDate))],
     [t("capital"), esc(short(company.paidUpCapitalPaise))],
+    ...([
+      [t("companyKind"), [company.companyClass, company.category, company.subCategory].filter(Boolean).join(" · ")],
+      [t("listing"), company.listing ?? ""], [t("origin"), company.origin ? (/^india$/i.test(company.origin) ? t("originIndian") : company.origin) : ""],
+      [t("activity"), company.activity ?? ""], [t("nicCode"), company.nicCode ?? ""], [t("registrar"), company.registrar ?? ""],
+    ] as [string, string][]).filter(([, v]) => v).map(([k, v]) => [k, esc(v)] as [string, string]),
   ]) : ""}${directors ? `<p><strong>${esc(t("directors"))}</strong></p><ul>${directors.directors.map((d) => `<li>${esc(d.name)}, ${esc(d.designation)}, DIN ${esc(d.din)}${d.disqualified ? ` (${esc(t("disqualified"))})` : ""}</li>`).join("")}</ul>` : ""}`)}
   ${section(t("sectionRating"), ["CW_CREDIT_RATING"], rating ? (rating.ratings.length ? `<ul>${rating.ratings.map((r) => `<li>${esc(r.agency)}: ${esc(r.rating)} (${esc(r.outlook)}), ${esc(day(r.date))}</li>`).join("")}</ul>` : `<p class="muted">${esc(t("notRated"))}</p>`) : "")}
   <p class="disclaimer">Guidance only. The risk level and safe credit range are worked out from the data above by fixed rules and do not replace your own judgement. Data comes from the sources named in each section at the times shown. This report is valid for 30 days from the date it was generated. Data shared by the buyer with their consent is used only for the purpose they agreed to.</p>

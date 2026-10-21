@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowRight, Lock } from "lucide-react";
+import { ArrowRight, Lock, Smartphone } from "lucide-react";
 import { Button, Checkbox, FormField, Input } from "@/components/ui";
 import { OtpInput } from "@/components/ui/otp-input";
 import { api } from "@/lib/api-client";
@@ -76,22 +76,19 @@ export function LoginForm() {
   }
 
   return (
-    <section className="space-y-6 rounded-[28px] border border-border bg-surface px-5 py-6 shadow-lg sm:p-8">
+    <section className="animate-rise space-y-5 rounded-2xl border border-border bg-surface p-5 shadow-lg sm:p-7">
       <div>
-        <div className="flex items-center justify-between gap-2.5">
-          <span className="inline-flex items-center rounded-full bg-primary-soft px-2.5 py-1 text-[0.74rem] font-bold leading-[1.4] text-primary-text">
-            {t("portalChip")}
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-[0.78rem] font-semibold text-muted">
-            <Lock size={13} aria-hidden="true" /> {t("secure")}
-          </span>
-        </div>
-        <h1 className="mt-4 text-[1.7rem] font-extrabold leading-tight tracking-[-0.03em] text-text">{t("title")}</h1>
-        <p className="mt-1 text-[0.95rem] text-muted">{t("subtitle")}</p>
+        <span className="inline-flex items-center gap-1.5 rounded-md bg-primary-soft px-2 py-1 text-[11.5px] font-semibold leading-none text-primary-text">
+          <Lock size={12} aria-hidden="true" /> {t("secure")}
+        </span>
+        <h1 className="mt-3.5 font-head text-[1.65rem] font-extrabold leading-tight tracking-[-0.03em] text-text sm:text-[1.85rem]">
+          {t.rich("titleRich", { accent: (c) => <span className="text-gradient">{c}</span> })}
+        </h1>
+        <p className="mt-1 text-sm text-muted">{t("subtitle")}</p>
       </div>
 
       {reason === "idle" || reason === "expired" ? (
-        <p role="status" className="rounded-[14px] bg-info-bg px-4 py-3 text-sm font-semibold text-info-fg">
+        <p role="status" className="rounded-xl bg-info-bg px-3.5 py-2.5 text-[13px] font-semibold text-info-fg">
           {t(reason === "idle" ? "reasonIdle" : "reasonExpired")}
         </p>
       ) : null}
@@ -106,12 +103,15 @@ export function LoginForm() {
         >
           <FormField id="mobile" label={t("mobileLabel")} error={error?.message} required>
             <div className="relative">
-              <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[0.95rem] font-bold text-text-2" aria-hidden="true">
-                +91
+              <span
+                className="pointer-events-none absolute inset-y-1.5 left-1.5 flex items-center gap-1.5 rounded-lg bg-surface-muted px-2.5 text-[0.9rem] font-bold text-text-2"
+                aria-hidden="true"
+              >
+                <Smartphone size={14} className="text-subtle" /> +91
               </span>
               <Input
                 id="mobile"
-                className="pl-12 site:pl-12"
+                className="pl-[5.25rem] text-base tracking-[0.02em] site:pl-[5.25rem] site:text-base"
                 inputMode="numeric"
                 autoComplete="tel-national"
                 placeholder="98765 43210"
@@ -127,9 +127,6 @@ export function LoginForm() {
             {t("sendOtp")}
             {busy ? null : <ArrowRight size={16} aria-hidden="true" />}
           </Button>
-          {process.env.NODE_ENV !== "production" ? (
-            <p className="rounded-[14px] border border-dashed border-primary-line bg-primary-softer px-4 py-3 text-xs font-medium text-text-2">{t("devHint")}</p>
-          ) : null}
           {error?.reference ? <p className="text-xs text-muted">{t("reference", { reference: error.reference })}</p> : null}
         </form>
       ) : null}
@@ -142,7 +139,7 @@ export function LoginForm() {
             void verify();
           }}
         >
-          <p className="text-sm text-text">{t("otpSentTo", { mobile: `+91 ${maskMobile(digits)}` })}</p>
+          <p className="text-sm text-text-2">{t("otpSentTo", { mobile: `+91 ${maskMobile(digits)}` })}</p>
           <div className="space-y-1.5">
             <OtpInput
               value={code}
@@ -163,14 +160,26 @@ export function LoginForm() {
             {t("verify")}
             {busy ? null : <ArrowRight size={16} aria-hidden="true" />}
           </Button>
-          <div className="flex items-center justify-between text-sm">
-            <button type="button" className="font-semibold text-primary-text hover:underline" onClick={() => { setStep("mobile"); setError(null); }}>
+          <div className="flex items-center justify-between gap-3 text-[13px]">
+            <button
+              type="button"
+              className="-mx-2 inline-flex min-h-10 items-center rounded-lg px-2 font-semibold text-muted hover:bg-hover hover:text-text"
+              onClick={() => {
+                setStep("mobile");
+                setError(null);
+              }}
+            >
               {t("changeNumber")}
             </button>
             {resendIn > 0 ? (
-              <span className="tabular-nums text-muted">{t("resendIn", { seconds: resendIn })}</span>
+              <span className="tabular-nums text-subtle">{t("resendIn", { seconds: resendIn })}</span>
             ) : (
-              <button type="button" className="font-bold text-primary-text hover:underline" onClick={() => void sendOtp()} disabled={busy}>
+              <button
+                type="button"
+                className="-mx-2 inline-flex min-h-10 items-center rounded-lg px-2 font-bold text-primary-text hover:bg-hover"
+                onClick={() => void sendOtp()}
+                disabled={busy}
+              >
                 {t("resend")}
               </button>
             )}
@@ -179,30 +188,38 @@ export function LoginForm() {
       ) : null}
 
       {step === "removed" ? (
-        <div className="space-y-4">
-          <p role="alert" className="rounded-[14px] bg-warning-bg px-4 py-3 text-sm font-semibold text-warning-fg">
+        <div className="space-y-3">
+          <p role="alert" className="rounded-xl bg-warning-bg px-3.5 py-2.5 text-[13px] font-semibold text-warning-fg">
             {t("removed", { organisation: removedFrom })}
           </p>
-          <Link href="/signup/business" className="text-sm font-bold text-primary-text hover:underline">
-            {t("registerNew")}
+          <Link href="/signup/business" className="inline-flex items-center gap-1 text-sm font-bold text-primary-text hover:underline">
+            {t("registerNew")} <ArrowRight size={14} aria-hidden="true" />
           </Link>
         </div>
       ) : null}
 
-      <p className="text-xs text-muted">
-        {t.rich("legal", {
-          terms: (chunks) => (
-            <Link href="/legal/terms" target="_blank" className="underline underline-offset-2">
-              {chunks}
-            </Link>
-          ),
-          privacy: (chunks) => (
-            <Link href="/legal/privacy" target="_blank" className="underline underline-offset-2">
-              {chunks}
-            </Link>
-          ),
-        })}
-      </p>
+      <div className="space-y-3 border-t border-border pt-4">
+        <p className="text-[11.5px] leading-relaxed text-subtle">
+          {t.rich("legal", {
+            terms: (chunks) => (
+              <Link href="/legal/terms" target="_blank" className="underline underline-offset-2 hover:text-text">
+                {chunks}
+              </Link>
+            ),
+            privacy: (chunks) => (
+              <Link href="/legal/privacy" target="_blank" className="underline underline-offset-2 hover:text-text">
+                {chunks}
+              </Link>
+            ),
+          })}
+        </p>
+        {process.env.NODE_ENV !== "production" ? (
+          <p className="flex items-start gap-1.5 text-[11px] leading-snug text-subtle">
+            <span className="shrink-0 rounded bg-surface-muted px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase text-text-2">{t("devTag")}</span>
+            <span>{t("devHint")}</span>
+          </p>
+        ) : null}
+      </div>
     </section>
   );
 }

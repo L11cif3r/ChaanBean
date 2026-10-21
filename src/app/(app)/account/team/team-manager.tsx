@@ -2,7 +2,9 @@
 
 import { useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Button, ButtonLink, Card, CardBody, CardHeader, EmptyState, FormField, Input, PageHeader, Select, Skeleton, Tag } from "@/components/ui";
+import { Check, ChevronDown, Mail, ShieldCheck, Smartphone, UserPlus, Users } from "lucide-react";
+import { Button, ButtonLink, Card, CardHeader, EmptyState, FormField, GradientText, Input, PageHeader, Select, Skeleton, Tag } from "@/components/ui";
+import { cn } from "@/components/ui/cn";
 import { ConfirmDialog, Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api-client";
@@ -77,40 +79,49 @@ export function TeamManager({ initial }: { initial: Team }) {
 
   const full = team ? team.seats.used >= team.seats.limit : false;
 
+  const seatPct = team ? Math.min(100, Math.round((team.seats.used / Math.max(1, team.seats.limit)) * 100)) : 0;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader
-        title={t("title")}
+        eyebrow={t("eyebrow")}
+        title={<>{t("titleLead")} <GradientText>{t("titleAccent")}</GradientText></>}
         description={t("description")}
         actions={
-          <Button onClick={() => { setFields({}); setInviteOpen(true); }} disabled={!team || full}>
+          <Button icon={<UserPlus />} onClick={() => { setFields({}); setInviteOpen(true); }} disabled={!team || full}>
             {t("inviteUser")}
           </Button>
         }
       />
 
       {team ? (
-        <p className="text-sm text-muted">
-          {t("seats", { used: team.seats.used, limit: team.seats.limit })}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-border bg-surface px-4 py-3 shadow-sm sm:px-5">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-soft text-primary-text" aria-hidden="true">
+            <Users size={17} />
+          </span>
+          <div className="min-w-[10rem] flex-1">
+            <p className="text-sm font-semibold text-text">{t("seats", { used: team.seats.used, limit: team.seats.limit })}</p>
+            <div className="mt-1.5 h-1.5 max-w-xs overflow-hidden rounded-full bg-surface-strong" aria-hidden="true">
+              <div className={cn("h-full rounded-full", seatPct >= 100 ? "bg-danger" : "bg-brand")} style={{ width: `${seatPct}%` }} />
+            </div>
+          </div>
           {full ? (
-            <>
-              {" · "}
-              <ButtonLink href="/account/billing" variant="ghost" size="sm">
-                {t("upgrade")}
-              </ButtonLink>
-            </>
+            <ButtonLink href="/account/billing" variant="secondary" size="sm">
+              {t("upgrade")}
+            </ButtonLink>
           ) : null}
-        </p>
+        </div>
       ) : null}
 
       {team?.requests.length ? (
         <Card>
-          <CardHeader title={t("requestsTitle")} />
+          <CardHeader title={t("requestsTitle")} action={<Tag tone="info">{team.requests.length}</Tag>} />
           <ul className="divide-y divide-border">
             {team.requests.map((r) => (
-              <li key={r.id} className="flex flex-col gap-3 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-medium text-text">{r.name}</p>
+              <li key={r.id} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5">
+                <Avatar name={r.name} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-text">{r.name}</p>
                   <p className="text-xs text-muted">{r.mobile} · {formatDateTimeIst(new Date(r.requestedAt))}</p>
                 </div>
                 <div className="flex gap-2">
@@ -127,44 +138,58 @@ export function TeamManager({ initial }: { initial: Team }) {
         </Card>
       ) : null}
 
-      <Card>
-        <CardHeader title={t("membersTitle")} />
+      <section aria-labelledby="members-title" className="space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <h2 id="members-title" className="font-head text-[15px] font-bold text-text">{t("membersTitle")}</h2>
+          {team ? <span className="text-xs text-muted">{t("activeCount", { count: team.seats.active })}</span> : null}
+        </div>
         {!team ? (
-          <CardBody className="space-y-2">
-            <Skeleton className="h-5 w-2/3" />
-            <Skeleton className="h-5 w-1/2" />
-          </CardBody>
+          <div className="grid gap-3 md:grid-cols-2">
+            <Skeleton className="h-28 rounded-2xl" />
+            <Skeleton className="h-28 rounded-2xl" />
+          </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-border bg-surface-muted text-xs font-semibold text-muted">
-                <tr>
-                  <th scope="col" className="px-4 py-2.5">{t("name")}</th>
-                  <th scope="col" className="hidden px-4 py-2.5 md:table-cell">{t("mobile")}</th>
-                  <th scope="col" className="hidden px-4 py-2.5 lg:table-cell">{t("email")}</th>
-                  <th scope="col" className="px-4 py-2.5">{t("role")}</th>
-                  <th scope="col" className="px-4 py-2.5">{t("status")}</th>
-                  <th scope="col" className="hidden px-4 py-2.5 md:table-cell">{t("lastActive")}</th>
-                  <th scope="col" className="px-4 py-2.5"><span className="sr-only">{t("actions")}</span></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {team.members.map((m) => {
-                  const editable = m.role !== "owner" && !m.isYou;
-                  return (
-                    <tr key={m.id}>
-                      <td className="px-4 py-3">
-                        <span className="font-medium text-text">{m.name || "—"}</span>
-                        {m.isYou ? <span className="ml-2 text-xs text-muted">{t("you")}</span> : null}
-                      </td>
-                      <td className="hidden px-4 py-3 tabular-nums md:table-cell">{m.mobile}</td>
-                      <td className="hidden px-4 py-3 lg:table-cell">{m.email || "—"}</td>
-                      <td className="px-4 py-3">
+          // Cards keep table semantics (rows and cells) so screen readers and the e2e tests still find each user's row.
+          <div role="table" aria-labelledby="members-title">
+            <div role="rowgroup" className="grid gap-3 md:grid-cols-2">
+              {team.members.map((m) => {
+                const editable = m.role !== "owner" && !m.isYou;
+                const inactive = m.status !== "active";
+                return (
+                  <div
+                    key={m.id}
+                    role="row"
+                    className={cn(
+                      "flex min-w-0 flex-col gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-primary-line hover:shadow-md",
+                      inactive && "bg-surface-muted",
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Avatar name={m.name} muted={inactive} />
+                      <div role="cell" className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-text">
+                          {m.name || "—"}
+                          {m.isYou ? <span className="ml-1.5 text-xs font-normal text-muted">{t("you")}</span> : null}
+                        </p>
+                        <p className="truncate text-xs text-muted">
+                          <span className="tabular-nums">{m.mobile}</span>
+                          {m.email ? <> · {m.email}</> : null}
+                        </p>
+                        <p className="mt-0.5 truncate text-[11px] text-subtle">
+                          {m.lastActive ? t("lastActiveAt", { date: formatDateTimeIst(new Date(m.lastActive)) }) : t("neverActive")}
+                        </p>
+                      </div>
+                      <div role="cell" className="shrink-0">
+                        <Tag tone={m.status === "active" ? "success" : "neutral"}>{t(`statuses.${m.status}`)}</Tag>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
+                      <div role="cell" className="flex items-center gap-2">
                         {editable && m.status === "active" ? (
                           <Select
                             id={`role-${m.id}`}
                             aria-label={t("changeRole", { name: m.name })}
-                            className="h-8 w-28"
+                            className="h-9 w-32 rounded-lg text-[13px] font-semibold"
                             value={m.role}
                             onChange={(e) => void act(`/api/v1/team/members/${m.id}`, "PATCH", { role: e.target.value }, t("roleChanged"))}
                           >
@@ -173,50 +198,47 @@ export function TeamManager({ initial }: { initial: Team }) {
                             ))}
                           </Select>
                         ) : (
-                          t(`roles.${m.role}`)
+                          <RoleTag role={m.role} label={t(`roles.${m.role}`)} />
                         )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Tag tone={m.status === "active" ? "success" : "neutral"}>{t(`statuses.${m.status}`)}</Tag>
-                      </td>
-                      <td className="hidden px-4 py-3 text-xs text-muted md:table-cell">
-                        {m.lastActive ? formatDateTimeIst(new Date(m.lastActive)) : "—"}
-                      </td>
-                      <td className="px-4 py-3 text-right">
+                      </div>
+                      <div role="cell">
                         {editable ? (
                           m.status === "active" ? (
                             <Button size="sm" variant="ghost" onClick={() => setConfirm({ id: m.id, name: m.name })}>
                               {t("deactivate")}
                             </Button>
                           ) : (
-                            <Button size="sm" variant="ghost" onClick={() => void act(`/api/v1/team/members/${m.id}`, "PATCH", { status: "active" }, t("reactivated"))}>
+                            <Button size="sm" variant="secondary" onClick={() => void act(`/api/v1/team/members/${m.id}`, "PATCH", { status: "active" }, t("reactivated"))}>
                               {t("reactivate")}
                             </Button>
                           )
                         ) : null}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
-      </Card>
+      </section>
 
       {team?.invites.length ? (
         <Card>
-          <CardHeader title={t("invitesTitle")} />
+          <CardHeader title={t("invitesTitle")} action={<Tag tone="warning">{team.invites.length}</Tag>} />
           <ul className="divide-y divide-border">
             {team.invites.map((i) => (
-              <li key={i.id} className="flex flex-col gap-3 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-medium text-text">
-                    {i.name} <span className="font-normal text-muted">· {t(`roles.${i.role}`)}</span>
+              <li key={i.id} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface-strong text-muted" aria-hidden="true">
+                  <Mail size={16} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-text">
+                    {i.name} <RoleTag role={i.role} label={t(`roles.${i.role}`)} />
                   </p>
-                  <p className="text-xs text-muted">
+                  <p className="truncate text-xs text-muted">
                     {i.mobile}
-                    {i.email ? ` · ${i.email}` : ""} · {i.expired ? t("expired") : t("expires", { date: formatDateTimeIst(new Date(i.expiresAt)) })}
+                    {i.email ? ` · ${i.email}` : ""} · <span className={i.expired ? "font-semibold text-danger-fg" : undefined}>{i.expired ? t("expired") : t("expires", { date: formatDateTimeIst(new Date(i.expiresAt)) })}</span>
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -233,25 +255,37 @@ export function TeamManager({ initial }: { initial: Team }) {
         </Card>
       ) : null}
 
-      <details className="rounded-xl border border-border bg-surface">
-        <summary className="cursor-pointer px-5 py-3.5 text-sm font-semibold text-text">{t("permissionsTitle")}</summary>
+      <details className="group rounded-2xl border border-border bg-surface shadow-sm">
+        <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-text sm:px-5 [&::-webkit-details-marker]:hidden">
+          <span className="inline-flex items-center gap-2.5">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-soft text-primary-text" aria-hidden="true">
+              <ShieldCheck size={15} />
+            </span>
+            {t("permissionsTitle")}
+          </span>
+          <ChevronDown size={16} className="text-muted transition-transform duration-200 group-open:rotate-180" aria-hidden="true" />
+        </summary>
         <div className="overflow-x-auto border-t border-border">
           <table className="w-full text-left text-xs">
-            <thead className="bg-surface-muted text-muted">
+            <thead className="bg-surface-muted text-[11px] uppercase tracking-[1px] text-subtle">
               <tr>
-                <th scope="col" className="px-4 py-2">{t("capability")}</th>
+                <th scope="col" className="px-4 py-2.5 font-medium">{t("capability")}</th>
                 {ROLES.map((r) => (
-                  <th key={r} scope="col" className="px-3 py-2 text-center">{t(`roles.${r}`)}</th>
+                  <th key={r} scope="col" className="px-3 py-2.5 text-center font-medium">{t(`roles.${r}`)}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {(Object.keys(CAPABILITIES) as (keyof typeof CAPABILITIES)[]).map((c) => (
-                <tr key={c}>
+                <tr key={c} className="transition-colors hover:bg-hover">
                   <td className="px-4 py-2 text-text">{t(`capabilities.${c.replace(".", "_")}`)}</td>
                   {ROLES.map((r) => (
                     <td key={r} className="px-3 py-2 text-center">
-                      {(CAPABILITIES[c] as readonly Role[]).includes(r) ? <span aria-label={t("yes")}>✓</span> : <span className="text-subtle" aria-label={t("no")}>—</span>}
+                      {(CAPABILITIES[c] as readonly Role[]).includes(r) ? (
+                        <Check size={14} className="inline text-success-fg" aria-label={t("yes")} />
+                      ) : (
+                        <span className="text-subtle" aria-label={t("no")}>—</span>
+                      )}
                     </td>
                   ))}
                 </tr>
@@ -272,17 +306,22 @@ export function TeamManager({ initial }: { initial: Team }) {
           </>
         }
       >
-        <div className="space-y-4">
-          <p className="text-muted">{t("inviteHelp")}</p>
+        <div className="space-y-3.5">
+          <p className="flex items-start gap-2 rounded-xl bg-surface-muted px-3 py-2 text-xs text-muted">
+            <Smartphone size={14} className="mt-px shrink-0 text-primary-text" aria-hidden="true" />
+            {t("inviteHelp")}
+          </p>
           <FormField id="inv-name" label={t("name")} error={fields.fullName} required>
-            <Input id="inv-name" value={invite.fullName} onChange={(e) => setInvite({ ...invite, fullName: e.target.value })} />
+            <Input id="inv-name" autoComplete="name" value={invite.fullName} onChange={(e) => setInvite({ ...invite, fullName: e.target.value })} />
           </FormField>
-          <FormField id="inv-mobile" label={t("mobile")} error={fields.mobile} required>
-            <Input id="inv-mobile" inputMode="numeric" value={invite.mobile} onChange={(e) => setInvite({ ...invite, mobile: e.target.value })} />
-          </FormField>
-          <FormField id="inv-email" label={t("email")} error={fields.email} required>
-            <Input id="inv-email" type="email" value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} />
-          </FormField>
+          <div className="grid gap-3.5 sm:grid-cols-2">
+            <FormField id="inv-mobile" label={t("mobile")} error={fields.mobile} required>
+              <Input id="inv-mobile" inputMode="numeric" autoComplete="tel" value={invite.mobile} onChange={(e) => setInvite({ ...invite, mobile: e.target.value })} />
+            </FormField>
+            <FormField id="inv-email" label={t("email")} error={fields.email} required>
+              <Input id="inv-email" type="email" autoComplete="email" value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} />
+            </FormField>
+          </div>
           <FormField id="inv-role" label={t("role")} error={fields.role} required>
             <Select id="inv-role" value={invite.role} onChange={(e) => setInvite({ ...invite, role: e.target.value as typeof invite.role })}>
               {(["admin", "member", "viewer"] as const).map((r) => (
@@ -308,4 +347,23 @@ export function TeamManager({ initial }: { initial: Team }) {
       />
     </div>
   );
+}
+
+/** Initials in a soft tile, as the card's anchor. */
+function Avatar({ name, muted }: { name: string; muted?: boolean }) {
+  const initials = name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("") || "?";
+  return (
+    <span
+      className={cn("flex size-10 shrink-0 items-center justify-center rounded-xl text-[13px] font-bold", muted ? "bg-surface-strong text-muted" : "bg-soft text-primary-text")}
+      aria-hidden="true"
+    >
+      {initials}
+    </span>
+  );
+}
+
+const ROLE_TONE: Record<Role, "warning" | "info" | "neutral" | "success"> = { owner: "warning", admin: "info", member: "success", viewer: "neutral" };
+
+function RoleTag({ role, label }: { role: Role; label: string }) {
+  return <Tag tone={ROLE_TONE[role]}>{label}</Tag>;
 }

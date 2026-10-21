@@ -2,14 +2,17 @@ import "server-only";
 import crypto from "node:crypto";
 import { decryptField, encryptField } from "@/server/crypto";
 import { sql } from "@/server/db/sql";
+import { MOCK, primary } from "@/server/providers/registry";
+import { refuse } from "@/server/providers/slots";
 
 // Object storage behind interfaces, so the backing store can change without touching callers (PRD 12.1: object
 // storage for PDFs, uploads and WORM records).
 //
 // Development keeps objects in app_private.stored_objects, which only the server's database connection can reach.
 // The database refuses to change a stored object, refuses to delete evidence outside retention clean-up, and every
-// read re-checks the SHA-256 recorded at write time. Production swaps EvidenceStore for S3 with Object Lock once the
-// Chaanbean AWS account exists.
+// read re-checks the SHA-256 recorded at write time. Production swaps EvidenceStore for S3 with Object Lock or Google
+// Cloud Storage with Bucket Lock (PROVIDER_STORAGE=s3|gcs, docs/PROVIDERS.md): write the adapter, add it to REAL_EVIDENCE.
+// References keep the "evidence/<path>" form whichever store holds the bytes.
 
 export interface EvidenceStore {
   /** Stores bytes once. Writing to an existing path fails. Returns a reference to keep in the database. */
@@ -52,9 +55,34 @@ async function read(bucket: Bucket, path: string): Promise<Uint8Array> {
   return bytes;
 }
 
-export const evidenceStore: EvidenceStore = {
+const databaseEvidence: EvidenceStore = {
   putOnce: (path, bytes, contentType) => putOnce("evidence", path, bytes, contentType),
   get: (ref) => read("evidence", splitRef(ref, "evidence")),
+};
+
+/** Real write-once stores by provider name. Until one is added, choosing it refuses loudly (nothing is sealed). */
+const REAL_EVIDENCE: Record<string, EvidenceStore> = {};
+
+function evidenceBackend(): EvidenceStore {
+  const name = primary("storage");
+  if (name === MOCK) return databaseEvidence;
+  return REAL_EVIDENCE[name] ?? { putOnce: async () => refuse(name, "write-once storage"), get: async () => refuse(name, "write-once storage") };
+}
+
+export const evidenceStore: EvidenceStore = {
+  putOnce: (path, bytes, contentType) => evidenceBackend().putOnce(path, bytes, contentType),
+  // Files sealed before a switch stay readable from the database copy.
+  get: async (ref) => {
+    const backend = evidenceBackend();
+    if (backend === databaseEvidence) return databaseEvidence.get(ref);
+    try {
+      return await backend.get(ref);
+    } catch (e) {
+      const [row] = await sql()`select 1 from app_private.stored_objects where bucket = 'evidence' and path = ${splitRef(ref, "evidence")}`;
+      if (row) return databaseEvidence.get(ref);
+      throw e;
+    }
+  },
 };
 
 export const rawResponseStore: RawResponseStore = {

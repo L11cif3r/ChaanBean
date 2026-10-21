@@ -37,7 +37,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div aria-live="polite" className="pointer-events-none fixed inset-x-4 bottom-4 z-50 flex flex-col items-center gap-2 sm:items-end">
         {toasts.map((t) => (
-          <div key={t.id} className={cn("pointer-events-auto w-full max-w-sm rounded-[14px] border px-4 py-3 text-sm font-semibold shadow-md", toneClass[t.tone])}>
+          <div key={t.id} className={cn("pointer-events-auto w-full max-w-sm rounded-lg border px-4 py-3 text-sm font-semibold shadow-md", toneClass[t.tone])}>
             {t.message}
           </div>
         ))}

@@ -4,10 +4,9 @@ import { cn } from "./cn";
 // Form controls. Every input has a visible label, and errors appear next to the field (PRD 7 common rules); the
 // ErrorSummary repeats them at the top on submit. Pass the same `id` to FormField and its control.
 
-// Fields as on the redesigned branch. Portal: rounded-xl, soft fill, orange border on focus. Site look (inside .site):
-// 50 px tall, 14 px corners, 1.5 px border and an orange focus ring.
+// Fields (design v2): white, rounded-xl, a soft orange ring on focus. Taller on sign-in and sign-up (inside .site).
 const control =
-  "block w-full rounded-xl border bg-surface-muted px-3.5 text-sm text-text outline-none transition-[border-color,box-shadow] placeholder:text-placeholder focus:border-primary focus-visible:outline-none disabled:opacity-70 disabled:text-muted site:rounded-[14px] site:border-[1.5px] site:bg-field site:px-4 site:text-[0.95rem] site:focus:shadow-[0_0_0_4px_rgba(252,128,25,0.16)]";
+  "block w-full rounded-xl border bg-field px-3.5 text-sm text-text shadow-[0_1px_2px_rgb(16_24_40/0.04)] outline-none transition-[border-color,box-shadow] placeholder:text-placeholder hover:border-border-strong focus:border-primary focus:shadow-[0_0_0_4px_var(--primary-soft)] focus-visible:outline-none disabled:opacity-70 disabled:text-muted site:text-[0.95rem]";
 
 const describedBy = (id: string, hint?: ReactNode, error?: ReactNode) =>
   [hint ? `${id}-hint` : null, error ? `${id}-error` : null].filter(Boolean).join(" ") || undefined;
@@ -25,7 +24,7 @@ interface FieldProps {
 export function FormField({ id, label, hint, error, required, children, className }: FieldProps) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      <label htmlFor={id} className="block text-[0.82rem] font-bold text-text-2">
+      <label htmlFor={id} className="block text-[13px] font-semibold text-text-2">
         {label}
         {required ? (
           <span className="text-danger-fg" aria-hidden="true">
@@ -62,7 +61,7 @@ export function Input({ id, invalid, hint, error, className, ...rest }: Componen
       id={id}
       aria-invalid={bad || undefined}
       aria-describedby={describedBy(id, hint, error)}
-      className={cn(control, "h-11 site:h-[50px]", bad ? "border-danger" : "border-border", className)}
+      className={cn(control, "h-11 site:h-12", bad ? "border-danger" : "border-border", className)}
       {...rest}
     />
   );
@@ -88,7 +87,7 @@ export function Select({ id, invalid, hint, error, className, children, ...rest 
       id={id}
       aria-invalid={bad || undefined}
       aria-describedby={describedBy(id, hint, error)}
-      className={cn(control, "h-11 pr-9 site:h-[50px]", bad ? "border-danger" : "border-border", className)}
+      className={cn(control, "h-11 pr-9 site:h-12", bad ? "border-danger" : "border-border", className)}
       {...rest}
     >
       {children}
@@ -125,8 +124,8 @@ export function Toggle({ id, label, className, ...rest }: Omit<ComponentProps<"i
 export function ErrorSummary({ title, errors }: { title: ReactNode; errors: { field: string; message: ReactNode }[] }) {
   if (!errors.length) return null;
   return (
-    <div role="alert" className="rounded-[14px] border border-danger/30 bg-danger-bg p-4 text-sm font-semibold text-danger-fg">
-      <p className="font-bold">{title}</p>
+    <div role="alert" className="rounded-lg border border-danger/25 bg-danger-bg p-3.5 text-sm font-medium text-danger-fg">
+      <p className="font-semibold">{title}</p>
       <ul className="mt-2 list-disc space-y-1 pl-5 font-medium">
         {errors.map((e) => (
           <li key={e.field}>

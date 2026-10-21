@@ -3,7 +3,7 @@ import { caseDefaults, checkCatalogue } from "@/server/checks/service";
 import { orgCtx } from "@/server/counterparties/routes";
 import { route } from "@/server/http";
 
-// v3 15: the checks that can run for one counterparty on a tab, with price, plan units left and any recent result.
+// v3 15: the checks that can run for one counterparty on a tab, with its rupee price and any recent result.
 // Case Check also gets the search form pre-filled from the counterparty (S12 marker 1).
 const query = z.object({
   counterparty: z.uuid("Choose a counterparty."),

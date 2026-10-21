@@ -63,7 +63,7 @@ export function DataTable<T>({
     <div>
       <div className="relative overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-border bg-surface-muted font-mono text-xs font-bold uppercase tracking-wider text-subtle">
+          <thead className="border-b border-border bg-surface-muted text-[11px] font-medium uppercase tracking-[1px] text-subtle">
             <tr>
               {columns.map((c) => {
                 const active = sort?.key === c.key;
@@ -94,7 +94,7 @@ export function DataTable<T>({
           </thead>
           <tbody className="divide-y divide-border">
             {visible.map((row) => (
-              <tr key={rowKey(row)} className="transition-colors hover:bg-primary-softer">
+              <tr key={rowKey(row)} className="transition-colors hover:bg-hover">
                 {columns.map((c) => (
                   <td key={c.key} className={cn("px-4 py-3", c.align === "right" && "text-right tabular-nums", c.hideOnMobile && "hidden md:table-cell")}>
                     {c.render(row)}
@@ -109,7 +109,7 @@ export function DataTable<T>({
         <label className="inline-flex items-center gap-2">
           {t("rowsPerPage")}
           <select
-            className="h-8 rounded-lg border border-border bg-field px-2 text-text"
+            className="h-8 rounded-md bg-field px-2 text-text shadow-control"
             value={pageSize}
             onChange={(e) => {
               setPageSize(Number(e.target.value));

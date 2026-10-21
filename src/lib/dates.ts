@@ -48,12 +48,13 @@ export function formatDate(date: string): string {
   return `${d} ${MONTHS[Number(m) - 1]} ${y}`;
 }
 
-/** "05 Mar 2027, 14:07 IST" for an instant. */
-export function formatDateTimeIst(at: Date): string {
+/** "05 Mar 2027, 14:07 IST" for an instant; with seconds ("14:07:09") for activity logs (S16 marker 6). */
+export function formatDateTimeIst(at: Date, withSeconds = false): string {
   const minutes = istMinutes(at);
   const hh = String(Math.floor(minutes / 60)).padStart(2, "0");
   const mm = String(minutes % 60).padStart(2, "0");
-  return `${formatDate(istDate(at))}, ${hh}:${mm} IST`;
+  const ss = withSeconds ? `:${String(at.getUTCSeconds()).padStart(2, "0")}` : "";
+  return `${formatDate(istDate(at))}, ${hh}:${mm}${ss} IST`;
 }
 
 /** Indian financial year of a date: "2026-27" for any date from 1 Apr 2026 to 31 Mar 2027. */

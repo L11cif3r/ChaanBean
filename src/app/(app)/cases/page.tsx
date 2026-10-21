@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { CaseCheck } from "@/components/cases/case-check";
+import type { CompanyOption } from "@/components/checks/company-search";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { Card, EmptyState } from "@/components/ui";
 import { can } from "@/lib/permissions";
@@ -35,8 +36,8 @@ async function Cases({ searchParams }: { searchParams: PageProps<"/cases">["sear
   }
   const params = await searchParams;
   const wanted = typeof params.counterparty === "string" ? params.counterparty : null;
-  const buyers = await sql()<{ id: string; name: string }[]>`
-    select id, legal_name as name from public.counterparties
+  const buyers = await sql()<CompanyOption[]>`
+    select id, legal_name as name, trade_name as "tradeName", gstin, pan_masked as "panMasked", city from public.counterparties
      where org_id = ${ctx.orgId} and status = 'active' order by lower(legal_name) limit 500`;
   const initial = wanted && buyers.some((b) => b.id === wanted) ? wanted : null;
   return <CaseCheck buyers={buyers} initialBuyer={initial} />;

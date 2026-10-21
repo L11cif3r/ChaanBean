@@ -23,15 +23,17 @@ const body = z.object({
 export const POST = route({ auth: "public", body }, async ({ body, ctx }) => {
   const mobile = normaliseMobile(body.mobile)!;
   const masked = maskMobile(mobile);
+  const dev = devShortcutFor(mobile);
   const before = await currentOtpState(mobile);
-  if (before.lockedUntil) {
+  // Development test numbers are never locked (no real OTP to guess); real numbers keep the PRD limits.
+  if (before.lockedUntil && !dev) {
     throw new AppError("rate_limited", `Too many attempts. Try again after ${formatDateTimeIst(before.lockedUntil)}.`);
   }
 
   const supabase = await userClient();
   let data: Awaited<ReturnType<typeof supabase.auth.verifyOtp>>["data"];
   let error: unknown;
-  if (devShortcutFor(mobile)) {
+  if (dev) {
     // Development test numbers (see src/server/auth/dev-signin.ts): fixed code, real Supabase session.
     if (body.code === DEV_TEST_CODE) {
       await ensureDevUser(mobile);
@@ -44,6 +46,7 @@ export const POST = route({ auth: "public", body }, async ({ body, ctx }) => {
     ({ data, error } = await supabase.auth.verifyOtp({ phone: toE164(mobile), token: body.code, type: "sms" }));
   }
   if (error || !data.session || !data.user) {
+    if (dev) throw new AppError("validation_failed", "The OTP is incorrect.", { code: `The OTP is incorrect. Test numbers use ${DEV_TEST_CODE}.` });
     await recordOtpEvent(mobile, "fail", ctx.ip);
     await audit({ ...ctx, orgId: null }, { orgId: null, action: "auth.sign_in_failed", entity: "phone", after: { mobile: masked } });
     const after = await currentOtpState(mobile);

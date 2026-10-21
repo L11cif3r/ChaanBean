@@ -3,7 +3,8 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Button, ButtonLink, Card, CardBody, Spinner } from "@/components/ui";
+import { ArrowRight, CircleCheck, CircleX, Clock, FileText, IdCard, RotateCcw } from "lucide-react";
+import { Button, ButtonLink, buttonClass, Card, CardBody, Spinner } from "@/components/ui";
 import { api } from "@/lib/api-client";
 import { formatInr } from "@/lib/money";
 
@@ -64,12 +65,14 @@ export function PaymentStatus({ orderId, doneHref }: { orderId: string; doneHref
 
   if (!order || order.status === "created") {
     return (
-      <Card>
+      <Card className="animate-rise">
         <CardBody className="flex items-start gap-3">
-          <span className="mt-0.5 text-primary-text">{timedOut ? null : <Spinner />}</span>
-          <div role="status" className="space-y-1">
-            <p className="font-bold text-text">{t("confirming")}</p>
-            <p className="text-sm text-muted">{timedOut ? t("stillPending", { reference: reference ?? orderId.slice(0, 8).toUpperCase() }) : t("confirmingBody")}</p>
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-soft text-primary-text" aria-hidden="true">
+            {timedOut ? <Clock size={17} /> : <Spinner />}
+          </span>
+          <div role="status" className="min-w-0 space-y-0.5">
+            <p className="font-head font-bold text-text">{t("confirming")}</p>
+            <p className="text-[13px] text-muted">{timedOut ? t("stillPending", { reference: reference ?? orderId.slice(0, 8).toUpperCase() }) : t("confirmingBody")}</p>
           </div>
         </CardBody>
       </Card>
@@ -78,29 +81,51 @@ export function PaymentStatus({ orderId, doneHref }: { orderId: string; doneHref
 
   if (order.status === "paid") {
     return (
-      <Card className="border-success-fg/30">
-        <CardBody className="space-y-3">
-          <div role="status" className="space-y-1">
-            <p className="font-bold text-success-fg">{t("paid")}</p>
-            <p className="text-sm text-text-2">
-              {order.purpose === "plan" ? t("paidPlan") : t("paidTopup", { amount: formatInr(BigInt(order.totalPaise), { withPaise: true }) })}
-            </p>
+      <Card className="animate-rise overflow-hidden border-success-fg/30">
+        <CardBody className="space-y-3.5">
+          <div className="flex items-start gap-3">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-success-bg text-success-fg" aria-hidden="true">
+              <CircleCheck size={18} />
+            </span>
+            <div role="status" className="min-w-0 space-y-0.5">
+              <p className="font-head font-bold text-success-fg">{t("paid")}</p>
+              <p className="text-[13px] text-text-2">
+                {order.purpose === "plan" ? t("paidPlan") : t("paidTopup", { amount: formatInr(BigInt(order.totalPaise), { withPaise: true }) })}
+              </p>
+            </div>
           </div>
+          {/* v4 11.2: KYC comes right after sign-up (not blocking yet, Q6). */}
+          {order.purpose === "plan" && doneHref ? (
+            <div className="flex flex-col gap-2.5 rounded-xl bg-soft px-3.5 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-start gap-2.5">
+                <IdCard size={16} className="mt-0.5 shrink-0 text-primary-text" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-text">{t("kycTitle")}</p>
+                  <p className="text-[12.5px] text-text-2">{t("kycBody")}</p>
+                </div>
+              </div>
+              <ButtonLink href="/account/kyc" size="sm" variant="secondary" className="shrink-0">
+                {t("kycCta")}
+              </ButtonLink>
+            </div>
+          ) : null}
           <div className="flex flex-wrap gap-2">
-            {order.invoiceId ? (
-              <a href={`/api/v1/billing/invoices/${order.invoiceId}`} target="_blank" rel="noopener" className="inline-flex h-9 items-center rounded-xl border border-border bg-surface px-4 text-xs font-bold text-text-2 shadow-sm hover:border-primary hover:text-primary-text">
-                {t("viewInvoice")}
-              </a>
-            ) : null}
             {doneHref ? (
               <ButtonLink href={doneHref} size="sm">
                 {t("goToDashboard")}
+                <ArrowRight size={15} aria-hidden="true" />
               </ButtonLink>
             ) : (
               <Button size="sm" variant="ghost" onClick={dismiss}>
                 {t("dismiss")}
               </Button>
             )}
+            {order.invoiceId ? (
+              <a href={`/api/v1/billing/invoices/${order.invoiceId}`} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}>
+                <FileText size={15} aria-hidden="true" />
+                {t("viewInvoice")}
+              </a>
+            ) : null}
           </div>
         </CardBody>
       </Card>
@@ -108,13 +133,19 @@ export function PaymentStatus({ orderId, doneHref }: { orderId: string; doneHref
   }
 
   return (
-    <Card className="border-danger-fg/30">
-      <CardBody className="space-y-3">
-        <div role="alert" className="space-y-1">
-          <p className="font-bold text-danger-fg">{t("failed")}</p>
-          <p className="text-sm text-text-2">{order.failureReason ?? t("failedFallback")}</p>
+    <Card className="animate-rise border-danger-fg/30">
+      <CardBody className="space-y-3.5">
+        <div className="flex items-start gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-danger-bg text-danger-fg" aria-hidden="true">
+            <CircleX size={18} />
+          </span>
+          <div role="alert" className="min-w-0 space-y-0.5">
+            <p className="font-head font-bold text-danger-fg">{t("failed")}</p>
+            <p className="text-[13px] text-text-2">{order.failureReason ?? t("failedFallback")}</p>
+          </div>
         </div>
         <Button size="sm" onClick={dismiss}>
+          <RotateCcw size={15} aria-hidden="true" />
           {t("retry")}
         </Button>
       </CardBody>

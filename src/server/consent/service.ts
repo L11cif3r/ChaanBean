@@ -193,16 +193,16 @@ async function sendLink(c: ConsentRow, reminder: boolean) {
   const body = linkMessage(org.legal_name, c.scope, link, reminder, c.expires_at, c.subject_kind);
   const template = reminder ? "consent_reminder" : "consent_request";
   const mobile = decryptField(c.mobile_ciphertext, "consent.mobile");
-  const messages = c.channels.flatMap((channel): { channel: ConsentChannel; recipientMasked: string; subject?: string }[] => {
-    if (channel === "sms") return [{ channel, recipientMasked: maskMobile(mobile) }];
+  const messages = c.channels.flatMap((channel): { channel: ConsentChannel; recipientMasked: string; to: string; subject?: string }[] => {
+    if (channel === "sms") return [{ channel, recipientMasked: maskMobile(mobile), to: mobile }];
     if (channel === "whatsapp") {
       const wa = cp?.whatsapp_ciphertext ? decryptField(cp.whatsapp_ciphertext, "counterparties.whatsapp") : mobile;
-      return [{ channel, recipientMasked: maskMobile(wa) }];
+      return [{ channel, recipientMasked: maskMobile(wa), to: wa }];
     }
     if (channel === "email" && cp?.email_ciphertext) {
       const email = decryptField(cp.email_ciphertext, "counterparties.email");
       const subject = reminder ? `Reminder: ${org.legal_name} is waiting for your consent` : `${org.legal_name} asks for your consent to check your business credit`;
-      return [{ channel, recipientMasked: maskEmail(email), subject }];
+      return [{ channel, recipientMasked: maskEmail(email), to: email, subject }];
     }
     return [];
   });

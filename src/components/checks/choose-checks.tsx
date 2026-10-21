@@ -2,11 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Button, ButtonLink, Card, CardBody, CardHeader, Checkbox, EmptyState, FormField, Input, PageHeader, Select, Skeleton, Tag } from "@/components/ui";
+import { Building2, Check, ChevronDown, Crown, Factory, Globe, History, IdCard, Info, Landmark, Minus, Play, ReceiptText, ShieldCheck, Ship, SlidersHorizontal, Sparkles, Star, TrendingUp, Users, Zap, type LucideIcon } from "lucide-react";
+import { CancelWindow } from "@/components/ui/cancel-window";
+import { MobileCostBar } from "@/components/ui/mobile-cost-bar";
+import { CompanySearch, type CompanyOption } from "./company-search";
+import { CwStart, type RecentReport } from "./cw-start";
+import { Button, Card, CardBody, CardHeader, Carousel, Checkbox, FormField, GradientText, Input, PageHeader, Select, Skeleton } from "@/components/ui";
 import { cn } from "@/components/ui/cn";
-import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
 import { api } from "@/lib/api-client";
 import { formatDate, istDate } from "@/lib/dates";
@@ -15,15 +19,17 @@ import type { CwCode } from "@/lib/checks";
 import { CONSENT_CHANNELS, CONSENT_PURPOSES, type ConsentChannel, type ConsentPurpose } from "@/lib/consent";
 import type { CatalogueEntry, Quote, SubjectQuote } from "@/server/checks/service";
 
-// PRD v3.0 section 6.5 (Figures 11 and 5): choose checks, see the cost as you tick, confirm what will be deducted,
-// then run all together or one by one. GST turnover defaults to the last 4 years and CIBIL to the company (6.2);
+// PRD v3.0 section 6.5 (Figures 11 and 5): choose checks, see the cost as you tick, then run all together or one by
+// one. v4 section 8: no confirm popup; "Run search" starts a short countdown bar in the cost panel with Cancel, and
+// nothing is taken until it ends. Consent and wallet notes show in the panel when they apply. GST turnover defaults to the last 4 years and CIBIL to the company (6.2);
 // personal CIBIL asks for the person's details, and their OTP goes to their own mobile.
 
 type Period = "4y" | "cy";
 type CibilSubject = "company" | "personal" | "both";
 
 interface Catalogue {
-  counterparty: { id: string; name: string; type: string; contactName: string; mobileMasked: string };
+  /** Contact is null for a company picked from MCA records until the user adds one (v4). */
+  counterparty: { id: string; name: string; type: string; contactName: string | null; mobileMasked: string | null };
   checks: CatalogueEntry[];
 }
 
@@ -39,8 +45,12 @@ const inr = (paise: number) => formatInr(BigInt(Math.round(paise)), { withPaise:
 export const newIdempotencyKey = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`.replace(".", "");
 
-export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; name: string }[]; initialBuyer: string | null }) {
+export function ChooseChecks({ buyers: saved, initialBuyer, recent = [] }: { buyers: CompanyOption[]; initialBuyer: string | null; recent?: RecentReport[] }) {
   const t = useTranslations("checks");
+  // A company just added from search shows straight away, before the refreshed buyer list arrives.
+  const [added, setAdded] = useState<CompanyOption | null>(null);
+  const buyers = added && !saved.some((b) => b.id === added.id) ? [added, ...saved] : saved;
+  const choose = (id: string | null, option?: CompanyOption) => { if (option) setAdded(option); setBuyer(id); };
   const router = useRouter();
   const toast = useToast();
   const [buyer, setBuyer] = useState<string | null>(initialBuyer);
@@ -52,13 +62,15 @@ export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; n
   const [cibilSubject, setCibilSubject] = useState<CibilSubject>("company");
   const [person, setPerson] = useState<Person>({ sameAsContact: true, name: "", pan: "", birthDate: "", mobile: "" });
   const [personErrors, setPersonErrors] = useState<Record<string, string>>({});
-  const [confirm, setConfirm] = useState(false);
+  const [pending, setPending] = useState<{ id: string; seconds: number; quote: Quote } | null>(null);
   const [mode, setMode] = useState<"together" | "manual">("together");
-  const [quote, setQuote] = useState<Quote | null>(null);
+  // The server's quote, kept with the choices it was made for: any change to the choices makes it stale.
+  const [quoted, setQuoted] = useState<{ key: string; quote: Quote; runKey: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [purpose, setPurpose] = useState<ConsentPurpose>("supply_on_credit");
   const [channels, setChannels] = useState<Record<ConsentChannel, boolean>>({ sms: true, whatsapp: true, email: false });
-  const [runKey, setRunKey] = useState("");
+  const reviewRef = useRef<HTMLDivElement>(null);
+  const [custom, setCustom] = useState(false);
 
   useEffect(() => {
     if (!buyer) return;
@@ -74,7 +86,8 @@ export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; n
       setCibilOn(false);
       const companyOk = !res.data.checks.find((c) => c.code === "CW_CIBIL_COMPANY")?.disabled;
       setCibilSubject(companyOk ? "company" : "personal");
-      setPerson({ sameAsContact: true, name: res.data.counterparty.contactName, pan: "", birthDate: "", mobile: "" });
+      const c = res.data.counterparty;
+      setPerson({ sameAsContact: Boolean(c.mobileMasked), name: c.contactName ?? "", pan: "", birthDate: "", mobile: "" });
     });
     return () => {
       live = false;
@@ -91,102 +104,90 @@ export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; n
   }, [picked, turnoverOn, period, cibilOn, cibilSubject, byCode]);
   const needsPerson = selected.includes("CW_CIBIL_PERSONAL");
 
-  // The cost box (marker 6) is worked out here as the user ticks; the popup asks the server for the exact figures.
+  // The cost box (marker 6) is worked out here as the user ticks; "Run search" asks the server for the exact figures.
   const cost = useMemo(() => {
-    let units = 0;
-    let money = 0;
+    let price = 0;
+    let gst = 0;
     const lines = selected.map((code) => {
       const c = byCode.get(code)!;
-      const plan = c.planLeft !== null && c.planLeft > 0;
-      if (plan) units += 1;
-      else money += (c.pricePaise ?? 0) + (c.gstPaise ?? 0);
-      return { code, name: c.name, label: plan ? t("oneUnit") : inr((c.pricePaise ?? 0) + (c.gstPaise ?? 0)) };
+      price += c.pricePaise ?? 0;
+      gst += c.gstPaise ?? 0;
+      return { code, name: c.name, label: inr(c.pricePaise ?? 0) };
     });
-    return { lines, units, money, consent: selected.filter((c) => byCode.get(c)?.consent).length };
-  }, [selected, byCode, t]);
+    return { lines, price, gst, total: price + gst, consent: selected.filter((c) => byCode.get(c)?.consent).length };
+  }, [selected, byCode]);
 
   const personBody = () =>
     needsPerson
       ? { sameAsContact: person.sameAsContact, name: person.name, pan: person.pan, birthDate: person.birthDate, mobile: person.sameAsContact ? undefined : person.mobile }
       : undefined;
+  const choiceKey = JSON.stringify([buyer, selected, mode, needsPerson ? person : null]);
+  const quote = quoted?.key === choiceKey ? quoted.quote : null;
+  const asking = Boolean(quote?.consent?.subjects.some((s) => !s.reuse));
+  const blocked = (q: Quote) =>
+    (!q.enough && mode === "together") ||
+    Boolean(q.consent?.subjects.some((s) => s.limitReached)) ||
+    Boolean(q.consent?.subjects.some((s) => !s.reuse) && !CONSENT_CHANNELS.some((c) => channels[c]));
 
-  async function openConfirm() {
-    if (!buyer || !selected.length) return;
+  /**
+   * v4 section 8: one button. It gets the exact price from the server and starts at once, with the cancel bar below;
+   * only when the buyer or a person must say yes, or the wallet is short, does it stop to show that first, in the page.
+   */
+  async function runSearch() {
+    if (!buyer || !selected.length || busy) return;
+    if (quote) return void run(quote, quoted!.runKey);
     setBusy(true);
     setPersonErrors({});
     const res = await api<Quote>("/api/v1/checks/quote", { body: { counterpartyId: buyer, items: selected, person: personBody() } });
-    setBusy(false);
     if (!res.ok) {
+      setBusy(false);
       if (res.error.fields) setPersonErrors(res.error.fields);
       return toast(res.error.message, "danger");
     }
-    setQuote(res.data);
-    setChannels((c) => ({ ...c, email: c.email && Boolean(res.data.consent?.emailMasked) }));
-    setRunKey(newIdempotencyKey());
-    setConfirm(true);
+    const q = res.data;
+    const fresh = { key: choiceKey, quote: q, runKey: newIdempotencyKey() };
+    setQuoted(fresh);
+    setChannels((c) => ({ ...c, email: c.email && Boolean(q.consent?.emailMasked) }));
+    const needsLook = q.consent?.subjects.some((s) => !s.reuse || s.limitReached || s.declinedAt) || (!q.enough && mode === "together");
+    if (needsLook) {
+      setBusy(false);
+      requestAnimationFrame(() => reviewRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+      return;
+    }
+    await run(q, fresh.runKey);
   }
 
-  async function run() {
-    if (!buyer || !quote) return;
+  async function run(q: Quote, runKey: string) {
+    if (!buyer || blocked(q)) return;
     setBusy(true);
-    const askSomeone = quote.consent?.subjects.some((s) => !s.reuse);
-    const consent = askSomeone ? { purpose, channels: CONSENT_CHANNELS.filter((c) => channels[c]) } : undefined;
-    const res = await api<{ id: string }>("/api/v1/checks/requests", {
-      body: { quoteId: quote.quoteId, counterpartyId: buyer, items: selected, mode, consent, person: personBody() },
+    const consent = q.consent?.subjects.some((s) => !s.reuse) ? { purpose, channels: CONSENT_CHANNELS.filter((c) => channels[c]) } : undefined;
+    const res = await api<{ id: string; cancelWindowSeconds: number }>("/api/v1/checks/requests", {
+      body: { quoteId: q.quoteId, counterpartyId: buyer, items: selected, mode, consent, person: personBody() },
       idempotencyKey: runKey,
     });
     setBusy(false);
     if (!res.ok) return toast(res.error.message, "danger");
-    setConfirm(false);
-    router.push(`/reports/${res.data.id}`);
+    setPending({ id: res.data.id, seconds: res.data.cancelWindowSeconds, quote: q });
   }
 
-  if (!buyers.length) {
-    return (
-      <div className="space-y-6">
-        <PageHeader title={t("title")} description={t("subtitle")} />
-        <Card>
-          <EmptyState title={t("noBuyers")} action={<ButtonLink href="/counterparties/new">{t("addBuyer")}</ButtonLink>} />
-        </Card>
-      </div>
-    );
+  async function cancelPending() {
+    if (!pending) return;
+    const res = await api(`/api/v1/checks/requests/${pending.id}/cancel`, { body: {} });
+    if (!res.ok) return toast(res.error.message, "danger");
+    toast(t("cancelledNothing"), "success");
+    setPending(null);
+    setQuoted(null);
   }
 
-  const card = (code: CwCode) => {
-    const c = byCode.get(code);
-    if (!c) return null;
-    const on = Boolean(picked[code]);
-    return (
-      <label
-        key={code}
-        className={cn(
-          "flex cursor-pointer gap-3 rounded-2xl border p-4 transition-all",
-          c.disabled ? "cursor-not-allowed border-border bg-surface-muted opacity-70" : on ? "border-primary bg-primary-softer shadow-sm" : "border-border bg-surface hover:border-border-strong",
-        )}
-      >
-        <input
-          type="checkbox"
-          className="mt-1 h-[18px] w-[18px] shrink-0 accent-[var(--primary)]"
-          checked={on}
-          disabled={Boolean(c.disabled)}
-          onChange={(e) => setPicked((p) => ({ ...p, [code]: e.target.checked }))}
-          aria-describedby={`${code}-desc`}
-        />
-        <span className="min-w-0 flex-1">
-          <span className="flex flex-wrap items-center justify-between gap-2">
-            <span className="font-bold text-text">{c.name}</span>
-            <Tag tone="neutral">{t("publicRecord")}</Tag>
-          </span>
-          <span id={`${code}-desc`} className="mt-1 block text-sm text-muted">
-            {t(`desc.${code}`)}
-          </span>
-          <PriceLine entry={c} />
-          {c.recent ? <RecentLine recent={c.recent} /> : null}
-          {c.disabled ? <span className="mt-1 block text-xs font-semibold text-warning-fg">{t(`disabled.${c.disabled}`)}</span> : null}
-        </span>
-      </label>
-    );
-  };
+  function startedPending() {
+    if (!pending) return;
+    const q = pending.quote;
+    toast(q.sample ? t("sampleStarted") : mode === "manual" ? t("startedManual") : t("held", { amount: inr(q.walletPaise) }), "success");
+    router.push(`/reports/${pending.id}`);
+  }
+
+  // Before a company is chosen: the start page with the search and the example report (no catalogue to show yet).
+  if (!buyer) return <CwStart companies={buyers} recent={recent} onPick={choose} />;
 
   const turnoverCy = byCode.get("CW_GST_TURNOVER_CY");
   const turnover4y = byCode.get("CW_GST_TURNOVER_4Y");
@@ -194,246 +195,412 @@ export function ChooseChecks({ buyers, initialBuyer }: { buyers: { id: string; n
   const cibilPe = byCode.get("CW_CIBIL_PERSONAL");
   const turnoverDisabled = turnover4y?.disabled && turnoverCy?.disabled ? turnover4y.disabled : null;
   const cibilDisabled = cibilPe?.disabled && cibilCo?.disabled ? cibilPe.disabled : null;
-  const periodEntry = period === "cy" ? turnoverCy : turnover4y;
+  const ready = catalogue?.counterparty.id === buyer;
+  const runLabel = asking ? t("askAndRun") : selected.length ? t("runSearchAmount", { amount: inr(cost.total) }) : t("runSearch");
+  const companyOk = !cibilCo?.disabled;
+  const recentHit = catalogue?.checks.find((c) => c.recent)?.recent ?? null;
+
+  /** What a package ticks for this company: its checks that can run here, turnover for 4 years, CIBIL of the company. */
+  const packageCodes = (k: PackageKey): CwCode[] => {
+    const codes: CwCode[] = [];
+    for (const item of PACKAGES[k]) {
+      if (item === "turnover") {
+        if (!turnover4y?.disabled && turnover4y) codes.push("CW_GST_TURNOVER_4Y");
+        else if (!turnoverCy?.disabled && turnoverCy) codes.push("CW_GST_TURNOVER_CY");
+      } else if (item === "cibil") {
+        if (cibilCo && !cibilCo.disabled) codes.push("CW_CIBIL_COMPANY");
+        else if (cibilPe && !cibilPe.disabled) codes.push("CW_CIBIL_PERSONAL");
+      } else if (byCode.get(item) && !byCode.get(item)!.disabled) codes.push(item);
+    }
+    return codes;
+  };
+  const priceOf = (codes: CwCode[]) => codes.reduce((sum, c) => sum + (byCode.get(c)?.pricePaise ?? 0) + (byCode.get(c)?.gstPaise ?? 0), 0);
+  const same = (x: CwCode[], y: CwCode[]) => x.length === y.length && [...x].sort().join() === [...y].sort().join();
+  const activePackage = (Object.keys(PACKAGES) as PackageKey[]).find((k) => same(packageCodes(k), selected)) ?? null;
+
+  function applyPackage(k: PackageKey) {
+    const codes = packageCodes(k);
+    setPicked(Object.fromEntries(codes.filter((c) => !c.startsWith("CW_GST_TURNOVER") && !c.startsWith("CW_CIBIL")).map((c) => [c, true])));
+    setTurnoverOn(codes.some((c) => c.startsWith("CW_GST_TURNOVER")));
+    setPeriod(codes.includes("CW_GST_TURNOVER_CY") ? "cy" : "4y");
+    setCibilOn(codes.some((c) => c.startsWith("CW_CIBIL")));
+    setCibilSubject(companyOk ? "company" : "personal");
+  }
+
+  /** One check as a one-tap chip: icon, name and price; off and greyed when it cannot run for this company. */
+  const chip = (key: string, label: string, price: number | null, on: boolean, off: string | null, toggle: (v: boolean) => void, consent?: boolean) => {
+    const Icon = CHIP_ICON[key] ?? Sparkles;
+    return (
+      <button
+        key={key}
+        type="button"
+        role="checkbox"
+        aria-checked={on}
+        aria-label={label}
+        disabled={Boolean(off) || Boolean(pending)}
+        title={off ? t(`disabled.${off}`) : t(`desc.${key === "turnover" ? "turnover" : key === "cibil" ? "cibil" : key}`)}
+        onClick={() => toggle(!on)}
+        className={cn(
+          "group flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-[border-color,background-color,box-shadow,scale] duration-150 active:scale-[0.98]",
+          off ? "cursor-not-allowed border-dashed border-border bg-surface-muted opacity-60" : on ? "border-primary/60 bg-primary-softer shadow-[0_0_0_3px_var(--primary-soft)]" : "border-border bg-surface hover:border-border-strong",
+        )}
+      >
+        <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors", on ? "bg-brand text-white" : "bg-surface-strong text-muted")} aria-hidden="true">
+          {on ? <Check size={16} strokeWidth={3} /> : <Icon size={16} />}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[13px] font-semibold text-text">{label}</span>
+          <span className="block truncate text-[11.5px] text-subtle">
+            {off ? t(`disabledShort.${off}`) : consent ? t("pkg.otp") : t("publicRecord")}
+          </span>
+        </span>
+        <span className={cn("shrink-0 text-[13px] font-bold tabular-nums", on ? "text-primary-text" : "text-text-2")}>{price === null ? "—" : inrShort(price)}</span>
+      </button>
+    );
+  };
+  const plain = (code: CwCode) => {
+    const c = byCode.get(code);
+    if (!c) return null;
+    return chip(code, c.name, c.pricePaise, Boolean(picked[code]), c.disabled ?? null, (v) => setPicked((p) => ({ ...p, [code]: v })));
+  };
 
   return (
-    <div className="space-y-6">
-      <PageHeader title={t("title")} description={t("subtitle")} />
+    <div className="space-y-5 pb-28 lg:pb-0">
+      <PageHeader
+        title={<>{t("titleLead")} <GradientText>{t("titleAccent")}</GradientText></>}
+        description={t("subtitleShort")}
+      />
 
       <Card>
-        <CardBody>
-          <FormField id="buyer" label={t("buyer")} hint={t("chooseBuyerHint")}>
-            <Select id="buyer" value={buyer ?? ""} onChange={(e) => setBuyer(e.target.value || null)} className="sm:max-w-md">
-              <option value="">{t("selectBuyer")}</option>
-              {buyers.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </Select>
-          </FormField>
+        <CardBody className="space-y-2.5">
+          <label htmlFor="buyer" className="sr-only">{t("search.label")}</label>
+          <CompanySearch companies={buyers} value={buyer} onChange={pending ? () => undefined : choose} />
+          {catalogue?.counterparty.id === buyer && !catalogue.counterparty.mobileMasked ? (
+            <p className="flex items-start gap-2 rounded-xl bg-info-bg px-3 py-2 text-xs text-info-fg">
+              <Info size={14} className="mt-px shrink-0" aria-hidden="true" />
+              <span>{t.rich("needsContactShort", { link: (c) => <Link href={`/counterparties/${buyer}`} className="font-semibold underline">{c}</Link> })}</span>
+            </p>
+          ) : null}
+          {recentHit ? (
+            <p className="flex items-center gap-2 text-xs text-muted">
+              <History size={14} aria-hidden="true" />
+              {t("recentShort", { date: formatDate(istDate(new Date(recentHit.at))) })}
+              <Link href={`/reports/${recentHit.requestId}`} className="font-semibold text-primary-text hover:underline">{t("openResult")}</Link>
+            </p>
+          ) : null}
         </CardBody>
       </Card>
 
-      {buyer && catalogue?.counterparty.id !== buyer ? (
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]" aria-hidden="true">
-          <div className="space-y-5">
-            <Skeleton className="h-48 w-full rounded-3xl" />
-            <Skeleton className="h-36 w-full rounded-3xl" />
-          </div>
-          <Skeleton className="h-56 w-full rounded-3xl" />
+      {buyer && !ready ? (
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_21rem]" aria-hidden="true">
+          <div className="grid gap-3 sm:grid-cols-3"><Skeleton className="h-52" /><Skeleton className="h-52" /><Skeleton className="h-52" /></div>
+          <Skeleton className="h-64 w-full" />
         </div>
       ) : null}
 
-      {buyer && catalogue?.counterparty.id === buyer ? (
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
-          <div className="min-w-0 space-y-5">
-            <Card>
-              <CardHeader title={t("groupGst")} />
-              <CardBody className="grid gap-3 md:grid-cols-2">
-                {card("CW_GST_SEARCH")}
-                <ConsentCard id="turnover" title={t("turnoverTitle")} desc={t("desc.turnover")} on={turnoverOn} onToggle={setTurnoverOn} disabled={turnoverDisabled}>
-                  <fieldset className="mt-3 space-y-2 text-sm" disabled={!turnoverOn}>
-                    <legend className="sr-only">{t("turnoverPeriod")}</legend>
-                    {(["4y", "cy"] as const).map((v) => {
-                      const entry = v === "cy" ? turnoverCy : turnover4y;
-                      const off = Boolean(entry?.disabled);
-                      return (
-                        <label key={v} className={cn("flex items-center gap-2", (off || !turnoverOn) && "text-muted")}>
-                          <input type="radio" name="turnover" className="accent-[var(--primary)]" checked={period === v} disabled={off} onChange={() => setPeriod(v)} />
-                          {v === "cy" ? t("turnoverCy") : t("turnover4y")}
-                          {entry ? <span className="text-xs text-muted">· {entry.pricePaise ? inr(entry.pricePaise) : t("priceNotSet")}</span> : null}
-                        </label>
-                      );
-                    })}
-                  </fieldset>
-                  {periodEntry && turnoverOn ? <PriceLine entry={periodEntry} /> : null}
-                </ConsentCard>
-              </CardBody>
-            </Card>
+      {buyer && ready ? (
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_21rem]">
+          <fieldset disabled={Boolean(pending)} className="min-w-0 space-y-4">
+            <legend className="sr-only">{t("pkg.title")}</legend>
+            <div className="flex items-end justify-between gap-3">
+              <h2 className="font-head text-lg font-bold text-text">{t("pkg.title")}</h2>
+              <button type="button" onClick={() => setCustom((v) => !v)} className="inline-flex items-center gap-1 text-[13px] font-semibold text-primary-text hover:underline" aria-expanded={custom}>
+                <SlidersHorizontal size={14} aria-hidden="true" /> {custom ? t("pkg.hideCustom") : t("pkg.customise")}
+              </button>
+            </div>
+            <Carousel label={t("pkg.title")} slide="basis-[82%] sm:basis-[calc((100%-1.5rem)/3)]" controls="dots">
+              {(Object.keys(PACKAGES) as PackageKey[]).map((k) => {
+                const codes = packageCodes(k);
+                const on = activePackage === k;
+                const missing = PACKAGES[k].length - codes.length;
+                const needsYes = codes.some((c) => byCode.get(c)?.consent);
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => applyPackage(k)}
+                    className={cn(
+                      "relative flex h-full w-full flex-col rounded-2xl border p-4 text-left transition-[border-color,box-shadow,translate,background-color] duration-200 hover:-translate-y-0.5",
+                      on ? "border-transparent bg-surface shadow-[0_0_0_2px_var(--primary),0_14px_32px_-14px_rgb(252_106_16/0.55)]" : "border-border bg-surface shadow-sm hover:border-primary-line hover:shadow-md",
+                    )}
+                  >
+                    {k === "standard" ? <span className="absolute -top-2.5 right-3 rounded-full bg-brand px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide text-white shadow-orange">{t("pkg.popular")}</span> : null}
+                    <span className="flex items-center justify-between gap-2">
+                      <span className={cn("flex size-9 items-center justify-center rounded-xl", on ? "bg-brand text-white" : "bg-soft text-primary-text")} aria-hidden="true">
+                        {k === "quick" ? <Zap size={17} /> : k === "standard" ? <ShieldCheck size={17} /> : <Crown size={17} />}
+                      </span>
+                      <span className={cn("flex size-5 items-center justify-center rounded-full border-2", on ? "border-primary bg-primary text-white" : "border-border-strong")} aria-hidden="true">
+                        {on ? <Check size={12} strokeWidth={3.5} /> : null}
+                      </span>
+                    </span>
+                    <span className="mt-3 font-head text-base font-extrabold text-text">{t(`pkg.${k}.name`)}</span>
+                    <span className="mt-0.5 text-[12.5px] leading-snug text-muted">{t(`pkg.${k}.line`)}</span>
+                    <span className="mt-3 flex flex-wrap gap-1">
+                      {codes.map((c) => (
+                        <span key={c} className="rounded-md bg-surface-strong px-1.5 py-0.5 text-[10.5px] font-semibold text-text-2">{shortName(t, c)}</span>
+                      ))}
+                    </span>
+                    <span className="mt-auto flex items-end justify-between gap-2 pt-4">
+                      <span className="font-head text-2xl font-extrabold tracking-tight text-gradient">{inrShort(priceOf(codes))}</span>
+                      <span className="text-right text-[11px] leading-tight text-subtle">
+                        {t("pkg.count", { count: codes.length })}
+                        {needsYes ? <span className="block font-semibold text-info-fg">{t("pkg.otp")}</span> : null}
+                        {missing > 0 ? <span className="block">{t("pkg.missing", { count: missing })}</span> : null}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </Carousel>
 
-            <Card>
-              <CardHeader title={t("groupCibil")} />
-              <CardBody>
-                <ConsentCard id="cibil" title={t("cibilTitle")} desc={t("desc.cibil")} on={cibilOn} onToggle={setCibilOn} disabled={cibilDisabled}>
-                  <fieldset className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm" disabled={!cibilOn}>
-                    <legend className="sr-only">{t("cibilWhose")}</legend>
-                    {(["company", "personal", "both"] as const).map((v) => {
-                      const off = (v !== "personal" && Boolean(cibilCo?.disabled)) || (v !== "company" && Boolean(cibilPe?.disabled));
-                      return (
-                        <label key={v} className={cn("flex items-center gap-2", (off || !cibilOn) && "text-muted")}>
-                          <input type="radio" name="cibil" className="accent-[var(--primary)]" checked={cibilSubject === v} disabled={off} onChange={() => setCibilSubject(v)} />
-                          {v === "company" ? t("cibilCompany") : v === "personal" ? t("cibilPersonal") : t("cibilBoth")}
-                        </label>
-                      );
-                    })}
-                  </fieldset>
-                  {cibilPe ? <span className="mt-2 block text-xs text-muted">{t("perReport", { price: inr(cibilPe.pricePaise ?? 0) })}</span> : null}
-                  {cibilOn && cibilSubject !== "company" ? (
-                    <PersonForm person={person} onChange={setPerson} errors={personErrors} contact={catalogue.counterparty} />
-                  ) : null}
-                </ConsentCard>
-              </CardBody>
-            </Card>
+            {custom || !activePackage ? (
+              <Card className="animate-[cb-fade-up_0.25s_ease-out_both]">
+                <CardHeader title={t("pkg.customTitle")} action={<span className="text-xs text-subtle">{t("pkg.tapToToggle")}</span>} />
+                <CardBody className="space-y-5">
+                  {CHIP_GROUPS.map((g) => (
+                    <div key={g.key} className="space-y-2">
+                      <p className="text-[11px] font-semibold uppercase tracking-[1.2px] text-subtle">{t(g.key)}</p>
+                      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                        {g.items.map((item) =>
+                          item === "turnover" ? (
+                            chip("turnover", t("turnoverTitle"), (period === "cy" ? turnoverCy : turnover4y)?.pricePaise ?? null, turnoverOn, turnoverDisabled ?? null, setTurnoverOn, true)
+                          ) : item === "cibil" ? (
+                            chip("cibil", t("cibilTitle"), cibilPe?.pricePaise ?? null, cibilOn, cibilDisabled ?? null, setCibilOn, true)
+                          ) : (
+                            plain(item)
+                          ),
+                        )}
+                      </div>
+                      {g.items.includes("turnover") && turnoverOn ? (
+                        <RadioPills
+                          name="turnover"
+                          label={t("turnoverPeriod")}
+                          value={period}
+                          onChange={setPeriod}
+                          items={(["4y", "cy"] as const).filter((v) => !(v === "cy" ? turnoverCy : turnover4y)?.disabled).map((v) => ({ key: v, label: v === "cy" ? t("turnoverCy") : t("turnover4y") }))}
+                        />
+                      ) : null}
+                      {g.items.includes("cibil") && cibilOn ? (
+                        <div className="space-y-3">
+                          <RadioPills
+                            name="cibil"
+                            label={t("cibilWhose")}
+                            value={cibilSubject}
+                            onChange={setCibilSubject}
+                            items={(["company", "personal", "both"] as const)
+                              .filter((v) => !((v !== "personal" && cibilCo?.disabled) || (v !== "company" && cibilPe?.disabled)))
+                              .map((v) => ({ key: v, label: v === "company" ? t("cibilCompany") : v === "personal" ? t("cibilPersonal") : t("cibilBoth") }))}
+                          />
+                          {cibilSubject !== "company" ? <PersonForm person={person} onChange={setPerson} errors={personErrors} contact={catalogue.counterparty} /> : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </CardBody>
+              </Card>
+            ) : null}
+            {!custom && activePackage && needsPerson ? <PersonForm person={person} onChange={setPerson} errors={personErrors} contact={catalogue.counterparty} /> : null}
+          </fieldset>
 
-            <Card>
-              <CardHeader title={t("groupIdentity")} />
-              <CardBody className="grid gap-3 md:grid-cols-2">
-                {(["CW_MSME", "CW_PAN", "CW_IEC_PROFILE", "CW_IEC_TURNOVER"] as const).map((c) => card(c))}
-              </CardBody>
-            </Card>
-
-            <Card>
-              <CardHeader title={t("groupCompany")} />
-              <CardBody className="grid gap-3 md:grid-cols-3">
-                {(["CW_COMPANY", "CW_DIRECTORS", "CW_CREDIT_RATING"] as const).map((c) => card(c))}
-              </CardBody>
-            </Card>
-          </div>
-
-          <aside className="lg:sticky lg:top-20 lg:self-start">
-            <Card>
-              <CardHeader title={t("costTitle")} />
+          <aside className="space-y-3 lg:sticky lg:top-[5rem] lg:self-start">
+            <Card className="overflow-hidden">
+              <div className="bg-soft px-4 py-4 sm:px-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[1.2px] text-subtle">{t("total")}</p>
+                <p className="mt-1 font-head text-[2rem] font-extrabold leading-none tracking-tight text-gradient">{inr(cost.total)}</p>
+                <p className="mt-1.5 text-xs text-muted">
+                  {selected.length ? t("totalLine", { count: selected.length, gst: inr(cost.gst) }) : t("costEmpty")}
+                </p>
+              </div>
               <CardBody className="space-y-3 text-sm">
                 {cost.lines.length ? (
-                  <ul className="space-y-1.5">
-                    {cost.lines.map((l) => (
-                      <li key={l.code} className="flex justify-between gap-3">
-                        <span className="text-text-2">{l.name}</span>
-                        <span className="shrink-0 font-semibold tabular-nums">{l.label}</span>
-                      </li>
+                  <details className="group text-xs">
+                    <summary className="flex cursor-pointer list-none items-center justify-between font-semibold text-text-2">
+                      {t("seeBreakup")} <ChevronDown size={14} className="transition-transform group-open:rotate-180" aria-hidden="true" />
+                    </summary>
+                    <ul className="mt-2 space-y-1.5">
+                      {cost.lines.map((l) => (
+                        <li key={l.code} className="flex justify-between gap-3">
+                          <span className="text-muted">{l.name}</span>
+                          <span className="shrink-0 font-semibold tabular-nums text-text">{l.label}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                ) : null}
+
+                <fieldset disabled={Boolean(pending)}>
+                  <legend className="sr-only">{t("howRun")}</legend>
+                  <div className="grid grid-cols-2 gap-1 rounded-xl bg-surface-strong p-1 text-xs">
+                    {(["together", "manual"] as const).map((m) => (
+                      <label
+                        key={m}
+                        className={cn(
+                          "relative flex h-8 cursor-pointer items-center justify-center rounded-lg px-2 text-center font-semibold transition-[background-color,color,box-shadow] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring",
+                          mode === m ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text",
+                        )}
+                      >
+                        <input type="radio" name="mode" className="absolute inset-0 size-full cursor-pointer appearance-none rounded-[inherit] opacity-0" checked={mode === m} onChange={() => setMode(m)} />
+                        {m === "together" ? t("runTogetherShort") : t("runManualShort")}
+                      </label>
                     ))}
-                  </ul>
+                  </div>
+                </fieldset>
+
+                <div ref={reviewRef} className="space-y-3 scroll-mt-24">
+                  {quote && !pending ? <CostSummary quote={quote} later={mode === "manual"} /> : null}
+                  {quote?.consent && !pending ? (
+                    <ConsentBlock
+                      consent={quote.consent}
+                      buyerName={catalogue.counterparty.name}
+                      purpose={purpose}
+                      onPurpose={setPurpose}
+                      channels={channels}
+                      onChannels={setChannels}
+                      names={new Map(quote.lines.map((l) => [l.code, l.name]))}
+                    />
+                  ) : null}
+                  {quote?.sample && !pending ? <p className="rounded-xl bg-warning-bg px-3 py-2 text-xs font-semibold text-warning-fg">{t("sampleNote")}</p> : null}
+                  {quote && !quote.enough && mode === "together" && !pending ? (
+                    <p role="alert" className="rounded-xl bg-danger-bg px-3 py-2 text-xs font-semibold text-danger-fg">
+                      {t("shortfall", { amount: inr(quote.walletPaise - quote.walletBeforePaise) })}{" "}
+                      <Link href="/account/billing?topup=1" className="underline underline-offset-2">{t("addMoney")}</Link>
+                    </p>
+                  ) : null}
+                </div>
+
+                {pending ? (
+                  <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-[var(--nav-bg)] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+                    <CancelWindow inline seconds={pending.seconds} onCancel={cancelPending} onDone={startedPending} />
+                  </div>
                 ) : (
-                  <p className="text-muted">{t("costEmpty")}</p>
+                  <>
+                    <Button className="h-12 w-full text-[15px]" disabled={!selected.length || (quote ? blocked(quote) : false)} loading={busy} onClick={() => void runSearch()}>
+                      <Play aria-hidden="true" /> {runLabel}
+                    </Button>
+                    <p className="text-center text-[11.5px] text-subtle">{t("runHintShort")}</p>
+                  </>
                 )}
-                <dl className="space-y-1 border-t border-border pt-3">
-                  <div className="flex justify-between"><dt className="text-muted">{t("fromPlan")}</dt><dd className="font-bold tabular-nums">{t("units", { count: cost.units })}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">{t("fromWallet")}</dt><dd className="font-bold tabular-nums">{inr(cost.money)}</dd></div>
-                </dl>
-                {cost.consent ? <p className="text-xs text-muted">{t("consentNote", { count: cost.consent })}</p> : null}
-                <Button className="w-full" disabled={!selected.length} loading={busy && !confirm} onClick={() => void openConfirm()}>
-                  {t("continue")}
-                </Button>
               </CardBody>
             </Card>
+            <ReportMap selected={selected} />
           </aside>
+          {!pending ? (
+            <MobileCostBar
+              total={inr(cost.total)}
+              count={selected.length}
+              label={asking ? t("askAndRunShort") : t("runSearch")}
+              disabled={!selected.length || (quote ? blocked(quote) : false)}
+              loading={busy}
+              onClick={() => void runSearch()}
+            />
+          ) : null}
         </div>
-      ) : null}
-
-      {confirm && quote ? (
-        <Dialog
-          open
-          onClose={() => setConfirm(false)}
-          title={t("confirmTitle")}
-          footer={
-            <>
-              <Button variant="secondary" onClick={() => setConfirm(false)}>
-                {t("cancel")}
-              </Button>
-              <Button
-                onClick={() => void run()}
-                loading={busy}
-                disabled={
-                  (!quote.enough && mode === "together") ||
-                  Boolean(quote.consent?.subjects.some((s) => s.limitReached)) ||
-                  Boolean(quote.consent?.subjects.some((s) => !s.reuse) && !CONSENT_CHANNELS.some((c) => channels[c]))
-                }
-              >
-                {t("run")}
-              </Button>
-            </>
-          }
-        >
-          <div className="space-y-4">
-            <p className="text-muted">{t("confirmSubtitle")}</p>
-            <fieldset className="space-y-2">
-              <legend className="mb-1 text-sm font-bold text-text-2">{t("howRun")}</legend>
-              <label className="flex items-center gap-2">
-                <input type="radio" name="mode" className="accent-[var(--primary)]" checked={mode === "together"} onChange={() => setMode("together")} />
-                {t("runTogether")}
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="radio" name="mode" className="accent-[var(--primary)]" checked={mode === "manual"} onChange={() => setMode("manual")} />
-                {t("runManual")}
-              </label>
-            </fieldset>
-            <CostSummary quote={quote} later={mode === "manual"} />
-            {quote.consent ? (
-              <ConsentBlock
-                consent={quote.consent}
-                buyerName={catalogue?.counterparty.name ?? ""}
-                purpose={purpose}
-                onPurpose={setPurpose}
-                channels={channels}
-                onChannels={setChannels}
-                names={new Map(quote.lines.map((l) => [l.code, l.name]))}
-              />
-            ) : null}
-            {!quote.enough ? (
-              <p role="alert" className="rounded-[14px] bg-danger-bg px-4 py-3 text-sm font-semibold text-danger-fg">
-                {t("notEnough")}{" "}
-                <Link href="/account/billing" className="underline underline-offset-2">
-                  {t("addMoney")}
-                </Link>
-              </p>
-            ) : null}
-          </div>
-        </Dialog>
       ) : null}
     </div>
   );
 }
 
-/** Figure 5 rows, shared by this popup and the one-by-one popup on the report. */
+/** A small choice (period, whose CIBIL) as pill-shaped radio buttons: keyboard and screen-reader friendly. */
+function RadioPills<K extends string>({ name, label, value, onChange, items }: { name: string; label: string; value: K; onChange: (k: K) => void; items: { key: K; label: string }[] }) {
+  return (
+    <fieldset className="inline-flex max-w-full flex-wrap gap-1 rounded-xl bg-surface-strong p-1">
+      <legend className="sr-only">{label}</legend>
+      {items.map((it) => (
+        <label
+          key={it.key}
+          className={cn(
+            "relative inline-flex h-8 cursor-pointer items-center rounded-lg px-3 text-xs font-semibold transition-[background-color,color,box-shadow] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring",
+            value === it.key ? "bg-surface text-text shadow-sm" : "text-muted hover:text-text",
+          )}
+        >
+          <input type="radio" name={name} className="absolute inset-0 size-full cursor-pointer appearance-none rounded-[inherit] opacity-0" checked={value === it.key} onChange={() => onChange(it.key)} />
+          {it.label}
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
+type PackageKey = "quick" | "standard" | "complete";
+type PackageItem = CwCode | "turnover" | "cibil";
+/** One-tap packages: Quick is public records only; Standard adds turnover (buyer's OTP), MSME and PAN; Complete adds CIBIL, rating and trade. */
+const PACKAGES: Record<PackageKey, PackageItem[]> = {
+  quick: ["CW_GST_SEARCH", "CW_COMPANY", "CW_DIRECTORS"],
+  standard: ["CW_GST_SEARCH", "CW_COMPANY", "CW_DIRECTORS", "turnover", "CW_MSME", "CW_PAN"],
+  complete: ["CW_GST_SEARCH", "CW_COMPANY", "CW_DIRECTORS", "turnover", "CW_MSME", "CW_PAN", "cibil", "CW_CREDIT_RATING", "CW_IEC_PROFILE", "CW_IEC_TURNOVER"],
+};
+const CHIP_GROUPS: { key: string; items: PackageItem[] }[] = [
+  { key: "groupGst", items: ["CW_GST_SEARCH", "turnover"] },
+  { key: "groupCompany", items: ["CW_COMPANY", "CW_DIRECTORS", "CW_CREDIT_RATING"] },
+  { key: "groupCibil", items: ["cibil"] },
+  { key: "groupIdentity", items: ["CW_MSME", "CW_PAN", "CW_IEC_PROFILE", "CW_IEC_TURNOVER"] },
+];
+const CHIP_ICON: Record<string, LucideIcon> = {
+  CW_GST_SEARCH: ReceiptText, turnover: TrendingUp, cibil: Landmark, CW_MSME: Factory, CW_PAN: IdCard,
+  CW_IEC_PROFILE: Ship, CW_IEC_TURNOVER: Globe, CW_COMPANY: Building2, CW_DIRECTORS: Users, CW_CREDIT_RATING: Star,
+};
+const inrShort = (paise: number) => formatInr(BigInt(Math.round(paise)));
+/** Short chip label for a check inside a package card. */
+const shortName = (t: ReturnType<typeof useTranslations>, code: CwCode) => t(`short.${code}`);
+
+const MAP: { key: string; codes: CwCode[] }[] = [
+  { key: "sectionGst", codes: ["CW_GST_SEARCH"] },
+  { key: "sectionTurnover", codes: ["CW_GST_TURNOVER_4Y", "CW_GST_TURNOVER_CY"] },
+  { key: "sectionCibil", codes: ["CW_CIBIL_COMPANY", "CW_CIBIL_PERSONAL"] },
+  { key: "sectionIdentity", codes: ["CW_MSME", "CW_PAN", "CW_IEC_PROFILE", "CW_IEC_TURNOVER"] },
+  { key: "sectionCompany", codes: ["CW_COMPANY", "CW_DIRECTORS"] },
+  { key: "sectionRating", codes: ["CW_CREDIT_RATING"] },
+];
+
+/** Which report sections the ticked checks fill, so the user knows what they will get. */
+function ReportMap({ selected }: { selected: CwCode[] }) {
+  const t = useTranslations("checks");
+  const tr = useTranslations("report");
+  return (
+    <div className="rounded-xl border border-border bg-surface p-4">
+      <p className="text-[11px] font-medium uppercase tracking-[1px] text-subtle">{t("reportWillHave")}</p>
+      <ul className="mt-3 space-y-1.5 text-xs">
+        <li className="flex items-center gap-2 text-text"><Check size={13} className="text-success-fg" aria-hidden="true" />{t("mapRisk")}</li>
+        {MAP.map((m) => {
+          const on = m.codes.some((c) => selected.includes(c));
+          return (
+            <li key={m.key} className={cn("flex items-center gap-2", on ? "text-text" : "text-subtle")}>
+              {on ? <Check size={13} className="text-success-fg" aria-hidden="true" /> : <Minus size={13} aria-hidden="true" />}
+              {tr(m.key)}
+              {on ? null : <span className="sr-only">{t("mapNotTicked")}</span>}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/** Figure 5 rows, shared by the cost panel and the one-by-one run on the report. */
 export function CostSummary({ quote, later }: { quote: Quote; later?: boolean }) {
   const t = useTranslations("checks");
   return (
-    <dl className="divide-y divide-border rounded-2xl border border-border">
-      <div className="flex justify-between gap-3 px-4 py-2.5">
-        <dt className="text-muted">{later ? t("deductAsYouRun") : t("deductNow")}</dt>
-        <dd className="text-right font-bold tabular-nums">{t("deductSummary", { units: t("units", { count: quote.planUnits }), money: inr(quote.walletPaise) })}</dd>
+    <dl className="divide-y divide-border rounded-lg border border-border text-xs">
+      {quote.lines.map((l) => (
+        <div key={l.code} className="flex justify-between gap-3 px-3 py-2">
+          <dt className="text-text-2">{l.name}</dt>
+          <dd className="text-right tabular-nums">{inr(l.pricePaise)} <span className="text-subtle">+ {inr(l.gstPaise)} GST</span></dd>
+        </div>
+      ))}
+      <div className="flex justify-between gap-3 px-3 py-2">
+        <dt className="font-medium text-text">{later ? t("deductAsYouRun") : t("deductNow")}</dt>
+        <dd className="text-right font-semibold tabular-nums">{inr(quote.walletPaise)}</dd>
       </div>
-      <div className="flex justify-between gap-3 px-4 py-2.5">
-        <dt className="text-muted">{t("planLeftAfter")}</dt>
-        <dd className="font-bold tabular-nums">{quote.planUnitsLeftAfter}</dd>
+      <div className="flex justify-between gap-3 px-3 py-2">
+        <dt className="text-muted">{t("walletNow")}</dt>
+        <dd className="tabular-nums">{inr(quote.walletBeforePaise)}</dd>
       </div>
-      <div className="flex justify-between gap-3 px-4 py-2.5">
+      <div className="flex justify-between gap-3 px-3 py-2">
         <dt className="text-muted">{t("walletAfter")}</dt>
-        <dd className={cn("font-bold tabular-nums", quote.walletAfterPaise < 0 && "text-danger-fg")}>{inr(quote.walletAfterPaise)}</dd>
+        <dd className={cn("font-semibold tabular-nums", quote.walletAfterPaise < 0 && "text-danger-fg")}>{inr(quote.walletAfterPaise)}</dd>
       </div>
     </dl>
-  );
-}
-
-/** A check card that needs a yes: an include box, then its options. */
-function ConsentCard({
-  id, title, desc, on, onToggle, disabled, children,
-}: { id: string; title: string; desc: string; on: boolean; onToggle: (v: boolean) => void; disabled: string | null; children: React.ReactNode }) {
-  const t = useTranslations("checks");
-  return (
-    <div className={cn("rounded-2xl border p-4", disabled ? "border-border bg-surface-muted opacity-70" : on ? "border-primary bg-primary-softer shadow-sm" : "border-border bg-surface")}>
-      <div className="flex gap-3">
-        <input
-          id={`${id}-on`}
-          type="checkbox"
-          className="mt-1 h-[18px] w-[18px] shrink-0 accent-[var(--primary)]"
-          checked={on}
-          disabled={Boolean(disabled)}
-          onChange={(e) => onToggle(e.target.checked)}
-          aria-describedby={`${id}-desc`}
-        />
-        <div className="min-w-0 flex-1">
-          <span className="flex flex-wrap items-center justify-between gap-2">
-            <label htmlFor={`${id}-on`} className="cursor-pointer font-bold text-text">{title}</label>
-            <Tag tone="info">{t("buyerConsent")}</Tag>
-          </span>
-          <span id={`${id}-desc`} className="mt-1 block text-sm text-muted">{desc}</span>
-          {children}
-          {disabled ? <span className="mt-2 block text-xs font-semibold text-warning-fg">{t(`disabled.${disabled}`)}</span> : null}
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -444,14 +611,16 @@ function PersonForm({
   const t = useTranslations("checks.person");
   const set = (patch: Partial<Person>) => onChange({ ...person, ...patch });
   return (
-    <div className="mt-4 space-y-3 rounded-2xl border border-border bg-surface p-4">
-      <p className="text-sm font-bold text-text">{t("title")}</p>
-      <Checkbox
-        id="person-same"
-        checked={person.sameAsContact}
-        onChange={(e) => set({ sameAsContact: e.target.checked, name: e.target.checked ? contact.contactName : "" })}
-        label={t("sameAsContact", { name: contact.contactName, mobile: contact.mobileMasked })}
-      />
+    <div className="mt-4 space-y-3 rounded-lg border border-border bg-surface p-3.5">
+      <p className="text-sm font-medium text-text">{t("title")}</p>
+      {contact.mobileMasked ? (
+        <Checkbox
+          id="person-same"
+          checked={person.sameAsContact}
+          onChange={(e) => set({ sameAsContact: e.target.checked, name: e.target.checked ? contact.contactName ?? "" : "" })}
+          label={t("sameAsContact", { name: contact.contactName ?? "", mobile: contact.mobileMasked })}
+        />
+      ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <FormField id="person-name" label={t("name")} error={errors["person.name"]}>
           <Input id="person-name" value={person.name} maxLength={120} invalid={Boolean(errors["person.name"])} onChange={(e) => set({ name: e.target.value })} />
@@ -495,16 +664,16 @@ function ConsentBlock({
   };
   const none = asking.length > 0 && !CONSENT_CHANNELS.some((c) => channels[c]);
   return (
-    <div className="space-y-3 rounded-2xl border border-border p-4">
-      <p className="font-bold text-text">{t("title")}</p>
+    <div className="animate-[cb-fade-up_0.25s_ease-out_both] space-y-3 rounded-lg border border-primary-line bg-primary-softer p-3.5 text-xs">
+      <p className="text-sm font-medium text-text">{t("title")}</p>
       {consent.subjects.map((s) => (
         <SubjectLine key={s.kind} s={s} items={s.scope.map((c) => names.get(c) ?? c)} />
       ))}
       {asking.length ? (
         <>
           <fieldset>
-            <legend className="mb-1 text-sm font-bold text-text-2">{t("channels")}</legend>
-            <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            <legend className="mb-1.5 font-medium text-text-2">{t("channels")}</legend>
+            <div className="flex flex-col gap-1.5">
               {CONSENT_CHANNELS.map((c) => (
                 <label key={c} className={cn("flex items-center gap-2", !recipient[c] && "text-muted")}>
                   <input
@@ -529,8 +698,8 @@ function ConsentBlock({
             </Select>
           </FormField>
           <div>
-            <p className="text-sm font-bold text-text-2">{t("preview")}</p>
-            <p className="mt-1 rounded-xl bg-surface-muted px-3 py-2 text-xs text-text-2">{t("previewText", { buyer: buyerName })}</p>
+            <p className="font-medium text-text-2">{t("preview")}</p>
+            <p className="mt-1 rounded-md bg-surface px-2.5 py-2 text-text-2 shadow-control">{t("previewText", { buyer: buyerName })}</p>
           </div>
           <ol className="list-decimal space-y-0.5 pl-5 text-xs text-muted">
             <li>{t("next1")}</li>
@@ -549,46 +718,22 @@ function SubjectLine({ s, items }: { s: SubjectQuote; items: string[] }) {
   return (
     <div className="space-y-2">
       {s.reuse ? (
-        <p className="rounded-[14px] bg-success-bg px-4 py-3 text-sm font-semibold text-success-fg">
+        <p className="rounded-md bg-success-bg px-2.5 py-2 font-medium text-success-fg">
           {t("reuse", { name: s.name, date: day(s.reuse.approvedAt), items: items.join(", ") })}
         </p>
       ) : (
-        <p className="text-sm text-muted">{t("lead", { count: items.length, items: items.join(", "), name: s.name, mobile: s.mobileMasked })}</p>
+        <p className="text-muted">{t("lead", { count: items.length, items: items.join(", "), name: s.name, mobile: s.mobileMasked })}</p>
       )}
       {s.limitReached ? (
-        <p role="alert" className="rounded-[14px] bg-danger-bg px-4 py-3 text-sm font-semibold text-danger-fg">
+        <p role="alert" className="rounded-md bg-danger-bg px-2.5 py-2 font-medium text-danger-fg">
           {t("limit", { name: s.name, date: s.nextAllowedAt ? day(s.nextAllowedAt) : "" })}
         </p>
       ) : null}
       {s.declinedAt ? (
-        <p role="status" className="rounded-[14px] bg-warning-bg px-4 py-3 text-sm font-semibold text-warning-fg">
+        <p role="status" className="rounded-md bg-warning-bg px-2.5 py-2 font-medium text-warning-fg">
           {t("declinedRecently", { name: s.name, date: day(s.declinedAt) })}
         </p>
       ) : null}
     </div>
-  );
-}
-
-function PriceLine({ entry }: { entry: CatalogueEntry }) {
-  const t = useTranslations("checks");
-  if (entry.pricePaise === null) return <span className="mt-2 block text-xs text-muted">{t("priceNotSet")}</span>;
-  const price = inr(entry.pricePaise);
-  return (
-    <span className="mt-2 block text-xs text-muted">
-      {entry.planLeft !== null && entry.planLeft > 0 ? `${t("priceOrUnit", { price })} · ${t("unitsLeft", { count: entry.planLeft })}` : `${price} · ${t("fromWallet")}`}
-    </span>
-  );
-}
-
-function RecentLine({ recent }: { recent: { requestId: string; at: string } }) {
-  const t = useTranslations("checks");
-  return (
-    <span className="mt-1 block text-xs font-semibold text-success-fg">
-      {t("recent", { date: formatDate(istDate(new Date(recent.at))) })}{" "}
-      <Link href={`/reports/${recent.requestId}`} className="underline underline-offset-2" onClick={(e) => e.stopPropagation()}>
-        {t("openResult")}
-      </Link>{" "}
-      <span className="font-normal text-muted">{t("rerunCharged")}</span>
-    </span>
   );
 }

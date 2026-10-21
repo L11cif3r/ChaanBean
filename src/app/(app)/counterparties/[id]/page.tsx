@@ -8,6 +8,7 @@ import { can } from "@/lib/permissions";
 import { getContext } from "@/server/context";
 import { caseChecksFor } from "@/server/cases/service";
 import { reportsFor } from "@/server/checks/service";
+import { listTransactions } from "@/server/transactions/service";
 import { counterpartyActivity, getCounterparty } from "@/server/counterparties/service";
 import { AppError } from "@/server/errors";
 
@@ -30,17 +31,18 @@ async function Profile({ params }: { params: PageProps<"/counterparties/[id]">["
   const ctx = await getContext();
   if (!ctx.user || !ctx.orgId) return null; // OrgGate in the layout redirects
   const c = { ...ctx, user: ctx.user, orgId: ctx.orgId };
-  const loaded = await Promise.all([getCounterparty(c, id), counterpartyActivity(c, id), reportsFor(c, id), caseChecksFor(c, id)]).catch((e: unknown) => {
+  const loaded = await Promise.all([getCounterparty(c, id), counterpartyActivity(c, id), reportsFor(c, id), caseChecksFor(c, id), listTransactions(c, { counterpartyId: id })]).catch((e: unknown) => {
     if (e instanceof AppError && e.code === "not_found") notFound();
     throw e;
   });
-  const [profile, activity, reports, cases] = loaded;
+  const [profile, activity, reports, cases, deals] = loaded;
   return (
     <CounterpartyProfile
       profile={profile}
       activity={activity}
       reports={reports}
       cases={cases}
+      deals={deals}
       canManage={can(ctx.role, "counterparty.manage")}
       canRun={can(ctx.role, "check.run")}
     />

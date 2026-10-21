@@ -1,5 +1,6 @@
 import "server-only";
 import crypto from "node:crypto";
+import { MOCK, primary } from "@/server/providers/registry";
 
 // GST portal access for GST turnover (PRD v1.0 5.4 step 4, FR-CON-04). The buyer turns on API access on the GST portal
 // (My Profile, Manage API Access) and gives the GST username; GSTN sends an OTP that the buyer types on our page; the
@@ -38,6 +39,16 @@ export const mockGspProvider: GspProvider = {
   },
 };
 
+/** Real adapters by provider name. Add one here when it is written (docs/PROVIDERS.md); the rest use a slot. */
+const REAL: Record<string, GspProvider> = {};
+
+/** GST portal access for the buyer's consent (PROVIDER_GSP; dummy when unset). A slot answers "GSP not answering". */
 export function gspProvider(): GspProvider {
-  return mockGspProvider;
+  const name = primary("gsp");
+  if (name === MOCK) return mockGspProvider;
+  return REAL[name] ?? {
+    name, isMock: false,
+    requestOtp: async () => ({ ok: false, error: "PROVIDER_DOWN" }),
+    verifyOtp: async () => ({ ok: false, error: "PROVIDER_DOWN" }),
+  };
 }

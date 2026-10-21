@@ -33,15 +33,18 @@ export async function enqueue(kind: string, payload: JSONValue = {}, opts: Enque
     ) as id`;
   if (!row?.id) throw new Error(`Could not queue job ${kind}`);
   if (opts.kick !== false && (!opts.runAt || opts.runAt <= new Date())) kickJobs();
+  // A job due within a few seconds (the v4 cancel window) runs right on time instead of waiting for the next sweep.
+  else if (opts.kick !== false && opts.runAt && opts.runAt.getTime() - Date.now() <= 20_000) kickJobs(opts.runAt.getTime() - Date.now() + 150);
   return row.id;
 }
 
 /** Runs due jobs after the current response is sent. Outside a request (tests, scripts) it runs them now. */
-export function kickJobs() {
+export function kickJobs(delayMs = 0) {
+  const wait = () => (delayMs > 0 ? new Promise((r) => setTimeout(r, delayMs)) : Promise.resolve());
   try {
-    after(() => runDueJobs({ worker: `${WORKER}-after`, max: 10 }).then(() => undefined));
+    after(() => wait().then(() => runDueJobs({ worker: `${WORKER}-after`, max: 10 })).then(() => undefined));
   } catch {
-    void runDueJobs({ worker: `${WORKER}-direct`, max: 10 }).catch(() => undefined);
+    void wait().then(() => runDueJobs({ worker: `${WORKER}-direct`, max: 10 })).catch(() => undefined);
   }
 }
 

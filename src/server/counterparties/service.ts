@@ -39,7 +39,8 @@ export interface CounterpartyRow {
   type: CounterpartyType;
   legalName: string;
   identifier: string;
-  mobile: string;
+  /** Null for a company picked from search with no contact yet (v4). */
+  mobile: string | null;
   upiStatus: UpiStatus;
   city: string | null;
   tags: string[];
@@ -62,13 +63,13 @@ export interface ListQuery {
 }
 
 type DbRow = {
-  id: string; type: CounterpartyType; legal_name: string; gstin: string | null; pan_masked: string | null;
-  mobile_masked: string; upi_status: UpiStatus; city: string | null; tags: string[]; status: "active" | "archived"; created_at: Date;
+  id: string; type: CounterpartyType; legal_name: string; gstin: string | null; pan_masked: string | null; cin?: string | null;
+  mobile_masked: string | null; upi_status: UpiStatus; city: string | null; tags: string[]; status: "active" | "archived"; created_at: Date;
   risk_level?: CounterpartyRow["risk"]; last_checked_at?: Date | null; credit_high_paise?: string | null;
 };
 
 const toRow = (r: DbRow): CounterpartyRow => ({
-  id: r.id, type: r.type, legalName: r.legal_name, identifier: r.gstin ?? r.pan_masked ?? "", mobile: r.mobile_masked,
+  id: r.id, type: r.type, legalName: r.legal_name, identifier: r.gstin ?? r.pan_masked ?? r.cin ?? "", mobile: r.mobile_masked,
   upiStatus: r.upi_status, city: r.city, tags: r.tags, status: r.status, createdAt: r.created_at.toISOString(),
   risk: r.risk_level ?? null, lastCheckedAt: r.last_checked_at?.toISOString() ?? null,
   creditHighPaise: r.credit_high_paise == null ? null : Number(r.credit_high_paise),
@@ -101,7 +102,7 @@ export async function listCounterparties(ctx: Ctx, query: ListQuery) {
     : (query.dir === "asc" ? db`c.created_at asc` : db`c.created_at desc`);
   const [rows, [{ total }], tags] = await Promise.all([
     db<DbRow[]>`
-      select c.id, c.type, c.legal_name, c.gstin, c.pan_masked, c.mobile_masked, c.upi_status, c.city, c.tags, c.status, c.created_at,
+      select c.id, c.type, c.legal_name, c.gstin, c.pan_masked, c.cin, c.mobile_masked, c.upi_status, c.city, c.tags, c.status, c.created_at,
              r.risk_level, r.created_at as last_checked_at, r.credit_high_paise
         from public.counterparties c
         left join lateral (
@@ -244,7 +245,7 @@ export async function createCounterparty(ctx: Ctx, input: z.output<typeof create
   const stateCode = gstin ? gstin.slice(0, 2) : stateCodeFor(input.address.state);
   const whatsapp = input.whatsapp && input.whatsapp !== input.mobile ? input.whatsapp : null;
 
-  // v3 section 5: adding a buyer is charged (CP_ADD: a plan unit if the plan has one, else ₹10 + GST from the wallet).
+  // v3 section 5: adding a buyer is charged (CP_ADD: ₹10 + GST from the wallet).
   // Held before saving so a short wallet stops the save; committed once the buyer is saved, given back if it fails.
   const newId = crypto.randomUUID();
   const hold = await placeHold({
@@ -309,8 +310,8 @@ export interface CounterpartyProfile {
   cin: string | null;
   udyam: string | null;
   iec: string | null;
-  contactName: string;
-  mobile: string;
+  contactName: string | null;
+  mobile: string | null;
   whatsapp: string | null;
   email: string | null;
   address: { line: string; city: string; state: string; pincode: string };
@@ -329,7 +330,7 @@ export async function getCounterparty(ctx: Ctx, id: string): Promise<Counterpart
   if (!/^[0-9a-f-]{36}$/i.test(id)) throw notFound("This counterparty");
   const [r] = await sql()<{
     id: string; type: CounterpartyType; legal_name: string; trade_name: string | null; gstin: string | null; gst_status: string | null;
-    pan_masked: string | null; cin: string | null; udyam: string | null; iec: string | null; contact_name: string; mobile_masked: string;
+    pan_masked: string | null; cin: string | null; udyam: string | null; iec: string | null; contact_name: string | null; mobile_masked: string | null;
     whatsapp_masked: string | null; email_masked: string | null; address: CounterpartyProfile["address"]; state_code: string | null;
     credit_days: number | null; interest_rate_bp: number | null; tags: string[]; notes: string | null; upi_status: UpiStatus;
     upi_name: string | null; upi_checked_at: Date | null; status: "active" | "archived"; archived_at: Date | null; created_at: Date;
@@ -352,13 +353,13 @@ export async function getCounterparty(ctx: Ctx, id: string): Promise<Counterpart
 
 /** Full contact details for the S07 edit form, the one place mobile numbers are not masked (PRD S05 rule). */
 export async function getContactForEdit(ctx: Ctx, id: string) {
-  const [r] = await sql()<{ contact_name: string; mobile_ciphertext: string; whatsapp_ciphertext: string | null; email_ciphertext: string | null; address: CounterpartyProfile["address"]; credit_days: number | null; interest_rate_bp: number | null; tags: string[]; notes: string | null }[]>`
+  const [r] = await sql()<{ contact_name: string | null; mobile_ciphertext: string | null; whatsapp_ciphertext: string | null; email_ciphertext: string | null; address: CounterpartyProfile["address"]; credit_days: number | null; interest_rate_bp: number | null; tags: string[]; notes: string | null }[]>`
     select contact_name, mobile_ciphertext, whatsapp_ciphertext, email_ciphertext, address, credit_days, interest_rate_bp, tags, notes
       from public.counterparties where id = ${id} and org_id = ${ctx.orgId}`;
   if (!r) throw notFound("This counterparty");
   return {
-    contactName: r.contact_name,
-    mobile: decryptField(r.mobile_ciphertext, "counterparties.mobile"),
+    contactName: r.contact_name ?? "",
+    mobile: r.mobile_ciphertext ? decryptField(r.mobile_ciphertext, "counterparties.mobile") : "",
     whatsapp: r.whatsapp_ciphertext ? decryptField(r.whatsapp_ciphertext, "counterparties.whatsapp") : "",
     email: r.email_ciphertext ? decryptField(r.email_ciphertext, "counterparties.email") : "",
     address: r.address,
@@ -382,6 +383,19 @@ export async function updateCounterparty(ctx: Ctx, id: string, patch: z.output<t
   const set: Record<string, unknown> = {};
   const changed: Record<string, unknown> = {};
   const was: Record<string, unknown> = {};
+  if (patch.gstin && patch.gstin !== before.gstin) {
+    if (before.type !== "business_cin" || before.gstin) throw new AppError("conflict", "The GSTIN of this counterparty cannot be changed.");
+    const dupes = await findDuplicates(ctx, { gstin: patch.gstin }, id);
+    if (dupes.length) throw duplicateError(dupes);
+    const gst = await gstFetch(patch.gstin);
+    if (gst.state === "not_found") throw new AppError("validation_failed", "No GST registration found for this GSTIN.", { gstin: "No GST registration found for this GSTIN." });
+    const pan = panFromGstin(patch.gstin);
+    Object.assign(set, {
+      gstin: patch.gstin, gst_status: gst.state === "found" ? gst.gstStatus : null, trade_name: gst.state === "found" ? gst.tradeName : null,
+      pan_hash: blindIndex(pan, "pan"), pan_ciphertext: enc.pan(pan), pan_masked: maskPan(pan),
+    });
+    changed.gstin = patch.gstin; was.gstin = null;
+  }
   if (patch.contactName !== undefined && patch.contactName !== before.contactName) {
     set.contact_name = patch.contactName; changed.contactName = patch.contactName; was.contactName = before.contactName;
   }
@@ -452,9 +466,10 @@ export async function setArchived(ctx: Ctx, id: string, archived: boolean) {
 
 /** Re-runs the UPI lookup for a saved counterparty's mobile and stores the result. */
 export async function recheckUpi(ctx: Ctx, id: string) {
-  const [r] = await sql()<{ mobile_ciphertext: string }[]>`
+  const [r] = await sql()<{ mobile_ciphertext: string | null }[]>`
     select mobile_ciphertext from public.counterparties where id = ${id} and org_id = ${ctx.orgId} and status = 'active'`;
   if (!r) throw notFound("This counterparty");
+  if (!r.mobile_ciphertext) throw new AppError("validation_failed", "Add a mobile number first.", { mobile: "Add a mobile number first." });
   const result = await checkUpi(ctx, decryptField(r.mobile_ciphertext, "counterparties.mobile"));
   await sql()`
     update public.counterparties set upi_status = ${result.status}::public.upi_status, upi_name = ${result.name},

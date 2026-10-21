@@ -4,10 +4,15 @@ import type {
   CibilData, CompanyData, CreditRatingData, CwCode, DirectorData, GstSearchData, IecProfileData, IecTurnoverData, MsmeData,
   PanData, TurnoverData,
 } from "@/lib/checks";
+import { CW_CODES } from "@/lib/checks";
 import { normaliseIdentifier, panFromGstin } from "@/lib/validators";
+import { MOCK, chain, hasLiveProvider } from "@/server/providers/registry";
+import { notConnected } from "@/server/providers/slots";
 import { mockIdentityProvider } from "@/server/providers/identity/mock";
 import { GST_STATES } from "@/server/providers/identity/states";
 import type { ProviderResult } from "@/server/providers/identity";
+import { apisetuCheckProvider } from "./apisetu";
+import { mcaCheckProvider } from "./mca";
 
 // Data providers for the Credit Worthiness checks (PRD v2.0 section 11), behind one interface so a real partner can
 // replace the mock without touching the engine (adapter contract 12.3). Only mocks exist until the keys arrive:
@@ -21,7 +26,7 @@ import type { ProviderResult } from "@/server/providers/identity";
 //   import export record.
 
 export interface CheckSubject {
-  type: "business_gstin" | "business_pan" | "individual";
+  type: "business_gstin" | "business_pan" | "individual" | "business_cin";
   gstin: string | null;
   pan: string | null;
   cin: string | null;
@@ -119,6 +124,13 @@ function company(s: CheckSubject): ProviderResult<CompanyData> & { raw: unknown 
     incorporationDate: `${year}-04-12`,
     companyClass: cin.startsWith("L") ? "Public" : "Private",
     category: "Company limited by shares",
+    subCategory: "Non-government company",
+    listing: cin.startsWith("L") ? "Listed" : "Unlisted",
+    origin: "India",
+    activity: pick(cin, ["Manufacturing (Metals & Chemicals, and products thereof)", "Wholesale trade", "Construction", "Business services"]),
+    nicCode: null,
+    // The registrar office follows the state in the CIN (characters 7 and 8).
+    registrar: `ROC ${({ KA: "Bangalore", MH: "Mumbai", TN: "Chennai", DL: "Delhi", GJ: "Ahmedabad", TG: "Hyderabad", UP: "Kanpur", RJ: "Jaipur", WB: "Kolkata" } as Record<string, string>)[cin.slice(6, 8)] ?? "Delhi"}`,
     authorisedCapitalPaise: 50_00_000_00,
     paidUpCapitalPaise: 25_00_000_00,
     registeredOffice: "Plot 12, Industrial Estate, Main Road",
@@ -278,6 +290,41 @@ export const mockCheckProvider: CheckProvider = {
   },
 };
 
+// ---------------------------------------------------------------- choosing the provider (registry.ts)
+
+/** Real adapters by provider name. Add one here when it is written (docs/PROVIDERS.md); the rest use a slot. */
+const REAL: Record<string, CheckProvider> = { mca: mcaCheckProvider, apisetu: apisetuCheckProvider };
+
+const slot = (name: string): CheckProvider => ({ name, isMock: false, run: async (code) => notConnected(name, code) });
+const adapter = (name: string) => (name === MOCK ? mockCheckProvider : (REAL[name] ?? slot(name)));
+
+/**
+ * The provider for each Credit Worthiness item, as set by PROVIDER_<ITEM CODE> (dummy when unset). With a chain such
+ * as "zoop,surepass", the next provider is tried when one is not available (v3 FR-CW-07); a wrong input is not.
+ */
 export function checkProvider(): CheckProvider {
-  return mockCheckProvider;
+  return {
+    name: "router",
+    get isMock() {
+      return CW_CODES.every((code) => chain(code).every((n) => n === MOCK));
+    },
+    async run(code, subject, opts) {
+      let last: Awaited<ReturnType<CheckProvider["run"]>> | null = null;
+      for (const name of chain(code)) {
+        last = await adapter(name).run(code, subject, opts);
+        if (last.status === "success" || last.status === "no_data" || last.error?.retryable === false) return last;
+      }
+      return last!;
+    },
+  };
+}
+
+/** Sample data mode (v4 section 10): sample data for each check unless a live provider is set up for it (mixed mode). */
+export function checkProviderFor(sample: boolean): CheckProvider {
+  if (!sample) return checkProvider();
+  return {
+    name: "sample",
+    isMock: true,
+    run: (code, subject, opts) => (hasLiveProvider(code) ? checkProvider().run(code, subject, opts) : mockCheckProvider.run(code, subject, opts)),
+  };
 }

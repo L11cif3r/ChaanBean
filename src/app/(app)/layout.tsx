@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { AppShell, type NavGroup } from "@/components/shell/app-shell";
 import { BillingPills } from "@/components/shell/billing-pills";
+import { KycBanner } from "@/components/shell/kyc-banner";
 import { PageSkeleton } from "@/components/shell/page-skeleton";
 import { AccountArea, OrgBadge, OrgGate } from "@/components/shell/signed-in";
 import { ThemeToggle } from "@/components/shell/theme-switch";
@@ -25,12 +26,12 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const topbar = (
     <>
       <div className="hidden items-center gap-2 sm:flex">
-        <Suspense fallback={<Skeleton className="h-11 w-32 rounded-full" />}>
+        <Suspense fallback={<Skeleton className="h-8 w-32" />}>
           <BillingPills />
         </Suspense>
       </div>
       <ThemeToggle />
-      <Suspense fallback={<Skeleton className="h-9 w-9 rounded-full" />}>
+      <Suspense fallback={<Skeleton className="size-8" />}>
         <AccountArea />
       </Suspense>
     </>
@@ -50,10 +51,17 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         closeMenu: t("nav.closeMenu"),
         mainNavigation: t("nav.mainNavigation"),
         skipToContent: t("app.skipToContent"),
+        tagline: t("nav.tagline"),
+        about: { title: t("nav.about.title"), points: t.raw("nav.about.points") as string[] },
       }}
     >
       <Suspense fallback={<PageSkeleton />}>
-        <OrgGate>{children}</OrgGate>
+        <OrgGate>
+          <Suspense fallback={null}>
+            <KycBanner />
+          </Suspense>
+          {children}
+        </OrgGate>
       </Suspense>
     </AppShell>
   );

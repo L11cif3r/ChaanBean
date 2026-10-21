@@ -8,7 +8,9 @@ import { sql } from "@/server/db/sql";
 // is signed in through Supabase's email-and-password method with a server-derived password, so the session, cookies
 // and every other rule are the same as a real OTP sign-in. No message is sent.
 
-export const DEV_TEST_MOBILES = ["9000000001", "9000000002", "9000000003"] as const;
+// 90000 00001 to 00003 are for trying the portal by hand and keep their data; the e2e suite uses 00011 to 00013 and
+// deletes and re-creates them on every run.
+export const DEV_TEST_MOBILES = ["9000000001", "9000000002", "9000000003", "9000000011", "9000000012", "9000000013"] as const;
 export const DEV_TEST_CODE = "123456";
 
 export function devShortcutFor(mobile10: string): boolean {

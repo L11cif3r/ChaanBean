@@ -46,9 +46,6 @@ const nextConfig: NextConfig = {
     },
   },
   // Part 2 replaces this with a sign-in check in src/proxy.ts (signed-out visitors go to /login).
-  async redirects() {
-    return [{ source: "/", destination: "/dashboard", permanent: false }];
-  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

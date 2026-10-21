@@ -1,68 +1,85 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
-import { ArrowLeftRight, Handshake, Scale, ShieldCheck, Sparkles } from "lucide-react";
+import { BadgeCheck, FileSignature, Handshake, Lock, Scale, ShieldCheck, Sparkles, Store } from "lucide-react";
+import { Carousel, Tag, type Tone } from "@/components/ui";
 import { LoginForm } from "./login-form";
 
-// S01: sign in or start sign-up with a mobile number and a one-time password.
+// S01: sign in or start sign-up with a mobile number and a one-time password. Split layout: the brand panel with an
+// auto-playing benefit carousel on the left (desktop), the form on the right. On phones the form comes first and a
+// compact carousel follows it.
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("screens");
   return { title: t("S01.title") };
 }
 
-const MODULES = [
-  { key: "creditCheck", icon: ShieldCheck },
-  { key: "caseCheck", icon: Scale },
-  { key: "transactions", icon: ArrowLeftRight },
-  { key: "settlements", icon: Handshake },
+const SLIDES = [
+  { key: "creditCheck", icon: ShieldCheck, tone: "success" },
+  { key: "caseCheck", icon: Scale, tone: "info" },
+  { key: "transactions", icon: FileSignature, tone: "success" },
+  { key: "settlements", icon: Handshake, tone: "warning" },
+] as const satisfies readonly { key: string; icon: unknown; tone: Tone }[];
+
+const TRUST = [
+  { key: "trustOtp", icon: Lock },
+  { key: "trustEncrypted", icon: BadgeCheck },
+  { key: "trustIndia", icon: Store },
 ] as const;
 
 export default async function LoginPage() {
   const t = await getTranslations("login");
   return (
-    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-start lg:gap-8">
-      {/* Brand panel: beside the form on desktop, below it on phones (as on the redesigned site). */}
+    <div className="grid grid-cols-1 gap-5 lg:min-h-[calc(100dvh-190px)] lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center lg:gap-10">
+      {/* Brand panel: beside the form on desktop, a compact carousel under it on phones. */}
       <aside
         aria-label={t("asideLabel")}
-        className="bg-brand relative isolate order-2 flex flex-col gap-[26px] overflow-hidden rounded-[28px] px-[22px] py-7 text-white shadow-[0_30px_60px_-34px_rgba(255,82,0,0.75)] sm:px-9 sm:py-10 lg:order-none lg:px-11 lg:pb-10 lg:pt-11 dark:bg-[linear-gradient(160deg,#2a1206_0%,#0b0b0b_55%)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
+        className="relative isolate order-2 overflow-hidden rounded-2xl border border-border bg-surface p-4 shadow-sm sm:p-6 lg:order-none lg:rounded-3xl lg:p-10"
       >
-        <span
-          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(rgba(255,255,255,0.16)_1.2px,transparent_1.2px)] bg-[length:22px_22px] [mask-image:linear-gradient(200deg,#000_0%,transparent_60%)]"
-          aria-hidden="true"
-        />
-        <div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/35 bg-white/15 px-[13px] py-1.5 text-[0.78rem] font-bold">
-            <Sparkles size={14} aria-hidden="true" /> {t("asideChip")}
+        <span className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+          <span className="absolute inset-0 bg-soft" />
+          <span className="animate-drift absolute -left-24 -top-28 size-80 rounded-full bg-[radial-gradient(circle,rgba(255,122,26,0.26),transparent_65%)] blur-2xl" />
+          <span className="animate-drift-back absolute -bottom-32 -right-20 size-96 rounded-full bg-[radial-gradient(circle,rgba(180,92,255,0.2),transparent_65%)] blur-2xl" />
+          <span className="absolute inset-0 bg-[radial-gradient(var(--dot)_1px,transparent_1px)] bg-[length:18px_18px] [mask-image:radial-gradient(ellipse_at_top_left,#000_10%,transparent_70%)]" />
+        </span>
+
+        <div className="hidden lg:block">
+          <span className="animate-rise inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1 text-xs font-semibold text-text-2 shadow-sm backdrop-blur">
+            <Sparkles size={13} className="text-primary-text" aria-hidden="true" /> {t("asideChip")}
           </span>
-          <p className="mt-[18px] text-[clamp(1.75rem,1.15rem+2.1vw,2.75rem)] font-extrabold leading-[1.22] tracking-[-0.032em] [text-wrap:balance]">
-            {t.rich("asideTitle", {
-              accent: (chunks) => <span className="text-[#1f0c00] dark:text-[#ff7a1f]">{chunks}</span>,
-            })}
+          <p className="animate-rise mt-5 font-head text-[clamp(2rem,1.2rem+2vw,2.9rem)] font-extrabold leading-[1.08] tracking-[-0.035em] text-text [animation-delay:60ms] [text-wrap:balance]">
+            {t.rich("asideTitle", { accent: (c) => <span className="text-gradient">{c}</span> })}
           </p>
-          <p className="mt-3.5 max-w-[470px] text-[1.02rem] leading-relaxed text-white/90">{t("asideLead")}</p>
+          <p className="animate-rise mt-3 max-w-md text-[15px] text-muted [animation-delay:120ms]">{t("asideLead")}</p>
         </div>
-        <div className="rounded-[20px] border border-white/25 bg-white/10 p-4 dark:border-white/10 dark:bg-white/5">
-          <span className="mb-2.5 block text-[0.7rem] font-extrabold uppercase tracking-[0.16em] text-white/85">{t("loginFor")}</span>
-          <ul className="grid grid-cols-2 gap-2">
-            {MODULES.map(({ key, icon: Icon }) => (
-              <li
-                key={key}
-                className="flex min-w-0 items-center gap-2.5 rounded-[14px] bg-white/15 px-2.5 py-2 text-[0.88rem] font-bold leading-tight dark:bg-white/5"
-              >
-                <span
-                  className="dark:bg-brand inline-flex h-[30px] w-[30px] flex-none items-center justify-center rounded-[10px] bg-white text-[#e64a00] dark:text-white"
-                  aria-hidden="true"
-                >
-                  <Icon size={16} />
+
+        <p className="mb-3 text-[11px] font-semibold uppercase leading-none tracking-[1.2px] text-subtle lg:mb-3.5 lg:mt-8">{t("loginFor")}</p>
+        <Carousel label={t("slidesLabel")} autoPlay={4500} slide="basis-[88%] sm:basis-[60%] lg:basis-full" controls="dots" className="animate-rise [animation-delay:180ms]">
+          {SLIDES.map(({ key, icon: Icon, tone }) => (
+            <div key={key} className="flex h-full items-center gap-3.5 rounded-2xl border border-border bg-surface/90 p-4 shadow-sm backdrop-blur lg:p-5">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand text-white shadow-orange lg:size-12" aria-hidden="true">
+                <Icon size={20} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+                  <span className="font-head text-[15px] font-bold text-text lg:text-base">{t(`modules.${key}`)}</span>
+                  <Tag tone={tone}>{t(`slides.${key}.tag`)}</Tag>
                 </span>
-                {t(`modules.${key}`)}
-              </li>
-            ))}
-          </ul>
-        </div>
+                <span className="mt-0.5 block text-[13px] leading-snug text-muted">{t(`slides.${key}.line`)}</span>
+              </span>
+            </div>
+          ))}
+        </Carousel>
+
+        <ul className="mt-6 hidden flex-wrap gap-x-5 gap-y-2 text-[13px] font-semibold text-text-2 lg:flex">
+          {TRUST.map(({ key, icon: Icon }) => (
+            <li key={key} className="inline-flex items-center gap-1.5">
+              <Icon size={15} className="text-primary-text" aria-hidden="true" /> {t(key)}
+            </li>
+          ))}
+        </ul>
       </aside>
 
-      <div className="min-w-0">
+      <div className="mx-auto w-full min-w-0 max-w-md lg:max-w-none">
         <Suspense>
           <LoginForm />
         </Suspense>

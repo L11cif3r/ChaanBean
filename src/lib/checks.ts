@@ -47,15 +47,18 @@ export interface CheckIdentifiers {
   cin: string | null;
   udyam: string | null;
   iec: string | null;
+  /** v4: a buyer picked from search may have no contact yet; checks that need the buyer's OTP wait for one. */
+  hasMobile?: boolean;
 }
 
 /** Why a check cannot run for this counterparty, or null when it can (v3 6.5: disabled with a reason). */
 export function unavailableReason(code: CwCode, id: CheckIdentifiers): string | null {
   const business = id.type !== "individual";
+  if (id.hasMobile === false && CW_CHECKS.find((c) => c.code === code)?.consent && code !== "CW_CIBIL_PERSONAL") return "needsContact";
   switch (code) {
     case "CW_GST_SEARCH": return id.gstin || id.pan ? null : "needsGstinOrPan";
     case "CW_GST_TURNOVER_CY":
-    case "CW_GST_TURNOVER_4Y": return id.type === "business_gstin" ? null : "needsGstin";
+    case "CW_GST_TURNOVER_4Y": return id.gstin ? null : "needsGstin";
     case "CW_CIBIL_COMPANY": return business ? null : "businessOnly";
     case "CW_CIBIL_PERSONAL": return null; // the person's details are entered with the choice
     case "CW_MSME": return id.udyam || id.pan ? null : "needsUdyamOrPan";
@@ -83,6 +86,11 @@ export interface GstSearchData {
   /** GSTR-3B for the last 12 months, newest first. */
   filings: { period: string; filed: boolean; onTime: boolean }[];
   lastReturnPeriod: string | null;
+  /** From API Setu (v4): nature of business, e-invoicing, other places of business, tax office. */
+  natureOfBusiness?: string[];
+  eInvoice?: boolean | null;
+  otherPlaces?: number;
+  jurisdiction?: string | null;
 }
 
 export interface CompanyData {
@@ -98,6 +106,17 @@ export interface CompanyData {
   lastAgmDate: string | null;
   lastBalanceSheetDate: string | null;
   charges: { holder: string; amountPaise: number; status: "Open" | "Satisfied"; createdOn: string }[];
+  /** False when the source has no charge (loan) data, such as MCA open data (v4). */
+  chargesKnown?: boolean;
+  /** MCA open data: when MCA last refreshed the record (FR-RP-04). */
+  datasetDate?: string;
+  /** More from the MCA master data: sub-category, listed or not, Indian or foreign, business activity, registrar office. */
+  subCategory?: string | null;
+  listing?: string | null;
+  origin?: string | null;
+  activity?: string | null;
+  nicCode?: string | null;
+  registrar?: string | null;
 }
 
 export interface DirectorData {
@@ -165,3 +184,57 @@ export interface IecTurnoverData {
 }
 
 export type CheckData = GstSearchData | CompanyData | DirectorData | CreditRatingData | TurnoverData | CibilData | MsmeData | PanData | IecProfileData | IecTurnoverData;
+
+// ---------------------------------------------------------------- turnover chart (v4 FR-RP-01 to 05)
+
+const MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** Years oldest first with short labels (FY 2023-24), and the current year's months for the monthly view. */
+export function turnoverSeries(d: TurnoverData) {
+  const years = [...d.years].sort((a, b) => a.fy.localeCompare(b.fy)).map((y) => ({ ...y, label: `FY ${y.fy}` }));
+  const cur = years.find((y) => y.partial) ?? null;
+  return {
+    years,
+    current: cur ? { label: cur.label, months: cur.months.map((m) => ({ label: MONTH[Number(m.month.slice(5, 7)) - 1] ?? m.month, turnoverPaise: m.turnoverPaise })) } : null,
+  };
+}
+
+/** Year-on-year change in whole per cent, or null when the earlier year is zero. */
+export const yoyChange = (before: number, after: number) => (before > 0 ? Math.round(((after - before) / before) * 100) : null);
+
+/** The same bar chart as an SVG string, for the report PDF (FR-RP-05). */
+export function turnoverBarsSvg(d: TurnoverData, fmt: (paise: number) => string): string {
+  const { years } = turnoverSeries(d);
+  const W = 560, H = 220, pad = 24, gap = 14;
+  const max = Math.max(1, ...years.map((y) => y.turnoverPaise));
+  const bw = (W - 2 * pad - gap * (years.length - 1)) / Math.max(1, years.length);
+  const bars = years.map((y, i) => {
+    const h = Math.max(4, (y.turnoverPaise / max) * 130);
+    const x = pad + i * (bw + gap);
+    const top = H - 34 - h;
+    const change = i > 0 && !y.partial ? yoyChange(years[i - 1].turnoverPaise, y.turnoverPaise) : null;
+    return `<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="6" fill="${y.partial ? "#fdc9a0" : "#fc8019"}"/>`
+      + `<text x="${(x + bw / 2).toFixed(1)}" y="${(top - 6).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="#171717">${fmt(y.turnoverPaise)}</text>`
+      + (change === null ? "" : `<text x="${(x + bw / 2).toFixed(1)}" y="${(top - 22).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="700" fill="${change >= 0 ? "#047857" : "#e11d48"}">${change >= 0 ? "▲" : "▼"} ${Math.abs(change)}%</text>`)
+      + `<text x="${(x + bw / 2).toFixed(1)}" y="${H - 14}" text-anchor="middle" font-size="11" fill="#666">${y.label}${y.partial ? " (so far)" : ""}</text>`;
+  });
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" role="img">${bars.join("")}</svg>`;
+}
+
+// ---------------------------------------------------------------- section source (v4 FR-RP-04)
+
+const PROVIDER_NAMES: Record<string, string> = {
+  apisetu: "API Setu", mca: "MCA open data", surepass: "Surepass", setu: "Setu", finagg: "Finagg", vayana: "Vayana", cibil: "CIBIL",
+  crif: "CRIF", experian: "Experian", zoop: "Zoop", gridlines: "Gridlines", cashfree: "Cashfree", volza: "Volza", eximpedia: "Eximpedia",
+  probe42: "Probe42", signzy: "Signzy", legalkart: "LegalKart", authbridge: "AuthBridge", idfy: "IDfy", hyperverge: "HyperVerge",
+};
+export const providerName = (p: string | null | undefined) => (p ? PROVIDER_NAMES[p] ?? p : "");
+
+/** Message key (report.src.*) and values for a section's source line: "GST (API Setu), 20 Oct 13:51". */
+export function sourceLine(provider: string | null | undefined, time: string, data?: unknown): { key: string; values: Record<string, string> } {
+  if (!provider || provider.startsWith("mock")) return { key: "sample", values: { time } };
+  const dataset = (data as { datasetDate?: string } | null | undefined)?.datasetDate;
+  if (provider === "mca") return dataset ? { key: "mca", values: { date: dataset } } : { key: "live", values: { provider: providerName(provider), time } };
+  return { key: "live", values: { provider: providerName(provider), time } };
+}
+

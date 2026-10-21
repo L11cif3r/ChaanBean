@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Mail, MailCheck, MailX } from "lucide-react";
 import { Button, Card, CardBody } from "@/components/ui";
 import { api } from "@/lib/api-client";
 
@@ -25,17 +26,29 @@ export function ConfirmEmail() {
   }
 
   return (
-    <Card>
-      <CardBody className="space-y-4">
-        <h1 className="text-lg font-bold text-text">{t("title")}</h1>
+    <Card className="animate-rise">
+      <CardBody className="flex flex-col items-center px-6 py-9 text-center">
+        <span
+          className={
+            state === "done"
+              ? "flex size-12 items-center justify-center rounded-2xl bg-success-bg text-success-fg"
+              : state === "error"
+                ? "flex size-12 items-center justify-center rounded-2xl bg-danger-bg text-danger-fg"
+                : "flex size-12 items-center justify-center rounded-2xl bg-brand text-white shadow-orange"
+          }
+          aria-hidden="true"
+        >
+          {state === "done" ? <MailCheck size={22} /> : state === "error" ? <MailX size={22} /> : <Mail size={22} />}
+        </span>
+        <h1 className="mt-4 font-head text-[1.35rem] font-extrabold tracking-[-0.02em] text-text">{t("title")}</h1>
         {state === "done" || state === "error" ? (
-          <p role="status" className={state === "done" ? "text-sm text-success-fg" : "text-sm text-danger-fg"}>
+          <p role="status" className={state === "done" ? "mt-1.5 text-sm font-semibold text-success-fg" : "mt-1.5 text-sm font-semibold text-danger-fg"}>
             {message}
           </p>
         ) : (
           <>
-            <p className="text-sm text-muted">{t("body")}</p>
-            <Button className="w-full" onClick={() => void confirm()} loading={state === "busy"} disabled={token.length < 20}>
+            <p className="mt-1.5 text-sm text-muted">{t("body")}</p>
+            <Button className="mt-5 w-full" onClick={() => void confirm()} loading={state === "busy"} disabled={token.length < 20}>
               {t("confirm")}
             </Button>
           </>

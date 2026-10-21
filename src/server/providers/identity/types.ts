@@ -27,6 +27,11 @@ export interface GstTaxpayer {
   stateName: string;
   taxpayerType: string;
   address: { line: string; city: string; state: string; pincode: string };
+  /** API Setu extras (v4): what the business does, e-invoicing, other places of business, tax office. */
+  natureOfBusiness?: string[];
+  eInvoice?: boolean | null;
+  otherPlaces?: number;
+  jurisdiction?: string | null;
 }
 
 export interface PanResult {

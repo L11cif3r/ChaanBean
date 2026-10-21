@@ -103,11 +103,11 @@ async function sendInvite(ctx: Ctx, invitationId: string, token: string, origin:
   const link = `${origin}/invite/${token}`;
   const mobile = decryptField(inv.mobile_ciphertext, "invitations.mobile");
   const body = `${inv.legal_name} invited you to Chaanbean as ${inv.role}. Accept within ${INVITE_DAYS} days: ${link}`;
-  await queueMessage({ orgId: ctx.orgId, channel: "sms", recipientMasked: maskMobile(mobile), template: "user_invited", body });
+  await queueMessage({ orgId: ctx.orgId, channel: "sms", recipientMasked: maskMobile(mobile), to: mobile, template: "user_invited", body });
   if (inv.email_ciphertext) {
     const email = decryptField(inv.email_ciphertext, "invitations.email");
     await queueMessage({
-      orgId: ctx.orgId, channel: "email", recipientMasked: maskEmail(email), template: "user_invited",
+      orgId: ctx.orgId, channel: "email", recipientMasked: maskEmail(email), to: email, template: "user_invited",
       subject: `${inv.legal_name} invited you to Chaanbean`, body,
     });
   }

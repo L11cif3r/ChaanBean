@@ -1,10 +1,22 @@
 import "server-only";
+import { MOCK, primary } from "@/server/providers/registry";
+import { notConnected } from "@/server/providers/slots";
+import { apisetuIdentityProvider } from "./apisetu";
 import { mockIdentityProvider } from "./mock";
 import type { IdentityProvider } from "./types";
 
 export type { GstTaxpayer, IdentityProvider, PanResult, ProviderResult } from "./types";
 
-/** The configured identity provider (IDENTITY_PROVIDER). Only the mock exists until Part 5 adds real ones. */
+/** Real adapters by provider name. Add one here when it is written (docs/PROVIDERS.md); the rest use a slot. */
+const REAL: Record<string, IdentityProvider> = { apisetu: apisetuIdentityProvider };
+
+/** Sign-up GST search and PAN check (PROVIDER_IDENTITY; dummy when unset). */
 export function identityProvider(): IdentityProvider {
-  return mockIdentityProvider;
+  const name = primary("identity");
+  if (name === MOCK) return mockIdentityProvider;
+  return REAL[name] ?? {
+    name, isMock: false,
+    searchGstin: async () => notConnected(name, "GST search"),
+    verifyPan: async () => notConnected(name, "PAN check"),
+  };
 }

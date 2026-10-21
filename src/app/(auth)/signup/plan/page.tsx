@@ -14,11 +14,13 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page(props: PageProps<"/signup/plan">) {
   const t = await getTranslations("billing.choose");
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div className="space-y-3">
-        <h1 className="text-xl font-bold text-text sm:text-2xl">{t("title")}</h1>
+    <div className="mx-auto max-w-5xl space-y-5">
+      <div className="mx-auto max-w-2xl">
         <SignupSteps current={3} />
       </div>
+      <h1 className="animate-rise text-center font-head text-[1.6rem] font-extrabold leading-tight tracking-[-0.03em] text-text sm:text-left sm:text-[1.9rem]">
+        {t.rich("titleRich", { accent: (c) => <span className="text-gradient">{c}</span> })}
+      </h1>
       <Suspense fallback={<PageSkeleton />}>
         <PlanPageContent searchParams={props.searchParams} returnTo="signup" />
       </Suspense>
