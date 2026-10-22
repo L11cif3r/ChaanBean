@@ -506,7 +506,7 @@ test.describe("counterparties", () => {
     await page.locator("aside").getByRole("button", { name: /^Run search/ }).click();
     await expect(page).toHaveURL(/\/cases\/[0-9a-f-]{36}$/);
 
-    const rows = page.locator("tbody tr");
+    const rows = page.locator("[data-match]"); // match cards (v2)
     await expect(rows).toHaveCount(3);
     await expect(rows.first().getByText("High")).toBeVisible();
     await expect(page.getByText(/No records found for the details given\. This does not prove there are none\. Charged/)).toBeVisible();

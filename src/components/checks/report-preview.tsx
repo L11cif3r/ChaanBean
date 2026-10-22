@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, CheckCircle2, Eye } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import { Carousel } from "@/components/ui/carousel";
 import { formatInrShort } from "@/lib/money";
@@ -62,16 +62,59 @@ export function ExampleBadge({ className }: { className?: string }) {
  */
 export function GhostSection({ k, ex, title, note, action, tone = "neutral" }: { k: PreviewKey; ex: ExampleReport; title: ReactNode; note: ReactNode; action?: ReactNode; tone?: "neutral" | "warning" }) {
   return (
-    <div className="relative min-h-56 overflow-hidden">
+    <MockReveal title={title} note={note} action={action} tone={tone}>
+      <ExampleBody k={k} ex={ex} />
+    </MockReveal>
+  );
+}
+
+/**
+ * Interactive mock view for data that is not there: a faded example under a note, with "See example" to open it.
+ * Opened, the example is fully usable (chart views, expanders, buttons) inside a dashed "Example" frame, and nothing
+ * it does is saved. Closed, it is inert and hidden from screen readers.
+ */
+export function MockReveal({ children, title, note, action, tone = "neutral", minHeight = "min-h-56" }: {
+  children: ReactNode; title: ReactNode; note: ReactNode; action?: ReactNode; tone?: "neutral" | "warning"; minHeight?: string;
+}) {
+  const tp = useTranslations("report.preview");
+  const [open, setOpen] = useState(false);
+  if (open) {
+    return (
+      <div className="animate-[cb-fade-up_0.25s_ease-out_both] overflow-hidden rounded-2xl border border-dashed border-primary-line bg-primary-softer/60">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-dashed border-primary-line bg-surface/70 px-3 py-2">
+          <span className="flex items-center gap-2 text-xs text-muted">
+            <ExampleBadge />
+            {tp("tryIt")}
+          </span>
+          <button type="button" onClick={() => setOpen(false)} className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-text-2 hover:bg-hover">
+            <EyeOff size={14} aria-hidden="true" /> {tp("hide")}
+          </button>
+        </div>
+        <div className="space-y-4 p-3 text-sm">{children}</div>
+        {action ? <div className="flex justify-center border-t border-dashed border-primary-line bg-surface/70 px-3 py-2.5">{action}</div> : null}
+      </div>
+    );
+  }
+  return (
+    <div className={cn("relative overflow-hidden rounded-2xl", minHeight)}>
       <div aria-hidden="true" inert className="pointer-events-none max-h-72 select-none overflow-hidden opacity-45 blur-[1.5px] saturate-[0.4] [mask-image:linear-gradient(180deg,#000_45%,transparent)]">
-        <ExampleBody k={k} ex={ex} />
+        {children}
       </div>
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className={cn("w-full max-w-sm rounded-lg bg-surface/95 p-3.5 text-center shadow-md backdrop-blur", tone === "warning" && "ring-1 ring-warning/30")}>
+        <div className={cn("w-full max-w-sm rounded-2xl bg-surface/95 p-4 text-center shadow-md backdrop-blur", tone === "warning" && "ring-1 ring-warning/30")}>
           <ExampleBadge />
-          <p className="mt-2 text-sm font-medium text-text">{title}</p>
+          <p className="mt-2 font-head text-sm font-bold text-text">{title}</p>
           <p className="mt-1 text-xs leading-relaxed text-muted">{note}</p>
-          {action ? <div className="mt-3 flex justify-center">{action}</div> : null}
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-brand px-3 text-[13px] font-semibold text-white shadow-orange transition-[filter,scale] duration-150 hover:brightness-105 active:scale-[0.97]"
+            >
+              <Eye size={15} aria-hidden="true" /> {tp("see")}
+            </button>
+            {action}
+          </div>
         </div>
       </div>
     </div>
