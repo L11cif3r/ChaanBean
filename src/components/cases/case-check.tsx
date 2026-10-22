@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Check, ChevronDown, Gavel, ShieldAlert, Siren } from "lucide-react";
+import { Check, ChevronDown, Crown, Gavel, Minus, Play, ShieldAlert, Siren } from "lucide-react";
 import { CompanySearch, type CompanyOption } from "@/components/checks/company-search";
-import { Button, Card, CardBody, CardHeader, FormField, GradientText, Input, PageHeader, Select, Skeleton, Textarea } from "@/components/ui";
+import { Button, Card, CardBody, CardHeader, Carousel, FormField, GradientText, Input, PageHeader, Select, Skeleton, Textarea } from "@/components/ui";
 import { CaseStart } from "./case-start";
 import { cn } from "@/components/ui/cn";
 import { useToast } from "@/components/ui/toast";
@@ -197,6 +197,16 @@ export function CaseCheck({ buyers: saved, initialBuyer }: { buyers: CompanyOpti
   }
 
   const ready = buyer && catalogue?.counterparty.id === buyer && form;
+  const priceOf = (codes: CcCode[]) => codes.reduce((sum, code) => {
+    const c = catalogue?.checks.find((x) => x.code === code);
+    return sum + (c?.pricePaise ?? 0) + (c?.gstPaise ?? 0);
+  }, 0);
+  const pkgCodes = (k: CasePackage) => CASE_PACKAGES[k].filter((code) => available.some((c) => c.code === code));
+  const same = (x: CcCode[], y: CcCode[]) => x.length === y.length && [...x].sort().join() === [...y].sort().join();
+  const activePackage = selected.length ? (Object.keys(CASE_PACKAGES) as CasePackage[]).find((k) => same(pkgCodes(k), selected)) ?? null : null;
+
+  // Before a company is chosen: the start page with the search and an example result to try.
+  if (!buyer) return <CaseStart companies={buyers} onPick={choose} />;
 
   return (
     <div className="space-y-5 pb-28 lg:pb-0">
@@ -204,27 +214,118 @@ export function CaseCheck({ buyers: saved, initialBuyer }: { buyers: CompanyOpti
 
       <Card>
         <CardBody>
-          <FormField id="buyer" label={t("buyer")} hint={t("buyerHint")}>
-            <CompanySearch companies={buyers} value={buyer} onChange={pending ? () => undefined : choose} />
-          </FormField>
+          <label htmlFor="buyer" className="sr-only">{t("buyer")}</label>
+          <CompanySearch companies={buyers} value={buyer} onChange={pending ? () => undefined : choose} />
         </CardBody>
       </Card>
 
-      {!buyer ? <CaseStart /> : null}
-      {buyer && !ready ? <Skeleton className="h-96 w-full" /> : null}
-
-      {ready ? (
+      {!ready ? (
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_21rem]" aria-hidden="true">
+          <div className="grid gap-3 sm:grid-cols-3"><Skeleton className="h-48" /><Skeleton className="h-48" /><Skeleton className="h-48" /></div>
+          <Skeleton className="h-64 w-full" />
+        </div>
+      ) : (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_21rem]">
           <fieldset disabled={Boolean(pending)} className="@container/checks min-w-0 space-y-4">
+            <legend className="sr-only">{t("pkg.title")}</legend>
+            <div className="flex items-end justify-between gap-3">
+              <h2 className="font-head text-lg font-bold text-text">{t("pkg.title")}</h2>
+              <button type="button" onClick={() => setPicked(Object.fromEntries(available.map((c) => [c.code, true])))} className="text-[13px] font-semibold text-primary-text hover:underline">
+                {t("pickAll")}
+              </button>
+            </div>
+            <Carousel label={t("pkg.title")} slide="basis-[82%] sm:basis-[calc((100%-0.75rem)/2)] 2xl:basis-[calc((100%-1.5rem)/3)]" controls="dots">
+              {(Object.keys(CASE_PACKAGES) as CasePackage[]).map((k) => {
+                const codes = pkgCodes(k);
+                const on = activePackage === k;
+                const missing = CASE_PACKAGES[k].length - codes.length;
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    aria-pressed={on}
+                    disabled={!codes.length}
+                    onClick={() => setPicked(Object.fromEntries(codes.map((c) => [c, true])))}
+                    className={cn(
+                      "relative flex h-full w-full flex-col rounded-2xl border p-4 text-left transition-[border-color,box-shadow,translate,background-color] duration-200 enabled:hover:-translate-y-0.5 disabled:opacity-50",
+                      on ? "border-transparent bg-surface shadow-[0_0_0_2px_var(--primary),0_14px_32px_-14px_rgb(252_106_16/0.55)]" : "border-border bg-surface shadow-sm hover:border-primary-line hover:shadow-md",
+                    )}
+                  >
+                    {k === "standard" ? <span className="absolute -top-2.5 right-3 rounded-full bg-brand px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide text-white shadow-orange">{tc("pkg.popular")}</span> : null}
+                    <span className="flex items-center justify-between gap-2">
+                      <span className={cn("flex size-9 items-center justify-center rounded-xl", on ? "bg-brand text-white" : "bg-soft text-primary-text")} aria-hidden="true">
+                        {k === "court" ? <Gavel size={17} /> : k === "standard" ? <ShieldAlert size={17} /> : <Crown size={17} />}
+                      </span>
+                      <span className={cn("flex size-5 items-center justify-center rounded-full border-2", on ? "border-primary bg-primary text-white" : "border-border-strong")} aria-hidden="true">
+                        {on ? <Check size={12} strokeWidth={3.5} /> : null}
+                      </span>
+                    </span>
+                    <span className="mt-3 font-head text-base font-extrabold text-text">{t(`pkg.${k}.name`)}</span>
+                    <span className="mt-0.5 text-[12.5px] leading-snug text-muted">{t(`pkg.${k}.line`)}</span>
+                    <span className="mt-3 flex flex-wrap gap-1">
+                      {codes.map((c) => <span key={c} className="rounded-md bg-surface-strong px-1.5 py-0.5 text-[10.5px] font-semibold text-text-2">{t(`short.${c}`)}</span>)}
+                    </span>
+                    <span className="mt-auto flex items-end justify-between gap-2 pt-4">
+                      <span className="font-head text-2xl font-extrabold tracking-tight text-gradient">{formatInr(BigInt(Math.round(priceOf(codes))))}</span>
+                      <span className="text-right text-[11px] leading-tight text-subtle">
+                        {tc("pkg.count", { count: codes.length })}
+                        {missing > 0 ? <span className="block">{tc("pkg.missing", { count: missing })}</span> : null}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </Carousel>
+
             <Card>
-              <CardHeader title={t("searchTitle")} />
+              <CardHeader title={t("pickOwn")} action={<span className="text-xs text-subtle">{tc("pkg.tapToToggle")}</span>} />
+              <CardBody className="grid gap-2 @xl/checks:grid-cols-3">
+                {catalogue.checks.map((c) => {
+                  const off = Boolean(c.disabled) || (c.code === "CC_FIR" && firOff);
+                  const on = Boolean(picked[c.code]) && !off;
+                  const Icon = c.code === "CC_FIR" ? Siren : c.code === "CC_AML" ? ShieldAlert : Gavel;
+                  return (
+                    <label
+                      key={c.code}
+                      title={c.code === "CC_FIR" ? (firOff ? t("firNotCovered") : t("firCovered", { states: FIR_STATES.map((st) => GST_STATES[st]).join(", ") })) : t(`desc.${c.code}`)}
+                      className={cn(
+                        "relative flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-[border-color,background-color,box-shadow,scale] duration-150 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring active:scale-[0.98]",
+                        off ? "cursor-not-allowed border-dashed border-border bg-surface-muted opacity-60" : on ? "border-primary/60 bg-primary-softer shadow-[0_0_0_3px_var(--primary-soft)]" : "border-border bg-surface hover:border-border-strong",
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        className="absolute inset-0 z-10 size-full cursor-pointer appearance-none rounded-[inherit] opacity-0"
+                        checked={on}
+                        disabled={off}
+                        onChange={(e) => setPicked((p) => ({ ...p, [c.code]: e.target.checked }))}
+                        aria-label={c.name}
+                        aria-describedby={`${c.code}-desc`}
+                      />
+                      <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors", on ? "bg-brand text-white" : "bg-surface-strong text-muted")} aria-hidden="true">
+                        {on ? <Check size={16} strokeWidth={3} /> : <Icon size={16} />}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[13px] font-semibold text-text">{c.name}</span>
+                        <span id={`${c.code}-desc`} className={cn("block truncate text-[11.5px]", c.code === "CC_FIR" && firOff ? "font-semibold text-warning-fg" : "text-subtle")}>
+                          {c.code === "CC_FIR" ? (firOff ? t("firNotCoveredShort") : t("firCovered", { states: FIR_STATES.map((st) => GST_STATES[st]).join(", ") })) : t(`descShort.${c.code}`)}
+                        </span>
+                      </span>
+                      <span className={cn("shrink-0 text-[13px] font-bold tabular-nums", on ? "text-primary-text" : "text-text-2")}>{c.pricePaise === null ? "—" : formatInr(BigInt(c.pricePaise))}</span>
+                    </label>
+                  );
+                })}
+              </CardBody>
+            </Card>
+
+            <Card>
+              <CardHeader title={t("searchTitle")} action={<span className="text-xs text-subtle">{t("searchLeadShort")}</span>} />
               <CardBody className="space-y-4">
-                <p className="text-xs text-muted">{t("searchLeadShort")}</p>
                 <div className="grid gap-4 @lg/checks:grid-cols-2">
                   <FormField id="cc-name" label={t("name")} required error={errors.name}>
                     <Input id="cc-name" value={form.name} maxLength={120} invalid={Boolean(errors.name)} onChange={(e) => set({ name: e.target.value })} />
                   </FormField>
-                  <FormField id="cc-relative" label={`${t("relativeName")} (${t("optional")})`} hint={t("relativeHint")} error={errors.relativeName}>
+                  <FormField id="cc-relative" label={`${t("relativeName")} (${t("optional")})`} error={errors.relativeName}>
                     <Input id="cc-relative" value={form.relativeName} maxLength={80} invalid={Boolean(errors.relativeName)} onChange={(e) => set({ relativeName: e.target.value })} />
                   </FormField>
                   <FormField id="cc-state" label={t("stateLabel")} required error={errors.state}>
@@ -246,102 +347,53 @@ export function CaseCheck({ buyers: saved, initialBuyer }: { buyers: CompanyOpti
                   <summary className="flex cursor-pointer list-none items-center justify-between text-[13px] font-semibold text-text-2">
                     {t("moreDetails")} <ChevronDown size={15} className="transition-transform group-open:rotate-180" aria-hidden="true" />
                   </summary>
-                <div className="mt-3 grid gap-4 @2xl/checks:grid-cols-3">
-                  <FormField id="cc-pan" label={`${t("pan")} (${t("optional")})`} hint={catalogue.defaults.panOnFile ? t("onFile", { value: catalogue.defaults.panOnFile }) : undefined} error={errors.pan}>
-                    <Input id="cc-pan" value={form.pan} maxLength={10} className="font-mono uppercase" invalid={Boolean(errors.pan)} onChange={(e) => set({ pan: e.target.value.toUpperCase() })} />
-                  </FormField>
-                  <FormField id="cc-mobile" label={`${t("mobile")} (${t("optional")})`} hint={catalogue.defaults.mobileOnFile ? t("onFile", { value: catalogue.defaults.mobileOnFile }) : undefined} error={errors.mobile}>
-                    <Input id="cc-mobile" type="tel" inputMode="numeric" maxLength={10} value={form.mobile} invalid={Boolean(errors.mobile)} onChange={(e) => set({ mobile: e.target.value.replace(/\D/g, "") })} />
-                  </FormField>
-                  <FormField id="cc-birth" label={`${catalogue.defaults.individual ? t("birthDate") : t("incorporatedOn")} (${t("optional")})`} hint={t("birthHint")} error={errors.birthDate}>
-                    <Input id="cc-birth" type="date" value={form.birthDate} invalid={Boolean(errors.birthDate)} onChange={(e) => set({ birthDate: e.target.value })} />
-                  </FormField>
-                </div>
+                  <div className="mt-3 grid gap-4 @2xl/checks:grid-cols-3">
+                    <FormField id="cc-pan" label={`${t("pan")} (${t("optional")})`} hint={catalogue.defaults.panOnFile ? t("onFile", { value: catalogue.defaults.panOnFile }) : undefined} error={errors.pan}>
+                      <Input id="cc-pan" value={form.pan} maxLength={10} className="font-mono uppercase" invalid={Boolean(errors.pan)} onChange={(e) => set({ pan: e.target.value.toUpperCase() })} />
+                    </FormField>
+                    <FormField id="cc-mobile" label={`${t("mobile")} (${t("optional")})`} hint={catalogue.defaults.mobileOnFile ? t("onFile", { value: catalogue.defaults.mobileOnFile }) : undefined} error={errors.mobile}>
+                      <Input id="cc-mobile" type="tel" inputMode="numeric" maxLength={10} value={form.mobile} invalid={Boolean(errors.mobile)} onChange={(e) => set({ mobile: e.target.value.replace(/\D/g, "") })} />
+                    </FormField>
+                    <FormField id="cc-birth" label={`${catalogue.defaults.individual ? t("birthDate") : t("incorporatedOn")} (${t("optional")})`} hint={t("birthHint")} error={errors.birthDate}>
+                      <Input id="cc-birth" type="date" value={form.birthDate} invalid={Boolean(errors.birthDate)} onChange={(e) => set({ birthDate: e.target.value })} />
+                    </FormField>
+                  </div>
                 </details>
-              </CardBody>
-            </Card>
-
-            <Card>
-              <CardHeader
-                title={t("checksTitle")}
-                action={
-                  <button type="button" onClick={() => setPicked(Object.fromEntries(available.map((c) => [c.code, true])))} className="text-[13px] font-semibold text-primary-text hover:underline">
-                    {t("pickAll")}
-                  </button>
-                }
-              />
-              <CardBody className="grid gap-2.5 @xl/checks:grid-cols-3">
-                {catalogue.checks.map((c) => {
-                  const off = Boolean(c.disabled) || (c.code === "CC_FIR" && firOff);
-                  const on = Boolean(picked[c.code]) && !off;
-                  const Icon = c.code === "CC_FIR" ? Siren : c.code === "CC_AML" ? ShieldAlert : Gavel;
-                  return (
-                    <label
-                      key={c.code}
-                      title={c.code === "CC_FIR" ? (firOff ? t("firNotCovered") : t("firCovered", { states: FIR_STATES.map((st) => GST_STATES[st]).join(", ") })) : t(`desc.${c.code}`)}
-                      className={cn(
-                        "relative flex cursor-pointer flex-col gap-2 rounded-2xl border p-3.5 transition-[border-color,background-color,box-shadow,scale] duration-150 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring active:scale-[0.98]",
-                        off ? "cursor-not-allowed border-dashed border-border bg-surface-muted opacity-60" : on ? "border-primary/60 bg-primary-softer shadow-[0_0_0_3px_var(--primary-soft)]" : "border-border bg-surface hover:border-border-strong",
-                      )}
-                    >
-                      <input
-                        type="checkbox"
-                        className="absolute inset-0 size-full cursor-pointer appearance-none rounded-[inherit] opacity-0 z-10"
-                        checked={on}
-                        disabled={off}
-                        onChange={(e) => setPicked((p) => ({ ...p, [c.code]: e.target.checked }))}
-                        aria-label={c.name}
-                        aria-describedby={`${c.code}-desc`}
-                      />
-                      <span className="flex items-center justify-between gap-2">
-                        <span className={cn("flex size-9 items-center justify-center rounded-xl transition-colors", on ? "bg-brand text-white" : "bg-soft text-primary-text")} aria-hidden="true">
-                          {on ? <Check size={17} strokeWidth={3} /> : <Icon size={17} />}
-                        </span>
-                        <span className={cn("text-[13px] font-bold tabular-nums", on ? "text-primary-text" : "text-text-2")}>{c.pricePaise === null ? t("priceNotSet") : inr(c.pricePaise)}</span>
-                      </span>
-                      <span className="text-sm font-bold text-text">{c.name}</span>
-                      <span id={`${c.code}-desc`} className="text-xs leading-snug text-muted">{t(`descShort.${c.code}`)}</span>
-                      {c.code === "CC_FIR" ? (
-                        <span className={cn("text-[11.5px]", firOff ? "font-semibold text-warning-fg" : "text-subtle")}>
-                          {firOff ? t("firNotCoveredShort") : t("firCovered", { states: FIR_STATES.map((st) => GST_STATES[st]).join(", ") })}
-                        </span>
-                      ) : null}
-                    </label>
-                  );
-                })}
               </CardBody>
             </Card>
           </fieldset>
 
-          <aside className="lg:sticky lg:top-[4.5rem] lg:self-start">
-            <Card>
-              <CardHeader title={t("costTitle")} />
+          <aside className="space-y-3 lg:sticky lg:top-[5rem] lg:self-start">
+            <Card className="overflow-hidden">
+              <div className="bg-soft px-4 py-4 sm:px-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[1.2px] text-subtle">{t("total")}</p>
+                <p className="mt-1 font-head text-[2rem] font-extrabold leading-none tracking-tight text-gradient">{inr(cost.total)}</p>
+                <p className="mt-1.5 text-xs text-muted">{selected.length ? tc("totalLine", { count: selected.length, gst: inr(cost.gst) }) : t("costEmpty")}</p>
+              </div>
               <CardBody className="space-y-3 text-sm">
                 {selected.length ? (
-                  <ul className="space-y-1.5 text-xs">
-                    {selected.map((code) => {
-                      const c = catalogue.checks.find((x) => x.code === code)!;
-                      return (
-                        <li key={code} className="flex justify-between gap-3">
-                          <span className="text-text-2">{c.name}</span>
-                          <span className="shrink-0 font-medium tabular-nums text-text">{inr(c.pricePaise ?? 0)}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-muted">{t("costEmpty")}</p>
-                )}
-                <dl className="space-y-1 border-t border-border pt-3 text-xs">
-                  <div className="flex justify-between"><dt className="text-muted">{t("beforeGst")}</dt><dd className="tabular-nums">{inr(cost.price)}</dd></div>
-                  <div className="flex justify-between"><dt className="text-muted">{t("gst")}</dt><dd className="tabular-nums">{inr(cost.gst)}</dd></div>
-                  <div className="flex items-baseline justify-between pt-1"><dt className="text-sm font-medium text-text">{t("total")}</dt><dd className="text-lg font-semibold tabular-nums text-text">{inr(cost.total)}</dd></div>
-                </dl>
-                <p className="text-xs text-muted">{t("chargeNote")}</p>
+                  <details className="group text-xs">
+                    <summary className="flex cursor-pointer list-none items-center justify-between font-semibold text-text-2">
+                      {tc("seeBreakup")} <ChevronDown size={14} className="transition-transform group-open:rotate-180" aria-hidden="true" />
+                    </summary>
+                    <ul className="mt-2 space-y-1.5">
+                      {selected.map((code) => {
+                        const c = catalogue.checks.find((x) => x.code === code)!;
+                        return (
+                          <li key={code} className="flex justify-between gap-3">
+                            <span className="text-muted">{c.name}</span>
+                            <span className="shrink-0 font-semibold tabular-nums text-text">{inr(c.pricePaise ?? 0)}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </details>
+                ) : null}
+                <p className="text-[11.5px] text-subtle">{t("chargeNoteShort")}</p>
                 {quote && !pending ? <CostSummary quote={quote} /> : null}
-                {quote?.sample && !pending ? <p className="rounded-lg bg-warning-bg px-3 py-2 text-xs font-medium text-warning-fg">{tc("sampleNote")}</p> : null}
+                {quote?.sample && !pending ? <p className="rounded-xl bg-warning-bg px-3 py-2 text-xs font-semibold text-warning-fg">{tc("sampleNote")}</p> : null}
                 {quote && !quote.enough && !pending ? (
-                  <p role="alert" className="rounded-lg bg-danger-bg px-3 py-2 text-xs font-medium text-danger-fg">
+                  <p role="alert" className="rounded-xl bg-danger-bg px-3 py-2 text-xs font-semibold text-danger-fg">
                     {tc("shortfall", { amount: inr(quote.walletPaise - quote.walletBeforePaise) })}{" "}
                     <Link href="/account/billing?topup=1" className="underline underline-offset-2">{t("addMoney")}</Link>
                   </p>
@@ -352,20 +404,42 @@ export function CaseCheck({ buyers: saved, initialBuyer }: { buyers: CompanyOpti
                   </div>
                 ) : (
                   <>
-                    <Button className="w-full" disabled={!selected.length || Boolean(quote && !quote.enough)} loading={busy} onClick={() => void runSearch()}>
-                      {selected.length ? tc("runSearchAmount", { amount: inr(cost.total) }) : tc("runSearch")}
+                    <Button className="h-12 w-full text-[15px]" disabled={!selected.length || Boolean(quote && !quote.enough)} loading={busy} onClick={() => void runSearch()}>
+                      <Play aria-hidden="true" /> {selected.length ? tc("runSearchAmount", { amount: inr(cost.total) }) : tc("runSearch")}
                     </Button>
-                    <p className="text-center text-[11px] leading-snug text-subtle">{t("timeNote")}</p>
+                    <p className="text-center text-[11.5px] text-subtle">{t("timeNoteShort")}</p>
                   </>
                 )}
               </CardBody>
             </Card>
+            <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+              <p className="text-[11px] font-semibold uppercase tracking-[1.2px] text-subtle">{t("resultWillHave")}</p>
+              <ul className="mt-3 space-y-1.5 text-xs">
+                {catalogue.checks.map((c) => {
+                  const on = selected.includes(c.code as CcCode);
+                  return (
+                    <li key={c.code} className={cn("flex items-center gap-2", on ? "text-text" : "text-subtle")}>
+                      {on ? <Check size={13} className="text-success-fg" aria-hidden="true" /> : <Minus size={13} aria-hidden="true" />}
+                      {c.name}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           </aside>
           {!pending ? (
             <MobileCostBar total={inr(cost.total)} count={selected.length} label={tc("runSearch")} disabled={!selected.length || Boolean(quote && !quote.enough)} loading={busy} onClick={() => void runSearch()} />
           ) : null}
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
+
+type CasePackage = "court" | "standard" | "complete";
+/** One-tap searches: court cases only; court plus watchlists; all three. */
+const CASE_PACKAGES: Record<CasePackage, CcCode[]> = {
+  court: ["CC_COURT"],
+  standard: ["CC_COURT", "CC_AML"],
+  complete: ["CC_COURT", "CC_FIR", "CC_AML"],
+};

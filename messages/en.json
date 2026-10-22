@@ -1698,7 +1698,10 @@
         "moreTitle": "More checks you can add",
         "moreLead": "Not ticked for this report. Each preview below uses example data."
       },
-      "carousel": "Example report sections"
+      "carousel": "Example report sections",
+      "see": "See example",
+      "hide": "Hide example",
+      "tryIt": "Try it. Made-up data, nothing is saved."
     },
     "progressDone": "All checks finished",
     "progressCount": "{done} of {total} checks done",
@@ -1925,15 +1928,18 @@
       "checks": {
         "court": {
           "title": "Court cases",
-          "body": "Cheque bounce, recovery suits, next hearing."
+          "body": "Cheque bounce, recovery suits, next hearing.",
+          "tag": "Most searched"
         },
         "fir": {
           "title": "Police FIRs",
-          "body": "Police FIRs in covered states."
+          "body": "Police FIRs in covered states.",
+          "tag": "Covered states only"
         },
         "aml": {
           "title": "Money laundering and watchlists",
-          "body": "Indian and global sanctions lists."
+          "body": "Indian and global sanctions lists.",
+          "tag": "Global lists"
         }
       },
       "stepN": "Step {n}",
@@ -1953,13 +1959,18 @@
       },
       "previewEyebrow": "Example result",
       "previewTitle": "Your result will look like this",
-      "previewLead": "Example cases, ranked by match strength.",
-      "checksLabel": "What Case Check covers"
+      "previewLead": "Example data. Matches ranked by how closely they fit.",
+      "checksLabel": "What Case Check covers",
+      "chip": "Case Check · court, police and watchlists",
+      "hero": "Check for cases, <accent>before you sign the deal</accent>",
+      "lead": "Court cases, police FIRs and sanctions lists in one search.",
+      "exampleWhere": "Bengaluru Urban, Karnataka · every case here is made up",
+      "tryButtons": "Try it: mark each match below. Nothing is saved."
     },
     "titleLead": "Case",
     "titleAccent": "Check",
-    "subtitleShort": "Court cases, FIRs and watchlists in one search.",
-    "searchLeadShort": "Filled from the buyer record. Edit if needed.",
+    "subtitleShort": "Pick a search, check the details, run.",
+    "searchLeadShort": "Filled from the buyer record",
     "moreDetails": "More details (optional, better matches)",
     "pickAll": "Select all",
     "firNotCoveredShort": "Not available for this state",
@@ -1967,7 +1978,53 @@
       "CC_COURT": "Cheque bounce, recovery and other cases.",
       "CC_FIR": "Police complaints filed against them.",
       "CC_AML": "Money laundering and sanctions lists."
-    }
+    },
+    "pickOwn": "Or pick your own",
+    "pkg": {
+      "title": "Choose a search",
+      "court": {
+        "name": "Court cases",
+        "line": "Cheque bounce, recovery and other cases."
+      },
+      "standard": {
+        "name": "Court + watchlists",
+        "line": "Adds money laundering and sanctions lists."
+      },
+      "complete": {
+        "name": "Everything",
+        "line": "Court, police FIRs and watchlists."
+      }
+    },
+    "short": {
+      "CC_COURT": "Court",
+      "CC_FIR": "FIR",
+      "CC_AML": "Watchlist"
+    },
+    "chargeNoteShort": "A search that finds nothing is still charged. A failed one is not.",
+    "timeNoteShort": "Takes up to 2 minutes. You can leave the page.",
+    "resultWillHave": "Your result will include",
+    "rankedNote": "Strongest match first",
+    "noRecordsShort": "Nothing matched the details given. That is a good sign, though not proof.",
+    "moreAboutCase": "Parties, acts and match score",
+    "stateShort": {
+      "ready": "Ready",
+      "queued": "Waiting",
+      "running": "Searching",
+      "success": "Done",
+      "no_data": "Nothing found",
+      "not_available": "Not available",
+      "too_many": "Too many",
+      "not_covered": "Not covered",
+      "cancelled": "Stopped",
+      "waiting_consent": "Waiting"
+    },
+    "mock": {
+      "title": "What a match looks like",
+      "note": "No real match here. Open the example to see and try the review buttons.",
+      "missingTitle": "Searches with nothing to show",
+      "missingNote": "This search had no data. Open the example to see what it would show."
+    },
+    "foundCount": "{count, plural, =0 {No matches} one {# possible match} other {# possible matches}}"
   },
   "transactions": {
     "newTitle": "New agreement",
