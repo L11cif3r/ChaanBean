@@ -447,7 +447,7 @@ function Section({
                 <span className="mt-1 block text-subtle">{tg(`${kind}Note`)}</span>
               </>
             }
-            action={rest.some((i) => i.status === "ready") && canRun && !runQuote ? <div className="flex flex-wrap justify-center gap-2">{rest.map(runButton)}</div> : null}
+            action={rest.some((i) => i.status === "ready") && canRun && !runQuote ? <div className="flex flex-wrap justify-center gap-2">{rest.map((i) => <span key={i.code}>{runButton(i)}</span>)}</div> : null}
           />
         ) : null}
         {children}

@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3400",
-    "build": "next build",
-    "start": "next start --port 3400",
+    "dev": "node api.js && next dev --port 3400",
+    "build": "node api.js && next build",
+    "start": "node api.js && next start --port 3400",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
